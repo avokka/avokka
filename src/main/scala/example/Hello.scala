@@ -72,20 +72,21 @@ object Hello {
         VChunk.encoder.encode(chunk).require.toByteArray
       }
       .map(ByteString(_))
-      .prepend(Source.single(ByteString("VST/1.1\r\n\r\n")))
+      .prepend(Source.single(ByteString("VST/1.0\r\n\r\n")))
       .wireTap { bs => println(bs) }
 
     val out = Flow[ByteString]
       .wireTap { bs => println(bs) }
       .via(Framing.lengthField(fieldLength = 4, maximumFrameLength = Int.MaxValue / 2))
       .map { bs =>
+        println(bs)
         VChunk.encoder.decodeValue(BitVector(bs))
       }
 
     val r = vpack.serialize(Array(1, 1, None, 1, "/_api/version"))
     val chunk = VChunk(
       24 + r.getByteSize,
-      1,
+      3,
       1,
       r.getByteSize,
       ByteVector(r.getBuffer)

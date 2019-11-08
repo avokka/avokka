@@ -58,15 +58,6 @@ case object VPackTrue extends VPackBoolean {
 object VPackValue {
   implicit val codec: Codec[VPackValue] = lazily { Codec.coproduct[VPackValue].choice }
 
-  val encoder: Encoder[VPackValue] = (byte >>~ { b =>
-    b match {
-      case VPackFalse.byte => VPackFalse.codec
-    }
-  }).xmap(_._2, _ match {
-    case string: VPackString => (0xbf, string)
-    case VPackNull =>
-    case boolean: VPackBoolean =>
-  })
 }
 
 /*

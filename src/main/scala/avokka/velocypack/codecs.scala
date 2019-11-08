@@ -15,6 +15,17 @@ object codecs {
     )
   }
 
+  def bytesRequire(value: Long): Int = {
+    if      (value > 0xffffffffffffffL) 8
+    else if (value > 0xffffffffffffL) 7
+    else if (value > 0xffffffffffL) 6
+    else if (value > 0xffffffffL) 5
+    else if (value > 0xffffffL) 4
+    else if (value > 0xffffL) 3
+    else if (value > 0xffL) 2
+    else 1
+  }
+
   def main(args: Array[String]): Unit = {
     val r40 = between(uint8L, 0x40, 0x45)
 

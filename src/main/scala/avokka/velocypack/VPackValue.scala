@@ -6,8 +6,14 @@ import avokka.velocypack.codecs.between
 import scodec._
 import scodec.bits._
 import scodec.codecs._
+import spire.math.ULong
 
 sealed trait VPackValue {
+}
+
+case object VPackNone extends VPackValue {
+  val byte = hex"00"
+  implicit val codec: Codec[VPackNone.type] = constant(byte) ~> provide(VPackNone)
 }
 
 case object VPackReserved1 extends VPackValue {
@@ -76,22 +82,52 @@ case object VPackMaxKey extends VPackValue {
   implicit val codec: Codec[VPackMaxKey.type] = constant(byte) ~> provide(VPackMaxKey)
 }
 
-/*
-case class VPackInt(value: Int) extends VPackValue
+case class VPackInt(value: Long) extends VPackValue {
+  def lengthSize: Int = codecs.bytesRequire(value)
+}
 
 object VPackInt {
   val byte = hex"20"
 
-//  val c1: Codec[Int] = { constant(hex"20") :: int8L }.dropUnits.as
-
   implicit val codec: Codec[VPackInt] = {
-    between(uint8L, 0x20, 0x27) >>~ (size => fixedSizeBytes(size + 1, utf8))
-    }.xmap[VPackInt](
-    s => VPackStringShort(s._2),
-    p => (p.value.length, p.value)
+    between(uint8L, 0x20, 0x27) >>~ (delta => longL((delta + 1) * 8))
+  }.xmap[VPackInt](
+    s => VPackInt(s._2),
+    p => (p.lengthSize - 1, p.value)
   )
 }
- */
+
+case class VPackUInt(value: ULong) extends VPackValue {
+  def lengthSize: Int = codecs.bytesRequire(value.toLong)
+}
+
+object VPackUInt {
+  val byte = hex"28"
+
+  implicit val codec: Codec[VPackUInt] = {
+    between(uint8L, 0x28, 0x2f) >>~ (delta => ulongL((delta + 1) * 8))
+    }.xmap[VPackUInt](
+    s => VPackUInt(ULong(s._2)),
+    p => (p.lengthSize - 1, p.value.toLong)
+  )
+}
+
+case class VPackSmallInt(value: Int) extends VPackValue {
+  require((-6 <= value) && (value <= 9))
+}
+
+object VPackSmallInt {
+  val byte = hex"30"
+
+  implicit val codec: Codec[VPackSmallInt] = {
+    between(uint8L, 0x30, 0x3f)
+  }.xmap[VPackSmallInt](
+    s => VPackSmallInt(if (s < 10) s else s - 16),
+    p => if (p.value >= 0) p.value else p.value + 16
+  )
+}
+
+
 
 sealed trait VPackString extends VPackValue {
   def value: String
@@ -108,7 +144,7 @@ object VPackStringShort {
   val byte = hex"40"
 
   implicit val codec: Codec[VPackStringShort] = {
-    between(uint8L, 0x40, 0xbe) >>~ (size => fixedSizeBytes(size, utf8))
+    between(uint8L, 0x40, 0xbe) >>~ (delta => fixedSizeBytes(delta, utf8))
   }.xmap[VPackStringShort](
     s => VPackStringShort(s._2),
     p => (p.value.length, p.value)
@@ -123,17 +159,7 @@ object VPackStringLong {
 }
 
 case class VPackBinary(value: ByteVector) extends VPackValue {
-  def lengthSize: Int = {
-    val length = value.size
-    if      (length > 0xffffffffffffffL) 8
-    else if (length > 0xffffffffffffL) 7
-    else if (length > 0xffffffffffL) 6
-    else if (length > 0xffffffffL) 5
-    else if (length > 0xffffffL) 4
-    else if (length > 0xffffL) 3
-    else if (length > 0xffL) 2
-    else 1
-  }
+  def lengthSize: Int = codecs.bytesRequire(value.size)
 }
 
 object VPackBinary {
@@ -153,7 +179,9 @@ object VPackValue {
 
   def main(args: Array[String]): Unit = {
     for {
-      e <- codec.encode(VPackBinary(hex"aabb"))
+      i <- -6 to 9
+    } for {
+      e <- codec.encode(VPackSmallInt(i))
       d <- codec.decode(e)
     } yield println(e, d)
   }

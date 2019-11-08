@@ -26,3 +26,5 @@ libraryDependencies ++=  Seq(
   "org.scodec" %% "scodec-bits" % "1.1.12",
   "org.scodec" %% "scodec-core" % "1.11.4"
 )
+
+libraryDependencies += "com.arangodb" % "arangodb-java-driver" % "6.4.1"

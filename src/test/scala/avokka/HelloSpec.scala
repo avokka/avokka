@@ -1,4 +1,4 @@
-package example
+package avokka
 
 import org.scalatest._
 

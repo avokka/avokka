@@ -16,9 +16,8 @@ object codecs {
   }
 
   def main(args: Array[String]): Unit = {
-    val r40 = {
-      between(uint8L, 0x40, 0x45)
-    }
+    val r40 = between(uint8L, 0x40, 0x45)
+
 
     println(r40.encode(0))
     println(r40.decode(hex"45".toBitVector))

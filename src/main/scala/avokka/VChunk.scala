@@ -13,17 +13,24 @@ case class VChunk
   data: ByteVector
 )
 {
-  def isFirst: Boolean = (chunkX & 0x1) == 1
+  def isFirst: Boolean = VChunk.isFirstChunk(chunkX)
   def chunk: Long = chunkX >> 1
 }
 
 object VChunk
 {
+  def apply(messageId: Long, data: ByteVector): VChunk = {
+    VChunk(data.size + 8 + 8 + 4 + 4, 3, messageId, data.size, data)
+  }
+
+  def isFirstChunk(chunkX: Long): Boolean = (chunkX & 0x1) == 1
+
   implicit val codec: Codec[VChunk] = {
-    ("length" | uint32L) ::
-    ("chunkX" | uint32L) ::
-    ("messageId" | int64L) ::
-    ("messageLength" | int64L) ::
-    ("data" | bytes)
+    ("length" | uint32L) >>:~ { length =>
+      ("chunkX" | uint32L) ::
+      ("messageId" | int64L) ::
+      ("messageLength" | int64L) ::
+      ("data" | fixedSizeBytes(length - 4 - 4 - 8 - 8, bytes))
+    }
   }.as[VChunk]
 }

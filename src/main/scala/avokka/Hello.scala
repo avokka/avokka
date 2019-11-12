@@ -46,16 +46,18 @@ object Hello {
         VChunk.codec.decodeValue(BitVector(bs)).require
       }
       .wireTap(println(_))
-      .map{ ch => new VPackSlice(ch.data.toArray)}
+      .map { ch => new VPackSlice(ch.data.toArray)}
       .wireTap(println(_))
       .map { vp =>
         vpack.deserialize[VResponse](vp, classOf[VResponse])
       }
 
-    val r = vpack.serialize(Array(1, 1, None, 1, "/_api/version"))
+    val r = vpack.serialize(Array(1, 1, "_system", 1, "/_api/version", new Object, new Object))
+    println(r.toString)
 //    val rSize = r.getByteSize
 //    val chunk = VChunk(1, ByteVector(r.getBuffer, r.getStart, rSize))
     val chunk = VChunk(1, ByteVector(r.getBuffer, r.getStart, r.getByteSize))
+    // val chunk2 = VChunk(2, ByteVector(r.getBuffer, r.getStart, r.getByteSize))
 
     val testInput = Source.single(chunk).concat(Source.maybe)
 

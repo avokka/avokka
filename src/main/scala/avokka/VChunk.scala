@@ -20,7 +20,13 @@ case class VChunk
 object VChunk
 {
   def apply(messageId: Long, data: ByteVector): VChunk = {
-    VChunk(data.size + 8 + 8 + 4 + 4, 3, messageId, data.size, data)
+    VChunk(
+      length = data.size + 8 + 8 + 4 + 4,
+      chunkX = 3,
+      messageId = messageId,
+      messageLength = data.size,
+      data = data
+    )
   }
 
   def isFirstChunk(chunkX: Long): Boolean = (chunkX & 0x1) == 1

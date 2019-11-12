@@ -27,9 +27,9 @@ object Hello {
     val in = Flow[VChunk]
       .wireTap(println(_))
       .map { chunk =>
-        ByteString(VChunk.codec.encode(chunk).require.toByteArray)
+        ByteString(VChunk.codec.encode(chunk).require.toByteBuffer)
       }
-      .wireTap(println(_))
+   //   .wireTap(println(_))
       //.map(ByteString(_))
       .prepend(Source.single(ByteString("VST/1.1\r\n\r\n")))
 
@@ -41,25 +41,30 @@ object Hello {
         byteOrder = ByteOrder.LITTLE_ENDIAN,
         computeFrameSize = (_, l) => l
       ))
-      .wireTap(println(_))
+//      .wireTap(println(_))
       .map { bs =>
         VChunk.codec.decodeValue(BitVector(bs)).require
       }
       .wireTap(println(_))
       .map { ch => new VPackSlice(ch.data.toArray)}
       .wireTap(println(_))
+      /*
       .map { vp =>
         vpack.deserialize[VResponse](vp, classOf[VResponse])
       }
+*/
+
+    val auth = vpack.serialize(Array(1, 1000, "plain", "root", "root"))
+    val chunkA = VChunk(1, ByteVector.view(auth.getBuffer, auth.getStart, auth.getByteSize))
 
     val r = vpack.serialize(Array(1, 1, "_system", 1, "/_api/version", new Object, new Object))
     println(r.toString)
 //    val rSize = r.getByteSize
 //    val chunk = VChunk(1, ByteVector(r.getBuffer, r.getStart, rSize))
-    val chunk = VChunk(1, ByteVector(r.getBuffer, r.getStart, r.getByteSize))
+    val chunk = VChunk(2, ByteVector.view(r.getBuffer, r.getStart, r.getByteSize))
     // val chunk2 = VChunk(2, ByteVector(r.getBuffer, r.getStart, r.getByteSize))
 
-    val testInput = Source.single(chunk).concat(Source.maybe)
+    val testInput = Source(List(chunkA, chunk))
 
     val gr: Future[Done] = testInput.via(in).via(connection).via(out)
       .runWith(Sink.foreach(bs => println("client received: " + bs)))

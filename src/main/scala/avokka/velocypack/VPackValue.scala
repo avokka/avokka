@@ -40,6 +40,10 @@ sealed trait VPackBoolean extends VPackValue {
   def value: Boolean
 }
 
+object VPackBoolean {
+  def apply(b: Boolean): VPackBoolean = if (b) VPackTrue else VPackFalse
+}
+
 case object VPackFalse extends VPackBoolean {
   val byte = hex"19"
   override val value = false

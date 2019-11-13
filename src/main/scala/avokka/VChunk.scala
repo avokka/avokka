@@ -36,7 +36,7 @@ object VChunk
       ("chunkX" | uint32L) ::
       ("messageId" | int64L) ::
       ("messageLength" | int64L) ::
-      ("data" | fixedSizeBytes(length - 4 - 4 - 8 - 8, bytes))
+      ("data" | bytes)
     }
   }.as[VChunk]
 }

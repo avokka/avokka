@@ -1,6 +1,7 @@
 package avokka
 
 import java.nio.ByteOrder
+import java.util.concurrent.atomic.AtomicLong
 
 import akka._
 import akka.actor._
@@ -12,6 +13,7 @@ import scodec.bits._
 
 import scala.concurrent._
 import scala.concurrent.duration._
+import scala.util.Random
 
 object Hello {
 
@@ -24,7 +26,13 @@ object Hello {
 
     val connection = Tcp().outgoingConnection("bak", 8529)
 
-    val in = Flow[VChunk]
+    val messageId = new AtomicLong()
+
+    val in = Flow[VPackSlice]
+      .wireTap(println(_))
+      .map { slice => ByteVector.view(slice.getBuffer, slice.getStart, slice.getByteSize) }
+      .wireTap(println(_))
+      .map { bytes => VChunk(messageId.incrementAndGet(), bytes)}
       .wireTap(println(_))
       .map { chunk =>
         ByteString(VChunk.codec.encode(chunk).require.toByteBuffer)
@@ -46,7 +54,8 @@ object Hello {
         VChunk.codec.decodeValue(BitVector(bs)).require
       }
       .wireTap(println(_))
-      .map { ch => new VPackSlice(ch.data.toArray)}
+      .map { chunk => VMessage(chunk.messageId, chunk.data)}
+      //.map { mes => new VPackSlice(ch.data.toArray)}
       .wireTap(println(_))
       /*
       .map { vp =>
@@ -55,19 +64,12 @@ object Hello {
 */
 
     val auth = vpack.serialize(Array(1, 1000, "plain", "root", "root"))
-    val chunkA = VChunk(1, ByteVector.view(auth.getBuffer, auth.getStart, auth.getByteSize))
+    val apiVersion = vpack.serialize(Array(1, 1, "_system", 1, "/_api/version", new Object, new Object))
 
-    val r = vpack.serialize(Array(1, 1, "_system", 1, "/_api/version", new Object, new Object))
-    println(r.toString)
-//    val rSize = r.getByteSize
-//    val chunk = VChunk(1, ByteVector(r.getBuffer, r.getStart, rSize))
-    val chunk = VChunk(2, ByteVector.view(r.getBuffer, r.getStart, r.getByteSize))
-    // val chunk2 = VChunk(2, ByteVector(r.getBuffer, r.getStart, r.getByteSize))
-
-    val testInput = Source(List(chunkA, chunk))
+    val testInput = Source(List(auth, apiVersion))
 
     val gr: Future[Done] = testInput.via(in).via(connection).via(out)
-      .runWith(Sink.foreach(bs => println("client received: " + bs)))
+      .runWith(Sink.ignore)
 
     Await.ready(gr, 10.seconds)
 

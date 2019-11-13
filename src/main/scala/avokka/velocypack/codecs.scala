@@ -1,5 +1,6 @@
 package avokka.velocypack
 
+import com.arangodb.velocypack.{VPack, VPackBuilder, VPackSlice}
 import scodec._
 import scodec.bits._
 import scodec.codecs._
@@ -33,5 +34,10 @@ object codecs {
     println(r40.encode(0))
     println(r40.decode(hex"45".toBitVector))
 
+  }
+
+  def vpackSerialize[T : VelocypackEncoder](t: T): VPackSlice = {
+    val builder = new VPackBuilder()
+    implicitly[VelocypackEncoder[T]].encode(builder, t).slice()
   }
 }

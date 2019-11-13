@@ -57,20 +57,16 @@ object codecs {
     override def encode(builder: VPackBuilder, t: Char): VPackBuilder = builder.add(t: java.lang.Character)
   }
 
-  implicit def velocypackSeqEncoder[T](implicit encoder: VelocypackEncoder[T]): VelocypackEncoder[Seq[T]] = new VelocypackEncoder[Seq[T]] {
-    override def encode(builder: VPackBuilder, t: Seq[T]): VPackBuilder = {
-      t.foldLeft(builder.add(ValueType.ARRAY)) {
-        (builder, element) => encoder.encode(builder, element)
-      }.close()
-    }
+  implicit def velocypackSeqEncoder[T](implicit encoder: VelocypackEncoder[T]): VelocypackEncoder[Seq[T]] = (builder: VPackBuilder, t: Seq[T]) => {
+    t.foldLeft(builder.add(ValueType.ARRAY)) {
+      (builder, element) => encoder.encode(builder, element)
+    }.close()
   }
 
-  implicit def velocypackMapEncoder[T](implicit encoder: VelocypackEncoder[T]): VelocypackEncoder[Map[String, T]] = new VelocypackEncoder[Map[String, T]] {
-    override def encode(builder: VPackBuilder, t: Map[String, T]): VPackBuilder = {
-      t.foldLeft(builder.add(ValueType.OBJECT)) {
-        case (builder, (key, value)) => builder.add(key, vpackSerialize(value)(encoder))
-      }.close()
-    }
+  implicit def velocypackMapEncoder[T](implicit encoder: VelocypackEncoder[T]): VelocypackEncoder[Map[String, T]] = (builder: VPackBuilder, t: Map[String, T]) => {
+    t.foldLeft(builder.add(ValueType.OBJECT)) {
+      case (builder, (key, value)) => builder.add(key, vpackSerialize(value)(encoder))
+    }.close()
   }
 
   def main(args: Array[String]): Unit = {
@@ -79,8 +75,8 @@ object codecs {
     println(r40.encode(0))
     println(r40.decode(hex"45".toBitVector))
 */
-    //val s = vpackSerialize(Seq(true, false, true))
-    val s = vpackSerialize(Map("a" -> true, "b" -> false))
+    val s = vpackSerialize(Seq(1,10))
+//    val s = vpackSerialize(Seq(Map("test" -> false), Map("a" -> true, "b" -> false)))
     println(s)
 
     val bs = ByteVector.view(s.getBuffer, s.getStart, s.getByteSize)

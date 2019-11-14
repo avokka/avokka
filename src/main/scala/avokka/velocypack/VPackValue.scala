@@ -3,6 +3,7 @@ package avokka.velocypack
 import java.time.Instant
 
 import avokka.velocypack.codecs.between
+import com.arangodb.velocypack.{VPack, VPackSlice}
 import scodec._
 import scodec.bits._
 import scodec.codecs._
@@ -42,6 +43,7 @@ sealed trait VPackBoolean extends VPackValue {
 
 object VPackBoolean {
   def apply(b: Boolean): VPackBoolean = if (b) VPackTrue else VPackFalse
+  implicit val codec: Codec[VPackBoolean] = lazily { Codec.coproduct[VPackBoolean].choice }
 }
 
 case object VPackFalse extends VPackBoolean {
@@ -87,33 +89,73 @@ case object VPackMaxKey extends VPackValue {
 }
 
 case class VPackInt(value: Long) extends VPackValue {
-  def lengthSize: Int = codecs.bytesRequire(value)
+  def lengthSize: Int = codecs.bytesRequire(value, true)
 }
 
 object VPackInt {
   val byte = hex"20"
 
-  implicit val codec: Codec[VPackInt] = {
+  val decoders: Decoder[VPackInt] = Decoder.choiceDecoder(
+    constant(hex"20") ~> longL(8),
+    constant(hex"21") ~> longL(16),
+    constant(hex"22") ~> longL(24),
+    constant(hex"23") ~> longL(32),
+    constant(hex"24") ~> longL(40),
+    constant(hex"25") ~> longL(48),
+    constant(hex"26") ~> longL(56),
+    constant(hex"27") ~> longL(64),
+  ).map(VPackInt.apply)
+
+  val encoder: Encoder[VPackInt] = Encoder { i =>
+    val len = i.lengthSize
+    (constant(0x1f + len) ~> longL(len * 8)).encode(i.value)
+  }
+
+  implicit val codec: Codec[VPackInt] = Codec(encoder, decoders)
+
+  /*
+  val codecOld: Codec[VPackInt] = {
     between(uint8L, 0x20, 0x27) >>~ (delta => longL((delta + 1) * 8))
   }.xmap[VPackInt](
     s => VPackInt(s._2),
     p => (p.lengthSize - 1, p.value)
   )
+   */
 }
 
 case class VPackUInt(value: ULong) extends VPackValue {
-  def lengthSize: Int = codecs.bytesRequire(value.toLong)
+  def lengthSize: Int = codecs.bytesRequire(value.toLong, false)
 }
 
 object VPackUInt {
   val byte = hex"28"
 
+  val decoders: Decoder[VPackUInt] = Decoder.choiceDecoder(
+    constant(hex"28") ~> ulongL(8),
+    constant(hex"29") ~> ulongL(16),
+    constant(hex"2a") ~> ulongL(24),
+    constant(hex"2b") ~> ulongL(32),
+    constant(hex"2c") ~> ulongL(40),
+    constant(hex"2d") ~> ulongL(48),
+    constant(hex"2e") ~> ulongL(56),
+    constant(hex"2f") ~> longL(64),
+  ).map(l => VPackUInt(ULong(l)))
+
+  val encoder: Encoder[VPackUInt] = Encoder { i =>
+    val len = i.lengthSize
+    (constant(0x27 + len) ~> ulongL(len * 8)).encode(i.value.toLong)
+  }
+
+  implicit val codec: Codec[VPackUInt] = Codec(encoder, decoders)
+
+  /*
   implicit val codec: Codec[VPackUInt] = {
     between(uint8L, 0x28, 0x2f) >>~ (delta => ulongL((delta + 1) * 8))
     }.xmap[VPackUInt](
     s => VPackUInt(ULong(s._2)),
     p => (p.lengthSize - 1, p.value.toLong)
   )
+   */
 }
 
 case class VPackSmallInt(value: Int) extends VPackValue {
@@ -163,7 +205,7 @@ object VPackStringLong {
 }
 
 case class VPackBinary(value: ByteVector) extends VPackValue {
-  def lengthSize: Int = codecs.bytesRequire(value.size)
+  def lengthSize: Int = codecs.bytesRequire(value.size, false)
 }
 
 object VPackBinary {
@@ -180,13 +222,21 @@ object VPackBinary {
 object VPackValue {
   implicit val codec: Codec[VPackValue] = lazily { Codec.coproduct[VPackValue].choice }
 
+  implicit val bool: Codec[Boolean] = VPackBoolean.codec.xmap(_.value, VPackBoolean.apply)
 
   def main(args: Array[String]): Unit = {
+    val e = VPackUInt.codec.encode(VPackUInt(ULong(255)))
+    println(e)
+
+    val vpack = new VPack.Builder().build()
+    println(vpack.deserialize(new VPackSlice(e.require.toByteArray), classOf[Int]))
+    /*
     for {
       i <- -6 to 9
     } for {
       e <- codec.encode(VPackSmallInt(i))
       d <- codec.decode(e)
     } yield println(e, d)
+     */
   }
 }

@@ -1,5 +1,6 @@
 package avokka.velocypack
 
+import com.arangodb.velocypack.internal.util.NumberUtil
 import com.arangodb.velocypack.{VPack, VPackBuilder, VPackSlice, ValueType}
 import scodec._
 import scodec.bits._
@@ -16,7 +17,15 @@ object codecs {
     )
   }
 
-  def bytesRequire(value: Long): Int = {
+  def bytesRequire(value: Long, signed: Boolean): Int = {
+    (1 to 8).find { bytes =>
+      val bits = bytes * 8
+      val max = (1L << (if (signed) bits - 1 else bits)) - 1
+      val min = if (signed) -(1L << (bits - 1)) else 0
+      min <= value && value <= max
+    }.getOrElse(0)
+
+    /*
     if      (value > 0xffffffffffffffL) 8
     else if (value > 0xffffffffffffL) 7
     else if (value > 0xffffffffffL) 6
@@ -25,6 +34,7 @@ object codecs {
     else if (value > 0xffffL) 3
     else if (value > 0xffL) 2
     else 1
+     */
   }
 
   def vpackSerialize[T : VelocypackEncoder](t: T): VPackSlice = {
@@ -75,12 +85,14 @@ object codecs {
     println(r40.encode(0))
     println(r40.decode(hex"45".toBitVector))
 */
-    val s = vpackSerialize(Seq(1,10))
+    val s = vpackSerialize(Seq("a","bc"))
 //    val s = vpackSerialize(Seq(Map("test" -> false), Map("a" -> true, "b" -> false)))
     println(s)
 
     val bs = ByteVector.view(s.getBuffer, s.getStart, s.getByteSize)
     println(bs)
+
+    println(NumberUtil.getVariableValueLength(3))
 
     // println(VPackValue.codec.decodeValue(bs.bits))
   }

@@ -29,3 +29,11 @@ libraryDependencies ++=  Seq(
 libraryDependencies += "org.typelevel" %% "spire" % "0.16.2"
 
 libraryDependencies += "com.arangodb" % "arangodb-java-driver" % "6.4.1"
+
+val circeVersion = "0.12.3"
+
+libraryDependencies ++= Seq(
+  "io.circe" %% "circe-core",
+  "io.circe" %% "circe-generic",
+  "io.circe" %% "circe-parser"
+).map(_ % circeVersion)

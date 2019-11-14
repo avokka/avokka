@@ -160,12 +160,33 @@ case class VPackSmallInt(value: Int) extends VPackValue {
 object VPackSmallInt {
   val byte = hex"30"
 
-  implicit val codec: Codec[VPackSmallInt] = {
+  val encoder: Encoder[Byte] = Encoder( _ match {
+    case 0 => Attempt.successful(hex"30".bits)
+    case 1 => Attempt.successful(hex"31".bits)
+    case 2 => Attempt.successful(hex"32".bits)
+    case 3 => Attempt.successful(hex"33".bits)
+    case 4 => Attempt.successful(hex"34".bits)
+    case 5 => Attempt.successful(hex"35".bits)
+    case 6 => Attempt.successful(hex"36".bits)
+    case 7 => Attempt.successful(hex"37".bits)
+    case 8 => Attempt.successful(hex"38".bits)
+    case 9 => Attempt.successful(hex"39".bits)
+    case -6 => Attempt.successful(hex"3a".bits)
+    case -5 => Attempt.successful(hex"3b".bits)
+    case -4 => Attempt.successful(hex"3c".bits)
+    case -3 => Attempt.successful(hex"3d".bits)
+    case -2 => Attempt.successful(hex"3e".bits)
+    case -1 => Attempt.successful(hex"3f".bits)
+    case _  => Attempt.failure(Err("not a vpack small int"))
+  })
+
+  val decoder: Decoder[VPackSmallInt] = {
     between(uint8L, 0x30, 0x3f)
-  }.xmap[VPackSmallInt](
-    s => VPackSmallInt(if (s < 10) s else s - 16),
-    p => if (p.value >= 0) p.value else p.value + 16
+  }.asDecoder.map[VPackSmallInt](
+    s => VPackSmallInt(if (s < 10) s else s - 16)
   )
+
+  implicit val codec: Codec[VPackSmallInt] = Codec(encoder.contramap[VPackSmallInt](_.value.toByte), decoder)
 }
 
 
@@ -220,7 +241,7 @@ object VPackValue {
   implicit val bool: Codec[Boolean] = VPackBoolean.codec.xmap(_.value, VPackBoolean.apply)
 
   def main(args: Array[String]): Unit = {
-    val e = codec.encode(VPackInt(255))
+    val e = codec.encode(VPackSmallInt(5))
     println(e)
 
     val vpack = new VPack.Builder().build()

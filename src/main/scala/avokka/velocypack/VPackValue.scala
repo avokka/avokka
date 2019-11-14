@@ -95,23 +95,18 @@ case class VPackInt(value: Long) extends VPackValue {
 object VPackInt {
   val byte = hex"20"
 
-  val decoders: Decoder[VPackInt] = Decoder.choiceDecoder(
-    constant(hex"20") ~> longL(8),
-    constant(hex"21") ~> longL(16),
-    constant(hex"22") ~> longL(24),
-    constant(hex"23") ~> longL(32),
-    constant(hex"24") ~> longL(40),
-    constant(hex"25") ~> longL(48),
-    constant(hex"26") ~> longL(56),
-    constant(hex"27") ~> longL(64),
-  ).map(VPackInt.apply)
-
   val encoder: Encoder[VPackInt] = Encoder { i =>
     val len = i.lengthSize
     (constant(0x1f + len) ~> longL(len * 8)).encode(i.value)
   }
 
-  implicit val codec: Codec[VPackInt] = Codec(encoder, decoders)
+  val decoders: Seq[Codec[Long]] = Range.inclusive(1, 8).map { len =>
+    constant(0x1f + len) ~> longL(len * 8)
+  }
+
+  val decoder: Decoder[VPackInt] = Decoder.choiceDecoder(decoders: _*).map(VPackInt.apply)
+
+  implicit val codec: Codec[VPackInt] = Codec(encoder, decoder)
 
   /*
   val codecOld: Codec[VPackInt] = {
@@ -225,7 +220,7 @@ object VPackValue {
   implicit val bool: Codec[Boolean] = VPackBoolean.codec.xmap(_.value, VPackBoolean.apply)
 
   def main(args: Array[String]): Unit = {
-    val e = VPackUInt.codec.encode(VPackUInt(ULong(255)))
+    val e = codec.encode(VPackInt(255))
     println(e)
 
     val vpack = new VPack.Builder().build()

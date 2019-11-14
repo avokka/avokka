@@ -24,17 +24,6 @@ object codecs {
       val min = if (signed) -(1L << (bits - 1)) else 0
       min <= value && value <= max
     }.getOrElse(0)
-
-    /*
-    if      (value > 0xffffffffffffffL) 8
-    else if (value > 0xffffffffffffL) 7
-    else if (value > 0xffffffffffL) 6
-    else if (value > 0xffffffffL) 5
-    else if (value > 0xffffffL) 4
-    else if (value > 0xffffL) 3
-    else if (value > 0xffL) 2
-    else 1
-     */
   }
 
   def vpackSerialize[T : VelocypackEncoder](t: T): VPackSlice = {

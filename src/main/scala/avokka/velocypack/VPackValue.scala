@@ -10,6 +10,7 @@ import scodec.codecs._
 import spire.math.ULong
 import cats._
 import cats.implicits._
+import shapeless.{::, HList, HNil}
 
 sealed trait VPackValue {
 }
@@ -64,7 +65,7 @@ case class VPackDouble(value: Double) extends VPackValue
 
 object VPackDouble {
   val byte = hex"1b"
-  implicit val codec: Codec[VPackDouble] = { constant(byte) :: doubleL }.dropUnits.as
+  implicit val codec: Codec[VPackDouble] = { constant(byte) ~> doubleL }.as
 }
 
 case class VPackInstant(value: Instant) extends VPackValue
@@ -72,7 +73,7 @@ case class VPackInstant(value: Instant) extends VPackValue
 object VPackInstant {
   val byte = hex"1c"
   val instantCodec: Codec[Instant] = int64L.xmap(Instant.ofEpochMilli,_.toEpochMilli)
-  implicit val codec: Codec[VPackInstant] = { constant(byte) :: instantCodec }.dropUnits.as
+  implicit val codec: Codec[VPackInstant] = { constant(byte) ~> instantCodec }.as
 }
 
 case object VPackExternal extends VPackValue {
@@ -161,6 +162,8 @@ sealed trait VPackString extends VPackValue {
 }
 
 object VPackString {
+  def apply(value: String): VPackString = if (value.length <= 126) VPackStringShort(value) else VPackStringLong(value)
+  implicit val codec: Codec[VPackString] = lazily { Codec.coproduct[VPackString].choice }
 }
 
 case class VPackStringShort(value: String) extends VPackString {
@@ -182,7 +185,7 @@ case class VPackStringLong(value: String) extends VPackString
 
 object VPackStringLong {
   val byte = hex"bf"
-  implicit val codec: Codec[VPackStringLong] = {constant(byte) :~>: utf8_32L}.as
+  implicit val codec: Codec[VPackStringLong] = { constant(byte) ~> variableSizeBytesLong(int64L, utf8) }.as
 }
 
 case class VPackBinary(value: ByteVector) extends VPackValue {
@@ -203,12 +206,24 @@ object VPackBinary {
 object VPackValue {
   implicit val codec: Codec[VPackValue] = lazily { Codec.coproduct[VPackValue].choice }
 
-  implicit val bool: Codec[Boolean] = VPackBoolean.codec.xmap(_.value, VPackBoolean.apply)
+  implicit val vpBool: Codec[Boolean] = VPackBoolean.codec.xmap(_.value, VPackBoolean.apply)
+  implicit val vpString: Codec[String] = VPackString.codec.xmap(_.value, VPackString.apply)
+
+// def vpArrayH[HT, H <: Codec[HT], T <: HList](head: H, tail: T)
+
+  val request: Codec[String :: String :: HNil] = VelocypackArrayEncoder(vpString :: vpString :: HNil)
 
   def main(args: Array[String]): Unit = {
 
     val vpack = new VPack.Builder().build()
 
+    for { i <- Seq("a", "ab", "") } for {
+      e <- vpString.encode(i)
+      ed <- codec.decode(e)
+      d = vpack.deserialize(new VPackSlice(e.toByteArray), classOf[String]): String
+    } yield println(e, i == d, ed, d)
+
+    /*
     for {
       i <- -6 to 9
     } for {
@@ -216,14 +231,6 @@ object VPackValue {
       ed <- codec.decode(e)
       d = vpack.deserialize(new VPackSlice(e.toByteArray), classOf[Int]): Int
     } yield println(e, ed, d)
-
-    /*
-    for {
-      i <- -6 to 9
-    } for {
-      e <- codec.encode(VPackSmallInt(i))
-      d <- codec.decode(e)
-    } yield println(e, d)
-     */
+*/
   }
 }

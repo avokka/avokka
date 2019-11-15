@@ -3,6 +3,9 @@ package avokka
 import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicLong
 
+import io.circe._
+import io.circe.syntax._
+
 import akka._
 import akka.actor._
 import akka.stream._
@@ -22,17 +25,13 @@ object Hello {
 
   def main(args: Array[String]): Unit = {
 
-    val vpack = new VPack.Builder().build()
-
     val connection = Tcp().outgoingConnection("bak", 8529)
-
-    val messageId = new AtomicLong()
 
     val in = Flow[VPackSlice]
       .wireTap(println(_))
       .map { slice => ByteVector.view(slice.getBuffer, slice.getStart, slice.getByteSize) }
       .wireTap(println(_))
-      .map { bytes => VChunk(messageId.incrementAndGet(), bytes)}
+      .map { bytes => VChunk(bytes) }
       .wireTap(println(_))
       .map { chunk =>
         ByteString(VChunk.codec.encode(chunk).require.toByteBuffer)
@@ -62,6 +61,8 @@ object Hello {
         vpack.deserialize[VResponse](vp, classOf[VResponse])
       }
 */
+
+    val vpack = new VPack.Builder().build()
 
     val auth = vpack.serialize(Array(1, 1000, "plain", "root", "root"))
     val apiVersion = vpack.serialize(Array(1, 1, "_system", 1, "/_api/version", new Object, new Object))

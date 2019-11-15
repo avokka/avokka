@@ -1,5 +1,7 @@
 package avokka
 
+import java.util.concurrent.atomic.AtomicLong
+
 import scodec._
 import scodec.bits._
 import scodec.codecs._
@@ -19,11 +21,13 @@ case class VChunk
 
 object VChunk
 {
-  def apply(messageId: Long, data: ByteVector): VChunk = {
+  val messageId = new AtomicLong()
+
+  def apply(data: ByteVector): VChunk = {
     VChunk(
       length = data.size + 8 + 8 + 4 + 4,
       chunkX = 3,
-      messageId = messageId,
+      messageId = messageId.incrementAndGet(),
       messageLength = data.size,
       data = data
     )

@@ -8,6 +8,8 @@ import scodec._
 import scodec.bits._
 import scodec.codecs._
 import spire.math.ULong
+import cats._
+import cats.implicits._
 
 sealed trait VPackValue {
 }
@@ -160,6 +162,22 @@ case class VPackSmallInt(value: Int) extends VPackValue {
 object VPackSmallInt {
   val byte = hex"30"
 
+  /*
+  val m: Map[Byte, ByteVector] = Map(
+    (0: Byte) -> hex"30",
+    1 -> hex"31",
+  )
+
+  val me: Byte => Attempt[BitVector] = { a =>
+    m.get(a).fold(
+      Attempt.failure(Err("not a vpack small int"))
+    )(
+      b => Attempt.successful(b.bits)
+    )
+  }
+
+  val e: Encoder[Byte] = Encoder(me)
+*/
   val encoder: Encoder[Byte] = Encoder( _ match {
     case 0 => Attempt.successful(hex"30".bits)
     case 1 => Attempt.successful(hex"31".bits)

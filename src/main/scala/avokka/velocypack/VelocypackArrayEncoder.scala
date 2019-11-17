@@ -1,12 +1,10 @@
 package avokka.velocypack
 
 import scodec._
-import scodec.bits.{BitVector, ByteVector}
+import scodec.bits._
 import scodec.codecs._
-import shapeless.PolyDefns.~>>
-import shapeless.{::, HList, HNil, Poly2}
-import shapeless.UnaryTCConstraint.*->*
-import shapeless.ops.hlist.{Mapper, RightFolder}
+import shapeless.ops.hlist.{Comapped, ToTraversable, ZipWith}
+import shapeless.{HList, HNil, Poly2}
 
 trait VelocypackArrayEncoder[T] {
 
@@ -14,32 +12,30 @@ trait VelocypackArrayEncoder[T] {
 
 object VelocypackArrayEncoder {
 
-  val hnilCodec: Codec[HNil] = new Codec[HNil] {
-    override def sizeBound = SizeBound.exact(0)
-    override def encode(hn: HNil) = Attempt.successful(BitVector.empty)
-    override def decode(buffer: BitVector) = Attempt.successful(DecodeResult(HNil, buffer))
-    override def toString = s"HNil"
+  object ApplyEncoder extends Poly2 {
+    implicit def valueAndCodec[A] = at[A, Codec[A]]((v: A, encoder: Codec[A]) =>
+      encoder.encode(v)
+    )
   }
 
-  def prepend[A, L <: HList](a: Codec[A], l: Codec[L]): Codec[A :: L] = new Codec[A :: L] {
-    override def sizeBound = a.sizeBound + l.sizeBound
-    override def encode(xs: A :: L) = Codec.encodeBoth(a, l)(xs.head, xs.tail)
-    override def decode(buffer: BitVector) = Codec.decodeBothCombine(a, l)(buffer) { _ :: _ }
-    override def toString = s"$a :: $l"
+  def apply[L <: HList, M <: HList, Z <: HList, TR](l: L)(
+    implicit m: Comapped.Aux[L, Codec, M],
+    zipW: ZipWith.Aux[M, L, ApplyEncoder.type, Z],
+    tr: ToTraversable.Aux[Z, List, TR]
+  ): Encoder[M] = new Encoder[M] {
+    override def sizeBound: SizeBound = SizeBound.unknown
+
+    override def encode(value: M): Attempt[BitVector] = {
+      println(value.zipWith(l)(ApplyEncoder).toList)
+      Attempt.successful(hex"10".bits)
+    }
   }
 
-  object PrependCodec extends Poly2 {
-    implicit def caseCodecAndCodecHList[A, L <: HList] = at[Codec[A], Codec[L]](prepend)
-  }
-/*
-  object a extends (Encoder ~>> ByteVector) {
-    override def apply[T](f: Encoder[T]): ByteVector = f
-  }
-*/
-  def apply[L <: HList : *->*[Codec]#λ, M <: HList](l: L)(
-    implicit folder: RightFolder.Aux[L, Codec[HNil], PrependCodec.type, Codec[M]],
-  ): Codec[M] = {
-    l.foldRight(hnilCodec)(PrependCodec)
-  }
+  case class Dat(i1: Int, i2: Int)
 
+  def main(args: Array[String]): Unit = {
+    val ca = apply(int8 :: int32 :: HNil).as[Dat]
+
+    ca.encode(Dat(1, 2))
+  }
 }

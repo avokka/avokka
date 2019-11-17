@@ -211,7 +211,7 @@ object VPackValue {
 
 // def vpArrayH[HT, H <: Codec[HT], T <: HList](head: H, tail: T)
 
-  val request: Codec[String :: String :: HNil] = VelocypackArrayEncoder(vpString :: vpString :: HNil)
+//  val request: Codec[String :: String :: HNil] = VelocypackArrayEncoder(vpString :: vpString :: HNil)
 
   def main(args: Array[String]): Unit = {
 

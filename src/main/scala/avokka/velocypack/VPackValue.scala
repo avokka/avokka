@@ -8,9 +8,6 @@ import scodec._
 import scodec.bits._
 import scodec.codecs._
 import spire.math.ULong
-import cats._
-import cats.implicits._
-import shapeless.{:+:, ::, CNil, HList, HNil, Sized}
 
 sealed trait VPackValue {
 }

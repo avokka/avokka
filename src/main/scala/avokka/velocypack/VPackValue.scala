@@ -10,7 +10,7 @@ import scodec.codecs._
 import spire.math.ULong
 import cats._
 import cats.implicits._
-import shapeless.{::, HList, HNil}
+import shapeless.{:+:, ::, CNil, HList, HNil, Sized}
 
 sealed trait VPackValue {
 }
@@ -47,6 +47,9 @@ sealed trait VPackBoolean extends VPackValue {
 object VPackBoolean {
   def apply(b: Boolean): VPackBoolean = if (b) VPackTrue else VPackFalse
   implicit val codec: Codec[VPackBoolean] = lazily { Codec.coproduct[VPackBoolean].choice }
+
+  val trueCodec: Codec[VPackBoolean] = provide(VPackTrue)
+  val falseCodec: Codec[VPackBoolean] = provide(VPackFalse)
 }
 
 case object VPackFalse extends VPackBoolean {

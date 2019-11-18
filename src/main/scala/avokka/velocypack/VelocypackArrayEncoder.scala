@@ -1,5 +1,6 @@
 package avokka.velocypack
 
+import cats.InvariantSemigroupal
 import scodec._
 import scodec.bits._
 import scodec.codecs._
@@ -13,13 +14,13 @@ trait VelocypackArrayEncoder[T] {
 object VelocypackArrayEncoder {
 
   object ApplyEncoder extends Poly2 {
-    implicit def valueAndCodec[A] = at[A, Codec[A]]((v: A, encoder: Codec[A]) =>
-      encoder.encode(v)
+    implicit def valueAndCodec[A] = at[A, Codec[A]]((value: A, encoder: Codec[A]) =>
+      encoder.encode(value)
     )
   }
 
-  def apply[L <: HList, M <: HList, Z <: HList, TR](l: L)(
-    implicit m: Comapped.Aux[L, Codec, M],
+  def apply[L <: HList, M <: HList, Z <: HList, TR](l: L)(implicit
+    m: Comapped.Aux[L, Codec, M],
     zipW: ZipWith.Aux[M, L, ApplyEncoder.type, Z],
     tr: ToTraversable.Aux[Z, List, TR]
   ): Encoder[M] = new Encoder[M] {
@@ -34,8 +35,11 @@ object VelocypackArrayEncoder {
   case class Dat(i1: Int, i2: Int)
 
   def main(args: Array[String]): Unit = {
-    val ca = apply(int8 :: int32 :: HNil).as[Dat]
-
+    val ea = int8 :: int32 :: HNil
+    val ca = apply(ea).as[Dat]
     ca.encode(Dat(1, 2))
+
+
+
   }
 }

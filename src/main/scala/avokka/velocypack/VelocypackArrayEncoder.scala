@@ -45,6 +45,23 @@ object VelocypackArrayEncoder {
     val ca = apply(ea).as[Dat]
     ca.encode(Dat(1, 2, 3))
 
+    trait folderLP extends Poly2 {
+      implicit def default[T, L <: HList] = at[T, L]((_, acc) => acc)
+    }
+    object folder extends folderLP {
+      implicit def some[T, L <: HList] = at[Some[T], L]((t, acc) => t.get :: acc)
+    }
+
+    trait filterLP extends Poly1 {
+      implicit def any[T] = at[T](_ => HNil)
+    }
+    object filter extends filterLP {
+      implicit def some[T] = at[Some[T]](_.get :: HNil)
+    }
+
+    val test: Option[Int] :: Option[Int] :: Option[Int] :: HNil = Some(1) :: None :: Some(2) :: HNil
+    val filtered = test.flatMap(filter)
+    println(filtered)
 
 
   }

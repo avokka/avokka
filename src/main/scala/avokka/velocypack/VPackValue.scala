@@ -205,7 +205,7 @@ object VPackBinary {
 }
 
 object VPackValue {
-  import VelocypackArrayEncoder.vpArray
+  import VelocypackArrayEncoder.{vpArray, vpArrayCompact}
 
   implicit val codec: Codec[VPackValue] = lazily { Codec.coproduct[VPackValue].choice }
 
@@ -216,9 +216,16 @@ object VPackValue {
 
   val requests = vpArray(request :: request :: HNil)
 
+  val compact = vpArrayCompact(vpBool :: vpBool :: HNil)
+
   def main(args: Array[String]): Unit = {
 
     val vpack = new VPack.Builder().build()
+
+    for {
+      e <- compact.encode(false :: true :: HNil)
+      p = new VPackSlice(e.toByteArray)
+    } yield println(e, p)
 
     for {
       e <- request.encode("" :: true :: HNil)

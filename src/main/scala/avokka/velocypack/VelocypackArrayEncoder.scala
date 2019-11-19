@@ -74,7 +74,8 @@ object VelocypackArrayEncoder {
             len <- lengthCodec.encode(headBytes + valuesBytes + lengthBytes * sizes.length)
             nr <- lengthCodec.encode(sizes.length)
             index <- Encoder.encodeSeq(lengthCodec)(indexTable)
-          } yield BitVector(0x06 + head) ++ len ++ nr ++ values ++ index
+          } yield if(head == 3) BitVector(0x06 + head) ++ len ++ values ++ index ++ nr
+                           else BitVector(0x06 + head) ++ len ++ nr ++ values ++ index
         }
       }
     }

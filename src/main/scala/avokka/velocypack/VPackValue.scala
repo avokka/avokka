@@ -214,24 +214,24 @@ object VPackValue {
 
   val request: Encoder[String :: Boolean :: HNil] = vpArray(vpString :: vpBool :: HNil)
 
-  val requests = vpArray(request :: request :: request :: HNil)
+  val requests = vpArray(request :: request :: HNil)
 
   def main(args: Array[String]): Unit = {
 
     val vpack = new VPack.Builder().build()
 
     for {
-      e <- request.encode("a" :: true :: HNil)
+      e <- request.encode("" :: true :: HNil)
       p = new VPackSlice(e.toByteArray)
     } yield println(e, p)
 
     for {
-      e <- requests.encode(("" :: true :: HNil) :: ("" :: false :: HNil) :: ("" :: true :: HNil) :: HNil)
+      e <- requests.encode(("a" :: true :: HNil) :: ("" :: false :: HNil) :: HNil)
       p = new VPackSlice(e.toByteArray)
     } yield println(e, p)
 
     for {
-      e <- requests.encode(("" :: true :: HNil) :: ("def" :: false :: HNil) :: ("ghijkl" :: true :: HNil) :: HNil)
+      e <- requests.encode(("abcdefghijklm" :: true :: HNil) :: ("nopqrstuvwxyz" :: false :: HNil) :: HNil)
       p = new VPackSlice(e.toByteArray)
     } yield println(e, p)
 

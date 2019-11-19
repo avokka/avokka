@@ -205,35 +205,39 @@ object VPackBinary {
 }
 
 object VPackValue {
+  import VelocypackArrayEncoder.vpArray
+
   implicit val codec: Codec[VPackValue] = lazily { Codec.coproduct[VPackValue].choice }
 
   implicit val vpBool: Codec[Boolean] = VPackBoolean.codec.xmap(_.value, VPackBoolean.apply)
   implicit val vpString: Codec[String] = VPackString.codec.xmap(_.value, VPackString.apply)
 
-  val request: Encoder[String :: Boolean :: HNil] = VelocypackArrayEncoder.encoder(vpString :: vpBool :: HNil)
+  val request: Encoder[String :: Boolean :: HNil] = vpArray(vpString :: vpBool :: HNil)
 
-  val requests = VelocypackArrayEncoder.encoder(request :: request :: HNil)
+  val requests = vpArray(request :: request :: request :: HNil)
 
   def main(args: Array[String]): Unit = {
 
     val vpack = new VPack.Builder().build()
 
     for {
-      e <- request.encode("" :: true :: HNil)
+      e <- request.encode("a" :: true :: HNil)
       p = new VPackSlice(e.toByteArray)
-  //    d = vpack.deserialize(p, classOf[Array[_]])
     } yield println(e, p)
 
     for {
-      e <- requests.encode(("" :: true :: HNil) :: ("a" :: false :: HNil) :: HNil)
+      e <- requests.encode(("" :: true :: HNil) :: ("" :: false :: HNil) :: ("" :: true :: HNil) :: HNil)
       p = new VPackSlice(e.toByteArray)
-      //    d = vpack.deserialize(p, classOf[Array[_]])
     } yield println(e, p)
 
     for {
-      e <- VelocypackArrayEncoder.encoder[HNil, HNil](HNil).encode(HNil)
+      e <- requests.encode(("" :: true :: HNil) :: ("def" :: false :: HNil) :: ("ghijkl" :: true :: HNil) :: HNil)
       p = new VPackSlice(e.toByteArray)
-      //    d = vpack.deserialize(p, classOf[Array[_]])
+    } yield println(e, p)
+
+    for {
+      e <- VelocypackArrayEncoder.vpArray[HNil, HNil](HNil).encode(HNil)
+      p = new VPackSlice(e.toByteArray)
     } yield println(e, p)
 
     /*

@@ -3,11 +3,12 @@ package avokka.velocypack
 import java.time.Instant
 
 import avokka.velocypack.codecs.between
+import com.arangodb.velocypack.internal.util.NumberUtil
 import com.arangodb.velocypack.{VPack, VPackSlice}
 import scodec._
 import scodec.bits._
 import scodec.codecs._
-import shapeless.{HNil, ::}
+import shapeless.{::, HNil}
 import spire.math.ULong
 
 sealed trait VPackValue {
@@ -223,9 +224,9 @@ object VPackValue {
     val vpack = new VPack.Builder().build()
 
     for {
-      e <- compact.encode("a" * 200 :: false :: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" :: true :: HNil)
+      e <- compact.encode("a" :: false :: "b" * 10 :: true :: HNil)
       p = new VPackSlice(e.toByteArray)
-    } yield println(e, e.take(256), p)
+    } yield println(e, p)
 
     for {
       e <- request.encode("" :: true :: HNil)

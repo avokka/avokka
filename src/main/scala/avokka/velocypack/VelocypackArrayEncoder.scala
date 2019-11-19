@@ -45,6 +45,12 @@ object VelocypackArrayEncoder {
     else                      (8, 3, longL(64))
   }
 
+  @scala.annotation.tailrec
+  def vLength(value: Long, acc: Long = 1): Long = {
+    if (value >= 0X80) vLength(value >> 7, acc + 1)
+    else acc
+  }
+
   def vpArrayCompact[E <: HList, A <: HList](encoders: E)(implicit ev: VelocypackArrayEncoder[E, A]): Encoder[A] = new Encoder[A] {
     override def encode(value: A): Attempt[BitVector] = {
       ev.encode(encoders, value).flatMap {
@@ -54,13 +60,12 @@ object VelocypackArrayEncoder {
         case (values, sizes) => {
           val valuesBytes = values.size / 8
           for {
-            nr <- vlongL.encode(sizes.length)
+            nr <- vlong.encode(sizes.length)
             lengthBase = 1 + valuesBytes + nr.size / 8
-            testL <- vlongL.encode(lengthBase)
-            lengthT = lengthBase + testL.size / 8
-            lenT <- vlongL.encode(lengthT)
-            len <- if (lenT.size == testL.size) Attempt.successful(lenT) else vlongL.encode(lengthT + 1)
-            _ = println(nr, testL, lenT, len)
+            lengthBaseL = vLength(lengthBase)
+            lengthT = lengthBase + lengthBaseL
+            lenL = vLength(lengthT)
+            len <- vlong.encode(if (lenL == lengthBaseL) lengthT else lengthT + 1)
           } yield hex"13".bits ++ len ++ values ++ nr.reverseByteOrder
         }
       }

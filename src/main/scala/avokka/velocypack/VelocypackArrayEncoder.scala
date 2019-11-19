@@ -60,6 +60,7 @@ object VelocypackArrayEncoder {
             lengthT = lengthBase + testL.size / 8
             lenT <- vlongL.encode(lengthT)
             len <- if (lenT.size == testL.size) Attempt.successful(lenT) else vlongL.encode(lengthT + 1)
+            _ = println(nr, testL, lenT, len)
           } yield hex"13".bits ++ len ++ values ++ nr.reverseByteOrder
         }
       }

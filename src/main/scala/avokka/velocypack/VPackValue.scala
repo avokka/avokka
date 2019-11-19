@@ -216,16 +216,16 @@ object VPackValue {
 
   val requests = vpArray(request :: request :: HNil)
 
-  val compact = vpArrayCompact(vpBool :: vpBool :: HNil)
+  val compact = vpArrayCompact(vpString :: vpBool :: vpString :: vpBool :: HNil)
 
   def main(args: Array[String]): Unit = {
 
     val vpack = new VPack.Builder().build()
 
     for {
-      e <- compact.encode(false :: true :: HNil)
+      e <- compact.encode("a" * 200 :: false :: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" :: true :: HNil)
       p = new VPackSlice(e.toByteArray)
-    } yield println(e, p)
+    } yield println(e, e.take(256), p)
 
     for {
       e <- request.encode("" :: true :: HNil)

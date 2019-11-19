@@ -212,6 +212,8 @@ object VPackValue {
 
   val request: Encoder[String :: Boolean :: HNil] = VelocypackArrayEncoder.encoder(vpString :: vpBool :: HNil)
 
+  val requests = VelocypackArrayEncoder.encoder(request :: request :: HNil)
+
   def main(args: Array[String]): Unit = {
 
     val vpack = new VPack.Builder().build()
@@ -221,7 +223,20 @@ object VPackValue {
       p = new VPackSlice(e.toByteArray)
   //    d = vpack.deserialize(p, classOf[Array[_]])
     } yield println(e, p)
-/*
+
+    for {
+      e <- requests.encode(("" :: true :: HNil) :: ("a" :: false :: HNil) :: HNil)
+      p = new VPackSlice(e.toByteArray)
+      //    d = vpack.deserialize(p, classOf[Array[_]])
+    } yield println(e, p)
+
+    for {
+      e <- VelocypackArrayEncoder.encoder[HNil, HNil](HNil).encode(HNil)
+      p = new VPackSlice(e.toByteArray)
+      //    d = vpack.deserialize(p, classOf[Array[_]])
+    } yield println(e, p)
+
+    /*
     for { i <- Seq("a", "ab", "") } for {
       e <- vpString.encode(i)
       ed <- codec.decode(e)

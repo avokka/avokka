@@ -7,6 +7,7 @@ import com.arangodb.velocypack.{VPack, VPackSlice}
 import scodec._
 import scodec.bits._
 import scodec.codecs._
+import shapeless.{HNil, ::}
 import spire.math.ULong
 
 sealed trait VPackValue {
@@ -209,20 +210,24 @@ object VPackValue {
   implicit val vpBool: Codec[Boolean] = VPackBoolean.codec.xmap(_.value, VPackBoolean.apply)
   implicit val vpString: Codec[String] = VPackString.codec.xmap(_.value, VPackString.apply)
 
-// def vpArrayH[HT, H <: Codec[HT], T <: HList](head: H, tail: T)
-
-//  val request: Codec[String :: String :: HNil] = VelocypackArrayEncoder(vpString :: vpString :: HNil)
+  val request: Encoder[String :: Boolean :: HNil] = VelocypackArrayEncoder.encoder(vpString :: vpBool :: HNil)
 
   def main(args: Array[String]): Unit = {
 
     val vpack = new VPack.Builder().build()
 
+    for {
+      e <- request.encode("" :: true :: HNil)
+      p = new VPackSlice(e.toByteArray)
+  //    d = vpack.deserialize(p, classOf[Array[_]])
+    } yield println(e, p)
+/*
     for { i <- Seq("a", "ab", "") } for {
       e <- vpString.encode(i)
       ed <- codec.decode(e)
       d = vpack.deserialize(new VPackSlice(e.toByteArray), classOf[String]): String
     } yield println(e, i == d, ed, d)
-
+*/
     /*
     for {
       i <- -6 to 9

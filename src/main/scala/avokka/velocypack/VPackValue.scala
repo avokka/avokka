@@ -3,7 +3,6 @@ package avokka.velocypack
 import java.time.Instant
 
 import avokka.velocypack.codecs.between
-import com.arangodb.velocypack.internal.util.NumberUtil
 import com.arangodb.velocypack.{VPack, VPackSlice}
 import scodec._
 import scodec.bits._
@@ -229,9 +228,9 @@ object VPackValue {
     } yield println(e, p)
 
     for {
-      e <- request.encode("" :: true :: HNil)
+      e <- request.encode("a" * 200 :: true :: HNil)
       p = new VPackSlice(e.toByteArray)
-    } yield println(e, p)
+    } yield println(e, e.take(100), p)
 
     for {
       e <- requests.encode(("a" :: true :: HNil) :: ("" :: false :: HNil) :: HNil)

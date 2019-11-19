@@ -17,8 +17,8 @@ object codecs {
     )
   }
 
-  def bytesRequire(value: Long, signed: Boolean): Int = {
-    (1 to 8).find { bytes =>
+  def bytesRequire(value: Long, signed: Boolean, range: Seq[Int] = 1 to 8): Int = {
+    range.find { bytes =>
       val bits = bytes * 8
       val max = (1L << (if (signed) bits - 1 else bits)) - 1
       val min = if (signed) -(1L << (bits - 1)) else 0

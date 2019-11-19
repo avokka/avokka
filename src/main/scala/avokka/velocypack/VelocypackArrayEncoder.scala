@@ -39,10 +39,12 @@ object VelocypackArrayEncoder {
   }
 
   def lengthUtils(l: Long): (Int, Int, Codec[Long]) = {
-    if (l.isValidByte)        (1, 0, ulongL(8))
-    else if (l.isValidShort)  (2, 1, ulongL(16))
-    else if (l.isValidInt)    (4, 2, ulongL(32))
-    else                      (8, 3, longL(64))
+    codecs.bytesRequire(l, false, Seq(1,2,4)) match {
+      case 1 => (1, 0, ulongL(8))
+      case 2 => (2, 1, ulongL(16))
+      case 4 => (4, 2, ulongL(32))
+      case _ => (8, 3, longL(64))
+    }
   }
 
   def vpArray[E <: HList, A <: HList](encoders: E)(implicit ev: VelocypackArrayEncoder[E, A]): Encoder[A] = new Encoder[A] {
@@ -113,6 +115,8 @@ object VelocypackArrayEncoder {
   case class Dat(i1: Int, i2: Int, i3: Int)
 
   def main(args: Array[String]): Unit = {
+
+    println(lengthUtils(256))
 
     val codec: Encoder[Dat] = vpArrayCompact(int8L :: int8L :: int8L :: HNil).as
     val arg = Dat(1,2,3)

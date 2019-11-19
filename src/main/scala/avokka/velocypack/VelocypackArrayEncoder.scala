@@ -45,34 +45,6 @@ object VelocypackArrayEncoder {
     else                      (8, 3, longL(64))
   }
 
-  @scala.annotation.tailrec
-  def vLength(value: Long, acc: Long = 1): Long = {
-    if (value >= 0X80) vLength(value >> 7, acc + 1)
-    else acc
-  }
-
-  def vpArrayCompact[E <: HList, A <: HList](encoders: E)(implicit ev: VelocypackArrayEncoder[E, A]): Encoder[A] = new Encoder[A] {
-    override def encode(value: A): Attempt[BitVector] = {
-      ev.encode(encoders, value).flatMap {
-        // empty array
-        case (_, Nil) => Attempt.successful(hex"01".bits)
-
-        case (values, sizes) => {
-          val valuesBytes = values.size / 8
-          for {
-            nr <- vlong.encode(sizes.length)
-            lengthBase = 1 + valuesBytes + nr.size / 8
-            lengthBaseL = vLength(lengthBase)
-            lengthT = lengthBase + lengthBaseL
-            lenL = vLength(lengthT)
-            len <- vlong.encode(if (lenL == lengthBaseL) lengthT else lengthT + 1)
-          } yield hex"13".bits ++ len ++ values ++ nr.reverseByteOrder
-        }
-      }
-    }
-    override def sizeBound: SizeBound = SizeBound.unknown
-  }
-
   def vpArray[E <: HList, A <: HList](encoders: E)(implicit ev: VelocypackArrayEncoder[E, A]): Encoder[A] = new Encoder[A] {
     override def encode(value: A): Attempt[BitVector] = {
       ev.encode(encoders, value).flatMap {
@@ -110,16 +82,39 @@ object VelocypackArrayEncoder {
     override def sizeBound: SizeBound = SizeBound.unknown
   }
 
+  @scala.annotation.tailrec
+  def vLength(value: Long, acc: Long = 1): Long = {
+    if (value >= 0X80) vLength(value >> 7, acc + 1)
+    else acc
+  }
+
+  def vpArrayCompact[E <: HList, A <: HList](encoders: E)(implicit ev: VelocypackArrayEncoder[E, A]): Encoder[A] = new Encoder[A] {
+    override def encode(value: A): Attempt[BitVector] = {
+      ev.encode(encoders, value).flatMap {
+        // empty array
+        case (_, Nil) => Attempt.successful(hex"01".bits)
+
+        case (values, sizes) => {
+          val valuesBytes = values.size / 8
+          for {
+            nr <- vlong.encode(sizes.length)
+            lengthBase = 1 + valuesBytes + nr.size / 8
+            lengthBaseL = vLength(lengthBase)
+            lengthT = lengthBase + lengthBaseL
+            lenL = vLength(lengthT)
+            len <- vlong.encode(if (lenL == lengthBaseL) lengthT else lengthT + 1)
+          } yield hex"13".bits ++ len ++ values ++ nr.reverseByteOrder
+        }
+      }
+    }
+    override def sizeBound: SizeBound = SizeBound.unknown
+  }
+
   case class Dat(i1: Int, i2: Int, i3: Int)
 
   def main(args: Array[String]): Unit = {
 
-    val sizes = Vector(12L,8,120)
-    println(offsets(sizes, 1))
-
-    println(AllSame.unapply(Vector(3,3,3)))
-
-    val codec: Encoder[Dat] = vpArray(int8L :: int8L :: int8L :: HNil).as
+    val codec: Encoder[Dat] = vpArrayCompact(int8L :: int8L :: int8L :: HNil).as
     val arg = Dat(1,2,3)
 
     println(codec.encode(arg))

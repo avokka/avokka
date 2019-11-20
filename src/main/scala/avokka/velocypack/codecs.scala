@@ -1,10 +1,7 @@
 package avokka.velocypack
 
-import com.arangodb.velocypack.internal.util.NumberUtil
-import com.arangodb.velocypack.{VPack, VPackBuilder, VPackSlice, ValueType}
+import com.arangodb.velocypack.{VPackBuilder, VPackSlice, ValueType}
 import scodec._
-import scodec.bits._
-import scodec.codecs._
 
 object codecs {
 
@@ -67,23 +64,4 @@ object codecs {
       case (builder, (key, value)) => builder.add(key, vpackSerialize(value)(encoder))
     }.close()
   }
-
-  def main(args: Array[String]): Unit = {
-    /*
-    val r40 = between(uint8L, 0x40, 0x45)
-    println(r40.encode(0))
-    println(r40.decode(hex"45".toBitVector))
-*/
-    val s = vpackSerialize(Seq("a","bc"))
-//    val s = vpackSerialize(Seq(Map("test" -> false), Map("a" -> true, "b" -> false)))
-    println(s)
-
-    val bs = ByteVector.view(s.getBuffer, s.getStart, s.getByteSize)
-    println(bs)
-
-    println(NumberUtil.getVariableValueLength(3))
-
-    // println(VPackValue.codec.decodeValue(bs.bits))
-  }
-
 }

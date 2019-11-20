@@ -1,5 +1,6 @@
 package avokka.velocypack
 
+import java.nio.charset.Charset
 import java.time.Instant
 
 import avokka.velocypack.codecs.between
@@ -97,7 +98,6 @@ case class VPackInt(value: Long) extends VPackValue {
 }
 
 object VPackInt {
-  val byte = hex"20"
 
   val encoder: Encoder[VPackInt] = Encoder { i =>
     val len = i.lengthSize
@@ -118,7 +118,6 @@ case class VPackUInt(value: ULong) extends VPackValue {
 }
 
 object VPackUInt {
-  val byte = hex"28"
 
   val decoders: Decoder[VPackUInt] = Decoder.choiceDecoder(
     constant(hex"28") ~> ulongL(8),
@@ -144,7 +143,6 @@ case class VPackSmallInt(value: Int) extends VPackValue {
 }
 
 object VPackSmallInt {
-  //val byte = hex"30"
 
   val encoder: Encoder[Int] = Encoder( b =>
     if (-6 <= b && b <= 9) Attempt.successful(BitVector(b + (if(b < 0) 0x40 else 0x30)))
@@ -163,22 +161,22 @@ sealed trait VPackString extends VPackValue {
 }
 
 object VPackString {
-  def apply(value: String): VPackString = if (value.length <= 126) VPackStringShort(value) else VPackStringLong(value)
+  val utf8: Charset = Charset.forName("UTF-8")
+
+  def apply(value: String): VPackString = if (value.getBytes(utf8).length <= 126) VPackStringShort(value) else VPackStringLong(value)
   implicit val codec: Codec[VPackString] = lazily { Codec.coproduct[VPackString].choice }
 }
 
 case class VPackStringShort(value: String) extends VPackString {
-  require(value.length <= 126, "VPackStringShort length must be <= 126")
+  require(value.getBytes(VPackString.utf8).length <= 126, "VPackStringShort length must be <= 126")
 }
 
 object VPackStringShort {
-  val byte = hex"40"
-
   implicit val codec: Codec[VPackStringShort] = {
     between(uint8L, 0x40, 0xbe) >>~ (delta => fixedSizeBytes(delta, utf8))
   }.xmap[VPackStringShort](
     s => VPackStringShort(s._2),
-    p => (p.value.length, p.value)
+    p => p.value.getBytes(VPackString.utf8).length -> p.value
   )
 }
 
@@ -205,63 +203,10 @@ object VPackBinary {
 }
 
 object VPackValue {
-  import VelocypackArrayEncoder.{vpArray, vpArrayCompact}
 
   implicit val codec: Codec[VPackValue] = lazily { Codec.coproduct[VPackValue].choice }
 
-  implicit val vpBool: Codec[Boolean] = VPackBoolean.codec.xmap(_.value, VPackBoolean.apply)
-  implicit val vpString: Codec[String] = VPackString.codec.xmap(_.value, VPackString.apply)
+  val vpBool: Codec[Boolean] = VPackBoolean.codec.xmap(_.value, VPackBoolean.apply)
+  val vpString: Codec[String] = VPackString.codec.xmap(_.value, VPackString.apply)
 
-  val request: Encoder[String :: Boolean :: HNil] = vpArray(vpString :: vpBool :: HNil)
-
-  val requests = vpArray(request :: request :: HNil)
-
-  val compact = vpArrayCompact(vpString :: vpBool :: vpString :: vpBool :: HNil)
-
-  def main(args: Array[String]): Unit = {
-
-    val vpack = new VPack.Builder().build()
-
-    for {
-      e <- compact.encode("a" :: false :: "b" * 10 :: true :: HNil)
-      p = new VPackSlice(e.toByteArray)
-    } yield println(e, p)
-
-    for {
-      e <- request.encode("a" * 200 :: true :: HNil)
-      p = new VPackSlice(e.toByteArray)
-    } yield println(e, e.take(100), p)
-
-    for {
-      e <- requests.encode(("a" :: true :: HNil) :: ("" :: false :: HNil) :: HNil)
-      p = new VPackSlice(e.toByteArray)
-    } yield println(e, p)
-
-    for {
-      e <- requests.encode(("abcdefghijklm" :: true :: HNil) :: ("nopqrstuvwxyz" :: false :: HNil) :: HNil)
-      p = new VPackSlice(e.toByteArray)
-    } yield println(e, p)
-
-    for {
-      e <- VelocypackArrayEncoder.vpArray[HNil, HNil](HNil).encode(HNil)
-      p = new VPackSlice(e.toByteArray)
-    } yield println(e, p)
-
-    /*
-    for { i <- Seq("a", "ab", "") } for {
-      e <- vpString.encode(i)
-      ed <- codec.decode(e)
-      d = vpack.deserialize(new VPackSlice(e.toByteArray), classOf[String]): String
-    } yield println(e, i == d, ed, d)
-*/
-    /*
-    for {
-      i <- -6 to 9
-    } for {
-      e <- VPackSmallInt.encoder.encode(i.toByte)
-      ed <- codec.decode(e)
-      d = vpack.deserialize(new VPackSlice(e.toByteArray), classOf[Int]): Int
-    } yield println(e, ed, d)
-*/
-  }
 }

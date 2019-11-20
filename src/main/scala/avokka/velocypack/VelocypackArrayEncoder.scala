@@ -11,7 +11,7 @@ trait VelocypackArrayEncoder[E <: HList, A <: HList] {
 
 object VelocypackArrayEncoder {
 
-  def apply[E <: HList, A <: HList](implicit encoders: VelocypackArrayEncoder[E, A]): VelocypackArrayEncoder[E, A] = encoders
+//  def apply[E <: HList, A <: HList](implicit encoders: VelocypackArrayEncoder[E, A]): VelocypackArrayEncoder[E, A] = encoders
 
   implicit object hnilEncoder extends VelocypackArrayEncoder[HNil, HNil] {
     override def encode(encoders: HNil, arguments: HNil): Attempt[(BitVector, Seq[Long])] = Attempt.successful((BitVector.empty, Vector.empty))
@@ -47,11 +47,13 @@ object VelocypackArrayEncoder {
     }
   }
 
+  private val emptyArrayResult = BitVector(0x01)
+
   def vpArray[E <: HList, A <: HList](encoders: E)(implicit ev: VelocypackArrayEncoder[E, A]): Encoder[A] = new Encoder[A] {
     override def encode(value: A): Attempt[BitVector] = {
       ev.encode(encoders, value).flatMap {
         // empty array
-        case (_, Nil) => Attempt.successful(hex"01".bits)
+        case (_, Nil) => Attempt.successful(emptyArrayResult)
 
         // all subvalues have the same size
         case (values, AllSame(_)) => {
@@ -94,7 +96,7 @@ object VelocypackArrayEncoder {
     override def encode(value: A): Attempt[BitVector] = {
       ev.encode(encoders, value).flatMap {
         // empty array
-        case (_, Nil) => Attempt.successful(hex"01".bits)
+        case (_, Nil) => Attempt.successful(emptyArrayResult)
 
         case (values, sizes) => {
           val valuesBytes = values.size / 8
@@ -105,22 +107,11 @@ object VelocypackArrayEncoder {
             lengthT = lengthBase + lengthBaseL
             lenL = vLength(lengthT)
             len <- vlong.encode(if (lenL == lengthBaseL) lengthT else lengthT + 1)
-          } yield hex"13".bits ++ len ++ values ++ nr.reverseByteOrder
+          } yield BitVector(0x13) ++ len ++ values ++ nr.reverseByteOrder
         }
       }
     }
     override def sizeBound: SizeBound = SizeBound.unknown
   }
 
-  case class Dat(i1: Int, i2: Int, i3: Int)
-
-  def main(args: Array[String]): Unit = {
-
-    println(lengthUtils(256))
-
-    val codec: Encoder[Dat] = vpArrayCompact(int8L :: int8L :: int8L :: HNil).as
-    val arg = Dat(1,2,3)
-
-    println(codec.encode(arg))
-  }
 }

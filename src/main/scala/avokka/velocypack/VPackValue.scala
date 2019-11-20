@@ -36,24 +36,20 @@ object VPackBoolean {
   val codec: Codec[Boolean] = uint8L.narrow({
     case 0x19 => Attempt.successful(false)
     case 0x1a => Attempt.successful(true)
-    case _    => Attempt.failure(Err("not bool"))
-  }, v => if (v) 0x1a else 0x19)
+    case h    => Attempt.failure(Err(s"not a vpack boolean ${h}"))
+  }, {
+    case false => 0x19
+    case true  => 0x1a
+  })
 
 }
-
-case class VPackDouble(value: Double) extends VPackValue
 
 object VPackDouble {
-  val byte = hex"1b"
-  implicit val codec: Codec[VPackDouble] = { constant(byte) ~> doubleL }.as
+  val codec: Codec[Double] = constant(0x1b) ~> doubleL
 }
 
-case class VPackInstant(value: Instant) extends VPackValue
-
 object VPackInstant {
-  val byte = hex"1c"
-  val instantCodec: Codec[Instant] = int64L.xmap(Instant.ofEpochMilli,_.toEpochMilli)
-  implicit val codec: Codec[VPackInstant] = { constant(byte) ~> instantCodec }.as
+  val codec: Codec[Instant] = constant(0x1c) ~> int64L.xmap(Instant.ofEpochMilli,_.toEpochMilli)
 }
 
 case object VPackExternal extends VPackValue {
@@ -138,20 +134,20 @@ object VPackString {
 
   val encoder: Encoder[String] = Encoder { s =>
     for {
-      bs <- utf8.encode(s)
+      bs    <- utf8.encode(s)
       bytes = bs.bytes
-      head <- if (bytes.size > 126) int64L.encode(bytes.size).map(BitVector(0xbf) ++ _)
-              else Attempt.successful(BitVector(0x40 + bytes.size))
+      head  <- if (bytes.size > 126) int64L.encode(bytes.size).map(BitVector(0xbf) ++ _)
+               else Attempt.successful(BitVector(0x40 + bytes.size))
     } yield head ++ bs
   }
 
   val decoder: Decoder[String] = Decoder { b =>
     for {
-      head <- uint8L.decode(b)
-      len <- if (head.value == 0xbf) int64L.decode(head.remainder)
-             else if (head.value >= 0x40 && head.value < 0xbf) Attempt.successful(head.map(_.toLong - 0x40))
-             else Attempt.failure(Err("not a string"))
-      str <- fixedSizeBytes(len.value, utf8).decode(len.remainder)
+      head  <- uint8L.decode(b)
+      len   <- if (head.value >= 0x40 && head.value < 0xbf) Attempt.successful(head.map(_.toLong - 0x40))
+               else if (head.value == 0xbf) int64L.decode(head.remainder)
+               else Attempt.failure(Err("not a string"))
+      str   <- fixedSizeBytes(len.value, utf8).decode(len.remainder)
     } yield str
   }
 
@@ -180,5 +176,6 @@ object VPackValue {
 
   val vpBool: Codec[Boolean] = VPackBoolean.codec
   val vpString: Codec[String] = VPackString.codec
+  val vpDouble: Codec[Double] = VPackDouble.codec
 
 }

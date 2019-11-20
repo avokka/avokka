@@ -36,11 +36,8 @@ object VPackBoolean {
   val codec: Codec[Boolean] = uint8L.narrow({
     case 0x19 => Attempt.successful(false)
     case 0x1a => Attempt.successful(true)
-    case h    => Attempt.failure(Err(s"not a vpack boolean ${h}"))
-  }, {
-    case false => 0x19
-    case true  => 0x1a
-  })
+    case _    => Attempt.failure(Err("not a vpack boolean"))
+  }, if (_) 0x1a else 0x19)
 
 }
 
@@ -136,8 +133,9 @@ object VPackString {
     for {
       bs    <- utf8.encode(s)
       bytes = bs.bytes
-      head  <- if (bytes.size > 126) int64L.encode(bytes.size).map(BitVector(0xbf) ++ _)
-               else Attempt.successful(BitVector(0x40 + bytes.size))
+      len = bytes.size
+      head  <- if (len > 126) int64L.encode(len).map(BitVector(0xbf) ++ _)
+               else Attempt.successful(BitVector(0x40 + len))
     } yield head ++ bs
   }
 

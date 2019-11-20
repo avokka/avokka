@@ -1,12 +1,16 @@
 package avokka.velocypack
 
-import avokka.velocypack.VPackValue.vpString
+import avokka.velocypack.VPackValue.{vpString, codec => vpCodec}
 import com.arangodb.velocypack.VPack
 import org.scalatest._
 import scodec.bits._
 
 class VPackValueSpec extends FlatSpec with Matchers {
   val vpack = new VPack.Builder().build()
+
+  "0x00" should "not be allowed in vpack values" in {
+    assert(vpCodec.decode(hex"00".bits).isFailure)
+  }
 
   "empty string" should "encode to 0x40" in {
     assertResult(hex"40")(vpString.encode("").require.bytes)

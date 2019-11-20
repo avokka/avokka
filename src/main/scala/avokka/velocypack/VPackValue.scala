@@ -14,10 +14,12 @@ import spire.math.ULong
 sealed trait VPackValue {
 }
 
+/* not allowed in vpack values
 case object VPackNone extends VPackValue {
   val byte = hex"00"
   implicit val codec: Codec[VPackNone.type] = constant(byte) ~> provide(VPackNone)
 }
+*/
 
 case object VPackReserved1 extends VPackValue {
   val byte = hex"15"

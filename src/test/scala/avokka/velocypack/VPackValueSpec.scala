@@ -3,6 +3,7 @@ package avokka.velocypack
 import avokka.velocypack.VPackValue.{vpString, codec => vpCodec}
 import com.arangodb.velocypack.VPack
 import org.scalatest._
+import scodec.Codec
 import scodec.bits._
 
 class VPackValueSpec extends FlatSpec with Matchers {
@@ -12,22 +13,27 @@ class VPackValueSpec extends FlatSpec with Matchers {
     assert(vpCodec.decode(hex"00".bits).isFailure)
   }
 
+  def assertCodec[T](c: Codec[T], v: T, b: ByteVector) = {
+    assertResult(b)(c.encode(v).require.bytes)
+    assertResult(v)(c.decode(b.bits).require.value)
+  }
+
   "empty string" should "encode to 0x40" in {
-    assertResult(hex"40")(vpString.encode("").require.bytes)
+    assertCodec(vpString, "", hex"40")
   }
 
   "small strings" should "encode between 0x41 0xbe" in {
-    assertResult(hex"4140")(vpString.encode("@").require.bytes)
-    assertResult(hex"424040")(vpString.encode("@@").require.bytes)
-    assertResult(hex"43e282ac")(vpString.encode("€").require.bytes)
-    assertResult(hex"4a61d184e19083f09d95ab")(vpString.encode("aфᐃ\uD835\uDD6B").require.bytes)
+    assertCodec(vpString, "@", hex"4140")
+    assertCodec(vpString, "@@", hex"424040")
+    assertCodec(vpString, "€", hex"43e282ac")
+    assertCodec(vpString, "aфᐃ\uD835\uDD6B", hex"4a61d184e19083f09d95ab")
   }
 
   "long strings" should "encode at 0xbf" in {
     val len = 300
-    assertResult(
+    assertCodec(vpString, "@" * len,
       hex"bf" ++ ByteVector.fromLong(len, 8, ByteOrdering.LittleEndian) ++ ByteVector.fill(len)(0x40)
-    )(vpString.encode("@" * len).require.bytes)
+    )
   }
 
   /*

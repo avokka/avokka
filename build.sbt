@@ -24,7 +24,8 @@ libraryDependencies ++= Seq(
 
 libraryDependencies ++=  Seq(
   "org.scodec" %% "scodec-bits" % "1.1.12",
-  "org.scodec" %% "scodec-core" % "1.11.4"
+  "org.scodec" %% "scodec-core" % "1.11.4",
+  "org.scodec" %% "scodec-cats" % "1.0.0",
 )
 libraryDependencies += "org.typelevel" %% "spire" % "0.16.2"
 

@@ -1,25 +1,15 @@
 package avokka.velocypack
 
-import java.nio.charset.Charset
 import java.time.Instant
 
 import avokka.velocypack.codecs.between
-import com.arangodb.velocypack.{VPack, VPackSlice}
 import scodec._
 import scodec.bits._
 import scodec.codecs._
-import shapeless.{::, HNil}
 import spire.math.ULong
 
 sealed trait VPackValue {
 }
-
-/* not allowed in vpack values
-case object VPackNone extends VPackValue {
-  val byte = hex"00"
-  implicit val codec: Codec[VPackNone.type] = constant(byte) ~> provide(VPackNone)
-}
-*/
 
 case object VPackReserved1 extends VPackValue {
   val byte = hex"15"
@@ -41,28 +31,14 @@ case object VPackNull extends VPackValue {
   implicit val codec: Codec[VPackNull.type] = constant(byte) ~> provide(VPackNull)
 }
 
-sealed trait VPackBoolean extends VPackValue {
-  def value: Boolean
-}
-
 object VPackBoolean {
-  def apply(b: Boolean): VPackBoolean = if (b) VPackTrue else VPackFalse
-  implicit val codec: Codec[VPackBoolean] = lazily { Codec.coproduct[VPackBoolean].choice }
 
-  val trueCodec: Codec[VPackBoolean] = provide(VPackTrue)
-  val falseCodec: Codec[VPackBoolean] = provide(VPackFalse)
-}
+  val codec: Codec[Boolean] = uint8L.narrow({
+    case 0x19 => Attempt.successful(false)
+    case 0x1a => Attempt.successful(true)
+    case _    => Attempt.failure(Err("not bool"))
+  }, v => if (v) 0x1a else 0x19)
 
-case object VPackFalse extends VPackBoolean {
-  val byte = hex"19"
-  override val value = false
-  implicit val codec: Codec[VPackFalse.type] = constant(byte) ~> provide(VPackFalse)
-}
-
-case object VPackTrue extends VPackBoolean {
-  val byte = hex"1a"
-  override val value = true
-  implicit val codec: Codec[VPackTrue.type] = constant(byte) ~> provide(VPackTrue)
 }
 
 case class VPackDouble(value: Double) extends VPackValue
@@ -158,35 +134,29 @@ object VPackSmallInt {
   implicit val codec: Codec[VPackSmallInt] = Codec(encoder.contramap[VPackSmallInt](_.value), decoder)
 }
 
-sealed trait VPackString extends VPackValue {
-  def value: String
-}
-
 object VPackString {
-  val utf8: Charset = Charset.forName("UTF-8")
 
-  def apply(value: String): VPackString = if (value.getBytes(utf8).length <= 126) VPackStringShort(value) else VPackStringLong(value)
-  implicit val codec: Codec[VPackString] = lazily { Codec.coproduct[VPackString].choice }
-}
+  val encoder: Encoder[String] = Encoder { s =>
+    for {
+      bs <- utf8.encode(s)
+      bytes = bs.bytes
+      head <- if (bytes.size > 126) int64L.encode(bytes.size).map(BitVector(0xbf) ++ _)
+              else Attempt.successful(BitVector(0x40 + bytes.size))
+    } yield head ++ bs
+  }
 
-case class VPackStringShort(value: String) extends VPackString {
-  require(value.getBytes(VPackString.utf8).length <= 126, "VPackStringShort length must be <= 126")
-}
+  val decoder: Decoder[String] = Decoder { b =>
+    for {
+      head <- uint8L.decode(b)
+      len <- if (head.value == 0xbf) int64L.decode(head.remainder)
+             else if (head.value >= 0x40 && head.value < 0xbf) Attempt.successful(head.map(_.toLong - 0x40))
+             else Attempt.failure(Err("not a string"))
+      str <- fixedSizeBytes(len.value, utf8).decode(len.remainder)
+    } yield str
+  }
 
-object VPackStringShort {
-  implicit val codec: Codec[VPackStringShort] = {
-    between(uint8L, 0x40, 0xbe) >>~ (delta => fixedSizeBytes(delta, utf8))
-  }.xmap[VPackStringShort](
-    s => VPackStringShort(s._2),
-    p => p.value.getBytes(VPackString.utf8).length -> p.value
-  )
-}
+  val codec: Codec[String] = Codec(encoder, decoder)
 
-case class VPackStringLong(value: String) extends VPackString
-
-object VPackStringLong {
-  val byte = hex"bf"
-  implicit val codec: Codec[VPackStringLong] = { constant(byte) ~> variableSizeBytesLong(int64L, utf8) }.as
 }
 
 case class VPackBinary(value: ByteVector) extends VPackValue {
@@ -208,7 +178,7 @@ object VPackValue {
 
   implicit val codec: Codec[VPackValue] = lazily { Codec.coproduct[VPackValue].choice }
 
-  val vpBool: Codec[Boolean] = VPackBoolean.codec.xmap(_.value, VPackBoolean.apply)
-  val vpString: Codec[String] = VPackString.codec.xmap(_.value, VPackString.apply)
+  val vpBool: Codec[Boolean] = VPackBoolean.codec
+  val vpString: Codec[String] = VPackString.codec
 
 }

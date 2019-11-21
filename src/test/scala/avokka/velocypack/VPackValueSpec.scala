@@ -1,6 +1,6 @@
 package avokka.velocypack
 
-import avokka.velocypack.VPackValue.{vpString, vpBool, vpDouble, codec => vpCodec}
+import avokka.velocypack.VPackValue.{vpString, vpBool, vpInt, vpDouble, codec => vpCodec}
 import com.arangodb.velocypack.VPack
 import org.scalatest._
 import scodec.Codec
@@ -34,6 +34,11 @@ class VPackValueSpec extends FlatSpec with Matchers {
     assertCodec(vpString, "@" * len,
       hex"bf" ++ ByteVector.fromLong(len, 8, ByteOrdering.LittleEndian) ++ ByteVector.fill(len)(0x40)
     )
+  }
+
+  "ints" should "encode to the most compact form" in {
+    assertCodec(vpInt, 1, hex"31")
+    assertCodec(vpInt, 16, hex"2810")
   }
 
   "double" should "encode at 0x1b" in {

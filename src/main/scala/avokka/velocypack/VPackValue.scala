@@ -32,9 +32,9 @@ case object VPackNull extends VPackValue {
 case class VPackBoolean(value: Boolean) extends VPackValue
 
 object VPackBoolean {
-  val encoder: Encoder[VPackBoolean] = Encoder( b =>
+  val encoder: Encoder[VPackBoolean] = Encoder { b =>
     Attempt.successful(BitVector(if (b.value) 0x1a else 0x19))
-  )
+  }
 
   val decoder: Decoder[VPackBoolean] = for {
     head  <- uint8L
@@ -80,16 +80,30 @@ case class VPackLong(value: Long) extends VPackValue
 
 object VPackLong {
 
-  val dCodec: Codec[VPackLong] = discriminated[VPackLong].by(uint8)
-    .subcaseP(0x30) { case v @ VPackLong(0) => v } (provide(0L).as)
-    .subcaseP(0x31) { case v @ VPackLong(1) => v } (provide(1L).as)
-    .subcaseP(0x32) { case v @ VPackLong(2) => v } (provide(2L).as)
-    .subcaseP(0x33) { case v @ VPackLong(3) => v } (provide(3L).as)
-    .subcaseP(0x34) { case v @ VPackLong(4) => v } (provide(4L).as)
-    .subcaseP(0x35) { case v @ VPackLong(5) => v } (provide(5L).as)
-    .subcaseP(0x20) { case v @ VPackLong(s) if s < 0 && s >= -(1L << 7) => v } (longL(8).as)
-    .subcaseP(0x28) { case v @ VPackLong(u) if u > 0 && u < (1L << 8) => v }   (ulongL(8).as)
+  val dCodec: Codec[VPackLong] = {
+    val base = discriminated[VPackLong].by(uint8)
 
+    val smalls = (-6 to 9).foldLeft(base) { (codec, small) =>
+      val tag = small + (if (small > 0) 0x30 else 0x40)
+      codec.subcaseP(tag) { case v @ VPackLong(`small`) => v } (provide(small.toLong).as)
+    }
+
+    val signeds = (0 to 6).foldLeft(smalls) { (codec, size) =>
+      val bits = 8 * (size + 1)
+      codec.subcaseP(0x20 + size) {
+        case v @ VPackLong(s) if s < 0 && s >= -(1L << (bits - 1)) => v
+      } (longL(bits).as)
+    }.subcaseP(0x27) { case v @ VPackLong(s) if s < 0 => v } (int64L.as)
+
+    val unsigneds = (0 to 6).foldLeft(signeds) { (codec, size) =>
+      val bits = 8 * (size + 1)
+      codec.subcaseP(0x28) {
+        case v @ VPackLong(u) if u > 0 && u < (1L << bits) => v
+      } (ulongL(bits).as)
+    }.subcaseP(0x2f) { case v @ VPackLong(u) if u > 0 => v } (int64L.as)
+
+    unsigneds
+  }
 
   val encoder: Encoder[VPackLong] = Encoder { _.value match {
     // small ints
@@ -149,7 +163,7 @@ object VPackLong {
       case 0x2c => ulongL(40)
       case 0x2d => ulongL(48)
       case 0x2e => ulongL(56)
-      case 0x2f => ulongL(64)
+      case 0x2f => longL(64)
         // small ints
       case 0x30 => provide(0L)
       case 0x31 => provide(1L)
@@ -171,8 +185,9 @@ object VPackLong {
     }
   } yield VPackLong(value)
 
-  implicit val codec: Codec[VPackLong] = Codec(encoder, decoder)
+  val fCodec: Codec[VPackLong] = Codec(encoder, decoder)
 
+  implicit val codec = fCodec
 }
 
 case class VPackString(value: String) extends VPackValue

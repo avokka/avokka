@@ -217,7 +217,7 @@ object VPackString {
 }
 
 case class VPackBinary(value: ByteVector) extends VPackValue {
-  def lengthSize: Int = codecs.bytesRequire(value.size, false)
+  def lengthSize: Int = codecs.ulongLength(value.size)
 }
 
 object VPackBinary {
@@ -240,8 +240,9 @@ object VPackValue {
   val vpDouble: Codec[Double] = VPackDouble.codec.as // xmap(_.value, VPackDouble.apply)
   val vpInstant: Codec[Instant] = VPackDate.codec.xmap(d => Instant.ofEpochMilli(d.value), t => VPackDate(t.toEpochMilli))
 
-  val vpInt: Codec[Int] = VPackLong.codec.xmap({
-    case VPackLong(value) if value.isValidInt => value.toInt
+  val vpInt: Codec[Int] = VPackLong.codec.narrow({
+    case VPackLong(value) if value.isValidInt => Attempt.successful(value.toInt)
+    case VPackLong(value) => Attempt.failure(Err(s"Long to Int failure for value $value"))
   }, v => VPackLong(v.toLong))
 
 }

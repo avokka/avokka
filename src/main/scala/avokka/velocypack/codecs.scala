@@ -2,6 +2,8 @@ package avokka.velocypack
 
 import com.arangodb.velocypack.{VPackBuilder, VPackSlice, ValueType}
 import scodec._
+import scodec.bits._
+import scodec.codecs._
 
 object codecs {
 
@@ -14,13 +16,20 @@ object codecs {
     )
   }
 
-  def bytesRequire(value: Long, signed: Boolean, range: Seq[Int] = 1 to 8): Int = {
-    range.find { bytes =>
-      val bits = bytes * 8
-      val max = (1L << (if (signed) bits - 1 else bits)) - 1
-      val min = if (signed) -(1L << (bits - 1)) else 0
-      min <= value && value <= max
-    }.getOrElse(0)
+  @scala.annotation.tailrec
+  def ulongLength(value: Long, acc: Int = 1): Int = {
+    if (value > 0Xff) ulongLength(value >> 8, acc + 1)
+    else acc
+  }
+
+  def lengthUtils(l: Long): (Int, Int, Codec[Long]) = {
+    ulongLength(l) match {
+      case 1 => (1, 0, ulongL(8))
+      case 2 => (2, 1, ulongL(16))
+      case 3 => (4, 2, ulongL(32))
+      case 4 => (4, 2, ulongL(32))
+      case _ => (8, 3, longL(64))
+    }
   }
 
   def vpackSerialize[T : VelocypackEncoder](t: T): VPackSlice = {

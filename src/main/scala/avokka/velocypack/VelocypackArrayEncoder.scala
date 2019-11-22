@@ -3,7 +3,7 @@ package avokka.velocypack
 import scodec._
 import scodec.bits._
 import scodec.codecs._
-import shapeless.{HList, HNil, ::}
+import shapeless.{::, HList, HNil}
 
 trait VelocypackArrayEncoder[E <: HList, A <: HList] {
   def encode(encoders: E, arguments: A): Attempt[(BitVector, Seq[Long])]
@@ -33,18 +33,7 @@ object VelocypackArrayEncoder {
   }
 
   object AllSame {
-    def unapply(sizes: Seq[Long]): Option[Long] = sizes.headOption.flatMap { l =>
-      if (sizes.forall(_ == l)) Some(l) else None
-    }
-  }
-
-  def lengthUtils(l: Long): (Int, Int, Codec[Long]) = {
-    codecs.bytesRequire(l, false, Seq(1,2,4)) match {
-      case 1 => (1, 0, ulongL(8))
-      case 2 => (2, 1, ulongL(16))
-      case 4 => (4, 2, ulongL(32))
-      case _ => (8, 3, longL(64))
-    }
+    def unapply(sizes: Seq[Long]): Option[Long] = for { head <- sizes.headOption if sizes.forall(_ == head) } yield head
   }
 
   private val emptyArrayResult = BitVector(0x01)
@@ -59,7 +48,7 @@ object VelocypackArrayEncoder {
         case (values, AllSame(_)) => {
           val valuesBytes = values.size / 8
           val lengthMax = 1 + 8 + valuesBytes
-          val (lengthBytes, head, lengthCodec) = lengthUtils(lengthMax)
+          val (lengthBytes, head, lengthCodec) = codecs.lengthUtils(lengthMax)
           val arrayBytes = 1 + lengthBytes + valuesBytes
           for {
             len <- lengthCodec.encode(arrayBytes)
@@ -70,7 +59,7 @@ object VelocypackArrayEncoder {
         case (values, sizes) => {
           val valuesBytes = values.size / 8
           val lengthMax = 1 + 8 + 8 + valuesBytes + 8 * sizes.length
-          val (lengthBytes, head, lengthCodec) = lengthUtils(lengthMax)
+          val (lengthBytes, head, lengthCodec) = codecs.lengthUtils(lengthMax)
           val headBytes = 1 + lengthBytes + lengthBytes
           val indexTable = offsets(sizes).map(off => headBytes + off / 8)
 

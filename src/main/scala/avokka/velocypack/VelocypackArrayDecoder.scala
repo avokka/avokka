@@ -60,6 +60,10 @@ object VelocypackArrayDecoder {
     val ib = VPackValue.vpInt :: VPackValue.vpBool :: HNil
     val dec = vpArray(ib)
 
-    println(dec.decode(hex"0205003119".bits))
+    println(dec.decode(hex"02 05 00 31 19".bits))
+
+    val ex = vpArray(VPackValue.vpInt :: VPackValue.vpInt :: VPackValue.vpInt :: HNil)
+    println(ex.decode(hex"02 05 31 32 33".bits))
+    println(ex.decode(hex"05 0c 00 00 00 00 00 00 00 31 32 33".bits))
   }
 }

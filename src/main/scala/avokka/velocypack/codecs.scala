@@ -5,6 +5,8 @@ import scodec._
 import scodec.bits._
 import scodec.codecs._
 
+import scala.annotation.tailrec
+
 object codecs {
 
   def between[T : Numeric](codec: Codec[T], min: T, max: T): Codec[T] = {
@@ -16,9 +18,13 @@ object codecs {
     )
   }
 
-  @scala.annotation.tailrec
-  def ulongLength(value: Long, acc: Int = 1): Int = {
+  @tailrec def ulongLength(value: Long, acc: Int = 1): Int = {
     if (value > 0Xff) ulongLength(value >> 8, acc + 1)
+    else acc
+  }
+
+  @tailrec def vlongLength(value: Long, acc: Long = 1): Long = {
+    if (value >= 0X80) vlongLength(value >> 7, acc + 1)
     else acc
   }
 
@@ -73,4 +79,5 @@ object codecs {
       case (builder, (key, value)) => builder.add(key, vpackSerialize(value)(encoder))
     }.close()
   }
+
 }

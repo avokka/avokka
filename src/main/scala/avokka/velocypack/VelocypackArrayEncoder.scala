@@ -75,12 +75,6 @@ object VelocypackArrayEncoder {
     override def sizeBound: SizeBound = SizeBound.unknown
   }
 
-  @scala.annotation.tailrec
-  def vLength(value: Long, acc: Long = 1): Long = {
-    if (value >= 0X80) vLength(value >> 7, acc + 1)
-    else acc
-  }
-
   def vpArrayCompact[E <: HList, A <: HList](encoders: E)(implicit ev: VelocypackArrayEncoder[E, A]): Encoder[A] = new Encoder[A] {
     override def encode(value: A): Attempt[BitVector] = {
       ev.encode(encoders, value).flatMap {
@@ -92,9 +86,9 @@ object VelocypackArrayEncoder {
           for {
             nr <- vlong.encode(sizes.length)
             lengthBase = 1 + valuesBytes + nr.size / 8
-            lengthBaseL = vLength(lengthBase)
+            lengthBaseL = codecs.vlongLength(lengthBase)
             lengthT = lengthBase + lengthBaseL
-            lenL = vLength(lengthT)
+            lenL = codecs.vlongLength(lengthT)
             len <- vlong.encode(if (lenL == lengthBaseL) lengthT else lengthT + 1)
           } yield BitVector(0x13) ++ len ++ values ++ nr.reverseByteOrder
         }

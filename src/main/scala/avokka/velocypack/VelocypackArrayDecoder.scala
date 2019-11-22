@@ -39,34 +39,34 @@ object VelocypackArrayDecoder {
   def vpArray[D <: HList, A <: HList](decoders: D)(implicit ev: VelocypackArrayDecoder[D, A]): Decoder[A] = new Decoder[A] {
 
     def decodeLinear(lenLength: Int, b: BitVector): Attempt[DecodeResult[A]] = for {
-      length <- ulongLA(lenLength).decode(b)
-      bodyLen = 8 * length.value - 8 - lenLength
-      body   <- bits(bodyLen).decode(length.remainder) // length.remainder.splitAt(bodyLen)
-      values = body.value.bytes.dropWhile(_ == 0).bits
-      result <- ev.decodeLinear(decoders, values)
+      length  <- ulongLA(8 * lenLength).decode(b)
+      bodyLen = length.value - 1 - lenLength
+      body    <- bits(8 * bodyLen).decode(length.remainder)
+      values  = body.value.bytes.dropWhile(_ == 0).bits
+      result  <- ev.decodeLinear(decoders, values)
     } yield DecodeResult(result, body.remainder)
 
     def decodeOffsets(lenLength: Int, b: BitVector): Attempt[DecodeResult[A]] = for {
-      length <- ulongLA(lenLength).decode(b)
-      nr     <- ulongLA(lenLength).decode(length.remainder)
-      bodyOffset = 8 + lenLength + lenLength
-      bodyLen = 8 * length.value - bodyOffset
-      (body, remainder) = nr.remainder.splitAt(bodyLen)
-      (values, index) = body.splitAt(bodyLen - nr.value * lenLength)
-      offsets <- Decoder.decodeCollect(ulongLA(lenLength), Some(nr.value.toInt))(index)
-      result  <- ev.decodeOffsets(decoders, values, offsets.value.map(_ - bodyOffset / 8))
-    } yield DecodeResult(result, remainder)
+      length  <- ulongLA(8 * lenLength).decode(b)
+      nr      <- ulongLA(8 * lenLength).decode(length.remainder)
+      bodyOffset = 1 + lenLength + lenLength
+      bodyLen = length.value - bodyOffset
+      body    <- bits(8 * bodyLen).decode(nr.remainder)
+      values  <- bits(8 * (bodyLen - nr.value * lenLength)).decode(body.value)
+      offsets <- Decoder.decodeCollect(ulongLA(8 * lenLength), Some(nr.value.toInt))(values.remainder)
+      result  <- ev.decodeOffsets(decoders, values.value, offsets.value.map(_ - bodyOffset))
+    } yield DecodeResult(result, body.remainder)
 
     def decodeOffsets64(lenLength: Int, b: BitVector): Attempt[DecodeResult[A]] = for {
-      length <- ulongLA(lenLength).decode(b)
-      bodyOffset = 8 + lenLength
-      bodyLen = 8 * length.value - bodyOffset
-      (body, remainder) = length.remainder.splitAt(bodyLen)
-      (valuesIndex, number) = body.splitAt(bodyLen - lenLength)
-      nr     <- ulongLA(lenLength).decode(number)
-      (values, index) = valuesIndex.splitAt(bodyLen - nr.value * lenLength - lenLength)
-      offsets <- Decoder.decodeCollect(ulongLA(lenLength), Some(nr.value.toInt))(index)
-      result  <- ev.decodeOffsets(decoders, values, offsets.value.map(_ - bodyOffset / 8))
+      length    <- ulongLA(8 * lenLength).decode(b)
+      bodyOffset = 1 + lenLength
+      bodyLen    = length.value - bodyOffset
+      (body, remainder) = length.remainder.splitAt(8 * bodyLen)
+      (valuesIndex, number) = body.splitAt(8 * (bodyLen - lenLength))
+      nr        <- ulongLA(8 * lenLength).decode(number)
+      (values, index) = valuesIndex.splitAt(8 * (bodyLen - nr.value * lenLength - lenLength))
+      offsets   <- Decoder.decodeCollect(ulongLA(8 * lenLength), Some(nr.value.toInt))(index)
+      result    <- ev.decodeOffsets(decoders, values, offsets.value.map(_ - bodyOffset))
     } yield DecodeResult(result, remainder)
 
     def decodeCompact(b: BitVector): Attempt[DecodeResult[A]] = for {
@@ -82,14 +82,14 @@ object VelocypackArrayDecoder {
         res  <- head.value match {
           case 0x01 if ev == hnilDecoder => ev.decodeLinear(decoders, head.remainder).map(n => DecodeResult(n, head.remainder))
           case 0x01 => Attempt.failure(Err("empty array for non empty decoders"))
-          case 0x02 => decodeLinear(8, head.remainder)
-          case 0x03 => decodeLinear(16, head.remainder)
-          case 0x04 => decodeLinear(32, head.remainder)
-          case 0x05 => decodeLinear(64, head.remainder)
-          case 0x06 => decodeOffsets(8, head.remainder)
-          case 0x07 => decodeOffsets(16, head.remainder)
-          case 0x08 => decodeOffsets(32, head.remainder)
-          case 0x09 => decodeOffsets64(64, head.remainder)
+          case 0x02 => decodeLinear(1, head.remainder)
+          case 0x03 => decodeLinear(2, head.remainder)
+          case 0x04 => decodeLinear(4, head.remainder)
+          case 0x05 => decodeLinear(8, head.remainder)
+          case 0x06 => decodeOffsets(1, head.remainder)
+          case 0x07 => decodeOffsets(2, head.remainder)
+          case 0x08 => decodeOffsets(4, head.remainder)
+          case 0x09 => decodeOffsets64(8, head.remainder)
           case 0x13 => decodeCompact(head.remainder)
           case _ => Attempt.failure(Err("not a vpack array"))
         }

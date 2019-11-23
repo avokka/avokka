@@ -53,13 +53,4 @@ class VPackValueSpec extends FlatSpec with Matchers {
     assert(vpBool.decode(hex"18".bits).isFailure)
   }
 
-  /*
-  for {
-    i <- -6 to 9
-  } for {
-    e <- VPackSmallInt.encoder.encode(i.toByte)
-    ed <- codec.decode(e)
-    d = vpack.deserialize(new VPackSlice(e.toByteArray), classOf[Int]): Int
-  } yield println(e, ed, d)
-*/
 }

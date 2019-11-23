@@ -10,6 +10,8 @@ import scodec.bits._
 import scodec.codecs._
 import scodec.cats._
 
+import scala.Int
+
 sealed trait VPackValue {
 }
 

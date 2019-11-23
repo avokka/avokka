@@ -1,6 +1,6 @@
 package avokka.velocypack
 
-import scodec._
+import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
 import scodec.bits._
 import scodec.codecs._
 import shapeless.{::, HList, HNil}
@@ -122,7 +122,7 @@ object VelocypackArrayCodec {
     def decodeLinear(lenLength: Int, b: BitVector): Attempt[DecodeResult[A]] = for {
       length  <- ulongLA(8 * lenLength).decode(b)
       bodyLen = length.value - 1 - lenLength
-      body    <- scodec.codecs.bits(8 * bodyLen).decode(length.remainder)
+      body    <- bits(8 * bodyLen).decode(length.remainder)
       values  = body.value.bytes.dropWhile(_ == 0).bits
       result  <- ev.decodeLinear(decoders, values)
     } yield DecodeResult(result, body.remainder)
@@ -132,8 +132,8 @@ object VelocypackArrayCodec {
       nr      <- ulongLA(8 * lenLength).decode(length.remainder)
       bodyOffset = 1 + lenLength + lenLength
       bodyLen = length.value - bodyOffset
-      body    <- scodec.codecs.bits(8 * bodyLen).decode(nr.remainder)
-      values  <- scodec.codecs.bits(8 * (bodyLen - nr.value * lenLength)).decode(body.value)
+      body    <- bits(8 * bodyLen).decode(nr.remainder)
+      values  <- bits(8 * (bodyLen - nr.value * lenLength)).decode(body.value)
       offsets <- Decoder.decodeCollect(ulongLA(8 * lenLength), Some(nr.value.toInt))(values.remainder)
       result  <- ev.decodeOffsets(decoders, values.value, offsets.value.map(_ - bodyOffset))
     } yield DecodeResult(result, body.remainder)
@@ -153,7 +153,7 @@ object VelocypackArrayCodec {
     def decodeCompact(b: BitVector): Attempt[DecodeResult[A]] = for {
       length  <- vlongL.decode(b)
       bodyLen = 8 * (length.value - 1 - codecs.vlongLength(length.value))
-      body    <- scodec.codecs.bits(bodyLen).decode(length.remainder)
+      body    <- bits(bodyLen).decode(length.remainder)
       result  <- ev.decodeLinear(decoders, body.value)
     } yield DecodeResult(result, body.remainder)
 

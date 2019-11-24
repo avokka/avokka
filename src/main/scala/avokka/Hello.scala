@@ -1,48 +1,22 @@
 package avokka
 
 import java.nio.ByteOrder
-import java.util.concurrent.atomic.AtomicLong
 
-import io.circe._
-import io.circe.syntax._
 import akka._
 import akka.actor._
 import akka.stream._
 import akka.stream.scaladsl._
 import akka.util._
-import avokka.velocypack.{VPackValue, VelocypackArrayCodec}
 import com.arangodb.velocypack._
 import scodec.bits._
-import shapeless.HNil
 
 import scala.concurrent._
 import scala.concurrent.duration._
-import scala.util.Random
 
 object Hello {
 
   implicit val system = ActorSystem("avokka")
   implicit val materializer = ActorMaterializer()
-
-  case class AuthRequest
-  (
-    version: Int,
-    `type`: Int,
-    encryption: String,
-    user: String,
-    password: String
-  )
-
-  object AuthRequest {
-    val codec: scodec.Codec[AuthRequest] = VelocypackArrayCodec.codecCompact(
-      VPackValue.vpInt ::
-      VPackValue.vpInt ::
-      VPackValue.vpString ::
-      VPackValue.vpString ::
-      VPackValue.vpString ::
-      HNil
-    ).as
-  }
 
   def main(args: Array[String]): Unit = {
 
@@ -83,7 +57,7 @@ object Hello {
 
     val vpack = new VPack.Builder().build()
 
-    val auth = AuthRequest.codec.encode(AuthRequest(1, 1000, "plain", "root", "root")).require.bytes
+    val auth = VAuthRequest.codec.encode(VAuthRequest(1, 1000, "plain", "root", "root")).require.bytes
 
     val apiVersion = vpack.serialize(Array(1, 1, "_system", 1, "/_api/version", new Object, new Object))
     val apiVersionB = ByteVector.view(apiVersion.getBuffer, apiVersion.getStart, apiVersion.getByteSize)

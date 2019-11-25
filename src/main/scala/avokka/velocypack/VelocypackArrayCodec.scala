@@ -58,35 +58,35 @@ object VelocypackArrayCodec {
 
   def encoder[E <: HList, A <: HList](encoders: E)(implicit ev: VelocypackArrayCodec[E, A]): Encoder[A] = new Encoder[A] {
     override def encode(value: A): Attempt[BitVector] = {
-      ev.encode(encoders, value).flatMap {
+      ev.encode(encoders, value).map {
         // empty array
-        case (_, Nil) => Attempt.successful(emptyArrayResult)
+        case (_, Nil) => emptyArrayResult
 
         // all subvalues have the same size
         case (values, AllSame(_)) => {
           val valuesBytes = values.size / 8
           val lengthMax = 1 + 8 + valuesBytes
-          val (lengthBytes, head, lengthCodec) = codecs.lengthUtils(lengthMax)
+          val (lengthBytes, head) = codecs.lengthUtils(lengthMax)
           val arrayBytes = 1 + lengthBytes + valuesBytes
-          for {
-            len <- lengthCodec.encode(arrayBytes)
-          } yield BitVector(0x02 + head) ++ len ++ values
+          val len = codecs.ulongBytes(arrayBytes, lengthBytes)
+
+          BitVector(0x02 + head) ++ len ++ values
         }
 
         // other cases
         case (values, sizes) => {
           val valuesBytes = values.size / 8
           val lengthMax = 1 + 8 + 8 + valuesBytes + 8 * sizes.length
-          val (lengthBytes, head, lengthCodec) = codecs.lengthUtils(lengthMax)
+          val (lengthBytes, head) = codecs.lengthUtils(lengthMax)
           val headBytes = 1 + lengthBytes + lengthBytes
           val indexTable = offsets(sizes).map(off => headBytes + off / 8)
 
-          for {
-            len <- lengthCodec.encode(headBytes + valuesBytes + lengthBytes * sizes.length)
-            nr <- lengthCodec.encode(sizes.length)
-            index <- Encoder.encodeSeq(lengthCodec)(indexTable)
-          } yield if(head == 3) BitVector(0x06 + head) ++ len ++ values ++ index ++ nr
-                           else BitVector(0x06 + head) ++ len ++ nr ++ values ++ index
+          val len = codecs.ulongBytes(headBytes + valuesBytes + lengthBytes * sizes.length, lengthBytes)
+          val nr = codecs.ulongBytes(sizes.length, lengthBytes)
+          val index = indexTable.foldLeft(BitVector.empty)((b, l) => b ++ codecs.ulongBytes(l, lengthBytes))
+
+          if (head == 3) BitVector(0x06 + head) ++ len ++ values ++ index ++ nr
+                    else BitVector(0x06 + head) ++ len ++ nr ++ values ++ index
         }
       }
     }

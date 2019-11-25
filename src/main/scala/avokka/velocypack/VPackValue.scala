@@ -202,7 +202,7 @@ object VPackString {
       bs    <- utf8.encode(s.value)
       bytes = bs.bytes
       len   = bytes.size
-      head  = if (len > 126) BitVector(0xbf) ++ BitVector.fromLong(len, ordering = ByteOrdering.LittleEndian)
+      head  = if (len > 126) BitVector(0xbf) ++ codecs.ulongBytes(len, 8)
               else BitVector(0x40 + len)
     } yield head ++ bs
   }
@@ -230,7 +230,7 @@ object VPackBinary {
     val lengthBytes = codecs.ulongLength(length)
     Attempt.successful(
       BitVector(0xbf + lengthBytes) ++
-      BitVector.fromLong(length, size = lengthBytes * 8, ordering = ByteOrdering.LittleEndian) ++
+      codecs.ulongBytes(length, lengthBytes) ++
       bin.value.bits
     )
   }

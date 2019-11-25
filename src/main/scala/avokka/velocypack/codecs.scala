@@ -27,13 +27,14 @@ object codecs {
     else acc
   }
 
-  def lengthUtils(l: Long): (Int, Int, Codec[Long]) = {
+  def ulongBytes(value: Long, size: Int): BitVector = BitVector.fromLong(value, size * 8, ByteOrdering.LittleEndian)
+
+  def lengthUtils(l: Long): (Int, Int) = {
     ulongLength(l) match {
-      case 1 => (1, 0, ulongL(8))
-      case 2 => (2, 1, ulongL(16))
-      case 3 => (4, 2, ulongL(32))
-      case 4 => (4, 2, ulongL(32))
-      case _ => (8, 3, longL(64))
+      case 1     => (1, 0)
+      case 2     => (2, 1)
+      case 3 | 4 => (4, 2)
+      case _     => (8, 3)
     }
   }
 

@@ -2,7 +2,6 @@ package avokka.velocypack
 
 import java.time.Instant
 
-import avokka.velocypack.codecs.between
 import cats.data._
 import cats.implicits._
 import scodec._
@@ -219,9 +218,7 @@ object VPackString {
 
 }
 
-case class VPackBinary(value: ByteVector) extends VPackValue {
-  def lengthSize: Int = codecs.ulongLength(value.size)
-}
+case class VPackBinary(value: ByteVector) extends VPackValue
 
 object VPackBinary {
 
@@ -244,6 +241,69 @@ object VPackBinary {
   } yield VPackBinary(bin)
 
   implicit val codec: Codec[VPackBinary] = Codec(encoder, decoder)
+}
+
+case class VPackArray(values: Seq[ByteVector]) // extends VPackValue
+
+object VPackArray {
+
+  private val emptyArrayResult = BitVector(0x01)
+
+  object AllSameSize {
+    def unapply(s: Iterable[ByteVector]): Option[Long] = for {
+      size <- s.headOption.map(_.size) if s.forall(_.size == size)
+    } yield size
+  }
+
+  val encoder: Encoder[VPackArray] = Encoder(_ match {
+
+    case VPackArray(Nil) => Attempt.successful(emptyArrayResult)
+
+    case VPackArray(values @ AllSameSize(size)) => {
+      val valuesBytes = values.length * size
+      val lengthMax = 1 + 8 + valuesBytes
+      val (lengthBytes, head) = codecs.lengthUtils(lengthMax)
+      val arrayBytes = 1 + lengthBytes + valuesBytes
+      val len = codecs.ulongBytes(arrayBytes, lengthBytes)
+
+      Attempt.successful(BitVector(0x02 + head) ++ len ++ values.reduce(_ ++ _).bits)
+    }
+
+    case VPackArray(values) => {
+      val (valuesAll, valuesBytes, offsets) = values.foldLeft((ByteVector.empty, 0L, Vector.empty[Long])) {
+        case ((bytes, offset, offsets), element) => (bytes ++ element, offset + element.size, offsets :+ offset)
+      }
+      val lengthMax = 1 + 8 + 8 + valuesBytes + 8 * offsets.length
+      val (lengthBytes, head) = codecs.lengthUtils(lengthMax)
+      val headBytes = 1 + lengthBytes + lengthBytes
+      val indexTable = offsets.map(off => headBytes + off)
+
+      val len = codecs.ulongBytes(headBytes + valuesBytes + lengthBytes * offsets.length, lengthBytes)
+      val nr = codecs.ulongBytes(offsets.length, lengthBytes)
+      val index = indexTable.foldLeft(BitVector.empty)((b, l) => b ++ codecs.ulongBytes(l, lengthBytes))
+
+      Attempt.successful(
+      if (head == 3) BitVector(0x06 + head) ++ len ++ valuesAll.bits ++ index ++ nr
+                else BitVector(0x06 + head) ++ len ++ nr ++ valuesAll.bits ++ index
+      )
+    }
+  })
+
+  val compactEncoder: Encoder[VPackArray] = Encoder(_ match {
+    case VPackArray(Nil) => Attempt.successful(emptyArrayResult)
+    case VPackArray(values) => {
+      val valuesAll = values.reduce(_ ++ _)
+      val valuesBytes = valuesAll.size
+      for {
+        nr <- vlong.encode(values.length)
+        lengthBase = 1 + valuesBytes + nr.size / 8
+        lengthBaseL = codecs.vlongLength(lengthBase)
+        lengthT = lengthBase + lengthBaseL
+        lenL = codecs.vlongLength(lengthT)
+        len <- vlong.encode(if (lenL == lengthBaseL) lengthT else lengthT + 1)
+      } yield BitVector(0x13) ++ len ++ valuesAll.bits ++ nr.reverseByteOrder
+    }
+  })
 }
 
 object VPackValue {

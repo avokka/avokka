@@ -60,7 +60,7 @@ object Hello {
     val auth = VAuthRequest.codec.encode(VAuthRequest(1, 1000, "plain", "root", "root")).require.bytes
 
     val apiVersion = vpack.serialize(Array(1, 1, "_system", 1, "/_api/version", new Object, new Object))
-    val apiVersionB = ByteVector.view(apiVersion.getBuffer, apiVersion.getStart, apiVersion.getByteSize)
+    val apiVersionB = ByteVector(apiVersion.getBuffer, apiVersion.getStart, apiVersion.getByteSize)
 
     val testInput = Source(List(auth, apiVersionB))
 

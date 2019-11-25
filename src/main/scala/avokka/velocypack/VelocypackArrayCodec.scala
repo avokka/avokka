@@ -6,7 +6,7 @@ import scodec.codecs._
 import shapeless.{::, HList, HNil}
 
 trait VelocypackArrayCodec[C <: HList, A <: HList] {
-  def encode(encoders: C, arguments: A): Attempt[(BitVector, Seq[Long])]
+  def encode(encoders: C, arguments: A): Attempt[Seq[ByteVector]]
   def decodeLinear(decoders: C, values: BitVector): Attempt[A]
   def decodeOffsets(decoders: C, values: BitVector, offsets: Seq[Long]): Attempt[A]
 }
@@ -16,17 +16,17 @@ object VelocypackArrayCodec {
 //  def apply[E <: HList, A <: HList](implicit encoders: VelocypackArrayEncoder[E, A]): VelocypackArrayEncoder[E, A] = encoders
 
   implicit object hnilCodec extends VelocypackArrayCodec[HNil, HNil] {
-    override def encode(encoders: HNil, arguments: HNil): Attempt[(BitVector, Seq[Long])] = Attempt.successful((BitVector.empty, Vector.empty))
+    override def encode(encoders: HNil, arguments: HNil): Attempt[Seq[ByteVector]] = Attempt.successful(Vector.empty)
     override def decodeLinear(decoders: HNil, values: BitVector): Attempt[HNil] = Attempt.successful(HNil)
     override def decodeOffsets(decoders: HNil, values: BitVector, offsets: Seq[Long]): Attempt[HNil] = Attempt.successful(HNil)
   }
 
   implicit def hconsCodec[T, Cod, C <: HList, A <: HList](implicit ev: VelocypackArrayCodec[C, A], eve: Cod <:< Codec[T]): VelocypackArrayCodec[Cod :: C, T :: A] = new VelocypackArrayCodec[Cod :: C, T :: A] {
-    override def encode(encoders: Cod :: C, arguments: T :: A): Attempt[(BitVector, Seq[Long])] = {
+    override def encode(encoders: Cod :: C, arguments: T :: A): Attempt[Seq[ByteVector]] = {
       for {
         rl <- encoders.head.encode(arguments.head)
         rr <- ev.encode(encoders.tail, arguments.tail)
-      } yield (rl ++ rr._1, rl.size +: rr._2)
+      } yield rl.bytes +: rr
     }
     override def decodeLinear(decoders: Cod :: C, values: BitVector): Attempt[T :: A] = {
       for {
@@ -44,75 +44,18 @@ object VelocypackArrayCodec {
     }
   }
 
-  @scala.annotation.tailrec
-  def offsets(sizes: Seq[Long], offset: Long = 0, acc: Vector[Long] = Vector.empty): Vector[Long] = sizes match {
-    case head +: tail => offsets(tail, offset + head, acc :+ offset)
-    case _ => acc
+  def encoder[E <: HList, A <: HList](encoders: E)(implicit ev: VelocypackArrayCodec[E, A]): Encoder[A] = Encoder { value =>
+    for {
+      values <- ev.encode(encoders, value)
+      arr <- VPackArray.encoder.encode(VPackArray(values))
+    } yield arr
   }
 
-  object AllSame {
-    def unapply(sizes: Seq[Long]): Option[Long] = for { head <- sizes.headOption if sizes.forall(_ == head) } yield head
-  }
-
-  private val emptyArrayResult = BitVector(0x01)
-
-  def encoder[E <: HList, A <: HList](encoders: E)(implicit ev: VelocypackArrayCodec[E, A]): Encoder[A] = new Encoder[A] {
-    override def encode(value: A): Attempt[BitVector] = {
-      ev.encode(encoders, value).map {
-        // empty array
-        case (_, Nil) => emptyArrayResult
-
-        // all subvalues have the same size
-        case (values, AllSame(_)) => {
-          val valuesBytes = values.size / 8
-          val lengthMax = 1 + 8 + valuesBytes
-          val (lengthBytes, head) = codecs.lengthUtils(lengthMax)
-          val arrayBytes = 1 + lengthBytes + valuesBytes
-          val len = codecs.ulongBytes(arrayBytes, lengthBytes)
-
-          BitVector(0x02 + head) ++ len ++ values
-        }
-
-        // other cases
-        case (values, sizes) => {
-          val valuesBytes = values.size / 8
-          val lengthMax = 1 + 8 + 8 + valuesBytes + 8 * sizes.length
-          val (lengthBytes, head) = codecs.lengthUtils(lengthMax)
-          val headBytes = 1 + lengthBytes + lengthBytes
-          val indexTable = offsets(sizes).map(off => headBytes + off / 8)
-
-          val len = codecs.ulongBytes(headBytes + valuesBytes + lengthBytes * sizes.length, lengthBytes)
-          val nr = codecs.ulongBytes(sizes.length, lengthBytes)
-          val index = indexTable.foldLeft(BitVector.empty)((b, l) => b ++ codecs.ulongBytes(l, lengthBytes))
-
-          if (head == 3) BitVector(0x06 + head) ++ len ++ values ++ index ++ nr
-                    else BitVector(0x06 + head) ++ len ++ nr ++ values ++ index
-        }
-      }
-    }
-    override def sizeBound: SizeBound = SizeBound.unknown
-  }
-
-  def encoderCompact[E <: HList, A <: HList](encoders: E)(implicit ev: VelocypackArrayCodec[E, A]): Encoder[A] = new Encoder[A] {
-    override def encode(value: A): Attempt[BitVector] = {
-      ev.encode(encoders, value).flatMap {
-        // empty array
-        case (_, Nil) => Attempt.successful(emptyArrayResult)
-
-        case (values, sizes) => {
-          val valuesBytes = values.size / 8
-          for {
-            nr <- vlong.encode(sizes.length)
-            lengthBase = 1 + valuesBytes + nr.size / 8
-            lengthBaseL = codecs.vlongLength(lengthBase)
-            lengthT = lengthBase + lengthBaseL
-            lenL = codecs.vlongLength(lengthT)
-            len <- vlong.encode(if (lenL == lengthBaseL) lengthT else lengthT + 1)
-          } yield BitVector(0x13) ++ len ++ values ++ nr.reverseByteOrder
-        }
-      }
-    }
-    override def sizeBound: SizeBound = SizeBound.unknown
+  def encoderCompact[E <: HList, A <: HList](encoders: E)(implicit ev: VelocypackArrayCodec[E, A]): Encoder[A] = Encoder { value =>
+    for {
+      values <- ev.encode(encoders, value)
+      arr <- VPackArray.compactEncoder.encode(VPackArray(values))
+    } yield arr
   }
 
   def decoder[D <: HList, A <: HList](decoders: D)(implicit ev: VelocypackArrayCodec[D, A]): Decoder[A] = new Decoder[A] {

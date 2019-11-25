@@ -243,14 +243,14 @@ object VPackBinary {
   implicit val codec: Codec[VPackBinary] = Codec(encoder, decoder)
 }
 
-case class VPackArray(values: Seq[ByteVector]) // extends VPackValue
+case class VPackArray(values: Seq[BitVector]) // extends VPackValue
 
 object VPackArray {
 
   private val emptyArrayResult = BitVector(0x01)
 
   object AllSameSize {
-    def unapply(s: Iterable[ByteVector]): Option[Long] = for {
+    def unapply(s: Iterable[BitVector]): Option[Long] = for {
       size <- s.headOption.map(_.size) if s.forall(_.size == size)
     } yield size
   }
@@ -260,18 +260,18 @@ object VPackArray {
     case VPackArray(Nil) => Attempt.successful(emptyArrayResult)
 
     case VPackArray(values @ AllSameSize(size)) => {
-      val valuesBytes = values.length * size
+      val valuesBytes = values.length * size / 8
       val lengthMax = 1 + 8 + valuesBytes
       val (lengthBytes, head) = codecs.lengthUtils(lengthMax)
       val arrayBytes = 1 + lengthBytes + valuesBytes
       val len = codecs.ulongBytes(arrayBytes, lengthBytes)
 
-      Attempt.successful(BitVector(0x02 + head) ++ len ++ values.reduce(_ ++ _).bits)
+      Attempt.successful(BitVector(0x02 + head) ++ len ++ values.reduce(_ ++ _))
     }
 
     case VPackArray(values) => {
-      val (valuesAll, valuesBytes, offsets) = values.foldLeft((ByteVector.empty, 0L, Vector.empty[Long])) {
-        case ((bytes, offset, offsets), element) => (bytes ++ element, offset + element.size, offsets :+ offset)
+      val (valuesAll, valuesBytes, offsets) = values.foldLeft((BitVector.empty, 0L, Vector.empty[Long])) {
+        case ((bytes, offset, offsets), element) => (bytes ++ element, offset + element.size / 8, offsets :+ offset)
       }
       val lengthMax = 1 + 8 + 8 + valuesBytes + 8 * offsets.length
       val (lengthBytes, head) = codecs.lengthUtils(lengthMax)
@@ -283,8 +283,8 @@ object VPackArray {
       val index = indexTable.foldLeft(BitVector.empty)((b, l) => b ++ codecs.ulongBytes(l, lengthBytes))
 
       Attempt.successful(
-      if (head == 3) BitVector(0x06 + head) ++ len ++ valuesAll.bits ++ index ++ nr
-                else BitVector(0x06 + head) ++ len ++ nr ++ valuesAll.bits ++ index
+      if (head == 3) BitVector(0x06 + head) ++ len ++ valuesAll ++ index ++ nr
+                else BitVector(0x06 + head) ++ len ++ nr ++ valuesAll ++ index
       )
     }
   })
@@ -293,7 +293,7 @@ object VPackArray {
     case VPackArray(Nil) => Attempt.successful(emptyArrayResult)
     case VPackArray(values) => {
       val valuesAll = values.reduce(_ ++ _)
-      val valuesBytes = valuesAll.size
+      val valuesBytes = valuesAll.size / 8
       for {
         nr <- vlong.encode(values.length)
         lengthBase = 1 + valuesBytes + nr.size / 8
@@ -301,18 +301,19 @@ object VPackArray {
         lengthT = lengthBase + lengthBaseL
         lenL = codecs.vlongLength(lengthT)
         len <- vlong.encode(if (lenL == lengthBaseL) lengthT else lengthT + 1)
-      } yield BitVector(0x13) ++ len ++ valuesAll.bits ++ nr.reverseByteOrder
+      } yield BitVector(0x13) ++ len ++ valuesAll ++ nr.reverseByteOrder
     }
   })
 
-  def decoderLinear(lenLength: Int): Decoder[Seq[ByteVector]] = Decoder( b =>
+  def decoderLinear(lenLength: Int): Decoder[Seq[BitVector]] = Decoder( b =>
     for {
       length  <- codecs.ulongLA(8 * lenLength).decode(b)
       bodyLen = length.value - 1 - lenLength
       body    <- scodec.codecs.bits(8 * bodyLen).decode(length.remainder)
       values  = body.value.bytes.dropWhile(_ == 0)
       valueLen <- VPackValue.vpLengthDecoder.decode(values.bits)
-      result = Vector(values.take(valueLen.value))
+      nr = (values.size / valueLen.value).toInt
+      result = Seq.range(0, nr).map(n => values.slice(n * valueLen.value, (n + 1) * valueLen.value).bits)
     } yield DecodeResult(result, body.remainder)
   )
 
@@ -320,7 +321,7 @@ object VPackArray {
     for {
       head     <- uint8L
       decs     <- head match {
-        case 0x01 => provide(Seq.empty[ByteVector])
+        case 0x01 => provide(Seq.empty[BitVector])
         case 0x02 => decoderLinear(1)
         case 0x03 => decoderLinear(2)
         case 0x04 => decoderLinear(4)
@@ -339,6 +340,7 @@ object VPackArray {
 
   def main(args: Array[String]): Unit = {
     println(decoder.decode(hex"02 05 31 32 33".bits))
+    println(decoder.decode(hex"03 07 00 00 31 32 33".bits))
   }
 
 }

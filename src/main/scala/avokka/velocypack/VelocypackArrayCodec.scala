@@ -6,7 +6,7 @@ import scodec.codecs._
 import shapeless.{::, HList, HNil}
 
 trait VelocypackArrayCodec[C <: HList, A <: HList] {
-  def encode(encoders: C, arguments: A): Attempt[Seq[ByteVector]]
+  def encode(encoders: C, arguments: A): Attempt[Seq[BitVector]]
   def decodeLinear(decoders: C, values: BitVector): Attempt[A]
   def decodeOffsets(decoders: C, values: BitVector, offsets: Seq[Long]): Attempt[A]
 }
@@ -16,17 +16,17 @@ object VelocypackArrayCodec {
 //  def apply[E <: HList, A <: HList](implicit encoders: VelocypackArrayEncoder[E, A]): VelocypackArrayEncoder[E, A] = encoders
 
   implicit object hnilCodec extends VelocypackArrayCodec[HNil, HNil] {
-    override def encode(encoders: HNil, arguments: HNil): Attempt[Seq[ByteVector]] = Attempt.successful(Vector.empty)
+    override def encode(encoders: HNil, arguments: HNil): Attempt[Seq[BitVector]] = Attempt.successful(Vector.empty)
     override def decodeLinear(decoders: HNil, values: BitVector): Attempt[HNil] = Attempt.successful(HNil)
     override def decodeOffsets(decoders: HNil, values: BitVector, offsets: Seq[Long]): Attempt[HNil] = Attempt.successful(HNil)
   }
 
   implicit def hconsCodec[T, Cod, C <: HList, A <: HList](implicit ev: VelocypackArrayCodec[C, A], eve: Cod <:< Codec[T]): VelocypackArrayCodec[Cod :: C, T :: A] = new VelocypackArrayCodec[Cod :: C, T :: A] {
-    override def encode(encoders: Cod :: C, arguments: T :: A): Attempt[Seq[ByteVector]] = {
+    override def encode(encoders: Cod :: C, arguments: T :: A): Attempt[Seq[BitVector]] = {
       for {
         rl <- encoders.head.encode(arguments.head)
         rr <- ev.encode(encoders.tail, arguments.tail)
-      } yield rl.bytes +: rr
+      } yield rl +: rr
     }
     override def decodeLinear(decoders: Cod :: C, values: BitVector): Attempt[T :: A] = {
       for {

@@ -5,7 +5,6 @@ import com.arangodb.velocypack.VPack
 import org.scalatest._
 import scodec.Codec
 import scodec.bits._
-import org.scalacheck.{Gen, Prop}
 
 class VPackValueSpec extends FlatSpec with Matchers {
   val vpack = new VPack.Builder().build()

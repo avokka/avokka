@@ -10,10 +10,7 @@ import scodec.bits._
 import scodec.codecs._
 import scodec.cats._
 
-import scala.Int
-
-sealed trait VPackValue {
-}
+sealed trait VPackValue
 
 case object VPackReserved1 extends VPackValue {
   implicit val codec: Codec[VPackReserved1.type] = constant(0x15) ~> provide(VPackReserved1)
@@ -145,6 +142,10 @@ object VPackLong {
     case u if u > 0 => longL(64).encode(u).map { BitVector(0x2f) ++ _ }
   } }
 
+  val smallDecoder: PartialFunction[Int, Byte] = {
+    case 0x30 => 0
+  }
+
   val decoder: Decoder[VPackLong] = for {
     head  <- uint8L
     value <- head match {
@@ -210,7 +211,7 @@ object VPackString {
     head  <- uint8L
     len   <- if (head == 0xbf) int64L
              else if (head >= 0x40 && head < 0xbf) provide[Long](head - 0x40)
-             else fail(Err("not a string"))
+             else fail(Err("not a vpack string"))
     str   <- fixedSizeBytes(len, utf8)
   } yield VPackString(str)
 
@@ -223,7 +224,29 @@ case class VPackBinary(value: ByteVector) extends VPackValue {
 }
 
 object VPackBinary {
-  implicit val codec: Codec[VPackBinary] = {
+
+  val encoder: Encoder[VPackBinary] = Encoder { bin =>
+    val length = bin.value.size
+    val lengthBytes = codecs.ulongLength(length)
+    Attempt.successful(
+      BitVector(0xbf + lengthBytes) ++
+      BitVector.fromLong(length, size = lengthBytes * 8, ordering = ByteOrdering.LittleEndian) ++
+      bin.value.bits
+    )
+  }
+
+  val decoder: Decoder[VPackBinary] = for {
+    head      <- uint8L
+    lenBytes  <- if (head >= 0xc0 && head <= 0xc7) provide(head - 0xbf)
+                 else fail(Err("not a vpack binary"))
+    len       <- codecs.ulongLA(lenBytes * 8)
+    bin       <- fixedSizeBytes(len, bytes)
+  } yield VPackBinary(bin)
+
+  implicit val codec: Codec[VPackBinary] = Codec(encoder, decoder)
+
+  /*
+  val Ocodec: Codec[VPackBinary] = {
     between(uint8L, 0xc0, 0xc7) >>~ (delta =>
       variableSizeBytesLong(ulongL((delta + 1) * 8), bytes)
     )
@@ -231,6 +254,7 @@ object VPackBinary {
     s => VPackBinary(s._2),
     p => (p.lengthSize - 1, p.value)
   )
+   */
 }
 
 object VPackValue {
@@ -246,5 +270,7 @@ object VPackValue {
     case VPackLong(value) if value.isValidInt => Attempt.successful(value.toInt)
     case VPackLong(value) => Attempt.failure(Err(s"Long to Int failure for value $value"))
   }, v => VPackLong(v.toLong))
+
+  val vpBin: Codec[ByteVector] = VPackBinary.codec.as
 
 }

@@ -1,6 +1,6 @@
 package avokka.velocypack
 
-import avokka.velocypack.VPackValue.{vpString, vpBool, vpInt, vpDouble, codec => vpCodec}
+import avokka.velocypack.VPackValue.{vpString, vpBool, vpInt, vpDouble, vpBin, codec => vpCodec}
 import com.arangodb.velocypack.VPack
 import org.scalatest._
 import scodec.Codec
@@ -51,6 +51,14 @@ class VPackValueSpec extends FlatSpec with Matchers {
     assertCodec(vpBool, false, hex"19")
     assertCodec(vpBool, true, hex"1a")
     assert(vpBool.decode(hex"18".bits).isFailure)
+  }
+
+  "binary" should "encode from 0xc0 to 0c7" in {
+    assertCodec(vpBin, hex"aa", hex"c001aa")
+    val c1 = ByteVector.fill(0x0100L)(0xaa)
+    assertCodec(vpBin, c1, hex"c10001" ++ c1)
+    val c2 = ByteVector.fill(0x010203L)(0xbb)
+    assertCodec(vpBin, c2, hex"c2030201" ++ c2)
   }
 
 }

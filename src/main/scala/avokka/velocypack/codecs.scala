@@ -37,4 +37,6 @@ object codecs {
     }
   }
 
+  def ulongLA(bits: Int): Codec[Long] = if (bits < 64) ulongL(bits) else longL(bits)
+
 }

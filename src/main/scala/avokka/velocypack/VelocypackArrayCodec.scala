@@ -44,8 +44,6 @@ object VelocypackArrayCodec {
     }
   }
 
-  def ulongLA(bits: Int): Codec[Long] = if (bits < 64) ulongL(bits) else longL(bits)
-
   @scala.annotation.tailrec
   def offsets(sizes: Seq[Long], offset: Long = 0, acc: Vector[Long] = Vector.empty): Vector[Long] = sizes match {
     case head +: tail => offsets(tail, offset + head, acc :+ offset)
@@ -120,7 +118,7 @@ object VelocypackArrayCodec {
   def decoder[D <: HList, A <: HList](decoders: D)(implicit ev: VelocypackArrayCodec[D, A]): Decoder[A] = new Decoder[A] {
 
     def decodeLinear(lenLength: Int, b: BitVector): Attempt[DecodeResult[A]] = for {
-      length  <- ulongLA(8 * lenLength).decode(b)
+      length  <- codecs.ulongLA(8 * lenLength).decode(b)
       bodyLen = length.value - 1 - lenLength
       body    <- bits(8 * bodyLen).decode(length.remainder)
       values  = body.value.bytes.dropWhile(_ == 0).bits
@@ -128,25 +126,25 @@ object VelocypackArrayCodec {
     } yield DecodeResult(result, body.remainder)
 
     def decodeOffsets(lenLength: Int, b: BitVector): Attempt[DecodeResult[A]] = for {
-      length  <- ulongLA(8 * lenLength).decode(b)
-      nr      <- ulongLA(8 * lenLength).decode(length.remainder)
+      length  <- codecs.ulongLA(8 * lenLength).decode(b)
+      nr      <- codecs.ulongLA(8 * lenLength).decode(length.remainder)
       bodyOffset = 1 + lenLength + lenLength
       bodyLen = length.value - bodyOffset
       body    <- bits(8 * bodyLen).decode(nr.remainder)
       values  <- bits(8 * (bodyLen - nr.value * lenLength)).decode(body.value)
-      offsets <- Decoder.decodeCollect(ulongLA(8 * lenLength), Some(nr.value.toInt))(values.remainder)
+      offsets <- Decoder.decodeCollect(codecs.ulongLA(8 * lenLength), Some(nr.value.toInt))(values.remainder)
       result  <- ev.decodeOffsets(decoders, values.value, offsets.value.map(_ - bodyOffset))
     } yield DecodeResult(result, body.remainder)
 
     def decodeOffsets64(lenLength: Int, b: BitVector): Attempt[DecodeResult[A]] = for {
-      length    <- ulongLA(8 * lenLength).decode(b)
+      length    <- codecs.ulongLA(8 * lenLength).decode(b)
       bodyOffset = 1 + lenLength
       bodyLen    = length.value - bodyOffset
       (body, remainder) = length.remainder.splitAt(8 * bodyLen)
       (valuesIndex, number) = body.splitAt(8 * (bodyLen - lenLength))
-      nr        <- ulongLA(8 * lenLength).decode(number)
+      nr        <- codecs.ulongLA(8 * lenLength).decode(number)
       (values, index) = valuesIndex.splitAt(8 * (bodyLen - nr.value * lenLength - lenLength))
-      offsets   <- Decoder.decodeCollect(ulongLA(8 * lenLength), Some(nr.value.toInt))(index)
+      offsets   <- Decoder.decodeCollect(codecs.ulongLA(8 * lenLength), Some(nr.value.toInt))(index)
       result    <- ev.decodeOffsets(decoders, values, offsets.value.map(_ - bodyOffset))
     } yield DecodeResult(result, remainder)
 

@@ -304,9 +304,90 @@ object VPackArray {
       } yield BitVector(0x13) ++ len ++ valuesAll.bits ++ nr.reverseByteOrder
     }
   })
+
+  def decoderLinear(lenLength: Int): Decoder[Seq[ByteVector]] = Decoder( b =>
+    for {
+      length  <- codecs.ulongLA(8 * lenLength).decode(b)
+      bodyLen = length.value - 1 - lenLength
+      body    <- scodec.codecs.bits(8 * bodyLen).decode(length.remainder)
+      values  = body.value.bytes.dropWhile(_ == 0)
+      valueLen <- VPackValue.vpLengthDecoder.decode(values.bits)
+      result = Vector(values.take(valueLen.value))
+    } yield DecodeResult(result, body.remainder)
+  )
+
+  val decoder: Decoder[VPackArray] = {
+    for {
+      head     <- uint8L
+      decs     <- head match {
+        case 0x01 => provide(Seq.empty[ByteVector])
+        case 0x02 => decoderLinear(1)
+        case 0x03 => decoderLinear(2)
+        case 0x04 => decoderLinear(4)
+        case 0x05 => decoderLinear(8)
+          /*
+        case 0x06 => decodeOffsets(1, head.remainder)
+        case 0x07 => decodeOffsets(2, head.remainder)
+        case 0x08 => decodeOffsets(4, head.remainder)
+        case 0x09 => decodeOffsets64(8, head.remainder)
+        case 0x13 => decodeCompact(head.remainder)
+           */
+        case _ => fail(Err("not a vpack array"))
+      }
+    } yield VPackArray(decs)
+  }
+
+  def main(args: Array[String]): Unit = {
+    println(decoder.decode(hex"02 05 31 32 33".bits))
+  }
+
 }
 
 object VPackValue {
+  
+  lazy val vpLengthCodecs: Map[Int, Decoder[Long]] = {
+    Map(
+      0x00 -> provide(1L),
+      0x01 -> provide(1L),
+      0x02 -> ulongL(8),
+      0x03 -> ulongL(16),
+      0x04 -> ulongL(32),
+      0x05 -> longL(64),
+      0x06 -> ulongL(8),
+      0x07 -> ulongL(16),
+      0x08 -> ulongL(32),
+      0x09 -> longL(64),
+      0x0a -> provide(1L),
+      0x0b -> ulongL(8),
+      0x0c -> ulongL(16),
+      0x0d -> ulongL(32),
+      0x0e -> longL(64),
+      0x0f -> ulongL(8),
+      0x10 -> ulongL(16),
+      0x11 -> ulongL(32),
+      0x12 -> longL(64),
+      0x13 -> vlongL,
+      0x14 -> vlongL,
+      0x18 -> provide(1L),
+      0x19 -> provide(1L),
+      0x1a -> provide(1L),
+      0x1b -> provide(8L + 1),
+      0x1c -> provide(8L + 1),
+    ) ++
+      (for { x <- 0x20 to 0x27 } yield x -> provide(x.toLong - 0x1f + 1)) ++
+      (for { x <- 0x28 to 0x2f } yield x -> provide(x.toLong - 0x27 + 1)) ++
+      (for { x <- 0x30 to 0x3f } yield x -> provide(1L)) ++
+      (for { x <- 0x40 to 0xbe } yield x -> provide(x.toLong - 0x40 + 1)) ++
+    Map(
+      0xbf -> longL(64).map(_ + 8 + 1),
+    ) ++
+      (for { h <- 0xc0 to 0xc7 } yield h -> codecs.ulongLA(8 * (h - 0xbf)).map(_ + 2))
+  }
+
+  val vpLengthDecoder: Decoder[Long] = for {
+    head <- uint8L
+    len  <- vpLengthCodecs.getOrElse(head, fail(Err("unknown vpack header")))
+  } yield len
 
   implicit val codec: Codec[VPackValue] = lazily { Codec.coproduct[VPackValue].choice }
 

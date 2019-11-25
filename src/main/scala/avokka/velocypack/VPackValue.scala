@@ -244,17 +244,6 @@ object VPackBinary {
   } yield VPackBinary(bin)
 
   implicit val codec: Codec[VPackBinary] = Codec(encoder, decoder)
-
-  /*
-  val Ocodec: Codec[VPackBinary] = {
-    between(uint8L, 0xc0, 0xc7) >>~ (delta =>
-      variableSizeBytesLong(ulongL((delta + 1) * 8), bytes)
-    )
-  }.xmap[VPackBinary](
-    s => VPackBinary(s._2),
-    p => (p.lengthSize - 1, p.value)
-  )
-   */
 }
 
 object VPackValue {
@@ -263,13 +252,17 @@ object VPackValue {
 
   val vpBool: Codec[Boolean] = VPackBoolean.codec.as
   val vpString: Codec[String] = VPackString.codec.as //.xmap(_.value, VPackString.apply)
+
   val vpDouble: Codec[Double] = VPackDouble.codec.as // xmap(_.value, VPackDouble.apply)
+  val vpFloat: Codec[Float] = vpDouble.xmap(_.toFloat, _.toDouble)
+
   val vpInstant: Codec[Instant] = VPackDate.codec.xmap(d => Instant.ofEpochMilli(d.value), t => VPackDate(t.toEpochMilli))
 
   val vpInt: Codec[Int] = VPackLong.codec.narrow({
     case VPackLong(value) if value.isValidInt => Attempt.successful(value.toInt)
     case VPackLong(value) => Attempt.failure(Err(s"Long to Int failure for value $value"))
   }, v => VPackLong(v.toLong))
+  val vpLong: Codec[Long] = VPackLong.codec.as
 
   val vpBin: Codec[ByteVector] = VPackBinary.codec.as
 

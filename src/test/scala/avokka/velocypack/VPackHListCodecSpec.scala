@@ -1,6 +1,7 @@
 package avokka.velocypack
 
-import avokka.velocypack.VPackValue.{vpBool, vpString, vpInt, vpVector, vpList}
+import avokka.velocypack.VPackValue.{vpBool, vpInt, vpString}
+import avokka.velocypack.codecs.VPackArrayCodec
 import avokka.velocypack.codecs.VPackHListCodec.{codec, codecCompact}
 import com.arangodb.velocypack.VPackSlice
 import org.scalatest._
@@ -90,14 +91,16 @@ class VPackArrayCodecSpec extends FlatSpec with Matchers {
     assertDecode(c2, hex"13 06 31 28 10 02", 1 :: 16 :: HNil)
   }
 
-  "vector decoders" should "conform specs" in {
-    val lint = vpVector(vpInt)
-
+  "vector codec" should "conform specs" in {
+    val lint = VPackArrayCodec.vector(vpInt)
     assertCodec(lint, Vector(1,2,3), hex"02 05 31 32 33")
+
+    val cint = VPackArrayCodec.Compact.vector(vpInt)
+    assertCodec(cint, Vector(0,1,2), hex"13 06 30 31 32 03")
   }
 
-  "list codecs" should "conform specs" in {
-    val lint = vpList(vpInt)
+  "list codec" should "conform specs" in {
+    val lint = VPackArrayCodec.list(vpInt)
 
     assertCodec(lint, List(1,2,3), hex"02 05 31 32 33")
     assertCodec(lint, List(16,32,64,128), hex"02 0a 2810 2820 2840 2880")

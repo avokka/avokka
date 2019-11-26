@@ -33,7 +33,7 @@ object VPackHListCodec {
           rr <- ev.decode(decoders.tail, tail)
         } yield rl :: rr
 
-        case _ => Attempt.failure(Err("not enough elements in velocypack array"))
+        case _ => Attempt.failure(Err("not enough elements in vpack array"))
       }
     }
   }
@@ -41,20 +41,20 @@ object VPackHListCodec {
   def encoder[E <: HList, A <: HList](encoders: E)(implicit ev: VPackHListCodec[E, A]): Encoder[A] = Encoder { value =>
     for {
       values <- ev.encode(encoders, value)
-      arr    <- VPackArray.encoder.encode(VPackArray(values))
+      arr    <- VPackArrayCodec.encode(VPackArray(values))
     } yield arr
   }
 
   def encoderCompact[E <: HList, A <: HList](encoders: E)(implicit ev: VPackHListCodec[E, A]): Encoder[A] = Encoder { value =>
     for {
       values <- ev.encode(encoders, value)
-      arr    <- VPackArray.compactEncoder.encode(VPackArray(values))
+      arr    <- VPackArrayCodec.Compact.encode(VPackArray(values))
     } yield arr
   }
 
   def decoder[D <: HList, A <: HList](decoders: D)(implicit ev: VPackHListCodec[D, A]): Decoder[A] = Decoder { bits =>
     for {
-      arr <- VPackArray.decoder.decode(bits)
+      arr <- VPackArrayCodec.decode(bits)
       res <- ev.decode(decoders, arr.value.values)
     } yield DecodeResult(res, arr.remainder)
   }

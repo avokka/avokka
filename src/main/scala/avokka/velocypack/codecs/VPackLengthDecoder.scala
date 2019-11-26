@@ -6,7 +6,7 @@ import scodec.{Attempt, DecodeResult, Decoder, Err}
 
 object VPackLengthDecoder extends Decoder[Long] {
 
-  lazy val vpLengthCodecs: Map[Int, Decoder[Long]] = {
+  val vpLengthCodecs: Map[Int, Decoder[Long]] = {
     Map(
       0x00 -> provide(1L),
       0x01 -> provide(1L),

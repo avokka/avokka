@@ -7,14 +7,6 @@ import scodec.codecs._
 import scala.annotation.tailrec
 
 package object codecs {
-  def between[T : Numeric](codec: Codec[T], min: T, max: T): Codec[T] = {
-    import Numeric.Implicits._
-    import Ordering.Implicits._
-    codec.exmap(
-      i => if (min <= i && i <= max) Attempt.Successful(i - min) else Attempt.failure(Err("not in range")),
-      d => if (d <= max - min) Attempt.Successful(min + d) else Attempt.failure(Err("not in range"))
-    )
-  }
 
   @tailrec def ulongLength(value: Long, acc: Int = 1): Int = {
     if (value > 0Xff) ulongLength(value >> 8, acc + 1)

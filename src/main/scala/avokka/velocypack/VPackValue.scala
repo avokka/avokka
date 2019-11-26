@@ -80,6 +80,8 @@ object VPackArray {
   val codecCompact: Codec[VPackArray] = VPackArrayCodec.Compact
 }
 
+case class VPackObject(values: Map[String, BitVector])
+
 object VPackValue {
 
   implicit val codec: Codec[VPackValue] = lazily { Codec.coproduct[VPackValue].choice }

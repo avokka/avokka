@@ -1,43 +1,40 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.VPackArray
+import avokka.velocypack.{VPackObject, VPackString}
 import cats.implicits._
 import scodec.bits.BitVector
 import scodec.codecs.{provide, uint8L, vlong, vlongL}
 import scodec.interop.cats._
-import scodec.{Attempt, Codec, DecodeResult, Decoder, Err, SizeBound}
+import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
 
-class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] {
+class VPackObjectCodec(compact: Boolean) extends Codec[VPackObject] {
 
   override def sizeBound: SizeBound = SizeBound.atLeast(8)
 
-  override def encode(value: VPackArray): Attempt[BitVector] = {
+  val keyValueEncoder: Encoder[(String, BitVector)] = Encoder( kv =>
+    for {
+      k <- VPackStringCodec.encode(VPackString(kv._1))
+    } yield k ++ kv._2
+  )
+
+  override def encode(value: VPackObject): Attempt[BitVector] = {
     value.values match {
-      case Nil => Attempt.successful(BitVector(0x01))
+      case values if values.isEmpty => Attempt.successful(BitVector(0x0a))
 
       case values if compact => {
-        val valuesAll = values.reduce(_ ++ _)
-        val valuesBytes = valuesAll.size / 8
         for {
-          nr <- vlong.encode(values.length)
+          valuesAll <- Encoder.encodeSeq(keyValueEncoder)(values.toList)
+          valuesBytes = valuesAll.size / 8
+          nr <- vlong.encode(values.size)
           lengthBase = 1 + valuesBytes + nr.size / 8
           lengthBaseL = vlongLength(lengthBase)
           lengthT = lengthBase + lengthBaseL
           lenL = vlongLength(lengthT)
           len <- vlong.encode(if (lenL == lengthBaseL) lengthT else lengthT + 1)
-        } yield BitVector(0x13) ++ len ++ valuesAll ++ nr.reverseByteOrder
+        } yield BitVector(0x14) ++ len ++ valuesAll ++ nr.reverseByteOrder
       }
 
-      case values @ AllSameSize(size) => {
-        val valuesBytes = values.length * size / 8
-        val lengthMax = 1 + 8 + valuesBytes
-        val (lengthBytes, head) = lengthUtils(lengthMax)
-        val arrayBytes = 1 + lengthBytes + valuesBytes
-        val len = ulongBytes(arrayBytes, lengthBytes)
-
-        (BitVector(0x02 + head) ++ len ++ values.reduce(_ ++ _)).pure[Attempt]
-      }
-
+        /*
       case values => {
         val (valuesAll, valuesBytes, offsets) = values.foldLeft((BitVector.empty, 0L, Vector.empty[Long])) {
           case ((bytes, offset, offsets), element) => (bytes ++ element, offset + element.size / 8, offsets :+ offset)
@@ -55,6 +52,8 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] {
                                else BitVector(0x06 + head) ++ len ++ nr ++ valuesAll ++ index
         result.pure[Attempt]
       }
+
+         */
     }
   }
 
@@ -118,29 +117,32 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] {
 
   private val decoderOffsets8 = decoderOffsets64(8)
 
-  private val decoderSingle: Decoder[BitVector] = Decoder( bits =>
-    VPackLengthDecoder.decodeValue(bits).map { len =>
-      DecodeResult(bits.take(8 * len), bits.drop(8 * len))
-    }
+  private val decoderSingle: Decoder[(String, BitVector)] = Decoder( bits =>
+    for {
+      key <- VPackStringCodec.decode(bits)
+      value = key.remainder
+      len <- VPackLengthDecoder.decodeValue(value)
+    } yield DecodeResult(key.value.value -> value.take(8 * len), value.drop(8 * len))
   )
 
-  private val decoderCompact: Decoder[Seq[BitVector]] = Decoder( b =>
+  private val decoderCompact: Decoder[Map[String, BitVector]] = Decoder( bits =>
     for {
-      length  <- vlongL.decode(b)
+      length  <- vlongL.decode(bits)
       bodyLen = 8 * (length.value - 1 - vlongLength(length.value))
       body    <- scodec.codecs.bits(bodyLen).decode(length.remainder)
       nr      <- vlongL.decode(body.value.reverseByteOrder)
       result  <- Decoder.decodeCollect(decoderSingle, Some(nr.value.toInt))(body.value)
-    } yield DecodeResult(result.value, body.remainder)
+    } yield DecodeResult(result.value.toMap, body.remainder)
   )
 
-  private val emptyProvider: Codec[Seq[BitVector]] = provide(Seq.empty[BitVector])
+  private val emptyProvider: Codec[Map[String, BitVector]] = provide(Map.empty[String, BitVector])
 
-  override def decode(bits: BitVector): Attempt[DecodeResult[VPackArray]] = {
+  override def decode(bits: BitVector): Attempt[DecodeResult[VPackObject]] = {
     for {
-      head     <- uint8L.decode(bits).ensure(Err("not a vpack array"))(h => (h.value >= 0x01 && h.value <= 0x09) || h.value == 0x13)
+      head     <- uint8L.decode(bits).ensure(Err("not a vpack array"))(h => (h.value >= 0x0a && h.value <= 0x12) || h.value == 0x14)
       decs     <- (head.value match {
-        case 0x01 => emptyProvider
+        case 0x0a => emptyProvider
+          /*
         case 0x02 => decoderLinear1
         case 0x03 => decoderLinear2
         case 0x04 => decoderLinear4
@@ -149,22 +151,25 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] {
         case 0x07 => decoderOffsets2
         case 0x08 => decoderOffsets4
         case 0x09 => decoderOffsets8
-        case 0x13 => decoderCompact
+           */
+        case 0x14 => decoderCompact
       }).decode(head.remainder)
-    } yield decs.map(VPackArray.apply)
+    } yield decs.map(VPackObject.apply)
   }
 
+  /*
   def list[T](codec: Codec[T]): Codec[List[T]] = exmap(
     _.values.toList.traverse(codec.decodeValue),
     _.traverse(codec.encode).map(VPackArray.apply)
   )
-
-  def vector[T](codec: Codec[T]): Codec[Vector[T]] = exmap(
-    _.values.toVector.traverse(codec.decodeValue),
-    _.traverse(codec.encode).map(VPackArray.apply)
+*/
+  def map[T](codec: Codec[T]): Codec[Map[String, T]] = exmap(
+    _.values.toList.traverse({ case (k,v) => codec.decodeValue(v).map(r => k -> r) }).map(_.toMap),
+    _.toList.traverse({ case (k,v) => codec.encode(v).map(r => k -> r) }).map(l => VPackObject(l.toMap))
   )
+
 }
 
-object VPackArrayCodec extends VPackArrayCodec(false) {
-  object Compact extends VPackArrayCodec(true)
+object VPackObjectCodec extends VPackObjectCodec(false) {
+  object Compact extends VPackObjectCodec(true)
 }

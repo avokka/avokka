@@ -33,7 +33,7 @@ class VPackObjectCodecSpec extends FlatSpec with Matchers {
     val mint = VPackObjectCodec.map(vpInt)
     assertCodec(mint, Vector(1,2,3), hex"02 05 31 32 33")
 */
-    val cint = VPackObjectCodec.Compact.map(vpInt)
+    val cint = VPackObjectCodec.Compact.mapOf(vpInt)
     assertCodec(cint, Map("a" -> 0, "b" -> 1, "c" -> 2), hex"14 0c 4161 30 4162 31 4163 32 03")
   }
 

@@ -6,8 +6,7 @@ import scodec.codecs._
 
 import scala.annotation.tailrec
 
-object codecs {
-
+package object codecs {
   def between[T : Numeric](codec: Codec[T], min: T, max: T): Codec[T] = {
     import Numeric.Implicits._
     import Ordering.Implicits._

@@ -66,56 +66,14 @@ object VPackLong {
 case class VPackString(value: String) extends VPackValue
 
 object VPackString {
-
-  val encoder: Encoder[VPackString] = Encoder { s =>
-    for {
-      bs    <- utf8.encode(s.value)
-      bytes = bs.bytes
-      len   = bytes.size
-      head  = if (len > 126) BitVector(0xbf) ++ ulongBytes(len, 8)
-              else BitVector(0x40 + len)
-    } yield head ++ bs
-  }
-
-  val decoder: Decoder[VPackString] = Decoder { b =>
-    for {
-      head <- uint8L.decode(b).ensure(Err("not a vpack string"))(h => h.value >= 0x40 && h.value <= 0xbf)
-      len  <- if (head.value == 0xbf) int64L.decode(head.remainder)
-              else head.map(_.toLong - 0x40).pure[Attempt]
-      str  <- fixedSizeBytes(len.value, utf8).decode(len.remainder)
-    } yield str.map(VPackString.apply)
-  }
-
-  implicit val codec: Codec[VPackString] = Codec(encoder, decoder)
-
+  implicit val codec: Codec[VPackString] = VPackStringCodec
 }
 
 case class VPackBinary(value: ByteVector) extends VPackValue
 
 object VPackBinary {
-
-  val encoder: Encoder[VPackBinary] = Encoder { bin =>
-    val length = bin.value.size
-    val lengthBytes = ulongLength(length)
-    Attempt.successful(
-      BitVector(0xbf + lengthBytes) ++
-      ulongBytes(length, lengthBytes) ++
-      bin.value.bits
-    )
-  }
-
-  val decoder: Decoder[VPackBinary] = Decoder { b =>
-    for {
-      head <- uint8L.decode(b).ensure(Err("not a vpack binary"))(h => h.value >= 0xc0 && h.value <= 0xc7)
-      lenBytes = head.value - 0xbf
-      len  <- ulongLA(lenBytes * 8).decode(head.remainder)
-      bin  <- fixedSizeBytes(len.value, bytes).decode(len.remainder)
-    } yield bin.map(VPackBinary.apply)
-  }
-
-  implicit val codec: Codec[VPackBinary] = Codec(encoder, decoder)
+  implicit val codec: Codec[VPackBinary] = VPackBinaryCodec
 }
-
 
 case class VPackArray(values: Seq[BitVector]) extends VPackValue
 
@@ -274,9 +232,9 @@ object VPackValue {
   implicit val codec: Codec[VPackValue] = lazily { Codec.coproduct[VPackValue].choice }
 
   val vpBool: Codec[Boolean] = VPackBooleanCodec.as
-  val vpString: Codec[String] = VPackString.codec.as //.xmap(_.value, VPackString.apply)
+  val vpString: Codec[String] = VPackStringCodec.as
 
-  val vpDouble: Codec[Double] = VPackDouble.codec.as // xmap(_.value, VPackDouble.apply)
+  val vpDouble: Codec[Double] = VPackDouble.codec.as
   val vpFloat: Codec[Float] = vpDouble.xmap(_.toFloat, _.toDouble)
 
   val vpInstant: Codec[Instant] = VPackDate.codec.xmap(d => Instant.ofEpochMilli(d.value), t => VPackDate(t.toEpochMilli))
@@ -287,8 +245,7 @@ object VPackValue {
   }, v => VPackLong(v.toLong))
   val vpLong: Codec[Long] = VPackLongCodec.as
 
-  val vpBin: Codec[ByteVector] = VPackBinary.codec.as
-
+  val vpBin: Codec[ByteVector] = VPackBinaryCodec.as
 
   def vpList[T](codec: Codec[T]): Codec[List[T]] = VPackArray.codec.exmap(
     _.values.toList.traverse(codec.decodeValue),

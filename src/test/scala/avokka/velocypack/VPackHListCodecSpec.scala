@@ -1,14 +1,14 @@
 package avokka.velocypack
 
 import avokka.velocypack.VPackValue.{vpBool, vpString, vpInt, vpVector, vpList}
-import avokka.velocypack.VelocypackArrayCodec.{codec, codecCompact}
+import avokka.velocypack.codecs.VPackHListCodec.{codec, codecCompact}
 import com.arangodb.velocypack.VPackSlice
 import org.scalatest._
 import scodec._
 import scodec.bits._
 import shapeless.{::, HNil}
 
-class VelocypackArrayCodecSpec extends FlatSpec with Matchers {
+class VPackArrayCodecSpec extends FlatSpec with Matchers {
 
   val request: Codec[String :: Boolean :: HNil] = codec(vpString :: vpBool :: HNil)
   val requests = codec(request :: request :: HNil)
@@ -69,10 +69,10 @@ class VelocypackArrayCodecSpec extends FlatSpec with Matchers {
 
   "array decoders" should "conform specs" in {
 
-    val ib = codec(VPackValue.vpInt :: VPackValue.vpBool :: HNil)
+    val ib = codec(vpInt :: vpBool :: HNil)
     assertDecode(ib, hex"02 05 00 31 19", 1 :: false :: HNil)
 
-    val c = codec(VPackValue.vpInt :: VPackValue.vpInt :: VPackValue.vpInt :: HNil)
+    val c = codec(vpInt :: vpInt :: vpInt :: HNil)
     assert(c.decode(hex"01".bits).isFailure)
 
     val ex = 1 :: 2 :: 3 :: HNil
@@ -86,7 +86,7 @@ class VelocypackArrayCodecSpec extends FlatSpec with Matchers {
     assertDecode(c, hex"08 18 00 00 00 03 00 00 00 31 32 33 09 00 00 00 0a 00 00 00 0b 00 00 00", ex)
     assertDecode(c, hex"09 2c 00 00 00 00 00 00 00 31 32 33 09 00 00 00 00 00 00 00 0a 00 00 00 00 00 00 00 0b 00 00 00 00 00 00 00 03 00 00 00 00 00 00 00", ex)
 
-    val c2 = codec(VPackValue.vpInt :: VPackValue.vpInt :: HNil)
+    val c2 = codec(vpInt :: vpInt :: HNil)
     assertDecode(c2, hex"13 06 31 28 10 02", 1 :: 16 :: HNil)
   }
 

@@ -3,13 +3,13 @@ package avokka.velocypack.codecs
 import avokka.velocypack.VPackLong
 import cats.implicits._
 import scodec.bits.BitVector
-import scodec.codecs.{fail, longL, provide, uint8L, ulongL}
+import scodec.codecs.{longL, provide, uint8L, ulongL}
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Err, SizeBound}
 
 object VPackLongCodec extends Codec[VPackLong] {
 
-  override def sizeBound: SizeBound = SizeBound.exact(8 * (1 + 8))
+  override def sizeBound: SizeBound = SizeBound.bounded(8, 8 * (1 + 8))
 
   override def encode(value: VPackLong): Attempt[BitVector] = {
     value.value match {

@@ -1,8 +1,8 @@
 package avokka.velocypack.codecs
 
-import scodec.{Attempt, DecodeResult, Decoder, Err}
 import scodec.bits.BitVector
 import scodec.codecs.{fail, longL, provide, uint8L, ulongL, vlongL}
+import scodec.{Attempt, DecodeResult, Decoder, Err}
 
 object VPackLengthDecoder extends Decoder[Long] {
 

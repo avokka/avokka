@@ -1,24 +1,25 @@
-package avokka.velocypack
+package avokka.velocypack.codecs
 
+import avokka.velocypack.VPackArray
+import scodec.bits.BitVector
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
-import scodec.bits._
 import shapeless.{::, HList, HNil}
 
-trait VelocypackArrayCodec[C <: HList, A <: HList] {
+trait VPackHListCodec[C <: HList, A <: HList] {
   def encode(encoders: C, arguments: A): Attempt[Seq[BitVector]]
   def decode(decoders: C, values: Seq[BitVector]): Attempt[A]
 }
 
-object VelocypackArrayCodec {
+object VPackHListCodec {
 
 //  def apply[E <: HList, A <: HList](implicit encoders: VelocypackArrayEncoder[E, A]): VelocypackArrayEncoder[E, A] = encoders
 
-  implicit object hnilCodec extends VelocypackArrayCodec[HNil, HNil] {
+  implicit object hnilCodec extends VPackHListCodec[HNil, HNil] {
     override def encode(encoders: HNil, arguments: HNil): Attempt[Seq[BitVector]] = Attempt.successful(Vector.empty)
     override def decode(decoders: HNil, values: Seq[BitVector]): Attempt[HNil] = Attempt.successful(HNil)
   }
 
-  implicit def hconsCodec[T, Cod, C <: HList, A <: HList](implicit ev: VelocypackArrayCodec[C, A], eve: Cod <:< Codec[T]): VelocypackArrayCodec[Cod :: C, T :: A] = new VelocypackArrayCodec[Cod :: C, T :: A] {
+  implicit def hconsCodec[T, Cod, C <: HList, A <: HList](implicit ev: VPackHListCodec[C, A], eve: Cod <:< Codec[T]): VPackHListCodec[Cod :: C, T :: A] = new VPackHListCodec[Cod :: C, T :: A] {
     override def encode(encoders: Cod :: C, arguments: T :: A): Attempt[Seq[BitVector]] = {
       for {
         rl <- encoders.head.encode(arguments.head)
@@ -37,28 +38,28 @@ object VelocypackArrayCodec {
     }
   }
 
-  def encoder[E <: HList, A <: HList](encoders: E)(implicit ev: VelocypackArrayCodec[E, A]): Encoder[A] = Encoder { value =>
+  def encoder[E <: HList, A <: HList](encoders: E)(implicit ev: VPackHListCodec[E, A]): Encoder[A] = Encoder { value =>
     for {
       values <- ev.encode(encoders, value)
       arr    <- VPackArray.encoder.encode(VPackArray(values))
     } yield arr
   }
 
-  def encoderCompact[E <: HList, A <: HList](encoders: E)(implicit ev: VelocypackArrayCodec[E, A]): Encoder[A] = Encoder { value =>
+  def encoderCompact[E <: HList, A <: HList](encoders: E)(implicit ev: VPackHListCodec[E, A]): Encoder[A] = Encoder { value =>
     for {
       values <- ev.encode(encoders, value)
       arr    <- VPackArray.compactEncoder.encode(VPackArray(values))
     } yield arr
   }
 
-  def decoder[D <: HList, A <: HList](decoders: D)(implicit ev: VelocypackArrayCodec[D, A]): Decoder[A] = Decoder { bits =>
+  def decoder[D <: HList, A <: HList](decoders: D)(implicit ev: VPackHListCodec[D, A]): Decoder[A] = Decoder { bits =>
     for {
       arr <- VPackArray.decoder.decode(bits)
       res <- ev.decode(decoders, arr.value.values)
     } yield DecodeResult(res, arr.remainder)
   }
 
-  def codec[C <: HList, A <: HList](codecs: C)(implicit ev: VelocypackArrayCodec[C, A]): Codec[A] = Codec(encoder(codecs), decoder(codecs))
-  def codecCompact[C <: HList, A <: HList](codecs: C)(implicit ev: VelocypackArrayCodec[C, A]): Codec[A] = Codec(encoderCompact(codecs), decoder(codecs))
+  def codec[C <: HList, A <: HList](codecs: C)(implicit ev: VPackHListCodec[C, A]): Codec[A] = Codec(encoder(codecs), decoder(codecs))
+  def codecCompact[C <: HList, A <: HList](codecs: C)(implicit ev: VPackHListCodec[C, A]): Codec[A] = Codec(encoderCompact(codecs), decoder(codecs))
 
 }

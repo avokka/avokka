@@ -243,7 +243,8 @@ object VPackBinary {
   implicit val codec: Codec[VPackBinary] = Codec(encoder, decoder)
 }
 
-case class VPackArray(values: Seq[BitVector]) // extends VPackValue
+
+case class VPackArray(values: Seq[BitVector]) extends VPackValue
 
 object VPackArray {
 
@@ -317,6 +318,53 @@ object VPackArray {
     } yield DecodeResult(result, body.remainder)
   )
 
+  def offsetsToRanges(offests: Seq[Long], size: Long): Seq[(Long, Long)] = {
+    val m = offests.sorted.foldRight((Map.empty[Long, Long], size)) {
+      case (offset, (acc, size)) => (acc.updated(offset, size), offset)
+    }._1
+    offests.map(off => off -> m.apply(off))
+  }
+
+  def decoderOffsets(lenLength: Int): Decoder[Seq[BitVector]] = Decoder( b =>
+    for {
+      length  <- codecs.ulongLA(8 * lenLength).decode(b)
+      nr      <- codecs.ulongLA(8 * lenLength).decode(length.remainder)
+      bodyOffset = 1 + lenLength + lenLength
+      bodyLen = length.value - bodyOffset
+      body    <- scodec.codecs.bits(8 * bodyLen).decode(nr.remainder)
+      values  <- scodec.codecs.bits(8 * (bodyLen - nr.value * lenLength)).decode(body.value)
+      offsets <- Decoder.decodeCollect(codecs.ulongLA(8 * lenLength), Some(nr.value.toInt))(values.remainder)
+      result = offsetsToRanges(offsets.value.map(_ - bodyOffset), values.value.size / 8).map {
+        case (from, until) => values.value.slice(8 * from, 8 * until)
+      }
+    } yield DecodeResult(result, body.remainder)
+  )
+
+  def decoderOffsets64(lenLength: Int): Decoder[Seq[BitVector]] = Decoder( b =>
+    for {
+      length    <- codecs.ulongLA(8 * lenLength).decode(b)
+      bodyOffset = 1 + lenLength
+      bodyLen    = length.value - bodyOffset
+      (body, remainder) = length.remainder.splitAt(8 * bodyLen)
+      (valuesIndex, number) = body.splitAt(8 * (bodyLen - lenLength))
+      nr        <- codecs.ulongLA(8 * lenLength).decode(number)
+      (values, index) = valuesIndex.splitAt(8 * (bodyLen - nr.value * lenLength - lenLength))
+      offsets   <- Decoder.decodeCollect(codecs.ulongLA(8 * lenLength), Some(nr.value.toInt))(index)
+      result = offsetsToRanges(offsets.value.map(_ - bodyOffset), values.size / 8).map {
+        case (from, until) => values.slice(8 * from, 8 * until)
+      }
+    } yield DecodeResult(result, remainder)
+  )
+
+  val decoderCompact: Decoder[Seq[BitVector]] = Decoder( b =>
+    for {
+      length  <- vlongL.decode(b)
+      bodyLen = 8 * (length.value - 1 - codecs.vlongLength(length.value))
+      body    <- scodec.codecs.bits(bodyLen).decode(length.remainder)
+     // result  <- ev.decodeLinear(decoders, body.value)
+    } yield DecodeResult(Vector.empty, body.remainder)
+  )
+
   val decoder: Decoder[VPackArray] = {
     for {
       head     <- uint8L
@@ -326,22 +374,19 @@ object VPackArray {
         case 0x03 => decoderLinear(2)
         case 0x04 => decoderLinear(4)
         case 0x05 => decoderLinear(8)
-          /*
-        case 0x06 => decodeOffsets(1, head.remainder)
-        case 0x07 => decodeOffsets(2, head.remainder)
-        case 0x08 => decodeOffsets(4, head.remainder)
-        case 0x09 => decodeOffsets64(8, head.remainder)
-        case 0x13 => decodeCompact(head.remainder)
-           */
+        case 0x06 => decoderOffsets(1)
+        case 0x07 => decoderOffsets(2)
+        case 0x08 => decoderOffsets(4)
+        case 0x09 => decoderOffsets64(8)
+        case 0x13 => decoderCompact
         case _ => fail(Err("not a vpack array"))
       }
     } yield VPackArray(decs)
   }
 
-  def main(args: Array[String]): Unit = {
-    println(decoder.decode(hex"02 05 31 32 33".bits))
-    println(decoder.decode(hex"03 07 00 00 31 32 33".bits))
-  }
+  implicit val codec: Codec[VPackArray] = Codec(encoder, decoder)
+
+  val codecCompact: Codec[VPackArray] = Codec(compactEncoder, decoder)
 
 }
 

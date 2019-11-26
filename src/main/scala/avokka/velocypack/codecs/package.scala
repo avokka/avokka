@@ -31,4 +31,9 @@ package object codecs {
 
   def ulongLA(bits: Int): Codec[Long] = if (bits < 64) ulongL(bits) else longL(bits)
 
+  private[codecs] object AllSameSize {
+    def unapply(s: Iterable[BitVector]): Option[Long] = for {
+      size <- s.headOption.map(_.size) if s.forall(_.size == size)
+    } yield size
+  }
 }

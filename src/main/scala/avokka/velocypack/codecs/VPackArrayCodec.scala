@@ -11,12 +11,6 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] {
 
   override def sizeBound: SizeBound = SizeBound.atLeast(16)
 
-  object AllSameSize {
-    def unapply(s: Iterable[BitVector]): Option[Long] = for {
-      size <- s.headOption.map(_.size) if s.forall(_.size == size)
-    } yield size
-  }
-
   override def encode(value: VPackArray): Attempt[BitVector] = {
     value.values match {
       case Nil => Attempt.successful(BitVector(0x01))
@@ -154,6 +148,7 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] {
     _.values.toList.traverse(codec.decodeValue),
     _.traverse(codec.encode).map(VPackArray.apply)
   )
+
   def vector[T](codec: Codec[T]): Codec[Vector[T]] = exmap(
     _.values.toVector.traverse(codec.decodeValue),
     _.traverse(codec.encode).map(VPackArray.apply)

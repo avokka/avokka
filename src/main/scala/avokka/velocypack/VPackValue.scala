@@ -2,12 +2,10 @@ package avokka.velocypack
 
 import java.time.Instant
 
-import cats.implicits._
 import codecs._
 import scodec._
 import scodec.bits._
 import scodec.codecs._
-import scodec.interop.cats._
 
 sealed trait VPackValue
 
@@ -101,7 +99,4 @@ object VPackValue {
   val vpLong: Codec[Long] = VPackLongCodec.as
 
   val vpBin: Codec[ByteVector] = VPackBinaryCodec.as
-
-
-
 }

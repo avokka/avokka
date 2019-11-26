@@ -157,12 +157,6 @@ class VPackObjectCodec(compact: Boolean) extends Codec[VPackObject] {
     } yield decs.map(VPackObject.apply)
   }
 
-  /*
-  def list[T](codec: Codec[T]): Codec[List[T]] = exmap(
-    _.values.toList.traverse(codec.decodeValue),
-    _.traverse(codec.encode).map(VPackArray.apply)
-  )
-*/
   def map[T](codec: Codec[T]): Codec[Map[String, T]] = exmap(
     _.values.toList.traverse({ case (k,v) => codec.decodeValue(v).map(r => k -> r) }).map(_.toMap),
     _.toList.traverse({ case (k,v) => codec.encode(v).map(r => k -> r) }).map(l => VPackObject(l.toMap))

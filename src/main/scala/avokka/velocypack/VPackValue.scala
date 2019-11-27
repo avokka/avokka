@@ -6,6 +6,7 @@ import codecs._
 import scodec._
 import scodec.bits._
 import scodec.codecs._
+import shapeless.{Inl, Inr}
 
 sealed trait VPackValue
 
@@ -95,7 +96,21 @@ object VPackValue {
   val vpBool: Codec[Boolean] = VPackBooleanCodec.as
   val vpString: Codec[String] = VPackStringCodec.as
 
-  val vpDouble: Codec[Double] = VPackDouble.codec.as
+  val vpDouble: Codec[Double] = new Codec[Double] {
+    override def sizeBound: SizeBound = VPackDoubleCodec.sizeBound | VPackLongCodec.sizeBound
+
+    override def encode(value: Double): Attempt[BitVector] = value match {
+      case d if d.isWhole() => VPackLongCodec.encode(VPackLong(d.toLong))
+      case d => VPackDoubleCodec.encode(VPackDouble(d))
+    }
+
+    override def decode(bits: BitVector): Attempt[DecodeResult[Double]] = Decoder.choiceDecoder(
+      VPackDoubleCodec.map(_.value),
+      VPackLongCodec.map(l => l.value.toDouble)
+    ).decode(bits)
+  }
+
+
   val vpFloat: Codec[Float] = vpDouble.xmap(_.toFloat, _.toDouble)
 
   val vpInstant: Codec[Instant] = VPackDate.codec.xmap(d => Instant.ofEpochMilli(d.value), t => VPackDate(t.toEpochMilli))

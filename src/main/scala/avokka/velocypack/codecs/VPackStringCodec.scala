@@ -13,13 +13,13 @@ object VPackStringCodec extends Codec[VPackString] {
   val shortByte = 0x40
   val longByte  = 0xbf
 
-  override def encode(value: VPackString): Attempt[BitVector] = {
+  override def encode(v: VPackString): Attempt[BitVector] = {
     for {
-      bs    <- utf8.encode(value.value)
-      len   = bs.size / 8
+      bits  <- utf8.encode(v.value)
+      len   = bits.size / 8
       head  = if (len > 126) BitVector(longByte) ++ ulongBytes(len, 8)
               else BitVector(shortByte + len)
-    } yield head ++ bs
+    } yield head ++ bits
   }
 
   override def decode(bits: BitVector): Attempt[DecodeResult[VPackString]] = {

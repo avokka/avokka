@@ -12,8 +12,8 @@ object VPackDateCodec extends Codec[VPackDate] {
 
   val headByte = 0x1c
 
-  override def encode(value: VPackDate): Attempt[BitVector] = for {
-    bits <- int64L.encode(value.value)
+  override def encode(v: VPackDate): Attempt[BitVector] = for {
+    bits <- int64L.encode(v.value)
   } yield BitVector(headByte) ++ bits
 
   override def decode(bits: BitVector): Attempt[DecodeResult[VPackDate]] = for {

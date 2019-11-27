@@ -84,9 +84,4 @@ object VPackGenericCodec {
   }
 
   def deriveFor[T] = new DeriveHelper[T]
-
-  def main(args: Array[String]): Unit = {
-
-  }
-
 }

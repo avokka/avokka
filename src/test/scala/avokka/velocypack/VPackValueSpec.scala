@@ -64,6 +64,9 @@ class aVPackValueSpec extends FlatSpec with Matchers {
     assertCodec(vpDouble, 1.5d, hex"1b 000000000000F83F")
     assertCodec(vpDouble, -1.5d, hex"1b 000000000000F8BF")
     assertCodec(vpDouble, 1.23456789d, hex"1b 1B DE 83 42 CA C0 F3 3F")
+    assertCodec(vpDouble, 0d, hex"30")
+    assertCodec(vpDouble, 0.001d, hex"1bfca9f1d24d62503f")
+    assertCodec(vpDouble, 10d, hex"280a")
   }
 
   "boolean" should "encode to 0x19 or 0x1a" in {

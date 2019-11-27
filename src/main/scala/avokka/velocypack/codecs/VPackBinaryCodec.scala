@@ -10,10 +10,10 @@ import scodec.{Attempt, Codec, DecodeResult, Err, SizeBound}
 object VPackBinaryCodec extends Codec[VPackBinary] {
   override def sizeBound: SizeBound = SizeBound.atLeast(16)
 
-  override def encode(value: VPackBinary): Attempt[BitVector] = {
-    val length = value.value.size
+  override def encode(v: VPackBinary): Attempt[BitVector] = {
+    val length = v.value.size
     val lengthBytes = ulongLength(length)
-    (BitVector(0xbf + lengthBytes) ++ ulongBytes(length, lengthBytes) ++ value.value.bits).pure[Attempt]
+    (BitVector(0xbf + lengthBytes) ++ ulongBytes(length, lengthBytes) ++ v.value.bits).pure[Attempt]
   }
 
   override def decode(bits: BitVector): Attempt[DecodeResult[VPackBinary]] = {

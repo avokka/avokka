@@ -6,6 +6,7 @@ import scodec.bits.BitVector
 import scodec.codecs.{provide, uint8L, vlong, vlongL}
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Err, SizeBound}
+import shapeless.HList
 
 class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] {
 
@@ -163,6 +164,9 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] {
     _.values.toVector.traverse(codec.decodeValue),
     _.traverse(codec.encode).map(VPackArray.apply)
   )
+
+  def hlist[C <: HList, A <: HList](codecs: C)(implicit ev: VPackHListCodec[C, A]): Codec[A] = VPackHListCodec.codec(codecs)
+  def hlistCompact[C <: HList, A <: HList](codecs: C)(implicit ev: VPackHListCodec[C, A]): Codec[A] = VPackHListCodec.codecCompact(codecs)
 }
 
 object VPackArrayCodec extends VPackArrayCodec(false) {

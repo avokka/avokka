@@ -62,30 +62,13 @@ class VPackObjectCodec(compact: Boolean, sorted: Boolean) extends Codec[VPackObj
     }
   }
 
-  private def decoderLinear(lenLength: Int): Decoder[Seq[BitVector]] = Decoder( b =>
-    for {
-      length  <- ulongLA(8 * lenLength).decode(b)
-      bodyLen = length.value - 1 - lenLength
-      body    <- scodec.codecs.bits(8 * bodyLen).decode(length.remainder)
-      values  = body.value.bytes.dropWhile(_ == 0)
-      valueLen <- VPackLengthDecoder.decode(values.bits)
-      nr = (values.size / valueLen.value).toInt
-      result = Seq.range(0, nr).map(n => values.slice(n * valueLen.value, (n + 1) * valueLen.value).bits)
-    } yield DecodeResult(result, body.remainder)
-  )
-
-  private val decoderLinear1 = decoderLinear(1)
-  private val decoderLinear2 = decoderLinear(2)
-  private val decoderLinear4 = decoderLinear(4)
-  private val decoderLinear8 = decoderLinear(8)
-
   def offsetsToRanges(offests: Seq[Long], size: Long): Seq[(Long, Long)] = {
     offests.zipWithIndex.sortBy(_._1).foldRight((Vector.empty[(Int, Long, Long)], size))({
       case ((offset, index), (acc, size)) => (acc :+ (index, offset, size), offset)
     })._1.sortBy(_._1).map(r => r._2 -> r._3)
   }
 
-  def decoderOffsets(lenLength: Int): Decoder[Seq[BitVector]] = Decoder( b =>
+  def decoderOffsets(lenLength: Int): Decoder[Map[String, BitVector]] = Decoder( b =>
     for {
       length  <- ulongLA(8 * lenLength).decode(b)
       nr      <- ulongLA(8 * lenLength).decode(length.remainder)
@@ -97,6 +80,7 @@ class VPackObjectCodec(compact: Boolean, sorted: Boolean) extends Codec[VPackObj
       result = offsetsToRanges(offsets.value.map(_ - bodyOffset), values.value.size / 8).map {
         case (from, until) => values.value.slice(8 * from, 8 * until)
       }
+      rr <- result.toList.traverse(decoderSingle.decode)
     } yield DecodeResult(result, body.remainder)
   )
 

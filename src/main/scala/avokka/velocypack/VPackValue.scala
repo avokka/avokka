@@ -2,11 +2,12 @@ package avokka.velocypack
 
 import java.time.Instant
 
+import cats.implicits._
 import codecs._
 import scodec._
 import scodec.bits._
 import scodec.codecs._
-import shapeless.{Inl, Inr}
+import scodec.interop.cats._
 
 sealed trait VPackValue
 
@@ -56,6 +57,12 @@ case object VPackMaxKey extends VPackValue {
   implicit val codec: Codec[VPackMaxKey.type] = constant(0x1f) ~> provide(VPackMaxKey)
 }
 
+case class VPackSmallint(value: Byte) extends VPackValue
+
+object VPackSmallint {
+  implicit val codec: Codec[VPackSmallint] = VPackSmallintCodec
+}
+
 case class VPackLong(value: Long) extends VPackValue
 
 object VPackLong {
@@ -97,29 +104,55 @@ object VPackValue {
   val vpString: Codec[String] = VPackStringCodec.as
 
   val vpDouble: Codec[Double] = new Codec[Double] {
-    override def sizeBound: SizeBound = VPackDoubleCodec.sizeBound | VPackLongCodec.sizeBound
+    override def sizeBound: SizeBound = VPackSmallintCodec.sizeBound | VPackDoubleCodec.sizeBound | VPackLongCodec.sizeBound
 
     override def encode(value: Double): Attempt[BitVector] = value match {
+      case d if d.isWhole() && VPackSmallintCodec.can(d) => VPackSmallintCodec.encode(VPackSmallint(d.toByte))
       case d if d.isWhole() => VPackLongCodec.encode(VPackLong(d.toLong))
       case d => VPackDoubleCodec.encode(VPackDouble(d))
     }
 
     override def decode(bits: BitVector): Attempt[DecodeResult[Double]] = Decoder.choiceDecoder(
+      VPackSmallintCodec.map(_.value.toDouble),
       VPackDoubleCodec.map(_.value),
       VPackLongCodec.map(l => l.value.toDouble)
     ).decode(bits)
   }
 
-
   val vpFloat: Codec[Float] = vpDouble.xmap(_.toFloat, _.toDouble)
 
   val vpInstant: Codec[Instant] = VPackDate.codec.xmap(d => Instant.ofEpochMilli(d.value), t => VPackDate(t.toEpochMilli))
 
-  val vpInt: Codec[Int] = VPackLongCodec.narrow({
-    case VPackLong(value) if value.isValidInt => Attempt.successful(value.toInt)
-    case VPackLong(value) => Attempt.failure(Err(s"Long to Int failure for value $value"))
-  }, v => VPackLong(v.toLong))
-  val vpLong: Codec[Long] = VPackLongCodec.as
+  val vpInt: Codec[Int] = new Codec[Int] {
+    override def sizeBound: SizeBound = VPackSmallintCodec.sizeBound | VPackLongCodec.sizeBound
+
+    override def encode(value: Int): Attempt[BitVector] = value match {
+      case i if VPackSmallintCodec.can(i) => VPackSmallintCodec.encode(VPackSmallint(i.toByte))
+      case i => VPackLongCodec.encode(VPackLong(i.toLong))
+    }
+
+    override def decode(bits: BitVector): Attempt[DecodeResult[Int]] = Decoder.choiceDecoder(
+      VPackSmallintCodec.map(_.value.toInt),
+      VPackLongCodec.map(_.value).emap({
+        case l if l.isValidInt => l.toInt.pure[Attempt]
+        case _ => Err("vpack long overflow").raiseError
+      })
+    ).decode(bits)
+  }
+
+  val vpLong: Codec[Long] = new Codec[Long] {
+    override def sizeBound: SizeBound = VPackSmallintCodec.sizeBound | VPackLongCodec.sizeBound
+
+    override def encode(value: Long): Attempt[BitVector] = value match {
+      case l if VPackSmallintCodec.can(l) => VPackSmallintCodec.encode(VPackSmallint(l.toByte))
+      case l => VPackLongCodec.encode(VPackLong(l))
+    }
+
+    override def decode(bits: BitVector): Attempt[DecodeResult[Long]] = Decoder.choiceDecoder(
+      VPackSmallintCodec.map(_.value.toLong),
+      VPackLongCodec.map(_.value)
+    ).decode(bits)
+  }
 
   val vpBin: Codec[ByteVector] = VPackBinaryCodec.as
 }

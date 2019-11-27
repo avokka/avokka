@@ -12,9 +12,11 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] {
 
   override def sizeBound: SizeBound = SizeBound.atLeast(8)
 
+  val emptyByte = 0x01
+
   override def encode(value: VPackArray): Attempt[BitVector] = {
     value.values match {
-      case Nil => Attempt.successful(BitVector(0x01))
+      case Nil => Attempt.successful(BitVector(emptyByte))
 
       case values if compact => {
         val valuesAll = values.reduce(_ ++ _)
@@ -139,9 +141,9 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] {
 
   override def decode(bits: BitVector): Attempt[DecodeResult[VPackArray]] = {
     for {
-      head     <- uint8L.decode(bits).ensure(Err("not a vpack array"))(h => (h.value >= 0x01 && h.value <= 0x09) || h.value == 0x13)
+      head     <- uint8L.decode(bits).ensure(Err("not a vpack array"))(h => (h.value >= emptyByte && h.value <= 0x09) || h.value == 0x13)
       decs     <- (head.value match {
-        case 0x01 => emptyProvider
+        case `emptyByte` => emptyProvider
         case 0x02 => decoderLinear1
         case 0x03 => decoderLinear2
         case 0x04 => decoderLinear4

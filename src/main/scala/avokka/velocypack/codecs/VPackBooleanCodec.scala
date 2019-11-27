@@ -10,13 +10,16 @@ import scodec.{Attempt, Codec, DecodeResult, Err, SizeBound}
 object VPackBooleanCodec extends Codec[VPackBoolean] {
   override def sizeBound: SizeBound = SizeBound.exact(8)
 
-  override def encode(value: VPackBoolean): Attempt[BitVector] = {
-    BitVector(if (value.value) 0x1a else 0x19).pure[Attempt]
+  val trueByte = 0x1a
+  val falseByte = 0x19
+
+  override def encode(v: VPackBoolean): Attempt[BitVector] = {
+    BitVector(if (v.value) trueByte else falseByte).pure[Attempt]
   }
 
   override def decode(bits: BitVector): Attempt[DecodeResult[VPackBoolean]] = {
     for {
-      head <- uint8L.decode(bits).ensure(Err("not a vpack boolean"))(h => h.value == 0x19 || h.value == 0x1a)
-    } yield head.map(h => VPackBoolean(h == 0x1a))
+      head <- uint8L.decode(bits).ensure(Err("not a vpack boolean"))(h => h.value == falseByte || h.value == trueByte)
+    } yield head.map(h => VPackBoolean(h == trueByte))
   }
 }

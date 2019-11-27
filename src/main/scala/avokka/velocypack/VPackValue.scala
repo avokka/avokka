@@ -34,13 +34,13 @@ object VPackBoolean {
 case class VPackDouble(value: Double) extends VPackValue
 
 object VPackDouble {
-  implicit val codec: Codec[VPackDouble] = { constant(0x1b) ~> doubleL }.as
+  implicit val codec: Codec[VPackDouble] = VPackDoubleCodec
 }
 
 case class VPackDate(value: Long) extends VPackValue
 
 object VPackDate {
-  implicit val codec: Codec[VPackDate] = { constant(0x1c) ~> int64L }.as
+  implicit val codec: Codec[VPackDate] = VPackDateCodec
 }
 
 case object VPackExternal extends VPackValue {
@@ -80,7 +80,13 @@ object VPackArray {
   val codecCompact: Codec[VPackArray] = VPackArrayCodec.Compact
 }
 
-case class VPackObject(values: Map[String, BitVector])
+case class VPackObject(values: Map[String, BitVector]) extends VPackValue
+
+object VPackObject {
+  implicit val codec: Codec[VPackObject] = VPackObjectCodec
+  val codecCompact: Codec[VPackObject] = VPackObjectCodec.Compact
+  val codecUnsorted: Codec[VPackObject] = VPackObjectCodec.Unsorted
+}
 
 object VPackValue {
 

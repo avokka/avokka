@@ -19,9 +19,11 @@ class VPackObjectCodec(compact: Boolean, sorted: Boolean) extends Codec[VPackObj
     } yield k ++ kv._2
   )
 
+  val emptyByte = 0x0a
+
   override def encode(value: VPackObject): Attempt[BitVector] = {
     value.values match {
-      case values if values.isEmpty => Attempt.successful(BitVector(0x0a))
+      case values if values.isEmpty => Attempt.successful(BitVector(emptyByte))
 
       case values if compact => {
         for {
@@ -37,28 +39,29 @@ class VPackObjectCodec(compact: Boolean, sorted: Boolean) extends Codec[VPackObj
       }
 
       case values => {
-        val (valuesAll, valuesBytes, offsets) = values.foldLeft((BitVector.empty, 0L, Map.empty[String, Long])) {
-          case ((bytes, offset, offsets), (key, value)) => {
-            val k = VPackStringCodec.encode(VPackString(key)).require
-            (bytes ++ k ++ value, offset + k.size / 8 + value.size / 8, offsets.updated(key, offset))
+        for {
+          keyValues <- values.toList.traverse(kv => keyValueEncoder.encode(kv).map(b => kv._1 -> b))
+          val (valuesAll, valuesBytes, offsets) = keyValues.foldLeft((BitVector.empty, 0L, Map.empty[String, Long])) {
+            case ((bytes, offset, offsets), (key, value)) => {
+              (bytes ++ value, offset + value.size / 8, offsets.updated(key, offset))
+            }
           }
-        }
-        val lengthMax = 1 + 8 + 8 + valuesBytes + 8 * offsets.size
-        val (lengthBytes, head) = lengthUtils(lengthMax)
-        val headBytes = 1 + lengthBytes + lengthBytes
-        val indexTable = offsets.mapValues(off => headBytes + off)
+          val lengthMax = 1 + 8 + 8 + valuesBytes + 8 * offsets.size
+          val (lengthBytes, head) = lengthUtils(lengthMax)
+          val headBytes = 1 + lengthBytes + lengthBytes
+          val indexTable = offsets.mapValues(off => headBytes + off)
 
-        val len = ulongBytes(headBytes + valuesBytes + lengthBytes * offsets.size, lengthBytes)
-        val nr = ulongBytes(offsets.size, lengthBytes)
-        val sor = if (sorted) SortedMap(indexTable.toSeq: _*) else indexTable
-        val index = sor.foldLeft(BitVector.empty)((b, l) => b ++ ulongBytes(l._2, lengthBytes))
+          val len = ulongBytes(headBytes + valuesBytes + lengthBytes * offsets.size, lengthBytes)
+          val nr = ulongBytes(offsets.size, lengthBytes)
+          val sor = if (sorted) SortedMap(indexTable.toSeq: _*) else indexTable
+          val index = sor.foldLeft(BitVector.empty)((b, l) => b ++ ulongBytes(l._2, lengthBytes))
 
-        val headBase = if (sorted) 0x0b else 0x0f
-        val result = if (head == 3) BitVector(headBase + head) ++ len ++ valuesAll ++ index ++ nr
-                               else BitVector(headBase + head) ++ len ++ nr ++ valuesAll ++ index
-        result.pure[Attempt]
+          val headBase = if (sorted) 0x0b else 0x0f
+          val result = if (head == 3) BitVector(headBase + head) ++ len ++ valuesAll ++ index ++ nr
+          else BitVector(headBase + head) ++ len ++ nr ++ valuesAll ++ index
+
+        } yield result
       }
-
     }
   }
 
@@ -80,15 +83,15 @@ class VPackObjectCodec(compact: Boolean, sorted: Boolean) extends Codec[VPackObj
       result = offsetsToRanges(offsets.value.map(_ - bodyOffset), values.value.size / 8).map {
         case (from, until) => values.value.slice(8 * from, 8 * until)
       }
-      rr <- result.toList.traverse(decoderSingle.decode)
-    } yield DecodeResult(result, body.remainder)
+      rr      <- result.toList.traverse(decoderSingle.decodeValue)
+    } yield DecodeResult(rr.toMap, body.remainder)
   )
 
   private val decoderOffsets1 = decoderOffsets(1)
   private val decoderOffsets2 = decoderOffsets(2)
   private val decoderOffsets4 = decoderOffsets(4)
 
-  def decoderOffsets64(lenLength: Int): Decoder[Seq[BitVector]] = Decoder( b =>
+  def decoderOffsets64(lenLength: Int): Decoder[Map[String, BitVector]] = Decoder( b =>
     for {
       length    <- ulongLA(8 * lenLength).decode(b)
       bodyOffset = 1 + lenLength
@@ -101,7 +104,8 @@ class VPackObjectCodec(compact: Boolean, sorted: Boolean) extends Codec[VPackObj
       result = offsetsToRanges(offsets.value.map(_ - bodyOffset), values.size / 8).map {
         case (from, until) => values.slice(8 * from, 8 * until)
       }
-    } yield DecodeResult(result, remainder)
+      rr        <- result.toList.traverse(decoderSingle.decodeValue)
+    } yield DecodeResult(rr.toMap, remainder)
   )
 
   private val decoderOffsets8 = decoderOffsets64(8)
@@ -128,19 +132,17 @@ class VPackObjectCodec(compact: Boolean, sorted: Boolean) extends Codec[VPackObj
 
   override def decode(bits: BitVector): Attempt[DecodeResult[VPackObject]] = {
     for {
-      head     <- uint8L.decode(bits).ensure(Err("not a vpack array"))(h => (h.value >= 0x0a && h.value <= 0x12) || h.value == 0x14)
+      head     <- uint8L.decode(bits).ensure(Err("not a vpack array"))(h => (h.value >= emptyByte && h.value <= 0x12) || h.value == 0x14)
       decs     <- (head.value match {
-        case 0x0a => emptyProvider
-          /*
-        case 0x02 => decoderLinear1
-        case 0x03 => decoderLinear2
-        case 0x04 => decoderLinear4
-        case 0x05 => decoderLinear8
-        case 0x06 => decoderOffsets1
-        case 0x07 => decoderOffsets2
-        case 0x08 => decoderOffsets4
-        case 0x09 => decoderOffsets8
-           */
+        case `emptyByte` => emptyProvider
+        case 0x0b => decoderOffsets1
+        case 0x0c => decoderOffsets2
+        case 0x0d => decoderOffsets4
+        case 0x0e => decoderOffsets8
+        case 0x0f => decoderOffsets1
+        case 0x10 => decoderOffsets2
+        case 0x11 => decoderOffsets4
+        case 0x12 => decoderOffsets8
         case 0x14 => decoderCompact
       }).decode(head.remainder)
     } yield decs.map(va => VPackObject(va))

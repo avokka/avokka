@@ -8,7 +8,7 @@ import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Err, SizeBound}
 import shapeless.HList
 
-class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] {
+class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] with VPackCompoundCodec {
 
   override def sizeBound: SizeBound = SizeBound.atLeast(8)
 
@@ -16,20 +16,9 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] {
 
   override def encode(value: VPackArray): Attempt[BitVector] = {
     value.values match {
-      case Nil => Attempt.successful(BitVector(emptyByte))
+      case Nil => BitVector(emptyByte).pure[Attempt]
 
-      case values if compact => {
-        val valuesAll = values.reduce(_ ++ _)
-        val valuesBytes = valuesAll.size / 8
-        for {
-          nr <- vlong.encode(values.length)
-          lengthBase = 1 + valuesBytes + nr.size / 8
-          lengthBaseL = vlongLength(lengthBase)
-          lengthT = lengthBase + lengthBaseL
-          lenL = vlongLength(lengthT)
-          len <- vlong.encode(if (lenL == lengthBaseL) lengthT else lengthT + 1)
-        } yield BitVector(0x13) ++ len ++ valuesAll ++ nr.reverseByteOrder
-      }
+      case values if compact => encodeCompact(0x13, values)
 
       case values @ AllSameSize(size) => {
         val valuesBytes = values.length * size / 8
@@ -67,9 +56,9 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] {
       bodyLen = length.value - 1 - lenLength
       body    <- scodec.codecs.bits(8 * bodyLen).decode(length.remainder)
       values  = body.value.bytes.dropWhile(_ == 0)
-      valueLen <- VPackLengthDecoder.decode(values.bits)
-      nr = (values.size / valueLen.value).toInt
-      result = Seq.range(0, nr).map(n => values.slice(n * valueLen.value, (n + 1) * valueLen.value).bits)
+      valueLen <- VPackHeadLengthDecoder.decodeValue(values.bits)
+      nr = (values.size / valueLen.length).toInt
+      result = Seq.range(0, nr).map(n => values.slice(n * valueLen.length, (n + 1) * valueLen.length).bits)
     } yield DecodeResult(result, body.remainder)
   )
 
@@ -77,12 +66,6 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] {
   private val decoderLinear2 = decoderLinear(2)
   private val decoderLinear4 = decoderLinear(4)
   private val decoderLinear8 = decoderLinear(8)
-
-  def offsetsToRanges(offests: Seq[Long], size: Long): Seq[(Long, Long)] = {
-    offests.zipWithIndex.sortBy(_._1).foldRight((Vector.empty[(Int, Long, Long)], size))({
-      case ((offset, index), (acc, size)) => (acc :+ (index, offset, size), offset)
-    })._1.sortBy(_._1).map(r => r._2 -> r._3)
-  }
 
   def decoderOffsets(lenLength: Int): Decoder[Seq[BitVector]] = Decoder( b =>
     for {
@@ -122,8 +105,8 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] {
   private val decoderOffsets8 = decoderOffsets64(8)
 
   private val decoderSingle: Decoder[BitVector] = Decoder( bits =>
-    VPackLengthDecoder.decodeValue(bits).map { len =>
-      DecodeResult(bits.take(8 * len), bits.drop(8 * len))
+    VPackHeadLengthDecoder.decodeValue(bits).map { len =>
+      DecodeResult(bits.take(8 * len.length), bits.drop(8 * len.length))
     }
   )
 

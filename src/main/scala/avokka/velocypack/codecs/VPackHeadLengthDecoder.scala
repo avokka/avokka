@@ -4,7 +4,7 @@ import scodec.bits.BitVector
 import scodec.codecs.{fail, longL, provide, uint8L, ulongL, vlongL}
 import scodec.{Attempt, DecodeResult, Decoder, Err}
 
-object VPackLengthDecoder extends Decoder[Long] {
+private object VPackHeadLengthDecoder extends Decoder[HeadLength] {
 
   private val vpLengthCodecs: Map[Int, Decoder[Long]] = {
     Map(
@@ -45,10 +45,10 @@ object VPackLengthDecoder extends Decoder[Long] {
       (for { h <- 0xc0 to 0xc7 } yield h -> ulongLA(8 * (h - 0xbf)).map(_ + 2))
   }
 
-  override def decode(bits: BitVector): Attempt[DecodeResult[Long]] = {
+  override def decode(bits: BitVector): Attempt[DecodeResult[HeadLength]] = {
     for {
       head <- uint8L.decode(bits)
       len  <- vpLengthCodecs.getOrElse(head.value, fail(Err("unknown vpack header"))).decode(head.remainder)
-    } yield len
+    } yield len.map(l => HeadLength(head.value, l))
   }
 }

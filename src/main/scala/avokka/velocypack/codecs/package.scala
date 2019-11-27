@@ -20,15 +20,6 @@ package object codecs {
 
   def ulongBytes(value: Long, size: Int): BitVector = BitVector.fromLong(value, size * 8, ByteOrdering.LittleEndian)
 
-  def lengthUtils(l: Long): (Int, Int) = {
-    ulongLength(l) match {
-      case 1     => (1, 0)
-      case 2     => (2, 1)
-      case 3 | 4 => (4, 2)
-      case _     => (8, 3)
-    }
-  }
-
   def ulongLA(bits: Int): Codec[Long] = if (bits < 64) ulongL(bits) else longL(bits)
 
   private[codecs] object AllSameSize {
@@ -36,4 +27,6 @@ package object codecs {
       size <- s.headOption.map(_.size) if s.forall(_.size == size)
     } yield size
   }
+
+  private[codecs] case class HeadLength(head: Int, length: Long)
 }

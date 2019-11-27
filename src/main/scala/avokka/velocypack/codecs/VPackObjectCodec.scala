@@ -9,7 +9,7 @@ import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
 
 import scala.collection.SortedMap
 
-class VPackObjectCodec(compact: Boolean, sorted: Boolean) extends Codec[VPackObject] {
+class VPackObjectCodec(compact: Boolean, sorted: Boolean) extends Codec[VPackObject] with VPackCompoundCodec {
 
   override def sizeBound: SizeBound = SizeBound.atLeast(8)
 
@@ -23,20 +23,12 @@ class VPackObjectCodec(compact: Boolean, sorted: Boolean) extends Codec[VPackObj
 
   override def encode(value: VPackObject): Attempt[BitVector] = {
     value.values match {
-      case values if values.isEmpty => Attempt.successful(BitVector(emptyByte))
+      case values if values.isEmpty => BitVector(emptyByte).pure[Attempt]
 
-      case values if compact => {
-        for {
-          valuesAll <- Encoder.encodeSeq(keyValueEncoder)(values.toList)
-          valuesBytes = valuesAll.size / 8
-          nr <- vlong.encode(values.size)
-          lengthBase = 1 + valuesBytes + nr.size / 8
-          lengthBaseL = vlongLength(lengthBase)
-          lengthT = lengthBase + lengthBaseL
-          lenL = vlongLength(lengthT)
-          len <- vlong.encode(if (lenL == lengthBaseL) lengthT else lengthT + 1)
-        } yield BitVector(0x14) ++ len ++ valuesAll ++ nr.reverseByteOrder
-      }
+      case values if compact => for {
+        valuesAll <- values.toList.traverse(keyValueEncoder.encode)
+        result <- encodeCompact(0x14, valuesAll)
+      } yield result
 
       case values => {
         for {
@@ -63,12 +55,6 @@ class VPackObjectCodec(compact: Boolean, sorted: Boolean) extends Codec[VPackObj
         } yield result
       }
     }
-  }
-
-  def offsetsToRanges(offests: Seq[Long], size: Long): Seq[(Long, Long)] = {
-    offests.zipWithIndex.sortBy(_._1).foldRight((Vector.empty[(Int, Long, Long)], size))({
-      case ((offset, index), (acc, size)) => (acc :+ (index, offset, size), offset)
-    })._1.sortBy(_._1).map(r => r._2 -> r._3)
   }
 
   def decoderOffsets(lenLength: Int): Decoder[Map[String, BitVector]] = Decoder( b =>
@@ -114,8 +100,8 @@ class VPackObjectCodec(compact: Boolean, sorted: Boolean) extends Codec[VPackObj
     for {
       key <- VPackStringCodec.decode(bits)
       value = key.remainder
-      len <- VPackLengthDecoder.decodeValue(value)
-    } yield DecodeResult(key.value.value -> value.take(8 * len), value.drop(8 * len))
+      len <- VPackHeadLengthDecoder.decodeValue(value)
+    } yield DecodeResult(key.value.value -> value.take(8 * len.length), value.drop(8 * len.length))
   )
 
   private val decoderCompact: Decoder[Map[String, BitVector]] = Decoder( bits =>

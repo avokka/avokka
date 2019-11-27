@@ -29,12 +29,18 @@ class VPackObjectCodecSpec extends FlatSpec with Matchers {
   }
 
   "map codec" should "conform specs" in {
-    /*
-    val mint = VPackObjectCodec.map(vpInt)
-    assertCodec(mint, Vector(1,2,3), hex"02 05 31 32 33")
-*/
+
+    val sint = VPackObjectCodec.mapOf(vpInt)
+    assertEncodePack(sint, Map("z" -> 1, "a" -> 2), """{"z":1,"a":2}""")
+
+    val mint = VPackObjectCodec.Unsorted.mapOf(vpInt)
+    assertEncodePack(mint, Map("z" -> 1, "a" -> 2), """{"z":1,"a":2}""")
+
     val cint = VPackObjectCodec.Compact.mapOf(vpInt)
+    assertCodec(cint, Map.empty[String, Int], hex"0a")
     assertCodec(cint, Map("a" -> 0, "b" -> 1, "c" -> 2), hex"14 0c 4161 30 4162 31 4163 32 03")
+
+
   }
 
 }

@@ -7,7 +7,6 @@ import akka.actor._
 import akka.stream._
 import akka.stream.scaladsl._
 import akka.util._
-import com.arangodb.velocypack._
 import scodec.bits._
 
 import scala.concurrent._
@@ -55,14 +54,10 @@ object Hello {
       }
 */
 
-    val vpack = new VPack.Builder().build()
-
     val auth = VAuthRequest.codec.encode(VAuthRequest(1, 1000, "plain", "root", "root")).require.bytes
+    val apiV = VRequest.codec.encode(VRequest(1, 1, "_system", 1, "/_api/version", meta = Map("test" -> "moi"))).require.bytes
 
-    val apiVersion = vpack.serialize(Array(1, 1, "_system", 1, "/_api/version", new Object, new Object))
-    val apiVersionB = ByteVector(apiVersion.getBuffer, apiVersion.getStart, apiVersion.getByteSize)
-
-    val testInput = Source(List(auth, apiVersionB))
+    val testInput = Source(List(auth, apiV))
 
     val gr: Future[Done] = testInput.via(in).via(connection).via(out)
       .runWith(Sink.ignore)

@@ -6,7 +6,7 @@ import org.scalatest._
 import scodec.Codec
 import scodec.bits._
 
-class VPackValueSpec extends FlatSpec with Matchers {
+class aVPackValueSpec extends FlatSpec with Matchers {
   val vpack = new VPack.Builder().build()
 
   "0x00" should "not be allowed in vpack values" in {

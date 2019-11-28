@@ -1,11 +1,11 @@
 package avokka.velocypack
 
 import com.arangodb.velocypack.{VPack, VPackSlice}
-import org.scalatest.{Assertion, Assertions}
+import org.scalatest.{Assertion, Assertions, Matchers}
 import scodec.Codec
 import scodec.bits.{BitVector, ByteVector}
 
-trait VPackCodecSpecTrait { self: Assertions =>
+trait VPackCodecSpecTrait { self: Matchers =>
 
   val vpack: VPack = new VPack.Builder().build()
 

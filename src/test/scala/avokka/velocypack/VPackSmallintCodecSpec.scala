@@ -6,7 +6,7 @@ import scodec.bits._
 
 class VPackSmallintCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
 
-  "small integers 0, 1, ... 9" should "encode to 0x30-0x39" in {
+  it should "encode small integers 0, 1, ... 9 to 0x30-0x39" in {
     assertCodec(VPackSmallintCodec, VPackSmallint(0), hex"30")
     assertCodec(VPackSmallintCodec, VPackSmallint(1), hex"31")
     assertCodec(VPackSmallintCodec, VPackSmallint(2), hex"32")
@@ -19,7 +19,7 @@ class VPackSmallintCodecSpec extends FlatSpec with Matchers with VPackCodecSpecT
     assertCodec(VPackSmallintCodec, VPackSmallint(9), hex"39")
   }
 
-  "small negative integers -6, -5, ..., -1" should "encode to 0x3a-0x3f" in {
+  it should "encode small negative integers -6, -5, ..., -1 to 0x3a-0x3f" in {
     assertCodec(VPackSmallintCodec, VPackSmallint(-6), hex"3a")
     assertCodec(VPackSmallintCodec, VPackSmallint(-5), hex"3b")
     assertCodec(VPackSmallintCodec, VPackSmallint(-4), hex"3c")
@@ -28,7 +28,7 @@ class VPackSmallintCodecSpec extends FlatSpec with Matchers with VPackCodecSpecT
     assertCodec(VPackSmallintCodec, VPackSmallint(-1), hex"3f")
   }
 
-  "codec" should "fail if head is not a smallint" in {
+  it should "fail if head is not a smallint" in {
     assert(VPackSmallintCodec.decode(hex"00".bits).isFailure)
   }
 }

@@ -60,18 +60,17 @@ case object VPackMaxKey extends VPackValue {
 case class VPackSmallint(value: Byte) extends VPackValue
 
 object VPackSmallint {
-  def unapply(i: Int): Option[VPackSmallint] = test(i)
-  def unapply(l: Long): Option[VPackSmallint] = test(l)
-
   implicit val codec: Codec[VPackSmallint] = VPackSmallintCodec
 
-  def test[T](arg: T)(implicit num: Numeric[T]): Option[VPackSmallint] = {
-    VPackSmallintCodec.can(arg).map(VPackSmallint.apply)
+  def fromNumeric[T](arg: T)(implicit num: Numeric[T]): Option[VPackSmallint] = {
+    if (num.lteq(arg, num.fromInt(9)) && num.gteq(arg, num.fromInt(-6)))
+      Some(VPackSmallint(num.toInt(arg).toByte))
+    else None
   }
 
-  def unapply(arg: Double): Option[VPackSmallint] = {
-    if (arg.isWhole()) test(arg) else None
-  }
+  def unapply(i: Int): Option[VPackSmallint] = fromNumeric(i)
+  def unapply(l: Long): Option[VPackSmallint] = fromNumeric(l)
+  def unapply(arg: Double): Option[VPackSmallint] = if (arg.isWhole()) fromNumeric(arg) else None
 }
 
 case class VPackLong(value: Long) extends VPackValue

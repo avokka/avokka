@@ -11,20 +11,12 @@ object VPackSmallintCodec extends Codec[VPackSmallint] {
   override def sizeBound: SizeBound = SizeBound.exact(8)
 
   override def encode(v: VPackSmallint): Attempt[BitVector] = {
-    val b = v.value + (if (v.value < 0) 0x40 else 0x30)
-    BitVector(b).pure[Attempt]
+    BitVector(v.value + (if (v.value < 0) 0x40 else 0x30)).pure[Attempt]
   }
 
   override def decode(bits: BitVector): Attempt[DecodeResult[VPackSmallint]] = for {
     head  <- uint8L.decode(bits).ensure(Err("not a vpack smallint"))(h => h.value >= 0x30 && h.value <= 0x3f)
-  } yield head.map(h => {
-    val b = h - (if (h < 0x3a) 0x30 else 0x40)
-    VPackSmallint(b.toByte)
-  })
-
-  def can[T](t: T)(implicit num: Numeric[T]): Option[Byte] = {
-    if (num.lteq(t, num.fromInt(9)) && num.gteq(t, num.fromInt(-6))) Some(num.toInt(t).toByte) else None
-  }
+  } yield head.map(h => VPackSmallint((h - (if (h < 0x3a) 0x30 else 0x40)).toByte))
 
   /*
   def smallEncode[T](implicit num: Numeric[T]): PartialFunction[T, Int] = {

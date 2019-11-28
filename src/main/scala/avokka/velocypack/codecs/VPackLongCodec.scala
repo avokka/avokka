@@ -34,6 +34,13 @@ object VPackLongCodec extends Codec[VPackLong] {
     }
   }
 
+  private def longLpatch(bits: Int)(l: Long): Long = {
+    if (((1L << (bits - 1)) & l) != 0) {
+      val shift = 64 - bits
+      (l << shift) >> shift
+    } else l
+  }
+
   override def decode(bits: BitVector): Attempt[DecodeResult[VPackLong]] = {
     for {
       head  <- uint8L.decode(bits).ensure(Err("not a vpack long"))(h => h.value >= 0x20 && h.value <= 0x2f)
@@ -43,9 +50,9 @@ object VPackLongCodec extends Codec[VPackLong] {
         case 0x21 => longL(16)
         case 0x22 => longL(24)
         case 0x23 => longL(32)
-        case 0x24 => longL(40)
-        case 0x25 => longL(48)
-        case 0x26 => longL(56)
+        case 0x24 => longL(40).map(longLpatch(40))
+        case 0x25 => longL(48).map(longLpatch(48))
+        case 0x26 => longL(56).map(longLpatch(56))
         case 0x27 => longL(64)
         // unsigned
         case 0x28 => ulongL(8)

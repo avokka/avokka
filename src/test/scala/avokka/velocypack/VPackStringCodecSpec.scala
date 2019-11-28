@@ -26,4 +26,8 @@ class VPackStringCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTra
       hex"bf" ++ codecs.ulongBytes(len, 8).bytes ++ ByteVector.fill(len)(0x40)
     )
   }
+
+  "codec" should "fail if head is not a string" in {
+    assert(VPackStringCodec.decode(hex"00".bits).isFailure)
+  }
 }

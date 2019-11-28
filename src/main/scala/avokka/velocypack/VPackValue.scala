@@ -3,7 +3,7 @@ package avokka.velocypack
 import java.time.Instant
 
 import cats.implicits._
-import codecs._
+import codecs.{VPackDoubleCodec, _}
 import scodec._
 import scodec.bits._
 import scodec.codecs._
@@ -60,13 +60,30 @@ case object VPackMaxKey extends VPackValue {
 case class VPackSmallint(value: Byte) extends VPackValue
 
 object VPackSmallint {
+  def unapply(i: Int): Option[VPackSmallint] = test(i)
+  def unapply(l: Long): Option[VPackSmallint] = test(l)
+
   implicit val codec: Codec[VPackSmallint] = VPackSmallintCodec
+
+  def test[T](arg: T)(implicit num: Numeric[T]): Option[VPackSmallint] = {
+    VPackSmallintCodec.can(arg).map(VPackSmallint.apply)
+  }
+
+  def unapply(arg: Double): Option[VPackSmallint] = {
+    if (arg.isWhole()) test(arg) else None
+  }
 }
 
 case class VPackLong(value: Long) extends VPackValue
 
 object VPackLong {
   implicit val codec: Codec[VPackLong] = VPackLongCodec
+
+  def unapply(arg: Int): Option[VPackLong] = Some(VPackLong(arg.toLong))
+
+  def unapply(arg: Double): Option[VPackLong] = {
+    if (arg.isWhole()) Some(VPackLong(arg.toLong)) else None
+  }
 }
 
 case class VPackString(value: String) extends VPackValue
@@ -103,32 +120,12 @@ object VPackValue {
   val vpBool: Codec[Boolean] = VPackBooleanCodec.as
   val vpString: Codec[String] = VPackStringCodec.as
 
-  val vpDouble: Codec[Double] = new Codec[Double] {
-    override def sizeBound: SizeBound = VPackSmallintCodec.sizeBound | VPackDoubleCodec.sizeBound | VPackLongCodec.sizeBound
-
-    override def encode(value: Double): Attempt[BitVector] = value match {
-      case d if d.isWhole() && VPackSmallintCodec.can(d) => VPackSmallintCodec.encode(VPackSmallint(d.toByte))
-      case d if d.isWhole() => VPackLongCodec.encode(VPackLong(d.toLong))
-      case d => VPackDoubleCodec.encode(VPackDouble(d))
-    }
-
-    override def decode(bits: BitVector): Attempt[DecodeResult[Double]] = Decoder.choiceDecoder(
-      VPackSmallintCodec.map(_.value.toDouble),
-      VPackDoubleCodec.map(_.value),
-      VPackLongCodec.map(l => l.value.toDouble)
-    ).decode(bits)
-  }
-
-  val vpFloat: Codec[Float] = vpDouble.xmap(_.toFloat, _.toDouble)
-
-  val vpInstant: Codec[Instant] = VPackDate.codec.xmap(d => Instant.ofEpochMilli(d.value), t => VPackDate(t.toEpochMilli))
-
   val vpInt: Codec[Int] = new Codec[Int] {
     override def sizeBound: SizeBound = VPackSmallintCodec.sizeBound | VPackLongCodec.sizeBound
 
     override def encode(value: Int): Attempt[BitVector] = value match {
-      case i if VPackSmallintCodec.can(i) => VPackSmallintCodec.encode(VPackSmallint(i.toByte))
-      case i => VPackLongCodec.encode(VPackLong(i.toLong))
+      case VPackSmallint(s) => VPackSmallintCodec.encode(s)
+      case VPackLong(l) => VPackLongCodec.encode(l)
     }
 
     override def decode(bits: BitVector): Attempt[DecodeResult[Int]] = Decoder.choiceDecoder(
@@ -144,7 +141,7 @@ object VPackValue {
     override def sizeBound: SizeBound = VPackSmallintCodec.sizeBound | VPackLongCodec.sizeBound
 
     override def encode(value: Long): Attempt[BitVector] = value match {
-      case l if VPackSmallintCodec.can(l) => VPackSmallintCodec.encode(VPackSmallint(l.toByte))
+      case VPackSmallint(s) => VPackSmallintCodec.encode(s)
       case l => VPackLongCodec.encode(VPackLong(l))
     }
 
@@ -153,6 +150,26 @@ object VPackValue {
       VPackLongCodec.map(_.value)
     ).decode(bits)
   }
+
+  val vpDouble: Codec[Double] = new Codec[Double] {
+    override def sizeBound: SizeBound = VPackSmallintCodec.sizeBound | VPackDoubleCodec.sizeBound | VPackLongCodec.sizeBound
+
+    override def encode(value: Double): Attempt[BitVector] = value match {
+      case VPackSmallint(s) => VPackSmallintCodec.encode(s)
+      case VPackLong(l) => VPackLongCodec.encode(l)
+      case d => VPackDoubleCodec.encode(VPackDouble(d))
+    }
+
+    override def decode(bits: BitVector): Attempt[DecodeResult[Double]] = Decoder.choiceDecoder(
+      VPackSmallintCodec.map(_.value.toDouble),
+      VPackLongCodec.map(_.value.toDouble),
+      VPackDoubleCodec.map(_.value),
+    ).decode(bits)
+  }
+
+  val vpFloat: Codec[Float] = vpDouble.xmap(_.toFloat, _.toDouble)
+
+  val vpInstant: Codec[Instant] = VPackDate.codec.xmap(d => Instant.ofEpochMilli(d.value), t => VPackDate(t.toEpochMilli))
 
   val vpBin: Codec[ByteVector] = VPackBinaryCodec.as
 }

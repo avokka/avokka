@@ -22,8 +22,8 @@ object VPackSmallintCodec extends Codec[VPackSmallint] {
     VPackSmallint(b.toByte)
   })
 
-  def can[T](t: T)(implicit num: Numeric[T]): Boolean = {
-    num.lteq(t, num.fromInt(9)) && num.gteq(t, num.fromInt(-6))
+  def can[T](t: T)(implicit num: Numeric[T]): Option[Byte] = {
+    if (num.lteq(t, num.fromInt(9)) && num.gteq(t, num.fromInt(-6))) Some(num.toInt(t).toByte) else None
   }
 
   /*

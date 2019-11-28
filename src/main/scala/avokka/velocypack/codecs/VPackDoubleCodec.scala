@@ -1,11 +1,11 @@
 package avokka.velocypack.codecs
 
 import avokka.velocypack.VPackDouble
-import scodec.{Attempt, Codec, DecodeResult, Decoder, Err, SizeBound}
-import scodec.bits.BitVector
-import scodec.codecs.{doubleL, provide, uint8L}
 import cats.implicits._
+import scodec.bits.BitVector
+import scodec.codecs.{doubleL, uint8L}
 import scodec.interop.cats._
+import scodec.{Attempt, Codec, DecodeResult, Err, SizeBound}
 
 object VPackDoubleCodec extends Codec[VPackDouble] {
   override def sizeBound: SizeBound = SizeBound.bounded(8, 8 + 64)

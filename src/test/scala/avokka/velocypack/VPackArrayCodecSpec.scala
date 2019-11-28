@@ -9,7 +9,7 @@ import scodec._
 import scodec.bits._
 import shapeless.{::, HNil}
 
-class VPackArrayCodecSpec extends FlatSpec with Matchers {
+class VPackArrayCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
 
   val request: Codec[String :: Boolean :: HNil] = codec(vpString :: vpBool :: HNil)
   val requests = codec(request :: request :: HNil)
@@ -30,26 +30,6 @@ class VPackArrayCodecSpec extends FlatSpec with Matchers {
   "simple array codec" should "return an codec" in {
     val c = codec(VPackValue.vpBool :: HNil)
     assert(c.isInstanceOf[Codec[Boolean :: HNil]])
-  }
-
-  def toSlice(bits: BitVector) = new VPackSlice(bits.toByteArray)
-
-
-  def assertEncode[T](c: Codec[T], v: T, b: ByteVector) = {
-    assertResult(b)(c.encode(v).require.bytes)
-  }
-  def assertEncodePack[T](c: Codec[T], v: T, json: String) = {
-    val r = c.encode(v).require
-    assertResult(json)(toSlice(r).toString)
-  }
-
-  def assertDecode[T](c: Codec[T], b: ByteVector, v: T) = {
-    assertResult(v)(c.decode(b.bits).require.value)
-  }
-
-  def assertCodec[T](c: Codec[T], v: T, b: ByteVector) = {
-    assertEncode(c, v, b)
-    assertDecode(c, b, v)
   }
 
   "array encoders" should "conform specs" in {

@@ -29,4 +29,6 @@ package object codecs {
   }
 
   private[codecs] case class HeadLength(head: Int, length: Long)
+
+  trait VPackCodec[T] extends Codec[T]
 }

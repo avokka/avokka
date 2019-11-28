@@ -10,27 +10,8 @@ import scodec.bits._
 import shapeless.HNil
 import shapeless.syntax.singleton._
 
-class VPackObjectCodecSpec extends FlatSpec with Matchers {
+class VPackObjectCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
   import VPackObjectCodecSpec._
-
-  def toSlice(bits: BitVector) = new VPackSlice(bits.toByteArray)
-
-  def assertEncode[T](c: Codec[T], v: T, b: ByteVector) = {
-    assertResult(b)(c.encode(v).require.bytes)
-  }
-  def assertEncodePack[T](c: Codec[T], v: T, json: String) = {
-    val r = c.encode(v).require
-    assertResult(json)(toSlice(r).toString)
-  }
-
-  def assertDecode[T](c: Codec[T], b: ByteVector, v: T) = {
-    assertResult(v)(c.decode(b.bits).require.value)
-  }
-
-  def assertCodec[T](c: Codec[T], v: T, b: ByteVector) = {
-    assertEncode(c, v, b)
-    assertDecode(c, b, v)
-  }
 
   "map codec" should "conform specs" in {
 

@@ -57,13 +57,15 @@ case object VPackMaxKey extends VPackValue {
   implicit val codec: Codec[VPackMaxKey.type] = constant(0x1f) ~> provide(VPackMaxKey)
 }
 
-case class VPackSmallint(value: Byte) extends VPackValue
+case class VPackSmallint(value: Byte) extends VPackValue {
+  require(value < 10 && value > -7)
+}
 
 object VPackSmallint {
   implicit val codec: Codec[VPackSmallint] = VPackSmallintCodec
 
   def fromNumeric[T](arg: T)(implicit num: Numeric[T]): Option[VPackSmallint] = {
-    if (num.lteq(arg, num.fromInt(9)) && num.gteq(arg, num.fromInt(-6)))
+    if (num.lt(arg, num.fromInt(10)) && num.gt(arg, num.fromInt(-7)))
       Some(VPackSmallint(num.toInt(arg).toByte))
     else None
   }
@@ -127,13 +129,15 @@ object VPackValue {
       case VPackLong(l) => VPackLongCodec.encode(l)
     }
 
-    override def decode(bits: BitVector): Attempt[DecodeResult[Int]] = Decoder.choiceDecoder(
+    private val decoder = Decoder.choiceDecoder(
       VPackSmallintCodec.map(_.value.toInt),
       VPackLongCodec.map(_.value).emap({
         case l if l.isValidInt => l.toInt.pure[Attempt]
         case _ => Err("vpack long overflow").raiseError
       })
-    ).decode(bits)
+    )
+
+    override def decode(bits: BitVector): Attempt[DecodeResult[Int]] = decoder.decode(bits)
   }
 
   val vpLong: Codec[Long] = new Codec[Long] {
@@ -144,10 +148,12 @@ object VPackValue {
       case l => VPackLongCodec.encode(VPackLong(l))
     }
 
-    override def decode(bits: BitVector): Attempt[DecodeResult[Long]] = Decoder.choiceDecoder(
+    private val decoder = Decoder.choiceDecoder(
       VPackSmallintCodec.map(_.value.toLong),
       VPackLongCodec.map(_.value)
-    ).decode(bits)
+    )
+
+    override def decode(bits: BitVector): Attempt[DecodeResult[Long]] = decoder.decode(bits)
   }
 
   val vpDouble: Codec[Double] = new Codec[Double] {

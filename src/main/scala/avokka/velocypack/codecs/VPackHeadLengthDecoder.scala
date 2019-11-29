@@ -14,7 +14,7 @@ private object VPackHeadLengthDecoder extends Decoder[HeadLength] {
    */
   private val vpLengthCodecs: Map[Int, Decoder[Long]] = {
     Map(
-      0x00 -> provide(1L),
+//      0x00 : none
       VPackArrayCodec.emptyByte -> provide(1L),
       0x02 -> ulongL(8),
       0x03 -> ulongL(16),
@@ -35,11 +35,16 @@ private object VPackHeadLengthDecoder extends Decoder[HeadLength] {
       0x12 -> longL(64),
       VPackArrayCodec.compactByte  -> vlongL,
       VPackObjectCodec.compactByte -> vlongL,
+      // 0x15 - 0x16 : reserved
+      VPackIllegalCodec.headByte   -> provide(1L),
       VPackNullCodec.headByte      -> provide(1L),
       VPackBooleanCodec.falseByte  -> provide(1L),
       VPackBooleanCodec.trueByte   -> provide(1L),
       VPackDoubleCodec.headByte    -> provide(8L + 1),
       VPackDateCodec.headByte      -> provide(8L + 1),
+      // 0x1d : external
+      VPackMinKeyCodec.headByte    -> provide(1L),
+      VPackMaxKeyCodec.headByte    -> provide(1L),
     ) ++
       (for { x <- 0x20 to 0x27 } yield x -> provide(x.toLong - 0x1f + 1)) ++
       (for { x <- 0x28 to 0x2f } yield x -> provide(x.toLong - 0x27 + 1)) ++
@@ -48,13 +53,16 @@ private object VPackHeadLengthDecoder extends Decoder[HeadLength] {
       Map(
         VPackStringCodec.longByte -> longL(64).map(_ + 8 + 1),
       ) ++
-      (for { h <- 0xc0 to 0xc7 } yield h -> ulongLA(8 * (h - 0xbf)).map(_ + 2))
+      (for {
+        h <- VPackBinaryCodec.minByte to VPackBinaryCodec.maxByte
+        l = h - VPackBinaryCodec.minByte + 1
+      } yield h -> ulongLA(8 * l).map(_ + l + 1))
   }
 
   override def decode(bits: BitVector): Attempt[DecodeResult[HeadLength]] = {
     for {
       head <- uint8L.decode(bits)
-      len  <- vpLengthCodecs.getOrElse(head.value, fail(Err("unknown vpack header"))).decode(head.remainder)
+      len  <- vpLengthCodecs.getOrElse(head.value, fail(Err(s"unknown vpack header '${head.value.toHexString}'"))).decode(head.remainder)
     } yield len.map(l => HeadLength(head.value, l))
   }
 }

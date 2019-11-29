@@ -34,6 +34,7 @@ object VPackLongCodec extends Codec[VPackLong] {
     }
   }
 
+  /** patch scodec-bits toLong not sign shifting for large negative longs */
   private def longLpatch(bits: Int)(l: Long): Long = {
     if (((1L << (bits - 1)) & l) != 0) {
       val shift = 64 - bits

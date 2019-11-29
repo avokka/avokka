@@ -5,7 +5,7 @@ import scodec.codecs.{fail, longL, provide, uint8L, ulongL, vlongL}
 import scodec.{Attempt, DecodeResult, Decoder, Err}
 
 /**
- * Decodes the head byte and the total length of a velocypack value
+ * Decodes the head byte and the total length in bytes of a velocypack value
  */
 private object VPackHeadLengthDecoder extends Decoder[HeadLength] {
 
@@ -40,23 +40,25 @@ private object VPackHeadLengthDecoder extends Decoder[HeadLength] {
       VPackNullCodec.headByte      -> provide(1L),
       VPackBooleanCodec.falseByte  -> provide(1L),
       VPackBooleanCodec.trueByte   -> provide(1L),
-      VPackDoubleCodec.headByte    -> provide(8L + 1),
-      VPackDateCodec.headByte      -> provide(8L + 1),
+      VPackDoubleCodec.headByte    -> provide(1L + 8),
+      VPackDateCodec.headByte      -> provide(1L + 8),
       // 0x1d : external
       VPackMinKeyCodec.headByte    -> provide(1L),
       VPackMaxKeyCodec.headByte    -> provide(1L),
     ) ++
-      (for { x <- 0x20 to 0x27 } yield x -> provide(x.toLong - 0x1f + 1)) ++
-      (for { x <- 0x28 to 0x2f } yield x -> provide(x.toLong - 0x27 + 1)) ++
+      (for { x <- 0x20 to 0x27 } yield x -> provide(1L + x.toLong - 0x1f)) ++
+      (for { x <- 0x28 to 0x2f } yield x -> provide(1L + x.toLong - 0x27)) ++
       (for { x <- 0x30 to 0x3f } yield x -> provide(1L)) ++
-      (for { x <- 0x40 to 0xbe } yield x -> provide(x.toLong - 0x40 + 1)) ++
+      (for {
+        h <- VPackStringCodec.smallByte until VPackStringCodec.longByte
+      } yield h -> provide(1L + h.toLong - VPackStringCodec.smallByte)) ++
       Map(
-        VPackStringCodec.longByte -> longL(64).map(_ + 8 + 1),
+        VPackStringCodec.longByte -> longL(64).map(1L + 8 + _),
       ) ++
       (for {
         h <- VPackBinaryCodec.minByte to VPackBinaryCodec.maxByte
         l = h - VPackBinaryCodec.minByte + 1
-      } yield h -> ulongLA(8 * l).map(_ + l + 1))
+      } yield h -> ulongLA(8 * l).map(1L + l + _))
   }
 
   override def decode(bits: BitVector): Attempt[DecodeResult[HeadLength]] = {

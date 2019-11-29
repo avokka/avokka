@@ -5,32 +5,32 @@ import scodec.bits.BitVector
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
 import shapeless.{::, HList, HNil}
 
-trait VPackHListCodec[C <: HList, A <: HList] {
-  def encode(encoders: C, arguments: A): Attempt[Seq[BitVector]]
-  def decode(decoders: C, values: Seq[BitVector]): Attempt[A]
+trait VPackHListCodec[A <: HList] {
+  def encode(arguments: A): Attempt[Seq[BitVector]]
+  def decode(values: Seq[BitVector]): Attempt[A]
 }
 
 object VPackHListCodec {
 
-//  def apply[E <: HList, A <: HList](implicit encoders: VelocypackArrayEncoder[E, A]): VelocypackArrayEncoder[E, A] = encoders
+  // def apply[A <: HList](implicit codec: VPackHListCodec[A]): VPackHListCodec[A] = codec
 
-  implicit object hnilCodec extends VPackHListCodec[HNil, HNil] {
-    override def encode(encoders: HNil, arguments: HNil): Attempt[Seq[BitVector]] = Attempt.successful(Vector.empty)
-    override def decode(decoders: HNil, values: Seq[BitVector]): Attempt[HNil] = Attempt.successful(HNil)
+  implicit object hnilCodec extends VPackHListCodec[HNil] {
+    override def encode(arguments: HNil): Attempt[Seq[BitVector]] = Attempt.successful(Vector.empty)
+    override def decode(values: Seq[BitVector]): Attempt[HNil] = Attempt.successful(HNil)
   }
 
-  implicit def hconsCodec[T, Cod, C <: HList, A <: HList](implicit ev: VPackHListCodec[C, A], eve: Cod <:< Codec[T]): VPackHListCodec[Cod :: C, T :: A] = new VPackHListCodec[Cod :: C, T :: A] {
-    override def encode(encoders: Cod :: C, arguments: T :: A): Attempt[Seq[BitVector]] = {
+  implicit def hconsCodec[T, A <: HList](implicit ev: VPackHListCodec[A], codec: Codec[T]): VPackHListCodec[T :: A] = new VPackHListCodec[T :: A] {
+    override def encode(arguments: T :: A): Attempt[Seq[BitVector]] = {
       for {
-        rl <- encoders.head.encode(arguments.head)
-        rr <- ev.encode(encoders.tail, arguments.tail)
+        rl <- codec.encode(arguments.head)
+        rr <- ev.encode(arguments.tail)
       } yield rl +: rr
     }
-    override def decode(decoders: Cod :: C, values: Seq[BitVector]): Attempt[T :: A] = {
+    override def decode(values: Seq[BitVector]): Attempt[T :: A] = {
       values match {
         case value +: tail => for {
-          rl <- decoders.head.decode(value).map(_.value)
-          rr <- ev.decode(decoders.tail, tail)
+          rl <- codec.decode(value).map(_.value)
+          rr <- ev.decode(tail)
         } yield rl :: rr
 
         case _ => Attempt.failure(Err("not enough elements in vpack array"))
@@ -38,28 +38,28 @@ object VPackHListCodec {
     }
   }
 
-  def encoder[E <: HList, A <: HList](encoders: E)(implicit ev: VPackHListCodec[E, A]): Encoder[A] = Encoder { value =>
+  def encoder[A <: HList](implicit ev: VPackHListCodec[A]): Encoder[A] = Encoder { value =>
     for {
-      values <- ev.encode(encoders, value)
+      values <- ev.encode(value)
       arr    <- VPackArrayCodec.encode(VPackArray(values))
     } yield arr
   }
 
-  def encoderCompact[E <: HList, A <: HList](encoders: E)(implicit ev: VPackHListCodec[E, A]): Encoder[A] = Encoder { value =>
+  def encoderCompact[A <: HList](implicit ev: VPackHListCodec[A]): Encoder[A] = Encoder { value =>
     for {
-      values <- ev.encode(encoders, value)
+      values <- ev.encode(value)
       arr    <- VPackArrayCodec.Compact.encode(VPackArray(values))
     } yield arr
   }
 
-  def decoder[D <: HList, A <: HList](decoders: D)(implicit ev: VPackHListCodec[D, A]): Decoder[A] = Decoder { bits =>
+  def decoder[A <: HList](implicit ev: VPackHListCodec[A]): Decoder[A] = Decoder { bits =>
     for {
       arr <- VPackArrayCodec.decode(bits)
-      res <- ev.decode(decoders, arr.value.values)
+      res <- ev.decode(arr.value.values)
     } yield DecodeResult(res, arr.remainder)
   }
 
-  def codec[C <: HList, A <: HList](codecs: C)(implicit ev: VPackHListCodec[C, A]): Codec[A] = Codec(encoder(codecs), decoder(codecs))
-  def codecCompact[C <: HList, A <: HList](codecs: C)(implicit ev: VPackHListCodec[C, A]): Codec[A] = Codec(encoderCompact(codecs), decoder(codecs))
+  def codec[A <: HList](implicit ev: VPackHListCodec[A]): Codec[A] = Codec(encoder(ev), decoder(ev))
+  def codecCompact[A <: HList](implicit ev: VPackHListCodec[A]): Codec[A] = Codec(encoderCompact(ev), decoder(ev))
 
 }

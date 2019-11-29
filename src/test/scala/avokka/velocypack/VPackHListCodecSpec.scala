@@ -1,16 +1,16 @@
 package avokka.velocypack
 
-import cats.implicits._
-import avokka.velocypack.codecs.VPackArrayCodec
+import avokka.velocypack.codecs.{VPackArrayCodec, VPackHListCodec}
 import avokka.velocypack.codecs.VPackHList2Codec.{codec, codecCompact}
+import cats.implicits._
 import org.scalatest._
 import scodec._
 import scodec.bits._
 import shapeless.{::, HNil}
 
-class VPackArrayCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
+class VPackHListCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
 
-  val request: Codec[String :: Boolean :: HNil] = codec(stringCodec :: booleanCodec :: HNil)
+  val request: Codec[String :: Boolean :: HNil] = VPackHListCodec.codec[String :: Boolean :: HNil]
   val requests = codec(request :: request :: HNil)
   val compact = codecCompact(intCodec :: booleanCodec :: HNil)
 

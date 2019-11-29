@@ -1,9 +1,9 @@
 package avokka
 
-import avokka.velocypack.VPackValue
-import avokka.velocypack.codecs.{VPackArrayCodec, VPackHListCodec, VPackObjectCodec}
+import avokka.velocypack.codecs.VPackHListCodec
 import scodec.Codec
-import shapeless.HNil
+import shapeless.{::, HNil}
+import avokka.velocypack._
 
 case class VRequest
 (
@@ -17,14 +17,14 @@ case class VRequest
 )
 
 object VRequest {
-  val codec: Codec[VRequest] = VPackArrayCodec.hlistCompact(
-    velocypack.intCodec ::
-    velocypack.intCodec ::
-    velocypack.stringCodec ::
-    velocypack.intCodec ::
-    velocypack.stringCodec ::
-    VPackObjectCodec.mapOf(velocypack.stringCodec) ::
-    VPackObjectCodec.mapOf(velocypack.stringCodec) ::
+  val codec: Codec[VRequest] = VPackHListCodec.codecCompact[
+    Int ::
+    Int ::
+    String ::
+    Int ::
+    String ::
+    Map[String, String] ::
+    Map[String, String] ::
     HNil
-  ).as
+  ].as
 }

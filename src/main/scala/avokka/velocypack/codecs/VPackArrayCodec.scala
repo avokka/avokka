@@ -1,13 +1,12 @@
 package avokka.velocypack.codecs
 
 import avokka.velocypack.VPackArray
-import cats.{Alternative, Applicative, Foldable, Monad, Monoid, MonoidK, Traverse}
 import cats.implicits._
+import cats.{Applicative, MonoidK, Traverse}
 import scodec.bits.BitVector
-import scodec.codecs.{provide, uint8L, vlong, vlongL}
+import scodec.codecs.{provide, uint8L, vlongL}
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Err, SizeBound}
-import shapeless.HList
 
 class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] with VPackCompoundCodec {
 
@@ -159,8 +158,8 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] with VPackComp
   def vector[T](codec: Codec[T]): Codec[Vector[T]] = traverse[T, Vector](codec)
   def list[T](codec: Codec[T]): Codec[List[T]] = traverse[T, List](codec)
 
-  def hlist[C <: HList, A <: HList](codecs: C)(implicit ev: VPackHListCodec[C, A]): Codec[A] = VPackHListCodec.codec(codecs)
-  def hlistCompact[C <: HList, A <: HList](codecs: C)(implicit ev: VPackHListCodec[C, A]): Codec[A] = VPackHListCodec.codecCompact(codecs)
+  // def hlist[C <: HList, A <: HList](codecs: C)(implicit ev: VPackHListCodec[C, A]): Codec[A] = VPackHListCodec.codec(codecs)
+  // def hlistCompact[C <: HList, A <: HList](codecs: C)(implicit ev: VPackHListCodec[C, A]): Codec[A] = VPackHListCodec.codecCompact(codecs)
 }
 
 object VPackArrayCodec extends VPackArrayCodec(false) {

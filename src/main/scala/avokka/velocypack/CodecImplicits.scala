@@ -95,6 +95,11 @@ trait CodecImplicits extends CodecImplicitsLowPriority {
     _.values.toVector.traverse(codec.decodeValue),
     _.traverse(codec.encode).map(VPackArray.apply)
   )
+
+  implicit def mapCodec[T](implicit codec: Codec[T]): Codec[Map[String, T]] = VPackObjectCodec.exmap(
+    _.values.toList.traverse({ case (k,v) => codec.decodeValue(v).map(r => k -> r) }).map(_.toMap),
+    _.toList.traverse({ case (k,v) => codec.encode(v).map(r => k -> r) }).map(l => VPackObject(l.toMap))
+  )
 }
 
 trait CodecImplicitsLowPriority {

@@ -35,11 +35,11 @@ private object VPackHeadLengthDecoder extends Decoder[HeadLength] {
       0x12 -> longL(64),
       VPackArrayCodec.compactByte  -> vlongL,
       VPackObjectCodec.compactByte -> vlongL,
-      0x18 -> provide(1L),
-      VPackBooleanCodec.falseByte -> provide(1L),
-      VPackBooleanCodec.trueByte  -> provide(1L),
-      VPackDoubleCodec.headByte   -> provide(8L + 1),
-      VPackDateCodec.headByte     -> provide(8L + 1),
+      VPackNullCodec.headByte      -> provide(1L),
+      VPackBooleanCodec.falseByte  -> provide(1L),
+      VPackBooleanCodec.trueByte   -> provide(1L),
+      VPackDoubleCodec.headByte    -> provide(8L + 1),
+      VPackDateCodec.headByte      -> provide(8L + 1),
     ) ++
       (for { x <- 0x20 to 0x27 } yield x -> provide(x.toLong - 0x1f + 1)) ++
       (for { x <- 0x28 to 0x2f } yield x -> provide(x.toLong - 0x27 + 1)) ++

@@ -1,9 +1,6 @@
 package avokka.velocypack
 
-import avokka.velocypack.VPackValue.vpInt
-import avokka.velocypack.codecs.VPackGenericCodec.deriveFor
 import avokka.velocypack.codecs.{VPackGenericCodec, VPackObjectCodec}
-import com.arangodb.velocypack.VPackSlice
 import org.scalatest.{FlatSpec, Matchers}
 import scodec.Codec
 import scodec.bits._
@@ -15,13 +12,13 @@ class VPackObjectCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTra
 
   "map codec" should "conform specs" in {
 
-    val sint = VPackObjectCodec.mapOf(vpInt)
+    val sint = VPackObjectCodec.mapOf(intCodec)
     assertEncodePack(sint, Map("z" -> 1, "a" -> 2), """{"z":1,"a":2}""")
 
-    val mint = VPackObjectCodec.Unsorted.mapOf(vpInt)
+    val mint = VPackObjectCodec.Unsorted.mapOf(intCodec)
     assertEncodePack(mint, Map("z" -> 1, "a" -> 2), """{"z":1,"a":2}""")
 
-    val cint = VPackObjectCodec.Compact.mapOf(vpInt)
+    val cint = VPackObjectCodec.Compact.mapOf(intCodec)
     assertCodec(cint, Map.empty[String, Int], hex"0a")
     assertCodec(cint, Map("a" -> 0, "b" -> 1, "c" -> 2), hex"14 0c 4161 30 4162 31 4163 32 03")
 
@@ -30,8 +27,8 @@ class VPackObjectCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTra
   "generic codec" should "conform specs" in {
 
     val c = VPackGenericCodec.codec(
-      'test ->> VPackValue.vpBool ::
-      'code ->> VPackValue.vpInt ::
+      'test ->> booleanCodec ::
+      'code ->> intCodec ::
       HNil
     )
 
@@ -66,9 +63,9 @@ object VPackObjectCodecSpec {
   )
 
   val VersionResponseCodec: Codec[VersionResponse] = VPackGenericCodec.deriveFor[VersionResponse](
-    'server ->> VPackValue.vpString ::
-    'license ->> VPackValue.vpString ::
-    'version ->> VPackValue.vpString ::
+    'server ->> stringCodec ::
+    'license ->> stringCodec ::
+    'version ->> stringCodec ::
     HNil
   )
 

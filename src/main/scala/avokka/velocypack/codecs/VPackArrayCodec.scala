@@ -1,6 +1,7 @@
 package avokka.velocypack.codecs
 
 import avokka.velocypack.VPackArray
+import cats.{Alternative, Applicative, Foldable, Monad, Monoid, MonoidK, Traverse}
 import cats.implicits._
 import scodec.bits.BitVector
 import scodec.codecs.{provide, uint8L, vlong, vlongL}
@@ -141,15 +142,22 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] with VPackComp
     } yield decs.map(VPackArray.apply)
   }
 
+  /*
   def list[T](codec: Codec[T]): Codec[List[T]] = exmap(
     _.values.toList.traverse(codec.decodeValue),
     _.traverse(codec.encode).map(VPackArray.apply)
   )
-
-  def vector[T](codec: Codec[T]): Codec[Vector[T]] = exmap(
-    _.values.toVector.traverse(codec.decodeValue),
-    _.traverse(codec.encode).map(VPackArray.apply)
+*/
+  def traverse[T, A[_]](codec: Codec[T])(implicit tr: Traverse[A], ap: Applicative[A], mk: MonoidK[A]): Codec[A[T]] = exmap(
+    _.values
+      .foldLeft(mk.empty[BitVector])((acc, t) => mk.combineK(acc, ap.pure(t)))
+      .traverse(codec.decodeValue)
+    ,
+    _.traverse(codec.encode).map(bs => VPackArray(bs.toList))
   )
+
+  def vector[T](codec: Codec[T]): Codec[Vector[T]] = traverse[T, Vector](codec)
+  def list[T](codec: Codec[T]): Codec[List[T]] = traverse[T, List](codec)
 
   def hlist[C <: HList, A <: HList](codecs: C)(implicit ev: VPackHListCodec[C, A]): Codec[A] = VPackHListCodec.codec(codecs)
   def hlistCompact[C <: HList, A <: HList](codecs: C)(implicit ev: VPackHListCodec[C, A]): Codec[A] = VPackHListCodec.codecCompact(codecs)

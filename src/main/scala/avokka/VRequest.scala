@@ -18,13 +18,13 @@ case class VRequest
 
 object VRequest {
   val codec: Codec[VRequest] = VPackArrayCodec.hlistCompact(
-    VPackValue.vpInt ::
-    VPackValue.vpInt ::
-    VPackValue.vpString ::
-    VPackValue.vpInt ::
-    VPackValue.vpString ::
-    VPackObjectCodec.mapOf(VPackValue.vpString) ::
-    VPackObjectCodec.mapOf(VPackValue.vpString) ::
+    velocypack.intCodec ::
+    velocypack.intCodec ::
+    velocypack.stringCodec ::
+    velocypack.intCodec ::
+    velocypack.stringCodec ::
+    VPackObjectCodec.mapOf(velocypack.stringCodec) ::
+    VPackObjectCodec.mapOf(velocypack.stringCodec) ::
     HNil
   ).as
 }

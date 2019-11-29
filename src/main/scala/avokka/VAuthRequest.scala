@@ -1,6 +1,5 @@
 package avokka
 
-import avokka.velocypack.VPackValue
 import avokka.velocypack.codecs.VPackHListCodec
 import scodec.Codec
 import shapeless.HNil
@@ -16,11 +15,11 @@ case class VAuthRequest
 
 object VAuthRequest {
   val codec: Codec[VAuthRequest] = VPackHListCodec.codecCompact(
-    VPackValue.vpInt ::
-    VPackValue.vpInt ::
-    VPackValue.vpString ::
-    VPackValue.vpString ::
-    VPackValue.vpString ::
+    velocypack.intCodec ::
+    velocypack.intCodec ::
+    velocypack.stringCodec ::
+    velocypack.stringCodec ::
+    velocypack.stringCodec ::
     HNil
   ).as
 }

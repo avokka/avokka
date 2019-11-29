@@ -1,9 +1,8 @@
 package avokka.velocypack
 
-import avokka.velocypack.VPackValue.{vpBool, vpInt, vpString}
+import cats.implicits._
 import avokka.velocypack.codecs.VPackArrayCodec
 import avokka.velocypack.codecs.VPackHListCodec.{codec, codecCompact}
-import com.arangodb.velocypack.VPackSlice
 import org.scalatest._
 import scodec._
 import scodec.bits._
@@ -11,9 +10,9 @@ import shapeless.{::, HNil}
 
 class VPackArrayCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
 
-  val request: Codec[String :: Boolean :: HNil] = codec(vpString :: vpBool :: HNil)
+  val request: Codec[String :: Boolean :: HNil] = codec(stringCodec :: booleanCodec :: HNil)
   val requests = codec(request :: request :: HNil)
-  val compact = codecCompact(vpInt :: vpBool :: HNil)
+  val compact = codecCompact(intCodec :: booleanCodec :: HNil)
 
   "empty array" should "encode to 0x01" in {
     val c = codec[HNil, HNil](HNil)
@@ -24,11 +23,11 @@ class VPackArrayCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrai
 
   "array codec" should "accept only codecs" in {
     assertTypeError("codec(String :: HNil)")
-    assertCompiles("codec(VPackValue.vpBool :: HNil)")
+    assertCompiles("codec(booleanCodec :: HNil)")
   }
 
   "simple array codec" should "return an codec" in {
-    val c = codec(VPackValue.vpBool :: HNil)
+    val c = codec(booleanCodec :: HNil)
     assert(c.isInstanceOf[Codec[Boolean :: HNil]])
   }
 
@@ -50,10 +49,10 @@ class VPackArrayCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrai
 
   "array decoders" should "conform specs" in {
 
-    val ib = codec(vpInt :: vpBool :: HNil)
+    val ib = codec(intCodec :: booleanCodec :: HNil)
     assertDecode(ib, hex"02 05 00 31 19", 1 :: false :: HNil)
 
-    val c = codec(vpInt :: vpInt :: vpInt :: HNil)
+    val c = codec(intCodec :: intCodec :: intCodec :: HNil)
     assert(c.decode(hex"01".bits).isFailure)
 
     val ex = 1 :: 2 :: 3 :: HNil
@@ -67,20 +66,20 @@ class VPackArrayCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrai
     assertDecode(c, hex"08 18 00 00 00 03 00 00 00 31 32 33 09 00 00 00 0a 00 00 00 0b 00 00 00", ex)
     assertDecode(c, hex"09 2c 00 00 00 00 00 00 00 31 32 33 09 00 00 00 00 00 00 00 0a 00 00 00 00 00 00 00 0b 00 00 00 00 00 00 00 03 00 00 00 00 00 00 00", ex)
 
-    val c2 = codec(vpInt :: vpInt :: HNil)
+    val c2 = codec(intCodec :: intCodec :: HNil)
     assertDecode(c2, hex"13 06 31 28 10 02", 1 :: 16 :: HNil)
   }
 
   "vector codec" should "conform specs" in {
-    val lint = VPackArrayCodec.vector(vpInt)
+    val lint = vectorCodec(intCodec)
     assertCodec(lint, Vector(1,2,3), hex"02 05 31 32 33")
 
-    val cint = VPackArrayCodec.Compact.vector(vpInt)
+    val cint = VPackArrayCodec.Compact.traverse[Int, Vector](intCodec)
     assertCodec(cint, Vector(0,1,2), hex"13 06 30 31 32 03")
   }
 
   "list codec" should "conform specs" in {
-    val lint = VPackArrayCodec.list(vpInt)
+    val lint = listCodec(intCodec)
 
     assertCodec(lint, List(1,2,3), hex"02 05 31 32 33")
     assertCodec(lint, List(16,32,64,128), hex"02 0a 2810 2820 2840 2880")

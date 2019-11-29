@@ -6,15 +6,15 @@ import scodec.bits._
 
 class VPackBooleanCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
 
-  "false" should "be 0x19" in {
+  it should "encode false to 0x19" in {
     assertCodec(VPackBooleanCodec, VPackBoolean(false), hex"19")
   }
 
-  "true" should "be 0x1a" in {
+  it should "encode true to 0x1a" in {
     assertCodec(VPackBooleanCodec, VPackBoolean(true), hex"1a")
   }
 
-  "codec" should "fail if head is not a boolean" in {
+  it should "fail if head is not a boolean" in {
     assert(VPackBooleanCodec.decode(hex"00".bits).isFailure)
   }
 }

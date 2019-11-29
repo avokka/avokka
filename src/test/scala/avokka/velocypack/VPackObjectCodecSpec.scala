@@ -4,7 +4,8 @@ import avokka.velocypack.codecs.{VPackGenericCodec, VPackObjectCodec}
 import org.scalatest.{FlatSpec, Matchers}
 import scodec.Codec
 import scodec.bits._
-import shapeless.HNil
+import shapeless.labelled.FieldType
+import shapeless.{HNil, Witness, ::}
 import shapeless.syntax.singleton._
 
 class VPackObjectCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
@@ -26,11 +27,11 @@ class VPackObjectCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTra
 
   "generic codec" should "conform specs" in {
 
-    val c = VPackGenericCodec.codec(
-      'test ->> booleanCodec ::
-      'code ->> intCodec ::
+    val c = VPackGenericCodec.codec[
+      FieldType[Witness.`'test`.T, Boolean] ::
+      FieldType[Witness.`'code`.T, Int] ::
       HNil
-    )
+    ]
 
     assertEncode(c, 'test ->> false :: 'code ->> 200 :: HNil,
       hex"0b 12 02 44636f6465 28c8 4474657374 19 03 0a"
@@ -62,11 +63,6 @@ object VPackObjectCodecSpec {
     version: String
   )
 
-  val VersionResponseCodec: Codec[VersionResponse] = VPackGenericCodec.deriveFor[VersionResponse](
-    'server ->> stringCodec ::
-    'license ->> stringCodec ::
-    'version ->> stringCodec ::
-    HNil
-  )
+  val VersionResponseCodec: Codec[VersionResponse] = VPackGenericCodec.deriveFor[VersionResponse].generic
 
 }

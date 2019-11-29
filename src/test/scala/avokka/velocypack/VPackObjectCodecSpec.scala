@@ -48,7 +48,7 @@ class VPackObjectCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTra
   }
 
   "case class codec" should "conform specs" in {
-    assertDecode(VersionResponse.codec,
+    assertDecode(VersionResponseCodec,
       hex"0b340346736572766572466172616e676f476c6963656e736549636f6d6d756e6974794776657273696f6e45332e352e32110323",
       VersionResponse("arango", "community", "3.5.2")
     )
@@ -65,12 +65,11 @@ object VPackObjectCodecSpec {
     version: String
   )
 
-  object VersionResponse {
-    val codec: Codec[VersionResponse] = VPackGenericCodec.deriveFor[VersionResponse](
-      'server ->> VPackValue.vpString ::
-      'license ->> VPackValue.vpString ::
-      'version ->> VPackValue.vpString ::
-      HNil
-    )
-  }
+  val VersionResponseCodec: Codec[VersionResponse] = VPackGenericCodec.deriveFor[VersionResponse](
+    'server ->> VPackValue.vpString ::
+    'license ->> VPackValue.vpString ::
+    'version ->> VPackValue.vpString ::
+    HNil
+  )
+
 }

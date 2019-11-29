@@ -15,7 +15,7 @@ private object VPackHeadLengthDecoder extends Decoder[HeadLength] {
   private val vpLengthCodecs: Map[Int, Decoder[Long]] = {
     Map(
       0x00 -> provide(1L),
-      0x01 -> provide(1L),
+      VPackArrayCodec.emptyByte -> provide(1L),
       0x02 -> ulongL(8),
       0x03 -> ulongL(16),
       0x04 -> ulongL(32),
@@ -24,7 +24,7 @@ private object VPackHeadLengthDecoder extends Decoder[HeadLength] {
       0x07 -> ulongL(16),
       0x08 -> ulongL(32),
       0x09 -> longL(64),
-      0x0a -> provide(1L),
+      VPackObjectCodec.emptyByte -> provide(1L),
       0x0b -> ulongL(8),
       0x0c -> ulongL(16),
       0x0d -> ulongL(32),
@@ -33,20 +33,20 @@ private object VPackHeadLengthDecoder extends Decoder[HeadLength] {
       0x10 -> ulongL(16),
       0x11 -> ulongL(32),
       0x12 -> longL(64),
-      0x13 -> vlongL,
-      0x14 -> vlongL,
+      VPackArrayCodec.compactByte  -> vlongL,
+      VPackObjectCodec.compactByte -> vlongL,
       0x18 -> provide(1L),
-      0x19 -> provide(1L),
-      0x1a -> provide(1L),
-      0x1b -> provide(8L + 1),
-      0x1c -> provide(8L + 1),
+      VPackBooleanCodec.falseByte -> provide(1L),
+      VPackBooleanCodec.trueByte  -> provide(1L),
+      VPackDoubleCodec.headByte   -> provide(8L + 1),
+      VPackDateCodec.headByte     -> provide(8L + 1),
     ) ++
       (for { x <- 0x20 to 0x27 } yield x -> provide(x.toLong - 0x1f + 1)) ++
       (for { x <- 0x28 to 0x2f } yield x -> provide(x.toLong - 0x27 + 1)) ++
       (for { x <- 0x30 to 0x3f } yield x -> provide(1L)) ++
       (for { x <- 0x40 to 0xbe } yield x -> provide(x.toLong - 0x40 + 1)) ++
       Map(
-        0xbf -> longL(64).map(_ + 8 + 1),
+        VPackStringCodec.longByte -> longL(64).map(_ + 8 + 1),
       ) ++
       (for { h <- 0xc0 to 0xc7 } yield h -> ulongLA(8 * (h - 0xbf)).map(_ + 2))
   }

@@ -25,7 +25,7 @@ class VPackDoubleCodecSpec extends FlatSpec with Matchers with ScalaCheckDrivenP
   // TODO: move this to Codec[Double] assertCodec(vpDouble, 0d, hex"30")
   // TODO: move this to Codec[Double] assertCodec(vpDouble, 10d, hex"280a")
 
-  "codec" should "fail if head is not a long" in {
+  it should "fail if head is not a long" in {
     assert(VPackDoubleCodec.decode(hex"00".bits).isFailure)
   }
 }

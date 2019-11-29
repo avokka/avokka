@@ -16,8 +16,8 @@ import scodec.{Attempt, Codec, DecodeResult, Err, SizeBound}
 object VPackBooleanCodec extends Codec[VPackBoolean] {
   override def sizeBound: SizeBound = SizeBound.exact(8)
 
-  val trueByte = 0x1a
   val falseByte = 0x19
+  val trueByte = 0x1a
 
   override def encode(v: VPackBoolean): Attempt[BitVector] = {
     BitVector(if (v.value) trueByte else falseByte).pure[Attempt]

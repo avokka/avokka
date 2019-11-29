@@ -13,12 +13,13 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] with VPackComp
   override def sizeBound: SizeBound = SizeBound.atLeast(8)
 
   val emptyByte = 0x01
+  val compactByte = 0x13
 
   override def encode(value: VPackArray): Attempt[BitVector] = {
     value.values match {
       case Nil => BitVector(emptyByte).pure[Attempt]
 
-      case values if compact => encodeCompact(0x13, values)
+      case values if compact => encodeCompact(compactByte, values)
 
       case values @ AllSameSize(size) => {
         val valuesBytes = values.length * size / 8
@@ -124,7 +125,7 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] with VPackComp
 
   override def decode(bits: BitVector): Attempt[DecodeResult[VPackArray]] = {
     for {
-      head     <- uint8L.decode(bits).ensure(Err("not a vpack array"))(h => (h.value >= emptyByte && h.value <= 0x09) || h.value == 0x13)
+      head     <- uint8L.decode(bits).ensure(Err("not a vpack array"))(h => (h.value >= emptyByte && h.value <= 0x09) || h.value == compactByte)
       decs     <- (head.value match {
         case `emptyByte` => emptyProvider
         case 0x02 => decoderLinear1
@@ -135,7 +136,7 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] with VPackComp
         case 0x07 => decoderOffsets2
         case 0x08 => decoderOffsets4
         case 0x09 => decoderOffsets8
-        case 0x13 => decoderCompact
+        case `compactByte` => decoderCompact
       }).decode(head.remainder)
     } yield decs.map(VPackArray.apply)
   }

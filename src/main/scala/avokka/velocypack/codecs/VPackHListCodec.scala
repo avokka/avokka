@@ -13,19 +13,18 @@ trait VPackHListCodec[A <: HList] {
 object VPackHListCodec {
 
   // def apply[A <: HList](implicit codec: VPackHListCodec[A]): VPackHListCodec[A] = codec
-
   implicit object hnilCodec extends VPackHListCodec[HNil] {
     override def encode(arguments: HNil): Attempt[Seq[BitVector]] = Attempt.successful(Vector.empty)
     override def decode(values: Seq[BitVector]): Attempt[HNil] = Attempt.successful(HNil)
   }
 
-  implicit def hconsCodec[T, A <: HList](implicit ev: VPackHListCodec[A], codec: Codec[T]): VPackHListCodec[T :: A] = new VPackHListCodec[T :: A] {
-    override def encode(arguments: T :: A): Attempt[Seq[BitVector]] = {
-      for {
-        rl <- codec.encode(arguments.head)
-        rr <- ev.encode(arguments.tail)
-      } yield rl +: rr
-    }
+  implicit def hconsCodec[T, A <: HList](implicit codec: Codec[T], ev: VPackHListCodec[A]): VPackHListCodec[T :: A] = new VPackHListCodec[T :: A] {
+
+    override def encode(arguments: T :: A): Attempt[Seq[BitVector]] = for {
+      rl <- codec.encode(arguments.head)
+      rr <- ev.encode(arguments.tail)
+    } yield rl +: rr
+
     override def decode(values: Seq[BitVector]): Attempt[T :: A] = {
       values match {
         case value +: tail => for {
@@ -37,6 +36,27 @@ object VPackHListCodec {
       }
     }
   }
+
+  /*
+  implicit def hlistCodec[T, A <: HList](implicit t: VPackHListCodec[T], ev: VPackHListCodec[A]): VPackHListCodec[T :: A] = new VPackHListCodec[T :: A] {
+    override def encode(arguments: T :: A): Attempt[Seq[BitVector]] = {
+      for {
+        rl <- t.encode(arguments.head)
+        rr <- ev.encode(arguments.tail)
+      } yield rl ++ rr
+    }
+    override def decode(values: Seq[BitVector]): Attempt[T :: A] = {
+      values match {
+        case value +: tail => for {
+          rl <- t.decode(values)
+          rr <- ev.decode(tail)
+        } yield rl :: rr
+
+        case _ => Attempt.failure(Err("not enough elements in vpack array"))
+      }
+    }
+  }
+*/
 
   def encoder[A <: HList](implicit ev: VPackHListCodec[A]): Encoder[A] = Encoder { value =>
     for {

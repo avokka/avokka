@@ -7,6 +7,12 @@ import scodec.codecs.{bytes, fixedSizeBytes, uint8L}
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Err, SizeBound}
 
+/**
+ * Codec of binary blob
+ *
+ * 0xc0-0xc7 : binary blob, next V - 0xbf bytes are the length of blob in bytes
+ * note that binary blobs are not zero-terminated
+ */
 object VPackBinaryCodec extends Codec[VPackBinary] {
   override def sizeBound: SizeBound = SizeBound.atLeast(16)
 

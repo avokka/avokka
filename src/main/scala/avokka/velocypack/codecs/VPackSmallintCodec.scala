@@ -7,6 +7,13 @@ import scodec.codecs.uint8L
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Err, SizeBound}
 
+/**
+ * Codec of small ints
+ *
+ * 0x30-0x39 : small integers 0, 1, ... 9
+ *
+ * 0x3a-0x3f : small negative integers -6, -5, ..., -1
+ */
 object VPackSmallintCodec extends Codec[VPackSmallint] {
   override def sizeBound: SizeBound = SizeBound.exact(8)
 

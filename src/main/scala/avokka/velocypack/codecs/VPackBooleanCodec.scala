@@ -7,6 +7,12 @@ import scodec.codecs.uint8L
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Err, SizeBound}
 
+/**
+ * Codec of bool
+ *
+ * 0x19 : false
+ * 0x1a : true
+ */
 object VPackBooleanCodec extends Codec[VPackBoolean] {
   override def sizeBound: SizeBound = SizeBound.exact(8)
 

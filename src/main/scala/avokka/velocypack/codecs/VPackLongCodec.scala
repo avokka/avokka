@@ -7,6 +7,13 @@ import scodec.codecs.{longL, uint8L, ulongL}
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Err, SizeBound}
 
+/**
+ * Codec of ints
+ *
+ * 0x20-0x27 : signed int, little endian, 1 to 8 bytes, number is V - 0x1f, two's complement
+ *
+ * 0x28-0x2f : uint, little endian, 1 to 8 bytes, number is V - 0x27
+ */
 object VPackLongCodec extends Codec[VPackLong] {
 
   override def sizeBound: SizeBound = SizeBound.bounded(8 + 8, 8 + 64)

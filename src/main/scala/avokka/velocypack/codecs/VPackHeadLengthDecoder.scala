@@ -4,8 +4,14 @@ import scodec.bits.BitVector
 import scodec.codecs.{fail, longL, provide, uint8L, ulongL, vlongL}
 import scodec.{Attempt, DecodeResult, Decoder, Err}
 
+/**
+ * Decodes the head byte and the total length of a velocypack value
+ */
 private object VPackHeadLengthDecoder extends Decoder[HeadLength] {
 
+  /**
+   * determines the decoder for byte length from the head byte
+   */
   private val vpLengthCodecs: Map[Int, Decoder[Long]] = {
     Map(
       0x00 -> provide(1L),

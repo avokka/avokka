@@ -3,7 +3,7 @@ package avokka.velocypack.codecs
 import avokka.velocypack.VPackArray
 import scodec.bits.BitVector
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
-import shapeless.{::, HList, HNil}
+import shapeless.{::, HList, HNil, Lazy}
 
 trait VPackHListCodec[A <: HList] {
   def encode(arguments: A): Attempt[Seq[BitVector]]

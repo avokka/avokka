@@ -1,16 +1,15 @@
 package avokka.velocypack
 
 import avokka.velocypack.codecs.VPackHListCodec
-import cats.implicits._
 import org.scalatest._
-import scodec._
-import scodec.bits._
+import scodec.Codec
+import scodec.bits.HexStringSyntax
 import shapeless.{::, HNil}
 
 class VPackHListCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
 
   type R = String :: Boolean :: HNil
-  implicit val request: Codec[R] = VPackHListCodec.codec[R]
+  val request: Codec[R] = VPackHListCodec.codec[R]
   val requests = VPackHListCodec.codec[R :: R :: HNil]
   val compact = VPackHListCodec.codecCompact[Int :: Boolean :: HNil]
   val i3 = VPackHListCodec.codec[Int :: Int :: Int :: HNil]
@@ -37,7 +36,6 @@ class VPackHListCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrai
     assertEncodePack(request, "" :: true :: HNil, """["",true]""")
 
     // recurse
-    println(requests.encode(("a" :: true :: HNil) :: ("b" :: false :: HNil) :: HNil))
     assertEncodePack(requests, ("a" :: true :: HNil) :: ("b" :: false :: HNil) :: HNil,
       """[["a",true],["b",false]]"""
     )

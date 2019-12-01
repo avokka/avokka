@@ -158,8 +158,6 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] with VPackComp
   def vector[T](codec: Codec[T]): Codec[Vector[T]] = traverse[T, Vector](codec)
   def list[T](codec: Codec[T]): Codec[List[T]] = traverse[T, List](codec)
 
-  // def hlist[C <: HList, A <: HList](codecs: C)(implicit ev: VPackHListCodec[C, A]): Codec[A] = VPackHListCodec.codec(codecs)
-  // def hlistCompact[C <: HList, A <: HList](codecs: C)(implicit ev: VPackHListCodec[C, A]): Codec[A] = VPackHListCodec.codecCompact(codecs)
 }
 
 object VPackArrayCodec extends VPackArrayCodec(false) {

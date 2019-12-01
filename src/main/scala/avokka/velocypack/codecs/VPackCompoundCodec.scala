@@ -6,7 +6,7 @@ import scodec.codecs.vlong
 
 trait VPackCompoundCodec {
 
-  def lengthUtils(l: Long): (Int, Int) = {
+  protected def lengthUtils(l: Long): (Int, Int) = {
     ulongLength(l) match {
       case 1     => (1, 0)
       case 2     => (2, 1)

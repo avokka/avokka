@@ -7,6 +7,7 @@ import cats.implicits._
 import scodec.bits.{BitVector, ByteVector}
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Err, SizeBound}
+import shapeless.HList
 
 trait CodecImplicits extends CodecImplicitsLowPriority {
 
@@ -100,6 +101,8 @@ trait CodecImplicits extends CodecImplicitsLowPriority {
     _.values.toList.traverse({ case (k,v) => codec.decodeValue(v).map(r => k -> r) }).map(_.toMap),
     _.toList.traverse({ case (k,v) => codec.encode(v).map(r => k -> r) }).map(l => VPackObject(l.toMap))
   )
+
+  implicit def hlistCodec[T <: HList](implicit a: VPackHListCodec[T]): Codec[T] = VPackHListCodec.codec(a)
 }
 
 trait CodecImplicitsLowPriority {

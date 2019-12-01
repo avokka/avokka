@@ -48,9 +48,3 @@ case class VPackBinary(value: ByteVector) extends VPackValue
 case class VPackArray(values: Seq[BitVector]) extends VPackValue
 
 case class VPackObject(values: Map[String, BitVector]) extends VPackValue
-
-object VPackValue {
-//  import codecs._
-//  implicit val codec: Codec[VPackValue] = Codec.coproduct[VPackReserved1.type :+: VPackNull.type  :+: CNil].choice
-
-}

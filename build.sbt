@@ -13,7 +13,7 @@ lazy val root = (project in file(".")).
     libraryDependencies ++= Seq(scalaTest, scalaCheck).map(_ % Test)
   )
 
-libraryDependencies += "org.scalamari" %% "velocypack4s-macros" % "0.0.1"
+// libraryDependencies += "org.scalamari" %% "velocypack4s-macros" % "0.0.1"
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream" % "2.5.26",
@@ -29,9 +29,9 @@ libraryDependencies ++=  Seq(
   "org.scodec" %% "scodec-core" % "1.11.4",
   "org.scodec" %% "scodec-cats" % "1.0.0",
 )
-libraryDependencies += "org.typelevel" %% "spire" % "0.16.2"
+// libraryDependencies += "org.typelevel" %% "spire" % "0.16.2"
 
-libraryDependencies += "com.arangodb" % "arangodb-java-driver" % "6.4.1"
+libraryDependencies += "com.arangodb" % "arangodb-java-driver" % "6.4.1" % Test
 
 val circeVersion = "0.12.3"
 

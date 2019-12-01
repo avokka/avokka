@@ -7,6 +7,7 @@ import akka.actor._
 import akka.stream._
 import akka.stream.scaladsl._
 import akka.util._
+import avokka.velocypack.codecs.VPackObjectCodec
 import scodec.bits._
 
 import scala.concurrent._
@@ -45,9 +46,12 @@ object Hello {
         VChunk.codec.decodeValue(BitVector(bs)).require
       }
       .wireTap(println(_))
-      .map { chunk => VMessage(chunk.messageId, chunk.data)}
+      .map { chunk => VResponse.from(chunk.messageId, chunk.data.bits) }
       //.map { mes => new VPackSlice(ch.data.toArray)}
       .wireTap(println(_))
+      .wireTap { r =>
+        println(VPackObjectCodec.decode(r.require.body))
+      }
       /*
       .map { vp =>
         vpack.deserialize[VResponse](vp, classOf[VResponse])

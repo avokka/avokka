@@ -1,12 +1,10 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.{VPackObject, VPackValue}
-import scodec.bits.{BitVector, HexStringSyntax}
+import avokka.velocypack.VPackObject
+import scodec.bits.BitVector
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
 import shapeless.labelled.{FieldType, field}
-import shapeless.ops.hlist.Align
 import shapeless.{::, HList, HNil, LabelledGeneric, Witness}
-import shapeless.syntax.singleton._
 
 trait VPackGenericCodec[A <: HList] {
   def encode(arguments: A): Attempt[Map[String, BitVector]]

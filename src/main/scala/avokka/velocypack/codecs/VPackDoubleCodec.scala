@@ -13,7 +13,7 @@ import scodec.{Attempt, Codec, DecodeResult, Err, SizeBound}
  * 0x1b : double IEEE-754, 8 bytes follow, stored as little endian uint64 equivalent
  */
 object VPackDoubleCodec extends Codec[VPackDouble] {
-  override def sizeBound: SizeBound = SizeBound.bounded(8, 8 + 64)
+  override def sizeBound: SizeBound = SizeBound.exact(8 + 64)
 
   val headByte = 0x1b
 

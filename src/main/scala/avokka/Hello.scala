@@ -25,8 +25,12 @@ object Hello {
     val connection = Tcp().outgoingConnection("bak", 8529)
 
     val in = Flow[ByteVector]
+      //.wireTap(println(_))
+      .map { bytes => VMessage(bytes) }
       .wireTap(println(_))
-      .map { bytes => VChunk(bytes) }
+      .mapConcat { msg =>
+        msg.chunks
+      }
       .wireTap(println(_))
       .map { chunk =>
         ByteString.fromArrayUnsafe(VChunk.codec.encode(chunk).require.toByteArray)
@@ -54,11 +58,7 @@ object Hello {
       .wireTap { r =>
         println(r.require.body.fromVPack(VPackObjectCodec))
       }
-      /*
-      .map { vp =>
-        vpack.deserialize[VResponse](vp, classOf[VResponse])
-      }
-*/
+
 
     val auth = VAuthRequest(1, 1000, "plain", "root", "root").toVPack.valueOr(throw _)
     val apiV = VRequestHeader(1, 1, "_system", 1, "/_api/version", meta = Map("test" -> "moi")).toVPack.valueOr(throw _)

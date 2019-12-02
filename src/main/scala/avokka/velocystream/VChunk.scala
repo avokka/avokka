@@ -1,7 +1,5 @@
 package avokka.velocystream
 
-import java.util.concurrent.atomic.AtomicLong
-
 import scodec._
 import scodec.bits._
 import scodec.codecs._
@@ -21,19 +19,32 @@ case class VChunk
 
 object VChunk
 {
-  val messageId = new AtomicLong()
-
-  def apply(data: ByteVector): VChunk = {
+  def apply(message: VMessage, nr: Long, size: Long, data: ByteVector): VChunk = {
+    val chunkX = if (nr == 1) size << 1 | 1L else nr << 1
     VChunk(
-      length = data.size + 8 + 8 + 4 + 4,
-      chunkX = 3,
-      messageId = messageId.incrementAndGet(),
-      messageLength = data.size,
+      length = 4L + 4L + 8L + 8L + data.size,
+      chunkX = chunkX,
+      messageId = message.id,
+      messageLength = message.data.size,
       data = data
     )
   }
 
-  def isFirstChunk(chunkX: Long): Boolean = (chunkX & 0x1) == 1
+  @scala.annotation.tailrec
+  def split(data: ByteVector, acc: Vector[ByteVector] = Vector.empty): Vector[ByteVector] = {
+    if (data.size > maxLength) split(data.drop(maxLength), acc :+ data.take(maxLength))
+    else acc :+ data
+  }
+
+  val maxLength: Long = 30000L
+
+  def split(message: VMessage): Vector[VChunk] = {
+    val s = split(message.data)
+    val ln = s.length
+    s.zipWithIndex.map { case (ch, idx) => apply(message, idx + 1, ln, ch) }
+  }
+
+  def isFirstChunk(chunkX: Long): Boolean = (chunkX & 1L) == 1
 
   implicit val codec: Codec[VChunk] = {
     ("length" | uint32L) >>:~ { length =>

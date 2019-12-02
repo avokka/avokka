@@ -60,8 +60,8 @@ object Hello {
       }
 */
 
-    val auth = VAuthRequest(1, 1000, "plain", "root", "root").toVPack.valueOr(throw _).bytes
-    val apiV = VRequestHeader(1, 1, "_system", 1, "/_api/version", meta = Map("test" -> "moi")).toVPack.valueOr(throw _).bytes
+    val auth = VAuthRequest(1, 1000, "plain", "root", "root").toVPack.valueOr(throw _)
+    val apiV = VRequestHeader(1, 1, "_system", 1, "/_api/version", meta = Map("test" -> "moi")).toVPack.valueOr(throw _)
 
     val testInput = Source(List(auth, apiV))
 

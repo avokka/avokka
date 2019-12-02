@@ -1,6 +1,7 @@
 package avokka.velocypack.codecs
 
 import avokka.velocypack.{VPackObject, VPackString}
+import cats.data.Chain
 import cats.implicits._
 import scodec.bits.BitVector
 import scodec.codecs.{provide, uint8L, vlong, vlongL}
@@ -66,7 +67,7 @@ class VPackObjectCodec(compact: Boolean, sorted: Boolean) extends Codec[VPackObj
       bodyLen = length.value - bodyOffset
       body    <- scodec.codecs.bits(8 * bodyLen).decode(nr.remainder)
       values  <- scodec.codecs.bits(8 * (bodyLen - nr.value * lenLength)).decode(body.value)
-      offsets <- Decoder.decodeCollect(ulongLA(8 * lenLength), Some(nr.value.toInt))(values.remainder)
+      offsets <- Decoder.decodeCollect[Vector, Long](ulongLA(8 * lenLength), Some(nr.value.toInt))(values.remainder)
       result = offsetsToRanges(offsets.value.map(_ - bodyOffset), values.value.size / 8).map {
         case (from, until) => values.value.slice(8 * from, 8 * until)
       }

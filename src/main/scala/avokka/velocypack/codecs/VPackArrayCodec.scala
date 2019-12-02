@@ -1,6 +1,7 @@
 package avokka.velocypack.codecs
 
 import avokka.velocypack.VPackArray
+import cats.data.Chain
 import cats.implicits._
 import cats.{Applicative, MonoidK, Traverse}
 import scodec.bits.BitVector

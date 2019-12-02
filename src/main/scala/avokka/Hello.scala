@@ -7,7 +7,9 @@ import akka.actor._
 import akka.stream._
 import akka.stream.scaladsl._
 import akka.util._
+import avokka.velocypack._
 import avokka.velocypack.codecs.VPackObjectCodec
+import avokka.velocystream._
 import scodec.bits._
 
 import scala.concurrent._
@@ -27,7 +29,7 @@ object Hello {
       .map { bytes => VChunk(bytes) }
       .wireTap(println(_))
       .map { chunk =>
-        ByteString(VChunk.codec.encode(chunk).require.toByteBuffer)
+        ByteString.fromArrayUnsafe(VChunk.codec.encode(chunk).require.toByteArray)
       }
    //   .wireTap(println(_))
       //.map(ByteString(_))
@@ -50,7 +52,7 @@ object Hello {
       //.map { mes => new VPackSlice(ch.data.toArray)}
       .wireTap(println(_))
       .wireTap { r =>
-        println(VPackObjectCodec.decode(r.require.body))
+        println(r.require.body.fromVPack(VPackObjectCodec))
       }
       /*
       .map { vp =>
@@ -58,8 +60,8 @@ object Hello {
       }
 */
 
-    val auth = VAuthRequest.codec.encode(VAuthRequest(1, 1000, "plain", "root", "root")).require.bytes
-    val apiV = VRequest.codec.encode(VRequest(1, 1, "_system", 1, "/_api/version", meta = Map("test" -> "moi"))).require.bytes
+    val auth = VAuthRequest(1, 1000, "plain", "root", "root").toVPack.valueOr(throw _).bytes
+    val apiV = VRequestHeader(1, 1, "_system", 1, "/_api/version", meta = Map("test" -> "moi")).toVPack.valueOr(throw _).bytes
 
     val testInput = Source(List(auth, apiV))
 

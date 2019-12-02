@@ -1,6 +1,6 @@
 package avokka.velocypack
 
-import avokka.velocypack.codecs.{VPackGenericCodec, VPackObjectCodec}
+import avokka.velocypack.codecs.{VPackRecordCodec, VPackObjectCodec}
 import org.scalatest.{FlatSpec, Matchers}
 import scodec.Codec
 import scodec.bits._
@@ -27,7 +27,7 @@ class VPackObjectCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTra
 
   "generic codec" should "conform specs" in {
 
-    val c = VPackGenericCodec.codec[
+    val c = VPackRecordCodec.codec[
       FieldType[Witness.`'test`.T, Boolean] ::
       FieldType[Witness.`'code`.T, Int] ::
       HNil
@@ -63,6 +63,6 @@ object VPackObjectCodecSpec {
     version: String
   )
 
-  val VersionResponseCodec: Codec[VersionResponse] = VPackGenericCodec.deriveFor[VersionResponse].generic
+  val VersionResponseCodec: Codec[VersionResponse] = VPackRecordCodec.deriveFor[VersionResponse].generic
 
 }

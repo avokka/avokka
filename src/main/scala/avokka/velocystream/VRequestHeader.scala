@@ -1,11 +1,11 @@
-package avokka
+package avokka.velocystream
 
+import avokka.velocypack._
 import avokka.velocypack.codecs.VPackHListCodec
 import scodec.Codec
 import shapeless.{::, HNil}
-import avokka.velocypack._
 
-case class VRequest
+case class VRequestHeader
 (
   version: Int,
   `type`: Int,
@@ -16,8 +16,8 @@ case class VRequest
   meta: Map[String, String] = Map.empty,
 )
 
-object VRequest {
-  val codec: Codec[VRequest] = VPackHListCodec.codecCompact[
+object VRequestHeader {
+  implicit val codec: Codec[VRequestHeader] = VPackHListCodec.codecCompact[
     Int ::
     Int ::
     String ::

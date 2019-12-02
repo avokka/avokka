@@ -8,6 +8,8 @@ import scodec.codecs.{provide, uint8L, vlongL}
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Err, SizeBound}
 
+import scala.language.higherKinds
+
 class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] with VPackCompoundCodec {
 
   override def sizeBound: SizeBound = SizeBound.atLeast(8)

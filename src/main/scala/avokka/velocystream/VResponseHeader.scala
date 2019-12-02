@@ -1,9 +1,9 @@
-package avokka
+package avokka.velocystream
 
+import avokka.velocypack._
 import avokka.velocypack.codecs.VPackHListCodec
 import scodec.Codec
 import shapeless.{::, HNil}
-import avokka.velocypack._
 
 case class VResponseHeader
 (
@@ -14,7 +14,7 @@ case class VResponseHeader
 )
 
 object VResponseHeader {
-  val codec: Codec[VResponseHeader] = VPackHListCodec.codecCompact[
+  implicit val codec: Codec[VResponseHeader] = VPackHListCodec.codecCompact[
     Int ::
     Int ::
     Int ::

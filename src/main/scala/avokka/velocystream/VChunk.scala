@@ -1,4 +1,4 @@
-package avokka
+package avokka.velocystream
 
 import java.util.concurrent.atomic.AtomicLong
 

@@ -3,7 +3,7 @@ package avokka.velocypack.codecs
 import avokka.velocypack.VPackArray
 import scodec.bits.BitVector
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
-import shapeless.{::, HList, HNil, Lazy}
+import shapeless.{::, HList, HNil}
 
 trait VPackHListCodec[A <: HList] {
   def encode(arguments: A): Attempt[Seq[BitVector]]
@@ -36,27 +36,6 @@ object VPackHListCodec {
       }
     }
   }
-
-  /*
-  implicit def hlistCodec[T, A <: HList](implicit t: VPackHListCodec[T], ev: VPackHListCodec[A]): VPackHListCodec[T :: A] = new VPackHListCodec[T :: A] {
-    override def encode(arguments: T :: A): Attempt[Seq[BitVector]] = {
-      for {
-        rl <- t.encode(arguments.head)
-        rr <- ev.encode(arguments.tail)
-      } yield rl ++ rr
-    }
-    override def decode(values: Seq[BitVector]): Attempt[T :: A] = {
-      values match {
-        case value +: tail => for {
-          rl <- t.decode(values)
-          rr <- ev.decode(tail)
-        } yield rl :: rr
-
-        case _ => Attempt.failure(Err("not enough elements in vpack array"))
-      }
-    }
-  }
-*/
 
   def encoder[A <: HList](implicit ev: VPackHListCodec[A]): Encoder[A] = Encoder { value =>
     for {

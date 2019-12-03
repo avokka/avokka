@@ -19,7 +19,15 @@ case class VChunk
 
 object VChunk
 {
-  case class X(first: Boolean, number: Long)
+  case class X
+  (
+    first: Boolean,
+    number: Long
+  )
+  {
+    def position: Long = if (first) 1 else number
+  }
+
   object X {
     def apply(nr: Long, size: Long): X = X(nr == 1, if (nr == 1) size else nr)
   }

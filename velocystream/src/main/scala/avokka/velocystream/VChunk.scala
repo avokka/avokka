@@ -30,7 +30,7 @@ object VChunk
     )
   }
 
-  val maxLength: Long = 10 //30000L
+  val maxLength: Long = 30000L
 
   implicit val codec: Codec[VChunk] = {
     ("length" | uint32L) >>:~ { length =>

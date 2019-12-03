@@ -13,11 +13,13 @@ case class VMessage
   def chunks(length: Long = VChunk.maxLength): Stream[VChunk] =  {
     val count = (data.size.toDouble / length).ceil.toLong
 
-    def chunk(n: Long, slice: ByteVector): Stream[VChunk] = {
-      val (head, tail) = slice.splitAt(length)
-      VChunk(this, n, count, head) #:: (if (tail.isEmpty) Stream.Empty else chunk(n + 1, tail))
+    def stream(n: Long, slice: ByteVector): Stream[VChunk] = {
+      if (slice.isEmpty) Stream.Empty
+      else {
+        VChunk(this, n, count, slice.take(length)) #:: stream(n + 1, slice.drop(length))
+      }
     }
-    chunk(1, data)
+    stream(1, data)
   }
 }
 

@@ -32,7 +32,7 @@ class VChunkMessageStage extends GraphStage[FlowShape[VChunk, VMessage]] {
       override def onPush(): Unit = {
         val chunk = grab(in)
         // solo chunk
-        if (chunk.x.first && chunk.x.number == 1) {
+        if (chunk.x.first && (chunk.x.number == 1)) {
           val message = VMessage(chunk.messageId, chunk.data)
           pushMessage(message)
         }

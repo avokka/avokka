@@ -44,6 +44,7 @@ lazy val velocystream = (project in file("velocystream"))
 
 lazy val root = (project in file("."))
   .dependsOn(velocystream)
+  .aggregate(velocypack, velocystream)
   .settings(
     name := "avokka",
   )
@@ -58,6 +59,7 @@ val shapeless = Seq("com.chuusai" %% "shapeless" % "2.3.3")
 val akkaVersion = "2.5.26"
 
 val akka = Seq(
+  "com.typesafe.akka" %% "akka-actor" % akkaVersion,
   "com.typesafe.akka" %% "akka-stream" % akkaVersion,
   "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % Test
 )

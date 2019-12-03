@@ -10,8 +10,8 @@ class VMessageSpec extends FlatSpec with Matchers {
     val chunks = m.chunks(1)
     assertResult(6)(chunks.length)
     assertResult(hex"aa")(chunks.head.data)
-    assertResult(true)(chunks.head.isFirst)
-    assertResult(6)(chunks.head.chunk)
+    assertResult(true)(chunks.head.x.first)
+    assertResult(6)(chunks.head.x.number)
 
     val chunks2 = m.chunks(4)
     assertResult(2)(chunks2.length)
@@ -19,14 +19,14 @@ class VMessageSpec extends FlatSpec with Matchers {
     val second = chunks2.tail.head
 
     assertResult(hex"aabbccdd")(first.data)
-    assertResult(true)(first.isFirst)
-    assertResult(2)(first.chunk)
+    assertResult(true)(first.x.first)
+    assertResult(2)(first.x.number)
     assertResult(10)(first.messageId)
     assertResult(6)(first.messageLength)
 
     assertResult(hex"eeff")(second.data)
-    assertResult(false)(second.isFirst)
-    assertResult(2)(second.chunk)
+    assertResult(false)(second.x.first)
+    assertResult(2)(second.x.number)
     assertResult(10)(second.messageId)
     assertResult(6)(second.messageLength)
 
@@ -34,8 +34,8 @@ class VMessageSpec extends FlatSpec with Matchers {
     assertResult(1)(chunk1.length)
     val one = chunk1.head
     assertResult(m.data)(one.data)
-    assertResult(true)(one.isFirst)
-    assertResult(1)(one.chunk)
+    assertResult(true)(one.x.first)
+    assertResult(1)(one.x.number)
     assertResult(m.id)(one.messageId)
     assertResult(m.data.size)(one.messageLength)
   }

@@ -13,7 +13,7 @@ case class VChunk
   data: ByteVector
 )
 {
-  def isFirst: Boolean = VChunk.isFirstChunk(chunkX)
+  def isFirst: Boolean = (chunkX & 1L) == 1
   def chunk: Long = chunkX >> 1
 }
 
@@ -30,21 +30,7 @@ object VChunk
     )
   }
 
-  @scala.annotation.tailrec
-  def split(data: ByteVector, acc: Vector[ByteVector] = Vector.empty): Vector[ByteVector] = {
-    if (data.size > maxLength) split(data.drop(maxLength), acc :+ data.take(maxLength))
-    else acc :+ data
-  }
-
-  val maxLength: Long = 30000L
-
-  def split(message: VMessage): Vector[VChunk] = {
-    val s = split(message.data)
-    val ln = s.length
-    s.zipWithIndex.map { case (ch, idx) => apply(message, idx + 1, ln, ch) }
-  }
-
-  def isFirstChunk(chunkX: Long): Boolean = (chunkX & 1L) == 1
+  val maxLength: Long = 10 //30000L
 
   implicit val codec: Codec[VChunk] = {
     ("length" | uint32L) >>:~ { length =>

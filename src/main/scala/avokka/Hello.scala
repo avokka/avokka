@@ -29,7 +29,7 @@ object Hello {
       .map { bytes => VMessage(bytes) }
       .wireTap(println(_))
       .mapConcat { msg =>
-        msg.chunks
+        msg.chunks()
       }
       .wireTap(println(_))
       .map { chunk =>

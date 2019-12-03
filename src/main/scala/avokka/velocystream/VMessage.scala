@@ -9,7 +9,16 @@ case class VMessage
   id: Long,
   data: ByteVector
 ) {
-  def chunks: Vector[VChunk] = VChunk.split(this)
+
+  def chunks(length: Long = VChunk.maxLength): Stream[VChunk] =  {
+    val count = (data.size.toDouble / length).ceil.toLong
+
+    def chunk(n: Long, slice: ByteVector): Stream[VChunk] = {
+      val (head, tail) = slice.splitAt(length)
+      VChunk(this, n, count, head) #:: (if (tail.isEmpty) Stream.Empty else chunk(n + 1, tail))
+    }
+    chunk(1, data)
+  }
 }
 
 object VMessage {
@@ -19,4 +28,5 @@ object VMessage {
     id = messageId.incrementAndGet(),
     data
   )
+
 }

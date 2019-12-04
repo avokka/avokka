@@ -39,6 +39,7 @@ lazy val velocystream = (project in file("velocystream"))
     libraryDependencies ++=
       akka ++
       testSuite ++
+//      arango ++
       logback.map(_ % Test)
   )
 

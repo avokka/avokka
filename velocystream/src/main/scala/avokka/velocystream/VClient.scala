@@ -84,6 +84,7 @@ class VClient(host: String, port: Int)(implicit materializer: ActorMaterializer)
     case r: VMessage => {
       val header = r.data.bits.fromVPack[VResponseHeader]
       header.map { hr =>
+
         println(hr.value)
         println(hr.remainder.take(200))
         println(hr.remainder.fromVPack(VPackObjectCodec))

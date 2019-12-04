@@ -114,12 +114,14 @@ class VPackArrayCodec(compact: Boolean) extends Codec[VPackArray] with VPackComp
     }
   )
 
+  val vl = new VPackVLongCodec
+
   private val decoderCompact: Decoder[Seq[BitVector]] = Decoder( b =>
     for {
-      length  <- vlongL.decode(b)
+      length  <- vl.decode(b)
       bodyLen = 8 * (length.value - 1 - vlongLength(length.value))
       body    <- scodec.codecs.bits(bodyLen).decode(length.remainder)
-      nr      <- vlongL.decode(body.value.reverseByteOrder)
+      nr      <- vl.decode(body.value.reverseByteOrder)
       result  <- Decoder.decodeCollect(decoderSingle, Some(nr.value.toInt))(body.value)
     } yield DecodeResult(result.value, body.remainder)
   )

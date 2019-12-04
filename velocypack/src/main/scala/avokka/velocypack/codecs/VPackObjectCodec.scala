@@ -106,12 +106,14 @@ class VPackObjectCodec(compact: Boolean, sorted: Boolean) extends Codec[VPackObj
     } yield DecodeResult(key.value.value -> value.take(8 * len.length), value.drop(8 * len.length))
   )
 
+  val vl = new VPackVLongCodec
+
   private val decoderCompact: Decoder[Map[String, BitVector]] = Decoder( bits =>
     for {
-      length  <- vlongL.decode(bits)
+      length  <- vl.decode(bits)
       bodyLen = 8 * (length.value - 1 - vlongLength(length.value))
       body    <- scodec.codecs.bits(bodyLen).decode(length.remainder)
-      nr      <- vlongL.decode(body.value.reverseByteOrder)
+      nr      <- vl.decode(body.value.reverseByteOrder)
       result  <- Decoder.decodeCollect(decoderSingle, Some(nr.value.toInt))(body.value)
     } yield DecodeResult(result.value.toMap, body.remainder)
   )

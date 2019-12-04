@@ -13,7 +13,7 @@ class AvokkaDatabase(session: VSession, name: String = "_system") {
   }
 
   def collections() = {
-    session.exec[Unit, VPackObject](VRequest(VRequestHeader(1, 1, name, 1, "/_api/collection"), ()))
+    session.exec[Unit, ApiCollection](VRequest(VRequestHeader(1, 1, name, 1, "/_api/collection"), ()))
   }
 
 }

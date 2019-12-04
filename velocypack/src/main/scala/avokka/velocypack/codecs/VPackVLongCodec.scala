@@ -20,7 +20,7 @@ class VPackVLongCodec extends Codec[Long] {
   private def loopDecode(buffer: BitVector, sh: Int, value: Long): Attempt[DecodeResult[Long]] = {
     val byte = buffer.take(8).toByte(false)
     if ((byte & 0x80.toByte) != 0) {
-      loopDecode(buffer.drop(8), sh + 7, value + ((byte & 0x7F).toLong << sh))
+      loopDecode(buffer.drop(8), sh + 7, value | ((byte & 0x7F).toLong << sh))
       /*
       if (buffer.sizeLessThan(8L)) {
         Attempt.failure(Err.InsufficientBits(8L, buffer.size, Nil))
@@ -31,7 +31,7 @@ class VPackVLongCodec extends Codec[Long] {
       }
        */
     } else {
-      Attempt.successful(DecodeResult(value + (byte & 0x07F).toLong << sh, buffer.drop(8)))
+      Attempt.successful(DecodeResult(value | (byte & 0x07F).toLong << sh, buffer.drop(8)))
     }
   }
 

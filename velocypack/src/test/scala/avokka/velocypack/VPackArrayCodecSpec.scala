@@ -11,6 +11,8 @@ class VPackArrayCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrai
   val a10false = VPackArray(Seq(hex"28 0a".bits, hex"19".bits))
   val avoidtrue = VPackArray(Seq(hex"40".bits, hex"1a".bits))
   val a123 = VPackArray(Seq(hex"31".bits, hex"32".bits, hex"33".bits))
+  val bigArray = VPackArray(Seq.fill(1000)(hex"30".bits))
+  val bigArraJson: String = "[" + Seq.fill(1000)("0").mkString(",") + "]"
 
   "empty array" should "encode to 0x01" in {
     assertCodec(VPackArrayCodec, VPackArray(List.empty), hex"01")
@@ -19,6 +21,7 @@ class VPackArrayCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrai
   "same size elements" should "encode at 0x02-0x05" in {
     assertCodec(VPackArrayCodec, avoidtrue, hex"02 04 40 1a")
     assertEncodePack(VPackArrayCodec, avoidtrue, """["",true]""")
+    assertEncodePack(VPackArrayCodec, bigArray, bigArraJson)
   }
 
   "array with index table" should "encode at 0x06-0x09" in {
@@ -29,6 +32,7 @@ class VPackArrayCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrai
   "compact array" should "encode at 0x13" in {
     assertCodec(VPackArrayCodec.Compact, a10false, hex"13 06 28 0a 19 02")
     assertEncodePack(VPackArrayCodec.Compact, a10false, """[10,false]""")
+    assertEncodePack(VPackArrayCodec.Compact, bigArray, bigArraJson)
   }
 
   "optional unused padding" should "be properly ignored" in {

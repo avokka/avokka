@@ -1,10 +1,9 @@
 package avokka.velocypack.codecs
 
 import avokka.velocypack.{VPackObject, VPackString}
-import cats.data.Chain
 import cats.implicits._
 import scodec.bits.BitVector
-import scodec.codecs.{provide, uint8L, vlong, vlongL}
+import scodec.codecs.{provide, uint8L}
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
 
@@ -106,14 +105,12 @@ class VPackObjectCodec(compact: Boolean, sorted: Boolean) extends Codec[VPackObj
     } yield DecodeResult(key.value.value -> value.take(8 * len.length), value.drop(8 * len.length))
   )
 
-  val vl = new VPackVLongCodec
-
   private val decoderCompact: Decoder[Map[String, BitVector]] = Decoder( bits =>
     for {
-      length  <- vl.decode(bits)
+      length  <- VPackVLongCodec.decode(bits)
       bodyLen = 8 * (length.value - 1 - vlongLength(length.value))
       body    <- scodec.codecs.bits(bodyLen).decode(length.remainder)
-      nr      <- vl.decode(body.value.reverseByteOrder)
+      nr      <- VPackVLongCodec.decode(body.value.reverseByteOrder)
       result  <- Decoder.decodeCollect(decoderSingle, Some(nr.value.toInt))(body.value)
     } yield DecodeResult(result.value.toMap, body.remainder)
   )

@@ -1,7 +1,7 @@
 package avokka.velocypack.codecs
 
 import scodec.bits.BitVector
-import scodec.codecs.{fail, longL, provide, uint8L, ulongL, vlongL}
+import scodec.codecs.{fail, longL, provide, uint8L, ulongL}
 import scodec.{Attempt, DecodeResult, Decoder, Err}
 
 /**
@@ -33,8 +33,8 @@ private object VPackHeadLengthDecoder extends Decoder[HeadLength] {
       0x10 -> ulongL(16),
       0x11 -> ulongL(32),
       0x12 -> longL(64),
-      VPackArrayCodec.compactByte  -> new VPackVLongCodec,
-      VPackObjectCodec.compactByte -> new VPackVLongCodec,
+      VPackArrayCodec.compactByte  -> VPackVLongCodec,
+      VPackObjectCodec.compactByte -> VPackVLongCodec,
       // 0x15 - 0x16 : reserved
       VPackIllegalCodec.headByte   -> provide(1L),
       VPackNullCodec.headByte      -> provide(1L),

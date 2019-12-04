@@ -2,7 +2,6 @@ package avokka.velocypack.codecs
 
 import scodec.Attempt
 import scodec.bits.BitVector
-import scodec.codecs.vlong
 
 trait VPackCompoundCodec {
 
@@ -19,12 +18,12 @@ trait VPackCompoundCodec {
     val valuesAll = values.reduce(_ ++ _)
     val valuesBytes = valuesAll.size / 8
     for {
-      nr <- vlong.encode(values.length)
+      nr <- VPackVLongCodec.encode(values.length)
       lengthBase = 1 + valuesBytes + nr.size / 8
       lengthBaseL = vlongLength(lengthBase)
       lengthT = lengthBase + lengthBaseL
       lenL = vlongLength(lengthT)
-      len <- vlong.encode(if (lenL == lengthBaseL) lengthT else lengthT + 1)
+      len <- VPackVLongCodec.encode(if (lenL == lengthBaseL) lengthT else lengthT + 1)
     } yield BitVector(head) ++ len ++ valuesAll ++ nr.reverseByteOrder
   }
 

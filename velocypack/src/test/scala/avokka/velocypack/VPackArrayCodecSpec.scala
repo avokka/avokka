@@ -22,6 +22,7 @@ class VPackArrayCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrai
     assertCodec(VPackArrayCodec, avoidtrue, hex"02 04 40 1a")
     assertEncodePack(VPackArrayCodec, avoidtrue, """["",true]""")
     assertEncodePack(VPackArrayCodec, bigArray, bigArraJson)
+    assertEncodeDecode(VPackArrayCodec, bigArray)
   }
 
   "array with index table" should "encode at 0x06-0x09" in {
@@ -33,6 +34,7 @@ class VPackArrayCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrai
     assertCodec(VPackArrayCodec.Compact, a10false, hex"13 06 28 0a 19 02")
     assertEncodePack(VPackArrayCodec.Compact, a10false, """[10,false]""")
     assertEncodePack(VPackArrayCodec.Compact, bigArray, bigArraJson)
+    assertEncodeDecode(VPackArrayCodec.Compact, bigArray)
   }
 
   "optional unused padding" should "be properly ignored" in {

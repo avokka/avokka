@@ -28,4 +28,12 @@ trait VPackCodecSpecTrait { self: Matchers =>
     assertEncode(c, v, b)
     assertDecode(c, b, v)
   }
+
+  def assertEncodeDecode[T](c: Codec[T], v: T): Assertion = {
+    val r = c.encode(v)
+    assert(r.isSuccessful)
+    val b = c.decode(r.require)
+    assert(b.isSuccessful)
+    assertResult(v)(b.require.value)
+  }
 }

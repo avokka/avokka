@@ -8,7 +8,7 @@ case class ApiCollection
 (
   error: Boolean,
   code: Long,
-  result: VPackArray
+  result: Vector[VPackObject]
 )
 
 object ApiCollection {

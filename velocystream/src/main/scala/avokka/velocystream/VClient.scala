@@ -1,44 +1,43 @@
 package avokka.velocystream
 
 import java.nio.ByteOrder
+import java.util.concurrent.atomic.AtomicLong
 
 import akka.actor._
+import akka.pattern.pipe
 import akka.stream.scaladsl._
-import akka.stream.{ActorMaterializer, FlowShape, OverflowStrategy, QueueOfferResult}
+import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
 import akka.util.ByteString
 import scodec.bits.{BitVector, ByteVector}
-import GraphDSL.Implicits._
-import akka.pattern.pipe
 
-import scala.concurrent.{Future, Promise}
 import scala.collection.mutable
+import scala.concurrent.Promise
 
 class VClient(implicit materializer: ActorMaterializer) extends Actor {
   import VClient._
-  import context.system
-  import context.dispatcher
+  import context.{dispatcher, system}
 
+  val messageId = new AtomicLong()
   val promises = mutable.LongMap.empty[Promise[VResponse]]
 
+  /*
   val VST = GraphDSL.create() { implicit builder =>
     val merge = builder.add(Concat[ByteString]())
-    Source.single(ByteString("VST/1.1\r\n\r\n")) ~> merge.in(0)
+    Source.single(ByteString(VST_HANDSHAKE)) ~> merge.in(0)
     FlowShape(merge.in(1), merge.out)
   }.named("VST")
+*/
 
   val connection = Tcp().outgoingConnection("bak", 8529)
 
   val in = Flow[VMessage]
-    //.wireTap(println(_))
-   // .map { bytes => VMessage(bytes) }
-    //.wireTap(println(_))
+    .log("SEND message")
     .flatMapMerge(3, m => Source(m.chunks()))
-//    .mapConcat(_.chunks())
-    .wireTap(println(_))
+    .log("SEND chunk")
     .map { chunk =>
       ByteString.fromArrayUnsafe(VChunk.codec.encode(chunk).require.toByteArray)
     }
-    .prepend(Source.single(ByteString("VST/1.1\r\n\r\n")))
+    .prepend(Source.single(ByteString(VST_HANDSHAKE)))
 
   val out = Flow[ByteString]
     .via(Framing.lengthField(
@@ -51,11 +50,11 @@ class VClient(implicit materializer: ActorMaterializer) extends Actor {
     .map { bs =>
       VChunk.codec.decodeValue(BitVector(bs)).require
     }
-    .wireTap(println(_))
+    .log("RECV chunk")
     .via(new VChunkMessageStage)
-    .wireTap(println(_))
+    .log("RECV message")
     .map { m => VResponse.from(m.id, m.data.bits).require }
-    .wireTap(println(_))
+    .log("RECV response")
 
   val q = Source.queue[VMessage](100, OverflowStrategy.fail)
 
@@ -69,26 +68,29 @@ class VClient(implicit materializer: ActorMaterializer) extends Actor {
 
   override def receive: Receive = {
     case MEND => //context.stop(self)
+
     case b: ByteVector => {
-      val message = VMessage(b)
+      val message = VMessage(messageId.incrementAndGet(), b)
       val promise = Promise[VResponse]()
       promises.update(message.id, promise)
-      conn.offer(message).flatMap({
-        case QueueOfferResult.Enqueued => promise.future
-        case QueueOfferResult.Dropped => Future.failed(new RuntimeException("queue drop"))
-        case QueueOfferResult.Failure(cause) => Future.failed(cause)
-        case QueueOfferResult.QueueClosed => Future.failed(new RuntimeException("queue closed"))
-      }) pipeTo sender()
+      conn.offer(message).map({
+        case QueueOfferResult.Enqueued => promise
+        case QueueOfferResult.Dropped => promise.failure(new RuntimeException("queue drop"))
+        case QueueOfferResult.Failure(cause) => promise.failure(cause)
+        case QueueOfferResult.QueueClosed => promise.failure(new RuntimeException("queue closed"))
+      }).flatMap(_.future) pipeTo sender()
     }
+
     case r: VResponse => {
-      promises.remove(r.messageId).foreach { promise =>
-        promise.success(r)
-      }
+      promises.remove(r.messageId).foreach(_.success(r))
     }
+
     case _ =>
   }
 }
 
 object VClient {
+  val VST_HANDSHAKE = "VST/1.1\r\n\r\n"
+
   case object MEND
 }

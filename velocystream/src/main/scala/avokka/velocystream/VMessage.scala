@@ -1,7 +1,5 @@
 package avokka.velocystream
 
-import java.util.concurrent.atomic.AtomicLong
-
 import scodec.bits.ByteVector
 
 case class VMessage
@@ -24,11 +22,4 @@ case class VMessage
 }
 
 object VMessage {
-  val messageId = new AtomicLong()
-
-  def apply(data: ByteVector): VMessage = VMessage(
-    id = messageId.incrementAndGet(),
-    data
-  )
-
 }

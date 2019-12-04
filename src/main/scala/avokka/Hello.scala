@@ -10,6 +10,7 @@ import avokka.velocypack.codecs.VPackObjectCodec
 
 import scala.concurrent._
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object Hello {
 
@@ -18,20 +19,18 @@ object Hello {
 
   def main(args: Array[String]): Unit = {
 
-    import system.dispatcher
-
     val client = system.actorOf(Props(classOf[VClient], materializer), name = s"vst-client")
 
     implicit val timeout = Timeout(5.seconds)
 
-    val auth = VAuthRequest(1, 1000, "plain", "root", "root").toVPack.valueOr(throw _)
-    val apiV = VRequestHeader(1, 1, "_system", 1, "/_api/version", meta = Map("test" -> "moi")).toVPack.valueOr(throw _)
+    val auth = ask(client, VAuthRequest(1, 1000, "plain", "root", "root").toVPack.valueOr(throw _))
+    val version = ask(client, VRequestHeader(1, 1, "_system", 1, "/_api/version", meta = Map("test" -> "moi")).toVPack.valueOr(throw _))
 
     val r = for {
-      authR <- (client ? auth).mapTo[VResponse]
+      authR <- auth.mapTo[VResponse]
       a = authR.body.fromVPack(VPackObjectCodec)
-      apiR <- (client ? apiV).mapTo[VResponse]
-      v = apiR.body.fromVPack(VPackObjectCodec)
+      versionR <- version.mapTo[VResponse]
+      v = versionR.body.fromVPack(VPackObjectCodec)
     } yield (a, v)
 
     println(Await.result(r, 10.seconds))

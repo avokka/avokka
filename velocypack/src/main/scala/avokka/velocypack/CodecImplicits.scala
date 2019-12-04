@@ -7,6 +7,7 @@ import cats.implicits._
 import scodec.bits.{BitVector, ByteVector}
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Err, SizeBound}
+import scodec.codecs.provide
 import shapeless.HList
 
 trait CodecImplicits extends CodecImplicitsLowPriority {
@@ -106,6 +107,10 @@ trait CodecImplicits extends CodecImplicitsLowPriority {
 
 //  implicit def recordCodec[T](implicit a: VPackRecordCodec.DeriveHelper[T]): Codec[T] = VPackHListCodec.codec(a)
 
+  implicit def unitCodec: Codec[Unit] = provide(())
+
+  implicit val vpackObjectCodec: Codec[VPackObject] = VPackObjectCodec
+  implicit val vpackArrayCodec: Codec[VPackArray] = VPackArrayCodec
 }
 
 trait CodecImplicitsLowPriority {

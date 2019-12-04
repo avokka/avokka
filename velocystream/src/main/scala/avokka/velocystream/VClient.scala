@@ -8,17 +8,19 @@ import akka.pattern.pipe
 import akka.stream.scaladsl._
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
 import akka.util.ByteString
+import avokka.velocypack._
+import avokka.velocypack.codecs.{VPackArrayCodec, VPackObjectCodec}
 import scodec.bits.{BitVector, ByteVector}
 
 import scala.collection.mutable
 import scala.concurrent.Promise
 
-class VClient(implicit materializer: ActorMaterializer) extends Actor {
+class VClient(host: String, port: Int)(implicit materializer: ActorMaterializer) extends Actor with ActorLogging {
   import VClient._
   import context.{dispatcher, system}
 
   val messageId = new AtomicLong()
-  val promises = mutable.LongMap.empty[Promise[VResponse]]
+  val promises = mutable.LongMap.empty[Promise[VMessage]]
 
   /*
   val VST = GraphDSL.create() { implicit builder =>
@@ -28,7 +30,7 @@ class VClient(implicit materializer: ActorMaterializer) extends Actor {
   }.named("VST")
 */
 
-  val connection = Tcp().outgoingConnection("bak", 8529)
+  val connection = Tcp().outgoingConnection(host, port)
 
   val in = Flow[VMessage]
     .log("SEND message")
@@ -53,8 +55,6 @@ class VClient(implicit materializer: ActorMaterializer) extends Actor {
     .log("RECV chunk")
     .via(new VChunkMessageStage)
     .log("RECV message")
-    .map { m => VResponse.from(m.id, m.data.bits).require }
-    .log("RECV response")
 
   val q = Source.queue[VMessage](100, OverflowStrategy.fail)
 
@@ -71,7 +71,7 @@ class VClient(implicit materializer: ActorMaterializer) extends Actor {
 
     case b: ByteVector => {
       val message = VMessage(messageId.incrementAndGet(), b)
-      val promise = Promise[VResponse]()
+      val promise = Promise[VMessage]()
       promises.update(message.id, promise)
       conn.offer(message).map({
         case QueueOfferResult.Enqueued => promise
@@ -81,8 +81,14 @@ class VClient(implicit materializer: ActorMaterializer) extends Actor {
       }).flatMap(_.future) pipeTo sender()
     }
 
-    case r: VResponse => {
-      promises.remove(r.messageId).foreach(_.success(r))
+    case r: VMessage => {
+      val header = r.data.bits.fromVPack[VResponseHeader]
+      header.map { hr =>
+        println(hr.value)
+        println(hr.remainder.take(200))
+        println(hr.remainder.fromVPack(VPackObjectCodec))
+      }
+      promises.remove(r.id).foreach(_.success(r))
     }
 
     case _ =>

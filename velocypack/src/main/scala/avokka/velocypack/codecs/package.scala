@@ -16,7 +16,7 @@ package object codecs {
    * @return length in bytes
    */
   @tailrec def ulongLength(value: Long, acc: Int = 1): Int = {
-    if (value > 0Xff) ulongLength(value >> 8, acc + 1)
+    if (value > 0XffL) ulongLength(value >> 8, acc + 1)
     else acc
   }
 
@@ -27,7 +27,7 @@ package object codecs {
    * @return length in bytes
    */
   @tailrec def vlongLength(value: Long, acc: Long = 1): Long = {
-    if (value >= 0X80) vlongLength(value >> 7, acc + 1)
+    if (value >= 0X80L) vlongLength(value >> 7, acc + 1)
     else acc
   }
 

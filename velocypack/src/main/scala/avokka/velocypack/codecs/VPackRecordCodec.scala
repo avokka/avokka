@@ -43,17 +43,11 @@ object VPackRecordCodec {
     }
   }
 
-  def encoder[A <: HList](implicit ev: VPackRecordCodec[A]): Encoder[A] = Encoder { value =>
+  def encoder[A <: HList](compact: Boolean = false)(implicit ev: VPackRecordCodec[A]): Encoder[A] = Encoder { value =>
     for {
-      values <- ev.encode(value)
-      arr    <- VPackObjectCodec.encode(VPackObject(values))
-    } yield arr
-  }
-
-  def encoderCompact[A <: HList](implicit ev: VPackRecordCodec[A]): Encoder[A] = Encoder { value =>
-    for {
-      values <- ev.encode(value)
-      arr    <- VPackObjectCodec.Compact.encode(VPackObject(values))
+      values   <- ev.encode(value)
+      oEncoder = if (compact) VPackObjectCodec.Compact else VPackObjectCodec
+      arr      <- oEncoder.encode(VPackObject(values))
     } yield arr
   }
 
@@ -64,16 +58,16 @@ object VPackRecordCodec {
     } yield DecodeResult(res, arr.remainder)
   }
 
-  def codec[A <: HList](implicit ev: VPackRecordCodec[A]): Codec[A] = Codec(encoder(ev), decoder(ev))
-  def codecCompact[A <: HList](implicit ev: VPackRecordCodec[A]): Codec[A] = Codec(encoderCompact(ev), decoder(ev))
+  def codec[A <: HList](implicit ev: VPackRecordCodec[A]): Codec[A] = Codec(encoder()(ev), decoder(ev))
+  def codecCompact[A <: HList](implicit ev: VPackRecordCodec[A]): Codec[A] = Codec(encoder(compact = true)(ev), decoder(ev))
 
   class DeriveHelper[T] {
-    def generic[Repr <: HList]
+    def codec[Repr <: HList]
     (
       implicit lgen: LabelledGeneric.Aux[T, Repr],
       reprCodec: VPackRecordCodec[Repr],
     ): Codec[T] = {
-      codec[Repr].xmap(a => lgen.from(a), a => lgen.to(a))
+      VPackRecordCodec.codec[Repr].xmap(a => lgen.from(a), a => lgen.to(a))
     }
   }
 

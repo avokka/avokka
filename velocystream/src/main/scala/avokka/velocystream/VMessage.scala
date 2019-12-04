@@ -20,6 +20,3 @@ case class VMessage
     stream(1, data)
   }
 }
-
-object VMessage {
-}

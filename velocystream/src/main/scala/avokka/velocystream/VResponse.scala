@@ -1,19 +1,16 @@
 package avokka.velocystream
 
-import scodec.Attempt
-import scodec.bits.BitVector
+import scodec.Decoder
 
-case class VResponse
+case class VResponse[T]
 (
-  messageId: Long,
+//  messageId: Long,
   header: VResponseHeader,
-  body: BitVector
+  body: T
 )
 
 object VResponse {
-  def from(id: Long, bits: BitVector): Attempt[VResponse] = {
-    for {
-      header <- VResponseHeader.codec.decode(bits)
-    } yield VResponse(id, header.value, header.remainder)
+  implicit def decoder[T](implicit tDecoder: Decoder[T]): Decoder[VResponse[T]] = Decoder { bits =>
+    Decoder.decodeBothCombine(VResponseHeader.codec, tDecoder)(bits)(VResponse[T])
   }
 }

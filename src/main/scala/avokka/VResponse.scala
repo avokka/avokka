@@ -1,4 +1,4 @@
-package avokka.velocystream
+package avokka
 
 import scodec.Decoder
 

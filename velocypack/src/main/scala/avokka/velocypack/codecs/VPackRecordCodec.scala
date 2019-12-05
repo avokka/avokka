@@ -71,5 +71,5 @@ object VPackRecordCodec {
     }
   }
 
-  def deriveFor[T] = new DeriveHelper[T]
+  def deriveFor[T]() = new DeriveHelper[T]
 }

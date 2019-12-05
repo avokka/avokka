@@ -1,4 +1,4 @@
-package avokka.velocystream
+package avokka
 
 import scodec.Encoder
 
@@ -9,7 +9,9 @@ case class VRequest[T]
 )
 
 object VRequest {
+
   implicit def encoder[T](implicit tEncoder: Encoder[T]): Encoder[VRequest[T]] = Encoder { request =>
     Encoder.encodeBoth(VRequestHeader.codec, tEncoder)(request.header, request.body)
   }
+
 }

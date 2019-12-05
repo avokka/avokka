@@ -1,4 +1,4 @@
-package avokka.velocystream
+package avokka
 
 import avokka.velocypack._
 import avokka.velocypack.codecs.VPackHListCodec
@@ -8,7 +8,7 @@ import shapeless.{::, HNil}
 case class VResponseHeader
 (
   version: Int,
-  `type`: Int,
+  `type`: MessageType,
   responseCode: Int,
   meta: Map[String, String] = Map.empty
 )
@@ -16,7 +16,7 @@ case class VResponseHeader
 object VResponseHeader {
   implicit val codec: Codec[VResponseHeader] = VPackHListCodec.codecCompact[
     Int ::
-    Int ::
+    MessageType ::
     Int ::
     Map[String, String] ::
     HNil

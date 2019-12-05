@@ -1,12 +1,13 @@
-package avokka.velocystream
+package avokka
 
 import akka.actor.{ActorSystem, Props}
-import akka.stream.ActorMaterializer
 import akka.pattern.ask
+import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import avokka.velocypack._
+import avokka.velocystream._
 import cats.data.Validated
-import scodec.{Attempt, Codec, Decoder, Encoder}
+import scodec.{Decoder, Encoder}
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -23,7 +24,7 @@ class VSession(host: String, port: Int = 8529)(implicit system: ActorSystem, mat
   }
 
   def authenticate(user: String, password: String): Future[Validated[VPackError, VResponse[VAuthResponse]]] = {
-    askClient(VAuthRequest(1, 1000, "plain", user, password)).map { msg =>
+    askClient(VAuthRequest(1, MessageType.Authentication, "plain", user, password)).map { msg =>
       msg.data.bits.fromVPack[VResponse[VAuthResponse]].map(_.value)
     }
   }

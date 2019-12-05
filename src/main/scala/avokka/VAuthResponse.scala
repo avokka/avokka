@@ -1,8 +1,8 @@
-package avokka.velocystream
+package avokka
 
 import avokka.velocypack._
 import avokka.velocypack.codecs.VPackRecordCodec
-import scodec.{Codec, Decoder}
+import scodec.Decoder
 
 case class VAuthResponse
 (
@@ -13,5 +13,5 @@ case class VAuthResponse
 )
 
 object VAuthResponse {
-  implicit val decoder: Decoder[VAuthResponse] = VPackRecordCodec.deriveFor[VAuthResponse].codec
+  implicit val decoder: Decoder[VAuthResponse] = VPackRecordCodec.deriveFor[VAuthResponse]().codec
 }

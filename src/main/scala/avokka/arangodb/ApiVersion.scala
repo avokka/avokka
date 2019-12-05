@@ -12,5 +12,5 @@ case class ApiVersion
 )
 
 object ApiVersion {
-  implicit val VersionResponseCodec: Codec[ApiVersion] = VPackRecordCodec.deriveFor[ApiVersion].codec
+  implicit val VersionResponseCodec: Codec[ApiVersion] = VPackRecordCodec.deriveFor[ApiVersion]().codec
 }

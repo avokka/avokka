@@ -1,4 +1,4 @@
-package avokka.velocystream
+package avokka
 
 import avokka.velocypack._
 import avokka.velocypack.codecs.VPackHListCodec
@@ -7,21 +7,30 @@ import shapeless.{::, HNil}
 
 case class VRequestHeader
 (
-  version: Int,
-  `type`: Int,
+  version: Int = 1,
+  `type`: MessageType = MessageType.Request,
   database: String,
-  requestType: Int,
+  requestType: RequestType,
   request: String,
   parameters: Map[String, String] = Map.empty,
   meta: Map[String, String] = Map.empty,
 )
 
 object VRequestHeader {
+
+  /*
+  def apply(database: String, requestType: Int, request: String): VRequestHeader = VRequestHeader(
+    database = database,
+    requestType = requestType,
+    request = request,
+  )
+*/
+
   implicit val codec: Codec[VRequestHeader] = VPackHListCodec.codecCompact[
     Int ::
-    Int ::
+    MessageType ::
     String ::
-    Int ::
+    RequestType ::
     String ::
     Map[String, String] ::
     Map[String, String] ::

@@ -12,7 +12,7 @@ case class ApiCollection
 )
 
 object ApiCollection {
-  implicit val codec: Codec[ApiCollection] = VPackRecordCodec.deriveFor[ApiCollection].codec
+  implicit val codec: Codec[ApiCollection] = VPackRecordCodec.deriveFor[ApiCollection]().codec
 }
 
 

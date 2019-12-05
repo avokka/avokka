@@ -8,8 +8,6 @@ import akka.pattern.pipe
 import akka.stream.scaladsl._
 import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
 import akka.util.ByteString
-import avokka.velocypack._
-import avokka.velocypack.codecs.{VPackArrayCodec, VPackObjectCodec}
 import scodec.bits.{BitVector, ByteVector}
 
 import scala.collection.mutable
@@ -82,13 +80,6 @@ class VClient(host: String, port: Int)(implicit materializer: ActorMaterializer)
     }
 
     case r: VMessage => {
-      val header = r.data.bits.fromVPack[VResponseHeader]
-      header.map { hr =>
-
-        println(hr.value)
-        println(hr.remainder.take(200))
-        println(hr.remainder.fromVPack(VPackObjectCodec))
-      }
       promises.remove(r.id).foreach(_.success(r))
     }
 

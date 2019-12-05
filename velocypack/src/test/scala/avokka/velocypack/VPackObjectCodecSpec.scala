@@ -63,6 +63,6 @@ object VPackObjectCodecSpec {
     version: String
   )
 
-  val VersionResponseCodec: Codec[VersionResponse] = VPackRecordCodec.deriveFor[VersionResponse].codec
+  val VersionResponseCodec: Codec[VersionResponse] = VPackRecordCodec.deriveFor[VersionResponse]().codec
 
 }

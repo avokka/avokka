@@ -23,7 +23,7 @@ object Hello {
 
     println(Await.result(auth, 10.seconds))
     println(Await.result(version, 10.seconds))
-    println(Await.result(db.engine(), 10.seconds))
+    println(Await.result(db.collections(), 10.seconds))
 
     Await.ready(system.terminate(), 1.minute)
   }

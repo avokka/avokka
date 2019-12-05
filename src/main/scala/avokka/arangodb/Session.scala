@@ -26,7 +26,7 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
 
   def askClient[T: Encoder](t: T): Future[VMessage] = {
     val request = t.toVPack.valueOr(throw _)
-    println(toSlice(request.bits))
+   // println(toSlice(request.bits))
     ask(client, request).mapTo[VMessage]
   }
 

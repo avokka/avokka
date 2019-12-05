@@ -8,7 +8,7 @@ case class Collection
 (
   error: Boolean,
   code: Long,
-  result: Vector[VPackObject]
+  result: Vector[CollectionResult]
 )
 
 object Collection {

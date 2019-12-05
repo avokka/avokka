@@ -25,11 +25,12 @@ class Database(session: Session, name: String = "_system") {
     ), ()))
   }
 
-  def collections() = {
+  def collections(excludeSystem: Boolean = false) = {
     session.exec[Unit, Collection](Request(RequestHeader(
       database = name,
       requestType = RequestType.GET,
-      request = "/_api/collection"
+      request = "/_api/collection",
+      parameters = Map("excludeSystem" -> excludeSystem.toString)
     ), ()))
   }
 

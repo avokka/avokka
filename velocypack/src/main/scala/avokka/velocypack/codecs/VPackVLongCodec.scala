@@ -3,28 +3,33 @@ package avokka.velocypack.codecs
 import scodec.bits.BitVector
 import scodec.{Attempt, Codec, DecodeResult, SizeBound}
 
+import scala.annotation.tailrec
+
 object VPackVLongCodec extends Codec[Long] {
   override def sizeBound: SizeBound = SizeBound.bounded(8, 64)
 
-  private def loopEncode(v: Long, acc: BitVector = BitVector.empty): BitVector = {
-    if (v >= 0x80L) loopEncode(v >> 7, acc ++ BitVector(((v & 0x7FL).toByte | 0x80L).toByte))
-    else acc ++ BitVector((v & 0x7FL).toByte)
+  @tailrec
+  private def loopEncode(value: Long, acc: BitVector = BitVector.empty): BitVector = {
+    val low = (value & 0x7FL).toByte
+    if (value >= 0x80L) loopEncode(value >> 7, acc ++ BitVector(low | 0x80))
+    else acc ++ BitVector(low)
   }
 
   override def encode(value: Long): Attempt[BitVector] = {
     Attempt.successful(loopEncode(value))
   }
 
-  private def loopDecode(buffer: BitVector, sh: Int, value: Long): Attempt[DecodeResult[Long]] = {
+  @tailrec
+  private def loopDecode(buffer: BitVector, shift: Int = 0, acc: Long = 0): Attempt[DecodeResult[Long]] = {
     val (head, tail) = buffer.splitAt(8)
     val byte = head.toByte(false)
-    val v = value | ((byte & 0x7F).toLong << sh)
-    if ((byte & 0x80.toByte) != 0) {
-      loopDecode(tail, sh + 7, v)
+    val value = acc | ((byte & 0x7F).toLong << shift)
+    if ((byte & 0x80) != 0) {
+      loopDecode(tail, shift + 7, value)
     } else {
-      Attempt.successful(DecodeResult(v, tail))
+      Attempt.successful(DecodeResult(value, tail))
     }
   }
 
-  override def decode(bits: BitVector): Attempt[DecodeResult[Long]] = loopDecode(bits, 0, 0)
+  override def decode(bits: BitVector): Attempt[DecodeResult[Long]] = loopDecode(bits)
 }

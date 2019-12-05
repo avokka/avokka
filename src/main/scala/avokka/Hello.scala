@@ -19,7 +19,7 @@ object Hello {
 
     val auth = session.authenticate("root", "root")
 
-    val version = db.apiVersion()
+    val version = db.apiVersion(true)
 
     println(Await.result(auth, 10.seconds))
     println(Await.result(version, 10.seconds))

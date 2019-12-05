@@ -18,14 +18,6 @@ case class VRequestHeader
 
 object VRequestHeader {
 
-  /*
-  def apply(database: String, requestType: Int, request: String): VRequestHeader = VRequestHeader(
-    database = database,
-    requestType = requestType,
-    request = request,
-  )
-*/
-
   implicit val codec: Codec[VRequestHeader] = VPackHListCodec.codecCompact[
     Int ::
     MessageType ::
@@ -36,4 +28,5 @@ object VRequestHeader {
     Map[String, String] ::
     HNil
   ].as
+
 }

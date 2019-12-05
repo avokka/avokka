@@ -1,11 +1,11 @@
 package avokka.velocypack
 
-import avokka.velocypack.codecs.{VPackRecordCodec, VPackObjectCodec}
+import avokka.velocypack.codecs.{VPackObjectCodec, VPackRecordCodec, VPackRecordDefaultsCodec}
 import org.scalatest.{FlatSpec, Matchers}
 import scodec.Codec
 import scodec.bits._
 import shapeless.labelled.FieldType
-import shapeless.{HNil, Witness, ::}
+import shapeless.{::, HNil, Witness}
 import shapeless.syntax.singleton._
 
 class VPackObjectCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
@@ -52,6 +52,20 @@ class VPackObjectCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTra
     )
   }
 
+  "case class codec with defaults" should "conform specs" in {
+    assertEncode(TestDefaultCodec,
+      TestDefault(false, 0),
+      hex"0b0b024169304161190603",
+    )
+    assertDecode(TestDefaultCodec,
+      hex"0b 0b 02 416930 416119 06 03",
+      TestDefault(false, 0),
+    )
+    assertDecode(TestDefaultCodec,
+      hex"0b 07 01 416119 03",
+      TestDefault(false),
+    )
+  }
 }
 
 object VPackObjectCodecSpec {
@@ -65,4 +79,11 @@ object VPackObjectCodecSpec {
 
   val VersionResponseCodec: Codec[VersionResponse] = VPackRecordCodec.deriveFor[VersionResponse]().codec
 
+  case class TestDefault
+  (
+    a: Boolean,
+    i: Int = 10
+  )
+
+  val TestDefaultCodec: Codec[TestDefault] = VPackRecordDefaultsCodec.deriveFor[TestDefault]().codec
 }

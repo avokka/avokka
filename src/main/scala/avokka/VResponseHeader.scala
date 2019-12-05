@@ -14,6 +14,7 @@ case class VResponseHeader
 )
 
 object VResponseHeader {
+
   implicit val codec: Codec[VResponseHeader] = VPackHListCodec.codecCompact[
     Int ::
     MessageType ::
@@ -21,4 +22,5 @@ object VResponseHeader {
     Map[String, String] ::
     HNil
   ].as
+
 }

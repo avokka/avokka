@@ -48,4 +48,6 @@ lazy val root = (project in file("."))
   .aggregate(velocypack, velocystream)
   .settings(
     name := "avokka",
+    libraryDependencies ++=
+      arango
   )

@@ -8,6 +8,8 @@ import avokka.velocypack._
 import avokka.velocystream._
 import cats.data.Validated
 import scodec.{Decoder, Encoder}
+import com.arangodb.velocypack.{VPack, VPackSlice}
+import scodec.bits.BitVector
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -19,8 +21,13 @@ class VSession(host: String, port: Int = 8529)(implicit system: ActorSystem, mat
   implicit val timeout: Timeout = Timeout(2.minutes)
   import system.dispatcher
 
+  val vp = new VPack.Builder().build()
+  def toSlice(bits: BitVector) = new VPackSlice(bits.toByteArray)
+
   def askClient[T: Encoder](t: T): Future[VMessage] = {
-    ask(client, t.toVPack.valueOr(throw _)).mapTo[VMessage]
+    val request = t.toVPack.valueOr(throw _)
+    println(toSlice(request.bits))
+    ask(client, request).mapTo[VMessage]
   }
 
   def authenticate(user: String, password: String): Future[Validated[VPackError, VResponse[VAuthResponse]]] = {

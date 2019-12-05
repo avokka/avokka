@@ -1,7 +1,7 @@
 package avokka
 
 import cats.implicits._
-import scodec.{Attempt, Codec}
+import scodec.{Attempt, Codec, Err}
 import scodec.interop.cats._
 
 sealed trait MessageType {
@@ -21,5 +21,6 @@ object MessageType {
     case ResponseFinal.i => ResponseFinal.pure[Attempt]
     case ResponseChunk.i => ResponseChunk.pure[Attempt]
     case Authentication.i => Authentication.pure[Attempt]
+    case i => Err(s"unknown message type $i").raiseError
   }, _.i.pure[Attempt])
 }

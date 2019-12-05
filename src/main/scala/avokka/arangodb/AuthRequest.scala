@@ -1,11 +1,11 @@
-package avokka
+package avokka.arangodb
 
 import avokka.velocypack._
 import avokka.velocypack.codecs.VPackHListCodec
 import scodec.Encoder
 import shapeless.{::, HNil}
 
-case class VAuthRequest
+case class AuthRequest
 (
   version: Int = 1,
   `type`: MessageType = MessageType.Authentication,
@@ -14,8 +14,8 @@ case class VAuthRequest
   password: String
 )
 
-object VAuthRequest {
-  implicit val encoder: Encoder[VAuthRequest] = VPackHListCodec.encoderCompact[
+object AuthRequest {
+  implicit val encoder: Encoder[AuthRequest] = VPackHListCodec.encoderCompact[
     Int ::
     MessageType ::
     String ::

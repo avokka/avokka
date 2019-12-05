@@ -1,8 +1,9 @@
-package avokka
+package avokka.arangodb
 
+import avokka.velocypack
 import cats.implicits._
-import scodec.{Attempt, Codec, Err}
 import scodec.interop.cats._
+import scodec.{Attempt, Codec, Err}
 
 sealed trait MessageType {
   def i: Long

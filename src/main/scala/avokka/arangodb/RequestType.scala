@@ -1,8 +1,9 @@
-package avokka
+package avokka.arangodb
 
+import avokka.velocypack
 import cats.implicits._
-import scodec.{Attempt, Codec, Err}
 import scodec.interop.cats._
+import scodec.{Attempt, Codec, Err}
 
 sealed trait RequestType {
   def i: Long
@@ -24,9 +25,9 @@ object RequestType {
     case GET.i => GET.pure[Attempt]
     case POST.i => POST.pure[Attempt]
     case PUT.i => PUT.pure[Attempt]
-    case HEAD.i => Err("request type HEAD is not used in VPP").raiseError
+    case HEAD.i => HEAD.pure[Attempt]
     case PATCH.i => PATCH.pure[Attempt]
-    case OPTIONS.i => Err("request type OPTIONS is not used in VPP").raiseError
+    case OPTIONS.i => OPTIONS.pure[Attempt]
     case i => Err(s"unknown request type $i").raiseError
   }, _.i.pure[Attempt])
 }

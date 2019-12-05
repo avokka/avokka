@@ -1,10 +1,10 @@
-package avokka
+package avokka.arangodb
 
 import avokka.velocypack._
 import avokka.velocypack.codecs.VPackRecordCodec
 import scodec.Decoder
 
-case class VAuthResponse
+case class AuthResponse
 (
   code: Long,
   error: Boolean,
@@ -12,6 +12,6 @@ case class VAuthResponse
   errorNum: Long
 )
 
-object VAuthResponse {
-  implicit val decoder: Decoder[VAuthResponse] = VPackRecordCodec.deriveFor[VAuthResponse]().codec
+object AuthResponse {
+  implicit val decoder: Decoder[AuthResponse] = VPackRecordCodec[AuthResponse].codec
 }

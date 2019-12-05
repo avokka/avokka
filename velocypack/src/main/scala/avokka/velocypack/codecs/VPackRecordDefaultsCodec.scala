@@ -32,15 +32,16 @@ object VPackRecordDefaultsCodec {
     }
     override def decode(values: Map[String, BitVector], defaults: Option[T] :: D): Attempt[FieldType[K, T] :: A] = {
       val keyName = key.value.name
+      val default = defaults.head
       values.get(keyName) match {
         case Some(value) => for {
           rl <- codec.decode(value).map(_.value)
           rr <- ev.decode(values, defaults.tail)
         } yield field[K](rl) :: rr
 
-        case _ if defaults.head.isDefined => for {
+        case _ if default.isDefined => for {
           rr <- ev.decode(values, defaults.tail)
-        } yield field[K](defaults.head.get) :: rr
+        } yield field[K](default.get) :: rr
 
         case _ => Attempt.failure(Err(s"no field $keyName in vpack object"))
       }
@@ -76,5 +77,5 @@ object VPackRecordDefaultsCodec {
     }
   }
 
-  def deriveFor[T]() = new DeriveHelper[T]
+  def apply[T] = new DeriveHelper[T]
 }

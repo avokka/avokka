@@ -1,18 +1,18 @@
-package avokka.arangodb
+package avokka.arangodb.api
 
 import avokka.velocypack._
 import avokka.velocypack.codecs.VPackRecordCodec
 import scodec.Codec
 
-case class ApiCollection
+case class Collection
 (
   error: Boolean,
   code: Long,
   result: Vector[VPackObject]
 )
 
-object ApiCollection {
-  implicit val codec: Codec[ApiCollection] = VPackRecordCodec.deriveFor[ApiCollection]().codec
+object Collection {
+  implicit val codec: Codec[Collection] = VPackRecordCodec[Collection].codec
 }
 
 

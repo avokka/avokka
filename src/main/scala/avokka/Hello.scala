@@ -2,7 +2,7 @@ package avokka
 
 import akka.actor._
 import akka.stream._
-import avokka.arangodb.AvokkaDatabase
+import avokka.arangodb.{Database, Session}
 
 import scala.concurrent._
 import scala.concurrent.duration._
@@ -14,16 +14,16 @@ object Hello {
 
   def main(args: Array[String]): Unit = {
 
-    val session = new VSession("bak")
-    val db = new AvokkaDatabase(session)
+    val session = new Session("bak")
+    val db = new Database(session)
 
     val auth = session.authenticate("root", "root")
 
-    val version = db.apiVersion(true)
+    val version = db.version()
 
     println(Await.result(auth, 10.seconds))
     println(Await.result(version, 10.seconds))
-    println(Await.result(db.collections(), 10.seconds))
+    println(Await.result(db.engine(), 10.seconds))
 
     Await.ready(system.terminate(), 1.minute)
   }

@@ -77,7 +77,7 @@ object VPackObjectCodecSpec {
     version: String
   )
 
-  val VersionResponseCodec: Codec[VersionResponse] = VPackRecordCodec.deriveFor[VersionResponse]().codec
+  val VersionResponseCodec: Codec[VersionResponse] = VPackRecordCodec[VersionResponse].codec
 
   case class TestDefault
   (
@@ -85,5 +85,5 @@ object VPackObjectCodecSpec {
     i: Int = 10
   )
 
-  val TestDefaultCodec: Codec[TestDefault] = VPackRecordDefaultsCodec.deriveFor[TestDefault]().codec
+  val TestDefaultCodec: Codec[TestDefault] = VPackRecordDefaultsCodec[TestDefault].codec
 }

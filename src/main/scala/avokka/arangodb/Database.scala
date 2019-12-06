@@ -39,11 +39,4 @@ class Database(session: Session, val database: String = "_system") {
     ), ())).value
   }
 
-  def adminEcho() = {
-    session.exec[Unit, api.admin.AdminEcho](Request(RequestHeader(
-      database = database,
-      requestType = RequestType.POST,
-      request = "/_admin/echo"
-    ), ())).value
-  }
 }

@@ -35,10 +35,10 @@ object Hello {
     val countries = new Collection(db, "countries")
 
     println(Await.result(auth.value, 10.seconds))
-    println(Await.result(session.databases(), 10.seconds))
-    println(Await.result(db.collections(), 10.seconds))
-    println(Await.result(db.document[Country]("countries/FR"), 10.seconds))
-    println(Await.result(countries.document[Country]("FR"), 10.seconds))
+    println(Await.result(session.adminLog(), 10.seconds))
+//    println(Await.result(db.collections(), 10.seconds))
+//    println(Await.result(db.document[Country]("countries/FR"), 10.seconds))
+//    println(Await.result(countries.document[Country]("FR"), 10.seconds))
 
     Await.ready(system.terminate(), 1.minute)
   }

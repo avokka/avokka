@@ -2,7 +2,7 @@ package avokka
 
 import akka.actor._
 import akka.stream._
-import avokka.arangodb.{Database, Session}
+import avokka.arangodb.{Collection, Database, Session}
 import avokka.velocypack._
 import avokka.velocypack.codecs.{VPackObjectCodec, VPackRecordDefaultsCodec}
 import scodec.Codec
@@ -32,10 +32,12 @@ object Hello {
     val auth = session.authenticate("root", "root")
 
     val db = new Database(session, "v10")
+    val countries = new Collection(session, db.database, "countries")
 
     println(Await.result(auth.value, 10.seconds))
     println(Await.result(db.collections(), 10.seconds))
     println(Await.result(db.document[Country]("countries/FR"), 10.seconds))
+    println(Await.result(countries.document[Country]("FR"), 10.seconds))
 
     Await.ready(system.terminate(), 1.minute)
   }

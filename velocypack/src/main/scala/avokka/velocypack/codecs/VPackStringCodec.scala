@@ -36,7 +36,7 @@ object VPackStringCodec extends Codec[VPackString] {
 
   override def decode(bits: BitVector): Attempt[DecodeResult[VPackString]] = {
     for {
-      head <- uint8L.decode(bits).ensure(Err("not a vpack string"))(h => h.value >= smallByte && h.value <= longByte)
+      head <- uint8L.decode(bits).ensureOr(r => Err(s"not a vpack string ${r.value.toHexString}"))(h => h.value >= smallByte && h.value <= longByte)
       len  <- if (head.value == longByte) int64L.decode(head.remainder)
               else head.map(_.toLong - smallByte).pure[Attempt]
       str  <- fixedSizeBytes(len.value, utf8).decode(len.remainder)

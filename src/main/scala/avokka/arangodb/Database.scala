@@ -1,45 +1,48 @@
 package avokka.arangodb
 
-import avokka.arangodb.api.admin.AdminEcho
-import avokka.arangodb.api.{Collection, Engine, Version}
 import avokka.velocypack._
-import cats.data.Validated
-
-import scala.concurrent.Future
 
 class Database(session: Session, name: String = "_system") {
 
-  def version(details: Boolean = false): Future[Validated[VPackError, Response[Version]]] = {
-    session.exec[Unit, Version](Request(RequestHeader(
+  def version(details: Boolean = false) = {
+    session.exec[Unit, api.Version](Request(RequestHeader(
       database = name,
       requestType = RequestType.GET,
       request = "/_api/version",
       parameters = Map("details" -> details.toString)
-    ), ()))
+    ), ())).value
   }
 
   def engine() = {
-    session.exec[Unit, Engine](Request(RequestHeader(
+    session.exec[Unit, api.Engine](Request(RequestHeader(
       database = name,
       requestType = RequestType.GET,
       request = "/_api/engine"
-    ), ()))
+    ), ())).value
+  }
+
+  def databases() = {
+    session.exec[Unit, api.Database](Request(RequestHeader(
+      database = name,
+      requestType = RequestType.GET,
+      request = "/_api/database",
+    ), ())).value
   }
 
   def collections(excludeSystem: Boolean = false) = {
-    session.exec[Unit, Collection](Request(RequestHeader(
+    session.exec[Unit, api.Collection](Request(RequestHeader(
       database = name,
       requestType = RequestType.GET,
       request = "/_api/collection",
       parameters = Map("excludeSystem" -> excludeSystem.toString)
-    ), ()))
+    ), ())).value
   }
 
   def adminEcho() = {
-    session.exec[Unit, VPackObject](Request(RequestHeader(
+    session.exec[Unit, api.admin.AdminEcho](Request(RequestHeader(
       database = name,
-      requestType = RequestType.GET,
-      request = "/_admin/server/id"
-    ), ()))
+      requestType = RequestType.POST,
+      request = "/_admin/echo"
+    ), ())).value
   }
 }

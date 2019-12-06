@@ -13,5 +13,5 @@ case class Version
 )
 
 object Version {
-  implicit val VersionResponseCodec: Codec[Version] = VPackRecordDefaultsCodec[Version].codec
+  implicit val codec: Codec[Version] = VPackRecordDefaultsCodec[Version].codec
 }

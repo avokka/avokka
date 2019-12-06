@@ -10,8 +10,8 @@ case class Request[T]
 
 object Request {
 
-  implicit def encoder[T](implicit tEncoder: Encoder[T]): Encoder[Request[T]] = Encoder { request =>
-    Encoder.encodeBoth(RequestHeader.codec, tEncoder)(request.header, request.body)
+  implicit def encoder[T](implicit bodyEncoder: Encoder[T]): Encoder[Request[T]] = Encoder { request =>
+    Encoder.encodeBoth(RequestHeader.codec, bodyEncoder)(request.header, request.body)
   }
 
 }

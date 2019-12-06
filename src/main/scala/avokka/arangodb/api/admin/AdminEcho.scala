@@ -1,9 +1,8 @@
 package avokka.arangodb.api.admin
 
 import avokka.velocypack._
-import avokka.velocypack.codecs.VPackRecordCodec
+import avokka.velocypack.codecs.VPackRecordDefaultsCodec
 import scodec.Codec
-import scodec.bits.ByteVector
 
 /**
  * @param authorized whether the session is authorized
@@ -28,20 +27,21 @@ import scodec.bits.ByteVector
 case class AdminEcho
 (
   authorized: Boolean,
-  client: VPackArray, //Object, // AdminEcho.Client,
+  client: AdminEcho.Client,
 //  cookies: Map[String, String],
   database: String,
   headers: Map[String, String],
   internals: Map[String, String],
   parameters: Map[String, String],
   `path`: String,
-  prefix: Map[String, String],
+  portType: String,
+  prefix: String,
   protocol: String,
   // rawRequestBody: Option[List[Any]],
   // rawSuffix: Option[List[Any]],
   requestBody: String,
   requestType: String,
-  server: VPackObject, // AdminEcho.Server,
+  server: AdminEcho.Server,
   // suffix: Option[List[Any]],
   url: String,
   user: String,
@@ -50,18 +50,25 @@ case class AdminEcho
 object AdminEcho {
   case class Server
   (
-    address: Long,
+    address: String,
     port: Long,
     endpoint: String,
   )
 
+  object Server {
+    implicit val codec: Codec[Server] = VPackRecordDefaultsCodec[Server].codec
+  }
+
   case class Client
   (
-  //  address: String,
+    address: String,
     port: Long,
     id: String,
   )
+  object Client {
+    implicit val codec: Codec[Client] = VPackRecordDefaultsCodec[Client].codec
+  }
 
-  implicit val codec: Codec[AdminEcho] = VPackRecordCodec[AdminEcho].codec
+  implicit val codec: Codec[AdminEcho] = VPackRecordDefaultsCodec[AdminEcho].codec
 
 }

@@ -6,10 +6,11 @@ import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import avokka.velocypack._
 import avokka.velocystream._
-import cats.data.Validated
+import cats.data.{EitherT, Validated}
 import com.arangodb.velocypack.{VPack, VPackSlice}
 import scodec.bits.BitVector
 import scodec.{Decoder, Encoder}
+import cats.implicits._
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -24,23 +25,19 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
   val vp = new VPack.Builder().build()
   def toSlice(bits: BitVector) = new VPackSlice(bits.toByteArray)
 
-  def askClient[T: Encoder](t: T): Future[VStreamMessage] = {
-    val request = t.toVPack.valueOr(throw _)
-   // println(toSlice(request.bits))
-    ask(client, request).mapTo[VStreamMessage]
-  }
+  def askClient[T: Encoder](t: T): EitherT[Future, VPackError, VStreamMessage] = for {
+    request <- EitherT.fromEither[Future](t.toVPack)
+    msg <- EitherT.liftF(ask(client, request).mapTo[VStreamMessage])
+  } yield msg
 
-  def authenticate(user: String, password: String): Future[Validated[VPackError, Response[AuthResponse]]] = {
-    askClient(AuthRequest(1, MessageType.Authentication, "plain", user, password)).map { msg =>
-      msg.data.bits.fromVPack[Response[AuthResponse]].map(_.value)
-    }
-  }
+  def authenticate(user: String, password: String): EitherT[Future, VPackError, Response[ResponseError]] = for {
+    message <- askClient(AuthRequest(encryption = "plain", user = user, password = password))
+    response <- EitherT.fromEither[Future](Response.decode[ResponseError](message.data.bits))
+  } yield response
 
-  def exec[T, O](request: Request[T])(implicit encoder: Encoder[T], decoder: Decoder[O]): Future[Validated[VPackError, Response[O]]] = {
-    askClient(request).map { msg =>
-      println(toSlice(msg.data.bits))
-      msg.data.bits.fromVPack[Response[O]].map(_.value)
-    }
-  }
+  def exec[T, O](request: Request[T])(implicit encoder: Encoder[T], decoder: Decoder[O]): EitherT[Future, VPackError, Response[O]] = for {
+    message <- askClient(request)
+    response <- EitherT.fromEither[Future](Response.decode[O](message.data.bits))
+  } yield response
 
 }

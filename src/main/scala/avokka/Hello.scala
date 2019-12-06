@@ -15,11 +15,11 @@ object Hello {
   def main(args: Array[String]): Unit = {
 
     val session = new Session("bak")
-    val db = new Database(session, "v10")
-
     val auth = session.authenticate("root", "root")
 
-    println(Await.result(auth, 10.seconds))
+    val db = new Database(session, "v10")
+
+    println(Await.result(auth.value, 10.seconds))
     println(Await.result(db.collections(), 10.seconds))
 
     Await.ready(system.terminate(), 1.minute)

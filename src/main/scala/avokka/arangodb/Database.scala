@@ -22,14 +22,6 @@ class Database(session: Session, val database: String = "_system") {
     ), ())).value
   }
 
-  def databases() = {
-    session.exec[Unit, api.Database](Request(RequestHeader(
-      database = database,
-      requestType = RequestType.GET,
-      request = "/_api/database",
-    ), ())).value
-  }
-
   def collections(excludeSystem: Boolean = false) = {
     session.exec[Unit, api.Collection](Request(RequestHeader(
       database = database,

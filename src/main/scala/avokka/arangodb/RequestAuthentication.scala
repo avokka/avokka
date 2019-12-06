@@ -5,7 +5,7 @@ import avokka.velocypack.codecs.VPackHListCodec
 import scodec.Encoder
 import shapeless.{::, HNil}
 
-case class AuthRequest
+case class RequestAuthentication
 (
   version: Int = 1,
   `type`: MessageType = MessageType.Authentication,
@@ -14,9 +14,9 @@ case class AuthRequest
   password: String
 )
 
-object AuthRequest {
+object RequestAuthentication {
 
-  implicit val encoder: Encoder[AuthRequest] = VPackHListCodec.encoderCompact[
+  implicit val encoder: Encoder[RequestAuthentication] = VPackHListCodec.encoderCompact[
     Int ::
     MessageType ::
     String ::

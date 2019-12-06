@@ -4,6 +4,6 @@ import scodec.Decoder
 
 import scala.concurrent.Future
 
-class Collection(session: Session, database: String, collection: String) extends Database(session, database) {
-  override def document[T: Decoder](key: String): Future[Either[VPackError, Response[T]]] = super.document(s"$collection/$key")
+class Collection(database: Database, collection: String) {
+  def document[T: Decoder](key: String): Future[Either[VPackError, Response[T]]] = database.document(s"$collection/$key")
 }

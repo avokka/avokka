@@ -31,7 +31,7 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
   } yield msg
 
   def authenticate(user: String, password: String): EitherT[Future, VPackError, Response[ResponseError]] = for {
-    message <- askClient(AuthRequest(encryption = "plain", user = user, password = password))
+    message <- askClient(RequestAuthentication(encryption = "plain", user = user, password = password))
     response <- EitherT.fromEither[Future](Response.decode[ResponseError](message.data.bits))
   } yield response
 
@@ -40,4 +40,13 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
     response <- EitherT.fromEither[Future](Response.decode[O](message.data.bits))
   } yield response
 
+  val _system = new Database(this, "_system")
+
+  def databases() = {
+    exec[Unit, api.Database](Request(RequestHeader(
+      database = _system.database,
+      requestType = RequestType.GET,
+      request = "/_api/database",
+    ), ())).value
+  }
 }

@@ -1,5 +1,6 @@
 package avokka.arangodb
 
+import avokka.arangodb.api.admin.AdminEcho
 import avokka.arangodb.api.{Collection, Engine, Version}
 import avokka.velocypack._
 import cats.data.Validated
@@ -34,4 +35,11 @@ class Database(session: Session, name: String = "_system") {
     ), ()))
   }
 
+  def adminEcho() = {
+    session.exec[Unit, VPackObject](Request(RequestHeader(
+      database = name,
+      requestType = RequestType.GET,
+      request = "/_admin/server/id"
+    ), ()))
+  }
 }

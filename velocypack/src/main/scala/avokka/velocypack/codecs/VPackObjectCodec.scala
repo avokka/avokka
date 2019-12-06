@@ -119,7 +119,7 @@ class VPackObjectCodec(compact: Boolean, sorted: Boolean) extends Codec[VPackObj
 
   override def decode(bits: BitVector): Attempt[DecodeResult[VPackObject]] = {
     for {
-      head     <- uint8L.decode(bits).ensure(Err("not a vpack array"))(h => (h.value >= emptyByte && h.value <= 0x12) || h.value == compactByte)
+      head     <- uint8L.decode(bits).ensure(Err("not a vpack object"))(h => (h.value >= emptyByte && h.value <= 0x12) || h.value == compactByte)
       decs     <- (head.value match {
         case `emptyByte` => emptyProvider
         case 0x0b => decoderOffsets1

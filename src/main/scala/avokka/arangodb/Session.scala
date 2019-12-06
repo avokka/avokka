@@ -38,6 +38,7 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
 
   def exec[T, O](request: Request[T])(implicit encoder: Encoder[T], decoder: Decoder[O]): Future[Validated[VPackError, Response[O]]] = {
     askClient(request).map { msg =>
+      println(toSlice(msg.data.bits))
       msg.data.bits.fromVPack[Response[O]].map(_.value)
     }
   }

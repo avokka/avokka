@@ -1,6 +1,7 @@
 package avokka.arangodb
 
 import avokka.velocypack._
+import scodec.Decoder
 
 class Database(session: Session, name: String = "_system") {
 
@@ -35,6 +36,14 @@ class Database(session: Session, name: String = "_system") {
       requestType = RequestType.GET,
       request = "/_api/collection",
       parameters = Map("excludeSystem" -> excludeSystem.toString)
+    ), ())).value
+  }
+
+  def document[T: Decoder](handle: String) = {
+    session.exec[Unit, T](Request(RequestHeader(
+      database = name,
+      requestType = RequestType.GET,
+      request = s"/_api/document/$handle"
     ), ())).value
   }
 

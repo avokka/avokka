@@ -1,7 +1,7 @@
 package avokka.arangodb
 
 import avokka.velocypack._
-import avokka.velocypack.codecs.{VPackRecordCodec, VPackRecordDefaultsCodec}
+import avokka.velocypack.codecs.VPackRecordCodec
 import scodec.Codec
 
 case class ResponseError

@@ -15,6 +15,7 @@ case class AuthRequest
 )
 
 object AuthRequest {
+
   implicit val encoder: Encoder[AuthRequest] = VPackHListCodec.encoderCompact[
     Int ::
     MessageType ::
@@ -23,4 +24,5 @@ object AuthRequest {
     String ::
     HNil
   ].as
+
 }

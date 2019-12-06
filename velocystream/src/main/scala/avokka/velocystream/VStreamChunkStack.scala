@@ -10,10 +10,10 @@ import cats.data.Chain
  * @param received number of chunks received so far
  * @param expected number of chunks expected for the complete message
  */
-case class VChunkStack
+case class VStreamChunkStack
 (
   messageId: Long,
-  chunks: Chain[VChunk] = Chain.empty,
+  chunks: Chain[VStreamChunk] = Chain.empty,
   received: Long = 0,
   expected: Option[Long] = None
 )
@@ -24,7 +24,7 @@ case class VChunkStack
    * @param chunk the message chunk
    * @return the stack updated
    */
-  def push(chunk: VChunk): VChunkStack = {
+  def push(chunk: VStreamChunk): VStreamChunkStack = {
     require(messageId == chunk.messageId, "wrong message id in chunk stack")
     copy(
       chunks = chunks :+ chunk,
@@ -38,11 +38,11 @@ case class VChunkStack
    *
    * @return the message
    */
-  def complete: Option[VMessage] = {
+  def complete: Option[VStreamMessage] = {
     if (expected.contains(received) && chunks.length == received) {
       // order chunks by position and reduce their data blobs
       val bytes = chunks.toVector.sortBy(_.x.position).map(_.data).reduce(_ ++ _)
-      Some(VMessage(messageId, bytes))
+      Some(VStreamMessage(messageId, bytes))
     } else None
   }
 }

@@ -16,7 +16,7 @@ import scala.concurrent.duration._
 
 class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, materializer: ActorMaterializer) {
 
-  private val client = system.actorOf(Props(classOf[VClient], host, port, materializer), name = s"velocystream-client")
+  private val client = system.actorOf(Props(classOf[VStreamClient], host, port, materializer), name = s"velocystream-client")
 
   implicit val timeout: Timeout = Timeout(2.minutes)
   import system.dispatcher
@@ -24,10 +24,10 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
   val vp = new VPack.Builder().build()
   def toSlice(bits: BitVector) = new VPackSlice(bits.toByteArray)
 
-  def askClient[T: Encoder](t: T): Future[VMessage] = {
+  def askClient[T: Encoder](t: T): Future[VStreamMessage] = {
     val request = t.toVPack.valueOr(throw _)
    // println(toSlice(request.bits))
-    ask(client, request).mapTo[VMessage]
+    ask(client, request).mapTo[VStreamMessage]
   }
 
   def authenticate(user: String, password: String): Future[Validated[VPackError, Response[AuthResponse]]] = {

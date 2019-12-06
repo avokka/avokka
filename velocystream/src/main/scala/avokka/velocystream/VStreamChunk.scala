@@ -13,21 +13,21 @@ import scodec.codecs._
  * @param messageLength the total size of the message
  * @param data blob of chunk
  */
-case class VChunk
+case class VStreamChunk
 (
   length: Long,
-  x: VChunkX,
+  x: VStreamChunkX,
   messageId: Long,
   messageLength: Long,
   data: ByteVector
 )
 
-object VChunk
+object VStreamChunk
 {
-  def apply(message: VMessage, number: Long, total: Long, data: ByteVector): VChunk = {
-    VChunk(
+  def apply(message: VStreamMessage, number: Long, total: Long, data: ByteVector): VStreamChunk = {
+    VStreamChunk(
       length = 4L + 4L + 8L + 8L + data.size,
-      x = VChunkX(number, total),
+      x = VStreamChunkX(number, total),
       messageId = message.id,
       messageLength = message.data.size,
       data = data
@@ -36,12 +36,12 @@ object VChunk
 
   val maxLength: Long = 30000L
 
-  implicit val codec: Codec[VChunk] = {
+  implicit val codec: Codec[VStreamChunk] = {
     ("length" | uint32L) >>:~ { length =>
-      ("chunkX" | VChunkX.codec) ::
+      ("chunkX" | VStreamChunkX.codec) ::
       ("messageId" | int64L) ::
       ("messageLength" | int64L) ::
       ("data" | bytes)
     }
-  }.as[VChunk]
+  }.as[VStreamChunk]
 }

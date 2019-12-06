@@ -3,10 +3,10 @@ package avokka.velocystream
 import org.scalatest.{FlatSpec, Matchers}
 import scodec.bits._
 
-class VMessageSpec extends FlatSpec with Matchers {
+class VStreamMessageSpec extends FlatSpec with Matchers {
 
   it should "split in stream of chunks" in {
-    val m = VMessage(10, hex"aabbccddeeff")
+    val m = VStreamMessage(10, hex"aabbccddeeff")
     val chunks = m.chunks(1)
     assertResult(6)(chunks.length)
     assertResult(hex"aa")(chunks.head.data)

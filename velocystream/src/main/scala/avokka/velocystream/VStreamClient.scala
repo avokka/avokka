@@ -13,12 +13,12 @@ import scodec.bits.{BitVector, ByteVector}
 import scala.collection.mutable
 import scala.concurrent.Promise
 
-class VClient(host: String, port: Int)(implicit materializer: ActorMaterializer) extends Actor with ActorLogging {
-  import VClient._
+class VStreamClient(host: String, port: Int)(implicit materializer: ActorMaterializer) extends Actor with ActorLogging {
+  import VStreamClient._
   import context.{dispatcher, system}
 
   val messageId = new AtomicLong()
-  val promises = mutable.LongMap.empty[Promise[VMessage]]
+  val promises = mutable.LongMap.empty[Promise[VStreamMessage]]
 
   /*
   val VST = GraphDSL.create() { implicit builder =>
@@ -30,12 +30,12 @@ class VClient(host: String, port: Int)(implicit materializer: ActorMaterializer)
 
   val connection = Tcp().outgoingConnection(host, port)
 
-  val in = Flow[VMessage]
+  val in = Flow[VStreamMessage]
     .log("SEND message")
     .flatMapMerge(3, m => Source(m.chunks()))
     .log("SEND chunk")
     .map { chunk =>
-      ByteString.fromArrayUnsafe(VChunk.codec.encode(chunk).require.toByteArray)
+      ByteString.fromArrayUnsafe(VStreamChunk.codec.encode(chunk).require.toByteArray)
     }
     .prepend(Source.single(ByteString(VST_HANDSHAKE)))
 
@@ -48,13 +48,13 @@ class VClient(host: String, port: Int)(implicit materializer: ActorMaterializer)
       computeFrameSize = (_, l) => l
     ))
     .map { bs =>
-      VChunk.codec.decodeValue(BitVector(bs)).require
+      VStreamChunk.codec.decodeValue(BitVector(bs)).require
     }
     .log("RECV chunk")
-    .via(new VChunkMessageStage)
+    .via(new VStreamChunkMessageStage)
     .log("RECV message")
 
-  val q = Source.queue[VMessage](100, OverflowStrategy.fail)
+  val q = Source.queue[VStreamMessage](100, OverflowStrategy.fail)
 
   val gr = q.via(in)
     //.groupBy(2, _.size > 30)
@@ -68,8 +68,8 @@ class VClient(host: String, port: Int)(implicit materializer: ActorMaterializer)
     case MEND => //context.stop(self)
 
     case b: ByteVector => {
-      val message = VMessage(messageId.incrementAndGet(), b)
-      val promise = Promise[VMessage]()
+      val message = VStreamMessage(messageId.incrementAndGet(), b)
+      val promise = Promise[VStreamMessage]()
       promises.update(message.id, promise)
       conn.offer(message).map({
         case QueueOfferResult.Enqueued => promise
@@ -79,7 +79,7 @@ class VClient(host: String, port: Int)(implicit materializer: ActorMaterializer)
       }).flatMap(_.future) pipeTo sender()
     }
 
-    case r: VMessage => {
+    case r: VStreamMessage => {
       promises.remove(r.id).foreach(_.success(r))
     }
 
@@ -87,7 +87,7 @@ class VClient(host: String, port: Int)(implicit materializer: ActorMaterializer)
   }
 }
 
-object VClient {
+object VStreamClient {
   val VST_HANDSHAKE = "VST/1.1\r\n\r\n"
 
   case object MEND

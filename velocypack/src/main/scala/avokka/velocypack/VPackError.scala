@@ -4,6 +4,10 @@ trait VPackError extends Throwable {
 
 }
 
-case class VPackErrorCodec(err: String) extends VPackError {
-  override def toString: String = err
+object VPackError {
+
+  case class Codec(err: String) extends VPackError {
+    override def toString: String = err
+  }
+
 }

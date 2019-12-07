@@ -3,7 +3,7 @@ package avokka.velocypack
 import avokka.velocypack.codecs.VPackArrayCodec
 import scodec.bits.BitVector
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
-import shapeless.{::, HList, HNil}
+import shapeless.{::, Generic, HList, HNil}
 
 trait VPackGeneric[A <: HList] {
   def encode(arguments: A): Attempt[Seq[BitVector]]
@@ -12,7 +12,6 @@ trait VPackGeneric[A <: HList] {
 
 object VPackGeneric {
 
-  // def apply[A <: HList](implicit codec: VPackGeneric[A]): VPackGeneric[A] = codec
   implicit object hnilCodec extends VPackGeneric[HNil] {
     override def encode(arguments: HNil): Attempt[Seq[BitVector]] = Attempt.successful(Vector.empty)
     override def decode(values: Seq[BitVector]): Attempt[HNil] = Attempt.successful(HNil)
@@ -61,4 +60,16 @@ object VPackGeneric {
   def codec[A <: HList](implicit ev: VPackGeneric[A]): Codec[A] = Codec(encoder(ev), decoder(ev))
   def codecCompact[A <: HList](implicit ev: VPackGeneric[A]): Codec[A] = Codec(encoderCompact(ev), decoder(ev))
 
+  class DeriveHelper[T] {
+
+    def codec[R <: HList](implicit gen: Generic.Aux[T, R], vp: VPackGeneric[R]): Codec[T] = {
+      VPackGeneric.codec(vp).xmap(a => gen.from(a), a => gen.to(a))
+    }
+
+    def codecCompact[R <: HList](implicit gen: Generic.Aux[T, R], vp: VPackGeneric[R]): Codec[T] = {
+      VPackGeneric.codecCompact(vp).xmap(a => gen.from(a), a => gen.to(a))
+    }
+  }
+
+  def apply[T] = new DeriveHelper[T]
 }

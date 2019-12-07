@@ -17,7 +17,7 @@ case class RequestHeader
 
 object RequestHeader {
 
-  implicit val codec: Codec[RequestHeader] = VPackGeneric.codecCompact[
+  implicit val codec: Codec[RequestHeader] = VPackGeneric[RequestHeader].codecCompact /*Compact[
     Int ::
     MessageType ::
     String ::
@@ -27,5 +27,5 @@ object RequestHeader {
     Map[String, String] ::
     HNil
   ].as
-
+*/
 }

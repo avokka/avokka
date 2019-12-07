@@ -67,13 +67,13 @@ object VPackRecordDefaultsCodec {
   def codecCompact[A <: HList, D <: HList](defaults: D)(implicit ev: VPackRecordDefaultsCodec[A, D]): Codec[A] = Codec(encoder(compact = true)(ev), decoder(defaults)(ev))
 
   class DeriveHelper[T] {
-    def codec[Repr <: HList, Defaults <: HList]
+    def codec[R <: HList, D <: HList]
     (
-      implicit lgen: LabelledGeneric.Aux[T, Repr],
-      defaults: Default.AsOptions.Aux[T, Defaults],
-      reprCodec: VPackRecordDefaultsCodec[Repr, Defaults],
+      implicit lgen: LabelledGeneric.Aux[T, R],
+      defaults: Default.AsOptions.Aux[T, D],
+      reprCodec: VPackRecordDefaultsCodec[R, D],
     ): Codec[T] = {
-      VPackRecordDefaultsCodec.codec[Repr, Defaults](defaults()).xmap(a => lgen.from(a), a => lgen.to(a))
+      VPackRecordDefaultsCodec.codec[R, D](defaults()).xmap(a => lgen.from(a), a => lgen.to(a))
     }
   }
 

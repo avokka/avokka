@@ -7,6 +7,8 @@ import shapeless.{::, HNil}
 
 class VPackGenericSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
 
+  import VPackGenericSpec._
+
   type R = String :: Boolean :: HNil
   val request: Codec[R] = VPackGeneric.codec[R]
   val requests = VPackGeneric.codec[R :: R :: HNil]
@@ -56,5 +58,22 @@ class VPackGenericSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
     assertDecode(i3, hex"09 2c 00 00 00 00 00 00 00 31 32 33 09 00 00 00 00 00 00 00 0a 00 00 00 00 00 00 00 0b 00 00 00 00 00 00 00 03 00 00 00 00 00 00 00", ex)
 
   }
+
+  "derive from case class" should "encode to array" in {
+    val r = Rcc("a", true)
+    assertCodec(rccCodec, r, hex"06 08 02 41 61 1a 03 05")
+  }
+
+}
+
+object VPackGenericSpec {
+
+  case class Rcc
+  (
+    str: String,
+    bool: Boolean
+  )
+
+  implicit val rccCodec: Codec[Rcc] = VPackGeneric[Rcc].codec
 
 }

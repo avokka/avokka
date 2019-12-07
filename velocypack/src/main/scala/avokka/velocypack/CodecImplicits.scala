@@ -103,7 +103,7 @@ trait CodecImplicits extends CodecImplicitsLowPriority {
     _.toList.traverse({ case (k,v) => codec.encode(v).map(r => k -> r) }).map(l => VPackObject(l.toMap))
   )
 
-  implicit def genericCodec[T <: HList](implicit a: VPackGeneric[T]): Codec[T] = VPackGeneric.codec(a)
+  implicit def genericCodec[T <: HList](implicit a: VPackGeneric[T]): Codec[T] = VPackGeneric.codec()(a)
 
 //  implicit def recordCodec[T](implicit a: VPackRecordCodec.DeriveHelper[T]): Codec[T] = VPackHListCodec.codec(a)
 

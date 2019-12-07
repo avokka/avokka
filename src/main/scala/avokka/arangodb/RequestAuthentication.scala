@@ -15,7 +15,7 @@ case class RequestAuthentication
 
 object RequestAuthentication {
 
-  implicit val codec: Codec[RequestAuthentication] = VPackGeneric[RequestAuthentication].codecCompact
+  implicit val codec: Codec[RequestAuthentication] = VPackGeneric[RequestAuthentication].codec(true)
 /*encoderCompact[
     Int ::
     MessageType ::

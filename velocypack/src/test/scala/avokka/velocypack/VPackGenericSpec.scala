@@ -10,13 +10,13 @@ class VPackGenericSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
   import VPackGenericSpec._
 
   type R = String :: Boolean :: HNil
-  val request: Codec[R] = VPackGeneric.codec[R]
-  val requests = VPackGeneric.codec[R :: R :: HNil]
-  val compact = VPackGeneric.codecCompact[Int :: Boolean :: HNil]
-  val i3 = VPackGeneric.codec[Int :: Int :: Int :: HNil]
+  val request: Codec[R] = VPackGeneric.codec[R]()
+  val requests = VPackGeneric.codec[R :: R :: HNil]()
+  val compact = VPackGeneric.codec[Int :: Boolean :: HNil](true)
+  val i3 = VPackGeneric.codec[Int :: Int :: Int :: HNil]()
 
   "empty array" should "encode to 0x01" in {
-    val c = VPackGeneric.codec[HNil]
+    val c = VPackGeneric.codec[HNil]()
     val result = c.encode(HNil)
     assert(result.isSuccessful)
     assertResult(hex"01")(result.require.bytes)
@@ -74,6 +74,6 @@ object VPackGenericSpec {
     bool: Boolean
   )
 
-  implicit val rccCodec: Codec[Rcc] = VPackGeneric[Rcc].codec
+  implicit val rccCodec: Codec[Rcc] = VPackGeneric[Rcc].codec()
 
 }

@@ -14,7 +14,7 @@ case class ResponseHeader
 
 object ResponseHeader {
 
-  implicit val codec: Codec[ResponseHeader] = VPackGeneric[ResponseHeader].codecCompact /*[
+  implicit val codec: Codec[ResponseHeader] = VPackGeneric[ResponseHeader].codec(true) /*[
     Int ::
     MessageType ::
     Int ::

@@ -62,12 +62,12 @@ object VPackRecordCodec {
   def codecCompact[A <: HList](implicit ev: VPackRecordCodec[A]): Codec[A] = Codec(encoder(compact = true)(ev), decoder(ev))
 
   class DeriveHelper[T] {
-    def codec[Repr <: HList]
+    def codec[R <: HList]
     (
-      implicit lgen: LabelledGeneric.Aux[T, Repr],
-      reprCodec: VPackRecordCodec[Repr],
+      implicit gen: LabelledGeneric.Aux[T, R],
+      vp: VPackRecordCodec[R],
     ): Codec[T] = {
-      VPackRecordCodec.codec[Repr].xmap(a => lgen.from(a), a => lgen.to(a))
+      VPackRecordCodec.codec(vp).xmap(a => gen.from(a), a => gen.to(a))
     }
   }
 

@@ -27,7 +27,7 @@ object VPackGeneric {
     override def decode(values: Seq[BitVector]): Attempt[T :: A] = {
       values match {
         case value +: tail => for {
-          rl <- codec.decode(value).map(_.value)
+          rl <- codec.decodeValue(value)
           rr <- ev.decode(tail)
         } yield rl :: rr
 
@@ -36,17 +36,11 @@ object VPackGeneric {
     }
   }
 
-  def encoder[A <: HList](implicit ev: VPackGeneric[A]): Encoder[A] = Encoder { value =>
+  def encoder[A <: HList](compact: Boolean = false)(implicit ev: VPackGeneric[A]): Encoder[A] = Encoder { value =>
     for {
-      values <- ev.encode(value)
-      arr    <- VPackArrayCodec.encode(VPackArray(values))
-    } yield arr
-  }
-
-  def encoderCompact[A <: HList](implicit ev: VPackGeneric[A]): Encoder[A] = Encoder { value =>
-    for {
-      values <- ev.encode(value)
-      arr    <- VPackArrayCodec.Compact.encode(VPackArray(values))
+      values   <- ev.encode(value)
+      aEncoder = if (compact) VPackArrayCodec.Compact else VPackArrayCodec
+      arr      <- aEncoder.encode(VPackArray(values))
     } yield arr
   }
 
@@ -57,18 +51,14 @@ object VPackGeneric {
     } yield DecodeResult(res, arr.remainder)
   }
 
-  def codec[A <: HList](implicit ev: VPackGeneric[A]): Codec[A] = Codec(encoder(ev), decoder(ev))
-  def codecCompact[A <: HList](implicit ev: VPackGeneric[A]): Codec[A] = Codec(encoderCompact(ev), decoder(ev))
+  def codec[A <: HList](compact: Boolean = false)(implicit ev: VPackGeneric[A]): Codec[A] = Codec(encoder(compact)(ev), decoder(ev))
 
   class DeriveHelper[T] {
 
-    def codec[R <: HList](implicit gen: Generic.Aux[T, R], vp: VPackGeneric[R]): Codec[T] = {
-      VPackGeneric.codec(vp).xmap(a => gen.from(a), a => gen.to(a))
+    def codec[R <: HList](compact: Boolean = false)(implicit gen: Generic.Aux[T, R], vp: VPackGeneric[R]): Codec[T] = {
+      VPackGeneric.codec(compact)(vp).xmap(a => gen.from(a), a => gen.to(a))
     }
 
-    def codecCompact[R <: HList](implicit gen: Generic.Aux[T, R], vp: VPackGeneric[R]): Codec[T] = {
-      VPackGeneric.codecCompact(vp).xmap(a => gen.from(a), a => gen.to(a))
-    }
   }
 
   def apply[T] = new DeriveHelper[T]

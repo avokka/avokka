@@ -17,7 +17,7 @@ case class RequestHeader
 
 object RequestHeader {
 
-  implicit val codec: Codec[RequestHeader] = VPackGeneric[RequestHeader].codecCompact /*Compact[
+  implicit val codec: Codec[RequestHeader] = VPackGeneric[RequestHeader].codec(true) /*Compact[
     Int ::
     MessageType ::
     String ::

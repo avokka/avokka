@@ -1,7 +1,6 @@
 package avokka.arangodb
 
 import avokka.velocypack._
-import avokka.velocypack.codecs.VPackHListCodec
 import scodec.Codec
 import shapeless.{::, HNil}
 
@@ -18,7 +17,7 @@ case class RequestHeader
 
 object RequestHeader {
 
-  implicit val codec: Codec[RequestHeader] = VPackHListCodec.codecCompact[
+  implicit val codec: Codec[RequestHeader] = VPackGeneric.codecCompact[
     Int ::
     MessageType ::
     String ::

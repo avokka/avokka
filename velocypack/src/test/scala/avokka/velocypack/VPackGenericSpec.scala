@@ -1,21 +1,20 @@
 package avokka.velocypack
 
-import avokka.velocypack.codecs.VPackHListCodec
 import org.scalatest._
 import scodec.Codec
 import scodec.bits.HexStringSyntax
 import shapeless.{::, HNil}
 
-class VPackHListCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
+class VPackGenericSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
 
   type R = String :: Boolean :: HNil
-  val request: Codec[R] = VPackHListCodec.codec[R]
-  val requests = VPackHListCodec.codec[R :: R :: HNil]
-  val compact = VPackHListCodec.codecCompact[Int :: Boolean :: HNil]
-  val i3 = VPackHListCodec.codec[Int :: Int :: Int :: HNil]
+  val request: Codec[R] = VPackGeneric.codec[R]
+  val requests = VPackGeneric.codec[R :: R :: HNil]
+  val compact = VPackGeneric.codecCompact[Int :: Boolean :: HNil]
+  val i3 = VPackGeneric.codec[Int :: Int :: Int :: HNil]
 
   "empty array" should "encode to 0x01" in {
-    val c = VPackHListCodec.codec[HNil]
+    val c = VPackGeneric.codec[HNil]
     val result = c.encode(HNil)
     assert(result.isSuccessful)
     assertResult(hex"01")(result.require.bytes)

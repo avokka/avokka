@@ -1,24 +1,24 @@
-package avokka.velocypack.codecs
+package avokka.velocypack
 
-import avokka.velocypack.VPackArray
+import avokka.velocypack.codecs.VPackArrayCodec
 import scodec.bits.BitVector
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
 import shapeless.{::, HList, HNil}
 
-trait VPackHListCodec[A <: HList] {
+trait VPackGeneric[A <: HList] {
   def encode(arguments: A): Attempt[Seq[BitVector]]
   def decode(values: Seq[BitVector]): Attempt[A]
 }
 
-object VPackHListCodec {
+object VPackGeneric {
 
-  // def apply[A <: HList](implicit codec: VPackHListCodec[A]): VPackHListCodec[A] = codec
-  implicit object hnilCodec extends VPackHListCodec[HNil] {
+  // def apply[A <: HList](implicit codec: VPackGeneric[A]): VPackGeneric[A] = codec
+  implicit object hnilCodec extends VPackGeneric[HNil] {
     override def encode(arguments: HNil): Attempt[Seq[BitVector]] = Attempt.successful(Vector.empty)
     override def decode(values: Seq[BitVector]): Attempt[HNil] = Attempt.successful(HNil)
   }
 
-  implicit def hconsCodec[T, A <: HList](implicit codec: Codec[T], ev: VPackHListCodec[A]): VPackHListCodec[T :: A] = new VPackHListCodec[T :: A] {
+  implicit def hconsCodec[T, A <: HList](implicit codec: Codec[T], ev: VPackGeneric[A]): VPackGeneric[T :: A] = new VPackGeneric[T :: A] {
 
     override def encode(arguments: T :: A): Attempt[Seq[BitVector]] = for {
       rl <- codec.encode(arguments.head)
@@ -37,28 +37,28 @@ object VPackHListCodec {
     }
   }
 
-  def encoder[A <: HList](implicit ev: VPackHListCodec[A]): Encoder[A] = Encoder { value =>
+  def encoder[A <: HList](implicit ev: VPackGeneric[A]): Encoder[A] = Encoder { value =>
     for {
       values <- ev.encode(value)
       arr    <- VPackArrayCodec.encode(VPackArray(values))
     } yield arr
   }
 
-  def encoderCompact[A <: HList](implicit ev: VPackHListCodec[A]): Encoder[A] = Encoder { value =>
+  def encoderCompact[A <: HList](implicit ev: VPackGeneric[A]): Encoder[A] = Encoder { value =>
     for {
       values <- ev.encode(value)
       arr    <- VPackArrayCodec.Compact.encode(VPackArray(values))
     } yield arr
   }
 
-  def decoder[A <: HList](implicit ev: VPackHListCodec[A]): Decoder[A] = Decoder { bits =>
+  def decoder[A <: HList](implicit ev: VPackGeneric[A]): Decoder[A] = Decoder { bits =>
     for {
       arr <- VPackArrayCodec.decode(bits)
       res <- ev.decode(arr.value.values)
     } yield DecodeResult(res, arr.remainder)
   }
 
-  def codec[A <: HList](implicit ev: VPackHListCodec[A]): Codec[A] = Codec(encoder(ev), decoder(ev))
-  def codecCompact[A <: HList](implicit ev: VPackHListCodec[A]): Codec[A] = Codec(encoderCompact(ev), decoder(ev))
+  def codec[A <: HList](implicit ev: VPackGeneric[A]): Codec[A] = Codec(encoder(ev), decoder(ev))
+  def codecCompact[A <: HList](implicit ev: VPackGeneric[A]): Codec[A] = Codec(encoderCompact(ev), decoder(ev))
 
 }

@@ -5,20 +5,17 @@ import cats.implicits._
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, Err}
 
-sealed trait RequestType {
-  def i: Long
-}
+sealed abstract class RequestType(val i: Long)
 
 object RequestType {
-  abstract class RequestTypeAbstract(val i: Long) extends RequestType
 
-  case object DELETE extends RequestTypeAbstract(0)
-  case object GET extends RequestTypeAbstract(1)
-  case object POST extends RequestTypeAbstract(2)
-  case object PUT extends RequestTypeAbstract(3)
-  case object HEAD extends RequestTypeAbstract(4)
-  case object PATCH extends RequestTypeAbstract(5)
-  case object OPTIONS extends RequestTypeAbstract(6)
+  case object DELETE extends RequestType(0)
+  case object GET extends RequestType(1)
+  case object POST extends RequestType(2)
+  case object PUT extends RequestType(3)
+  case object HEAD extends RequestType(4)
+  case object PATCH extends RequestType(5)
+  case object OPTIONS extends RequestType(6)
 
   implicit val codec: Codec[RequestType] = velocypack.longCodec.exmap({
     case DELETE.i => DELETE.pure[Attempt]

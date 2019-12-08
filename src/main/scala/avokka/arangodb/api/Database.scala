@@ -5,8 +5,6 @@ import scodec.Codec
 
 case class Database
 (
-  error: Boolean,
-  code: Long,
   result: Vector[String]
 )
 

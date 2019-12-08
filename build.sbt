@@ -49,5 +49,6 @@ lazy val root = (project in file("."))
   .settings(
     name := "avokka",
     libraryDependencies ++=
+//      enumeratum ++
       arango
   )

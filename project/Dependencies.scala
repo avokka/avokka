@@ -38,4 +38,8 @@ object Dependencies {
     "io.circe" %% "circe-generic",
     "io.circe" %% "circe-parser"
   ).map(_ % circeVersion)
+
+  val enumeratumVersion = "1.5.13"
+  val enumeratum = Seq("com.beachape" %% "enumeratum" % enumeratumVersion)
+
 }

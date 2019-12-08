@@ -46,6 +46,6 @@ case class VPackString(value: String) extends VPackValue
 
 case class VPackBinary(value: ByteVector) extends VPackValue
 
-case class VPackArray(values: Seq[BitVector]) extends VPackValue
+case class VPackArray(values: Seq[BitVector] = List.empty) extends VPackValue
 
-case class VPackObject(values: Map[String, BitVector]) extends VPackValue
+case class VPackObject(values: Map[String, BitVector] = Map.empty) extends VPackValue

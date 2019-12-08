@@ -1,17 +1,19 @@
 package avokka.arangodb.api
 
+import avokka.arangodb.{CollectionStatus, CollectionType}
 import avokka.velocypack._
 import scodec.Codec
 
 case class Collection
 (
-  error: Boolean,
-  code: Long,
-  result: Vector[CollectionResult]
+  id: String,
+  name: String,
+  status: CollectionStatus,
+  `type`: CollectionType,
+  isSystem : Boolean,
+  globallyUniqueId : String,
 )
 
 object Collection {
-  implicit val codec: Codec[Collection] = VPackRecord[Collection].codec
+  implicit val codec: Codec[Collection] = VPackRecord[Collection].codecWithDefaults
 }
-
-

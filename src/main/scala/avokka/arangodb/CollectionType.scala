@@ -5,16 +5,13 @@ import cats.implicits._
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, Err}
 
-sealed trait CollectionType {
-  def i: Long
-}
+sealed abstract class CollectionType(val i: Long)
 
 object CollectionType {
-  abstract class CollectionTypeAbstrat(val i: Long) extends CollectionType
 
-  case object Unknown extends CollectionTypeAbstrat(0)
-  case object Document extends CollectionTypeAbstrat(2)
-  case object Edge extends CollectionTypeAbstrat(3)
+  case object Unknown extends CollectionType(0)
+  case object Document extends CollectionType(2)
+  case object Edge extends CollectionType(3)
 
   implicit val codec: Codec[CollectionType] = velocypack.longCodec.exmap({
     case Unknown.i => Unknown.pure[Attempt]

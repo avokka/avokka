@@ -1,9 +1,9 @@
 package avokka.arangodb
 
 import avokka.velocypack._
-import scodec.Decoder
+import scodec.{Codec, Decoder, Encoder}
 
-class Database(session: Session, val database: String = "_system") {
+class Database(val session: Session, val database: String = "_system") {
 
   def version(details: Boolean = false) = {
     session.exec[Unit, api.Version](Request(RequestHeader(
@@ -23,11 +23,19 @@ class Database(session: Session, val database: String = "_system") {
   }
 
   def collections(excludeSystem: Boolean = false) = {
-    session.exec[Unit, api.Collection](Request(RequestHeader(
+    session.exec[Unit, api.Collections](Request(RequestHeader(
       database = database,
       requestType = RequestType.GET,
       request = "/_api/collection",
       parameters = Map("excludeSystem" -> excludeSystem.toString)
+    ), ())).value
+  }
+
+  def collection(collection: String) = {
+    session.exec[Unit, api.Collection](Request(RequestHeader(
+      database = database,
+      requestType = RequestType.GET,
+      request = s"/_api/collection/$collection",
     ), ())).value
   }
 
@@ -37,6 +45,14 @@ class Database(session: Session, val database: String = "_system") {
       requestType = RequestType.GET,
       request = s"/_api/document/$handle"
     ), ())).value
+  }
+
+  def cursor[V: Codec, T: Codec](cursor: api.Cursor[V]) = {
+    session.exec[api.Cursor[V], api.Cursor.Response[T]](Request(RequestHeader(
+      database = database,
+      requestType = RequestType.POST,
+      request = s"/_api/cursor"
+    ), cursor)).value
   }
 
 }

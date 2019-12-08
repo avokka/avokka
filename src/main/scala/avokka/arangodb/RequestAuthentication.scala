@@ -2,7 +2,6 @@ package avokka.arangodb
 
 import avokka.velocypack._
 import scodec.{Codec, Encoder}
-import shapeless.{::, HNil}
 
 case class RequestAuthentication
 (
@@ -14,15 +13,5 @@ case class RequestAuthentication
 )
 
 object RequestAuthentication {
-
   implicit val codec: Codec[RequestAuthentication] = VPackGeneric[RequestAuthentication].codec(true)
-/*encoderCompact[
-    Int ::
-    MessageType ::
-    String ::
-    String ::
-    String ::
-    HNil
-  ].as
-*/
 }

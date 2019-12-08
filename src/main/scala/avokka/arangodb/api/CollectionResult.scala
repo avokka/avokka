@@ -1,5 +1,6 @@
 package avokka.arangodb.api
 
+import avokka.arangodb.CollectionType
 import avokka.velocypack._
 import scodec.Codec
 
@@ -8,7 +9,7 @@ case class CollectionResult
   id: String,
   name: String,
   status: Int,
-  `type`: Int,
+  `type`: CollectionType,
   isSystem : Boolean,
   globallyUniqueId : String,
 )

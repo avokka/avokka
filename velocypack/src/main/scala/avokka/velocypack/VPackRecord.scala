@@ -34,7 +34,7 @@ object VPackRecord {
       val keyName = key.value.name
       values.get(keyName) match {
         case Some(value) => for {
-          rl <- codec.decode(value).map(_.value)
+          rl <- codec.decodeValue(value)
           rr <- ev.decode(values, HNil)
         } yield field[K](rl) :: rr
 
@@ -60,7 +60,7 @@ object VPackRecord {
       val default = defaults.head
       values.get(keyName) match {
         case Some(value) => for {
-          rl <- codec.decode(value).map(_.value)
+          rl <- codec.decodeValue(value)
           rr <- ev.decode(values, defaults.tail)
         } yield field[K](rl) :: rr
 
@@ -88,8 +88,10 @@ object VPackRecord {
     } yield DecodeResult(res, arr.remainder)
   }
 
-  def codec[A <: HList, D <: HList](defaults: D)(implicit ev: VPackRecord[A, D]): Codec[A] = Codec(encoder()(ev), decoder(defaults)(ev))
-  def codecCompact[A <: HList, D <: HList](defaults: D)(implicit ev: VPackRecord[A, D]): Codec[A] = Codec(encoder(compact = true)(ev), decoder(defaults)(ev))
+  def codec[A <: HList, D <: HList](compact: Boolean = false, defaults: D = HNil)
+                                   (implicit ev: VPackRecord[A, D]): Codec[A] = Codec(
+    encoder(compact)(ev), decoder(defaults)(ev)
+  )
 
   class DeriveHelper[T] {
     def codecWithDefaults[R <: HList, D <: HList]
@@ -98,7 +100,7 @@ object VPackRecord {
       defaults: Default.AsOptions.Aux[T, D],
       reprCodec: VPackRecord[R, D],
     ): Codec[T] = {
-      VPackRecord.codec[R, D](defaults()).xmap(a => lgen.from(a), a => lgen.to(a))
+      VPackRecord.codec[R, D](defaults = defaults()).xmap(a => lgen.from(a), a => lgen.to(a))
     }
 
     def codec[R <: HList]
@@ -106,7 +108,7 @@ object VPackRecord {
       implicit lgen: LabelledGeneric.Aux[T, R],
       reprCodec: VPackRecord[R, HNil],
     ): Codec[T] = {
-      VPackRecord.codec[R, HNil](HNil).xmap(a => lgen.from(a), a => lgen.to(a))
+      VPackRecord.codec[R, HNil]().xmap(a => lgen.from(a), a => lgen.to(a))
     }
   }
 

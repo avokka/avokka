@@ -32,7 +32,7 @@ class VPackObjectCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTra
       FieldType[Witness.`'code`.T, Int] ::
       HNil,
       HNil
-    ](HNil)
+    ]()
 
     assertEncode(c, 'test ->> false :: 'code ->> 200 :: HNil,
       hex"0b 12 02 44636f6465 28c8 4474657374 19 03 0a"

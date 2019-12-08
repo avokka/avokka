@@ -15,13 +15,13 @@ import scodec.Codec
  */
 case class Cursor[V]
 (
-  batchSize: Option[Long] = None,
+  query: String,
   bindVars: V,
+  batchSize: Option[Long] = None,
   cache: Option[Boolean] = None,
   count: Option[Boolean] = None,
   memoryLimit: Option[Long] = None,
   options: Option[Cursor.Options] = None,
-  query: String,
   ttl: Option[Long] = None,
 )
 
@@ -65,9 +65,7 @@ object Cursor {
 
   /**
    * @param cached a boolean flag indicating whether the query result was served from the query cache or not. If the query result is served from the query cache, the *extra* return attribute will not contain any *stats* sub-attribute and no *profile* sub-attribute.
-   * @param code the HTTP status code
    * @param count the total number of result documents available (only available if the query was executed with the *count* attribute set)
-   * @param error A flag to indicate that an error occurred (*false* in this case)
    * @param extra an optional JSON object with extra information about the query result contained in its *stats* sub-attribute. For data-modification queries, the *extra.stats* sub-attribute will contain the number of modified documents and the number of documents that could not be modified due to an error (if *ignoreErrors* query option is specified)
    * @param hasMore A boolean indicator whether there are more results available for the cursor on the server
    * @param id id of temporary cursor created on the server (optional, see above)
@@ -76,9 +74,7 @@ object Cursor {
   case class Response[T]
   (
     cached: Boolean,
-//    code: Option[Int],
     count: Option[Long] = None,
-//    error: Boolean,
 //    extra: Option[Map[String, Any]],
     hasMore: Boolean,
     id: Option[String] = None,

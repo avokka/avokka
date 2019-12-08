@@ -1,7 +1,6 @@
 package avokka.arangodb.api
 
 import avokka.velocypack._
-import avokka.velocypack.codecs.VPackRecordCodec
 import scodec.Codec
 
 case class Collection
@@ -12,7 +11,7 @@ case class Collection
 )
 
 object Collection {
-  implicit val codec: Codec[Collection] = VPackRecordCodec[Collection].codec
+  implicit val codec: Codec[Collection] = VPackRecord[Collection].codec
 }
 
 

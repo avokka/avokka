@@ -105,7 +105,7 @@ trait CodecImplicits extends CodecImplicitsLowPriority {
 
   implicit def genericCodec[T <: HList](implicit a: VPackGeneric[T]): Codec[T] = VPackGeneric.codec()(a)
 
-//  implicit def recordCodec[T](implicit a: VPackRecordCodec.DeriveHelper[T]): Codec[T] = VPackHListCodec.codec(a)
+//  implicit def recordCodec[T](implicit a: VPackRecord.DeriveHelper[T]): Codec[T] = VPackHListCodec.codec(a)
 
   implicit def unitCodec: Codec[Unit] = provide(())
 

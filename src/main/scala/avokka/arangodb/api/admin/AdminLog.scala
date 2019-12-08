@@ -1,7 +1,6 @@
 package avokka.arangodb.api.admin
 
 import avokka.velocypack._
-import avokka.velocypack.codecs.VPackRecordDefaultsCodec
 import scodec.Codec
 
 /**
@@ -23,5 +22,5 @@ case class AdminLog
 )
 
 object AdminLog {
-  implicit val codec: Codec[AdminLog] = VPackRecordDefaultsCodec[AdminLog].codec
+  implicit val codec: Codec[AdminLog] = VPackRecord[AdminLog].codecWithDefaults
 }

@@ -1,7 +1,6 @@
 package avokka.arangodb.api
 
 import avokka.velocypack._
-import avokka.velocypack.codecs.VPackRecordDefaultsCodec
 import scodec.Decoder
 
 case class Engine
@@ -10,5 +9,5 @@ case class Engine
 )
 
 object Engine {
-  implicit val decoder: Decoder[Engine] = VPackRecordDefaultsCodec[Engine].codec
+  implicit val decoder: Decoder[Engine] = VPackRecord[Engine].codecWithDefaults
 }

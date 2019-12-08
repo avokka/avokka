@@ -51,7 +51,10 @@ object VPackGeneric {
     } yield DecodeResult(res, arr.remainder)
   }
 
-  def codec[A <: HList](compact: Boolean = false)(implicit ev: VPackGeneric[A]): Codec[A] = Codec(encoder(compact)(ev), decoder(ev))
+  def codec[A <: HList](compact: Boolean = false)(implicit ev: VPackGeneric[A]): Codec[A] = Codec(
+    encoder(compact)(ev),
+    decoder(ev)
+  )
 
   class DeriveHelper[T] {
 

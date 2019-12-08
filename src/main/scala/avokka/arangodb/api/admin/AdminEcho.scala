@@ -1,7 +1,6 @@
 package avokka.arangodb.api.admin
 
 import avokka.velocypack._
-import avokka.velocypack.codecs.VPackRecordDefaultsCodec
 import scodec.Codec
 
 /**
@@ -56,7 +55,7 @@ object AdminEcho {
   )
 
   object Server {
-    implicit val codec: Codec[Server] = VPackRecordDefaultsCodec[Server].codec
+    implicit val codec: Codec[Server] = VPackRecord[Server].codecWithDefaults
   }
 
   case class Client
@@ -66,9 +65,9 @@ object AdminEcho {
     id: String,
   )
   object Client {
-    implicit val codec: Codec[Client] = VPackRecordDefaultsCodec[Client].codec
+    implicit val codec: Codec[Client] = VPackRecord[Client].codecWithDefaults
   }
 
-  implicit val codec: Codec[AdminEcho] = VPackRecordDefaultsCodec[AdminEcho].codec
+  implicit val codec: Codec[AdminEcho] = VPackRecord[AdminEcho].codecWithDefaults
 
 }

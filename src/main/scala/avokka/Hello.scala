@@ -4,7 +4,6 @@ import akka.actor._
 import akka.stream._
 import avokka.arangodb.{Collection, Database, Session}
 import avokka.velocypack._
-import avokka.velocypack.codecs.{VPackObjectCodec, VPackRecordDefaultsCodec}
 import scodec.Codec
 
 import scala.concurrent._
@@ -24,7 +23,7 @@ object Hello {
     flag: String,
   )
 
-  implicit val countryCodec: Codec[Country] = VPackRecordDefaultsCodec[Country].codec
+  implicit val countryCodec: Codec[Country] = VPackRecord[Country].codecWithDefaults
 
   def main(args: Array[String]): Unit = {
 

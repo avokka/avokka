@@ -1,7 +1,6 @@
 package avokka.arangodb.api
 
 import avokka.velocypack._
-import avokka.velocypack.codecs.VPackRecordDefaultsCodec
 import scodec.Codec
 
 case class CollectionResult
@@ -15,5 +14,5 @@ case class CollectionResult
 )
 
 object CollectionResult {
-  implicit val codec: Codec[CollectionResult] = VPackRecordDefaultsCodec[CollectionResult].codec
+  implicit val codec: Codec[CollectionResult] = VPackRecord[CollectionResult].codecWithDefaults
 }

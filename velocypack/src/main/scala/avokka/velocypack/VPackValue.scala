@@ -1,6 +1,5 @@
 package avokka.velocypack
 
-import cats.data.Chain
 import scodec.bits._
 
 sealed trait VPackValue

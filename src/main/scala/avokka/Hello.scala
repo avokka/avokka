@@ -57,9 +57,9 @@ object Hello {
 //    println(Await.result(countries.document[Country]("FR"), 10.seconds))
 //    println(Await.result(countries.revision(), 10.seconds))
 
-    println(Await.result(db.cursor[VPackObject, Photo](Cursor(
-      query = "FOR p IN photos LIMIT 5 RETURN p",
-      bindVars = VPackObject()
+    println(Await.result(db.cursor[Map[String, Int], Photo](Cursor(
+      query = "FOR p IN photos LIMIT @limit RETURN p",
+      bindVars = Map("limit" -> 1)
     )), 10.seconds))
 
     Await.ready(system.terminate(), 1.minute)

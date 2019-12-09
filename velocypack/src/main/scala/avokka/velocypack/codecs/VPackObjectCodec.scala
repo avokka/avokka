@@ -136,8 +136,8 @@ class VPackObjectCodec(compact: Boolean, sorted: Boolean) extends Codec[VPackObj
   }
 
   def mapOf[T](codec: Codec[T]): Codec[Map[String, T]] = exmap(
-    _.values.toList.traverse({ case (k,v) => codec.decodeValue(v).map(r => k -> r) }).map(_.toMap),
-    _.toList.traverse({ case (k,v) => codec.encode(v).map(r => k -> r) }).map(l => VPackObject(l.toMap))
+    _.values.toList.traverse({ case (k,v) => codec.decodeValue(v).map(r => k -> r).mapErr(_.pushContext(k)) }).map(_.toMap),
+    _.toList.traverse({ case (k,v) => codec.encode(v).map(r => k -> r).mapErr(_.pushContext(k)) }).map(l => VPackObject(l.toMap))
   )
 
 }

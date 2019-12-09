@@ -12,7 +12,7 @@ import shapeless.HList
 
 import scala.util.Try
 
-trait CodecImplicits extends CodecImplicitsLowPriority {
+trait CodecImplicits {
 
   implicit val booleanCodec: Codec[Boolean] = VPackBooleanCodec.as
 
@@ -124,7 +124,4 @@ trait CodecImplicits extends CodecImplicitsLowPriority {
 
   implicit val vpackObjectCodec: Codec[VPackObject] = VPackObjectCodec
   implicit val vpackArrayCodec: Codec[VPackArray] = VPackArrayCodec
-}
-
-trait CodecImplicitsLowPriority {
 }

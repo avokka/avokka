@@ -1,6 +1,5 @@
 package avokka
 
-import cats.data.Validated
 import cats.implicits._
 import scodec.bits.{BitVector, ByteVector}
 import scodec.{DecodeResult, Decoder, Encoder}

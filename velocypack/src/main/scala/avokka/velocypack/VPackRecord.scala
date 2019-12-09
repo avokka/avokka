@@ -24,17 +24,17 @@ object VPackRecord {
     key: Witness.Aux[K],
     codec: Codec[T]
   ): VPackRecord[FieldType[K, T] :: A, HNil] = new VPackRecord[FieldType[K, T] :: A, HNil] {
+    private val keyName: String = key.value.name
     override def encode(arguments: FieldType[K, T] :: A): Attempt[Map[String, BitVector]] = {
       for {
-        rl <- codec.encode(arguments.head)
+        rl <- codec.encode(arguments.head).mapErr(_.pushContext(keyName))
         rr <- ev.encode(arguments.tail)
-      } yield rr.updated(key.value.name, rl)
+      } yield rr.updated(keyName, rl)
     }
     override def decode(values: Map[String, BitVector], defaults: HNil): Attempt[FieldType[K, T] :: A] = {
-      val keyName = key.value.name
       values.get(keyName) match {
         case Some(value) => for {
-          rl <- codec.decodeValue(value)
+          rl <- codec.decodeValue(value).mapErr(_.pushContext(keyName))
           rr <- ev.decode(values, HNil)
         } yield field[K](rl) :: rr
 
@@ -49,18 +49,18 @@ object VPackRecord {
     key: Witness.Aux[K],
     codec: Codec[T]
   ): VPackRecord[FieldType[K, T] :: A, Option[T] :: D] = new VPackRecord[FieldType[K, T] :: A, Option[T] :: D] {
+    private val keyName: String = key.value.name
     override def encode(arguments: FieldType[K, T] :: A): Attempt[Map[String, BitVector]] = {
       for {
-        rl <- codec.encode(arguments.head)
+        rl <- codec.encode(arguments.head).mapErr(_.pushContext(keyName))
         rr <- ev.encode(arguments.tail)
       } yield rr.updated(key.value.name, rl)
     }
     override def decode(values: Map[String, BitVector], defaults: Option[T] :: D): Attempt[FieldType[K, T] :: A] = {
-      val keyName = key.value.name
       val default = defaults.head
       values.get(keyName) match {
         case Some(value) => for {
-          rl <- codec.decodeValue(value)
+          rl <- codec.decodeValue(value).mapErr(_.pushContext(keyName))
           rr <- ev.decode(values, defaults.tail)
         } yield field[K](rl) :: rr
 

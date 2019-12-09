@@ -1,6 +1,6 @@
 package avokka.arangodb.api
 
-import avokka.arangodb.{CollectionName, CollectionType}
+import avokka.arangodb._
 import avokka.velocypack._
 import scodec.Codec
 

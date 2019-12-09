@@ -5,7 +5,7 @@ import scodec.Decoder
 
 import scala.concurrent.Future
 
-class Collection(val database: Database, val collectionName: String) {
+class Collection(val database: Database, collectionName: String) {
 
   lazy val name = CollectionName(collectionName)
 

@@ -16,6 +16,8 @@ package object arangodb {
   type CollectionName = String @@ CollectionNameTag
   def CollectionName(value: String): CollectionName = tag[CollectionNameTag][String](value)
 
+  implicit val collectionNameCodec: Codec[CollectionName] = velocypack.stringCodec.xmap(CollectionName, _.asInstanceOf[String])
+
   trait DocumentKeyTag
   type DocumentKey = String @@ DocumentKeyTag
   def DocumentKey(value: String): DocumentKey = tag[DocumentKeyTag][String](value)

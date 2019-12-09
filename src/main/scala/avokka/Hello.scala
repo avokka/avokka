@@ -27,6 +27,7 @@ object Hello {
   implicit val countryCodec: Codec[Country] = VPackRecord[Country].codecWithDefaults
 
   def main(args: Array[String]): Unit = {
+    import system.dispatcher
 
     val session = new Session("bak")
     val auth = session.authenticate("root", "root")
@@ -40,7 +41,7 @@ object Hello {
 //    println(Await.result(db.collection("nope"), 10.seconds))
 //    println(Await.result(db.document[Country]("countries/FR"), 10.seconds))
 //    println(Await.result(countries.document[Country]("FR"), 10.seconds))
-//    println(Await.result(countries.info(), 10.seconds))
+    println(Await.result(countries.checksum(withRevisions = true), 10.seconds))
 
     println(Await.result(db.cursor[VPackObject, String](Cursor(
       query = "FOR c IN countries RETURN c.name",

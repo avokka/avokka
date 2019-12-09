@@ -5,7 +5,7 @@ import java.time.Instant
 import akka.actor._
 import akka.stream._
 import avokka.arangodb.api.Cursor
-import avokka.arangodb.{Collection, Database, Session}
+import avokka.arangodb._
 import avokka.velocypack._
 import scodec.Codec
 
@@ -29,8 +29,8 @@ object Hello {
 
   case class Photo
   (
-    _id: String,
-    _key: String,
+    _id: DocumentHandle,
+    _key: DocumentKey,
     _rev: String,
     title: Option[String] = None,
     slug: Option[String] = None,
@@ -50,12 +50,13 @@ object Hello {
     val countries = new Collection(db, "countries")
 
     println(Await.result(auth.value, 10.seconds))
+    println(Await.result(db.engine(), 10.seconds))
 //    println(Await.result(session.databases(), 10.seconds))
 //    println(Await.result(db.collections(), 10.seconds))
 //    println(Await.result(db.collection("nope"), 10.seconds))
 //    println(Await.result(db.document[Country]("countries/FR"), 10.seconds))
 //    println(Await.result(countries.document[Country]("FR"), 10.seconds))
-//    println(Await.result(countries.revision(), 10.seconds))
+    println(Await.result(countries.revision(), 10.seconds))
 
     println(Await.result(db.cursor[Map[String, Int], Photo](Cursor(
       query = "FOR p IN photos LIMIT @limit RETURN p",

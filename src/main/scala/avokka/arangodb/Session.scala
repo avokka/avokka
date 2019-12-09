@@ -42,17 +42,26 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
 
   val _system = new Database(this, "_system")
 
-  def databases() = {
-    exec[Unit, api.Database](Request(RequestHeader(
-      database = _system.database,
+  def version(details: Boolean = false) = {
+    exec[Unit, api.Version](Request(RequestHeader(
+      database = _system.name,
       requestType = RequestType.GET,
-      request = "/_api/database",
+      request = "/_api/version",
+      parameters = Map("details" -> details.toString)
+    ), ())).value
+  }
+
+  def databases() = {
+    exec[Unit, api.DatabaseList](Request(RequestHeader(
+      database = _system.name,
+      requestType = RequestType.GET,
+      request = "/_api/database/user",
     ), ())).value
   }
 
   def adminEcho() = {
     exec[Unit, api.admin.AdminEcho](Request(RequestHeader(
-      database = _system.database,
+      database = _system.name,
       requestType = RequestType.POST,
       request = "/_admin/echo"
     ), ())).value
@@ -60,7 +69,7 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
 
   def adminLog() = {
     exec[Unit, api.admin.AdminLog](Request(RequestHeader(
-      database = _system.database,
+      database = _system.name,
       requestType = RequestType.GET,
       request = "/_admin/log"
     ), ())).value

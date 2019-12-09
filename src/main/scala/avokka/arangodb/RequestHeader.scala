@@ -7,7 +7,7 @@ case class RequestHeader
 (
   version: Int = 1,
   `type`: MessageType = MessageType.Request,
-  database: String,
+  database: DatabaseName,
   requestType: RequestType,
   request: String,
   parameters: Map[String, String] = Map.empty,

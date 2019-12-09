@@ -5,20 +5,36 @@ import scodec.Decoder
 
 import scala.concurrent.Future
 
-class Collection(val database: Database, val collection: String) {
+class Collection(val database: Database, val collectionName: String) {
 
-  def document[T: Decoder](key: String): Future[Either[VPackError, Response[T]]] = database.document(s"$collection/$key")
+  lazy val name = CollectionName(collectionName)
+
+  def document[T: Decoder](key: DocumentKey): Future[Either[VPackError, Response[T]]] = database.document(DocumentHandle(name, key))
+
+  def create(t: api.CollectionCreate) = {
+    database.session.exec[api.CollectionCreate, api.CollectionInfo](Request(RequestHeader(
+      database = database.name,
+      requestType = RequestType.POST,
+      request = s"/_api/collection",
+    ), t)).value
+  }
+
+  def info() = {
+    database.session.exec[Unit, api.CollectionInfo](Request(RequestHeader(
+      database = database.name,
+      requestType = RequestType.GET,
+      request = s"/_api/collection/$name",
+    ), ())).value
+  }
 
   def count() = {
     database.session.exec[Unit, api.CollectionCount](Request(
       RequestHeader(
-        database = database.database,
+        database = database.name,
         requestType = RequestType.GET,
-        request = s"/_api/collection/$collection/count",
+        request = s"/_api/collection/$name/count",
       ), ())).value
   }
-
-  def info() = database.collection(collection)
 
   /**
    * Will calculate a checksum of the meta-data (keys and optionally revision ids) and
@@ -40,9 +56,9 @@ class Collection(val database: Database, val collection: String) {
   def checksum(withRevisions: Boolean = false, withData: Boolean = false) = {
     database.session.exec[Unit, api.CollectionChecksum](Request(
       RequestHeader(
-        database = database.database,
+        database = database.name,
         requestType = RequestType.GET,
-        request = s"/_api/collection/$collection/checksum",
+        request = s"/_api/collection/$name/checksum",
         parameters = Map("withRevisions" -> withRevisions.toString, "withData" -> withData.toString)
       ), ())).value
   }
@@ -50,9 +66,9 @@ class Collection(val database: Database, val collection: String) {
   def revision() = {
     database.session.exec[Unit, api.CollectionRevision](Request(
       RequestHeader(
-        database = database.database,
+        database = database.name,
         requestType = RequestType.GET,
-        request = s"/_api/collection/$collection/revision",
+        request = s"/_api/collection/$name/revision",
       ), ())).value
   }
 }

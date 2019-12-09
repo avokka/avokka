@@ -4,7 +4,7 @@ import avokka.arangodb.{CollectionStatus, CollectionType}
 import avokka.velocypack._
 import scodec.Codec
 
-case class Collection
+case class CollectionInfo
 (
   id: String,
   name: String,
@@ -14,6 +14,6 @@ case class Collection
   globallyUniqueId : String,
 )
 
-object Collection {
-  implicit val codec: Codec[Collection] = VPackRecord[Collection].codecWithDefaults
+object CollectionInfo {
+  implicit val codec: Codec[CollectionInfo] = VPackRecord[CollectionInfo].codecWithDefaults
 }

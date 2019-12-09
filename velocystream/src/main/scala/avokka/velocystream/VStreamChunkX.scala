@@ -16,36 +16,36 @@ import scodec.codecs.uint32L
  * in all subsequent chunks, the number "chunk" is the current number of this chunk.
  *
  * @param first first chunk of message
- * @param number number of chunk or total if first
+ * @param index number of chunk or total if first
  */
 case class VStreamChunkX
 (
   first: Boolean,
-  number: Long,
+  index: Long,
 )
 {
   /**
    * if this chunk contains the whole message (no buffer needed)
    * @return
    */
-  def isWhole: Boolean = first && number == 1
+  def isWhole: Boolean = first && index == 1
 
   /**
    * the order of chunk in message
    * @return long order
    */
-  def position: Long = if (first) 1 else number
+  def position: Long = if (first) 0 else index
 }
 
 object VStreamChunkX {
 
-  def apply(number: Long, total: Long): VStreamChunkX = {
-    val first = number == 1
-    VStreamChunkX(first, if (first) total else number)
+  def apply(index: Long, count: Long): VStreamChunkX = {
+    val first = index == 0
+    VStreamChunkX(first, if (first) count else index)
   }
 
   implicit val codec: Codec[VStreamChunkX] = uint32L.xmap(
-    i => VStreamChunkX(number = i >> 1, first = (i & 1L) == 1L),
-    x => x.number << 1 | (if(x.first) 1L else 0L)
+    i => VStreamChunkX(index = i >> 1, first = (i & 1L) == 1L),
+    x => x.index << 1 | (if(x.first) 1L else 0L)
   )
 }

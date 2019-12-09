@@ -50,5 +50,6 @@ lazy val root = (project in file("."))
     name := "avokka",
     libraryDependencies ++=
 //      enumeratum ++
+      Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value) ++
       arango
   )

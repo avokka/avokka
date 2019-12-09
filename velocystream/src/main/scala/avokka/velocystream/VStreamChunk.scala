@@ -24,10 +24,10 @@ case class VStreamChunk
 
 object VStreamChunk
 {
-  def apply(message: VStreamMessage, number: Long, total: Long, data: ByteVector): VStreamChunk = {
+  def apply(message: VStreamMessage, index: Long, count: Long, data: ByteVector): VStreamChunk = {
     VStreamChunk(
       length = 4L + 4L + 8L + 8L + data.size,
-      x = VStreamChunkX(number, total),
+      x = VStreamChunkX(index, count),
       messageId = message.id,
       messageLength = message.data.size,
       data = data

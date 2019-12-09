@@ -10,6 +10,8 @@ import scodec.{Attempt, Codec, DecodeResult, Decoder, Err, SizeBound}
 import scodec.codecs.provide
 import shapeless.HList
 
+import scala.util.Try
+
 trait CodecImplicits extends CodecImplicitsLowPriority {
 
   implicit val booleanCodec: Codec[Boolean] = VPackBooleanCodec.as
@@ -71,7 +73,18 @@ trait CodecImplicits extends CodecImplicitsLowPriority {
 
   implicit val stringCodec: Codec[String] = VPackStringCodec.as
 
-  implicit val instantCodec: Codec[Instant] = VPackDateCodec.xmap(d => Instant.ofEpochMilli(d.value), t => VPackDate(t.toEpochMilli))
+  implicit val instantCodec: Codec[Instant] = new Codec[Instant] {
+    override def sizeBound: SizeBound = VPackDateCodec.sizeBound
+    override def encode(value: Instant): Attempt[BitVector] = VPackDateCodec.encode(VPackDate(value.toEpochMilli))
+
+    private val decoder = Decoder.choiceDecoder(
+      VPackDateCodec.map(d => Instant.ofEpochMilli(d.value)),
+      VPackLongCodec.map(l => Instant.ofEpochMilli(l.value)),
+      VPackStringCodec.emap(s => Attempt.fromTry(Try(Instant.parse(s.value)))),
+    )
+
+    override def decode(bits: BitVector): Attempt[DecodeResult[Instant]] = decoder.decode(bits)
+  }
 
   implicit val binaryCodec: Codec[ByteVector] = VPackBinaryCodec.as
 

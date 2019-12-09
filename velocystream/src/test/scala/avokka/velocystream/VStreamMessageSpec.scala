@@ -11,7 +11,7 @@ class VStreamMessageSpec extends FlatSpec with Matchers {
     assertResult(6)(chunks.length)
     assertResult(hex"aa")(chunks.head.data)
     assertResult(true)(chunks.head.x.first)
-    assertResult(6)(chunks.head.x.number)
+    assertResult(6)(chunks.head.x.index)
 
     val chunks2 = m.chunks(4)
     assertResult(2)(chunks2.length)
@@ -20,13 +20,13 @@ class VStreamMessageSpec extends FlatSpec with Matchers {
 
     assertResult(hex"aabbccdd")(first.data)
     assertResult(true)(first.x.first)
-    assertResult(2)(first.x.number)
+    assertResult(2)(first.x.index)
     assertResult(10)(first.messageId)
     assertResult(6)(first.messageLength)
 
     assertResult(hex"eeff")(second.data)
     assertResult(false)(second.x.first)
-    assertResult(2)(second.x.number)
+    assertResult(1)(second.x.index)
     assertResult(10)(second.messageId)
     assertResult(6)(second.messageLength)
 
@@ -35,7 +35,7 @@ class VStreamMessageSpec extends FlatSpec with Matchers {
     val one = chunk1.head
     assertResult(m.data)(one.data)
     assertResult(true)(one.x.first)
-    assertResult(1)(one.x.number)
+    assertResult(1)(one.x.index)
     assertResult(m.id)(one.messageId)
     assertResult(m.data.size)(one.messageLength)
   }

@@ -29,7 +29,7 @@ case class VStreamChunkStack
     copy(
       chunks = chunks :+ chunk,
       received = received + 1,
-      expected = if (chunk.x.first) Some(chunk.x.number) else expected
+      expected = if (chunk.x.first) Some(chunk.x.index) else expected
     )
   }
 

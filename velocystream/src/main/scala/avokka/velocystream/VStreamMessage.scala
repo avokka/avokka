@@ -17,6 +17,6 @@ case class VStreamMessage
         VStreamChunk(this, n, count, slice.take(length)) #:: stream(n + 1, slice.drop(length))
       }
     }
-    stream(1, data)
+    stream(0, data)
   }
 }

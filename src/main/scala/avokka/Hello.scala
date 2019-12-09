@@ -1,5 +1,7 @@
 package avokka
 
+import java.time.Instant
+
 import akka.actor._
 import akka.stream._
 import avokka.arangodb.api.Cursor
@@ -23,8 +25,20 @@ object Hello {
     name: String,
     flag: String,
   )
-
   implicit val countryCodec: Codec[Country] = VPackRecord[Country].codecWithDefaults
+
+  case class Photo
+  (
+    _id: String,
+    _key: String,
+    _rev: String,
+    title: Option[String] = None,
+    slug: Option[String] = None,
+    user: Option[String] = None,
+    created: Instant,
+    deleted: Boolean,
+  )
+  implicit val commentCodec: Codec[Photo] = VPackRecord[Photo].codecWithDefaults
 
   def main(args: Array[String]): Unit = {
     import system.dispatcher
@@ -41,10 +55,10 @@ object Hello {
 //    println(Await.result(db.collection("nope"), 10.seconds))
 //    println(Await.result(db.document[Country]("countries/FR"), 10.seconds))
 //    println(Await.result(countries.document[Country]("FR"), 10.seconds))
-    println(Await.result(countries.revision(), 10.seconds))
+//    println(Await.result(countries.revision(), 10.seconds))
 
-    println(Await.result(db.cursor[VPackObject, String](Cursor(
-      query = "FOR c IN countries RETURN c.name",
+    println(Await.result(db.cursor[VPackObject, Photo](Cursor(
+      query = "FOR p IN photos LIMIT 5 RETURN p",
       bindVars = VPackObject()
     )), 10.seconds))
 

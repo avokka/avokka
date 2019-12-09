@@ -46,4 +46,13 @@ class Collection(val database: Database, val collection: String) {
         parameters = Map("withRevisions" -> withRevisions.toString, "withData" -> withData.toString)
       ), ())).value
   }
+
+  def revision() = {
+    database.session.exec[Unit, api.CollectionRevision](Request(
+      RequestHeader(
+        database = database.database,
+        requestType = RequestType.GET,
+        request = s"/_api/collection/$collection/revision",
+      ), ())).value
+  }
 }

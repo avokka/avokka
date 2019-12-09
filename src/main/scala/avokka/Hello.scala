@@ -41,7 +41,7 @@ object Hello {
 //    println(Await.result(db.collection("nope"), 10.seconds))
 //    println(Await.result(db.document[Country]("countries/FR"), 10.seconds))
 //    println(Await.result(countries.document[Country]("FR"), 10.seconds))
-    println(Await.result(countries.checksum(withRevisions = true), 10.seconds))
+    println(Await.result(countries.revision(), 10.seconds))
 
     println(Await.result(db.cursor[VPackObject, String](Cursor(
       query = "FOR c IN countries RETURN c.name",

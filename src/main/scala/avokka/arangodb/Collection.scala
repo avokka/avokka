@@ -40,6 +40,14 @@ class Collection(val database: Database, collectionName: String) {
     ), ())).value
   }
 
+  def unload() = {
+    database.session.exec[Unit, api.CollectionInfo](Request(RequestHeader(
+      database = database.name,
+      requestType = RequestType.PUT,
+      request = s"/_api/collection/$name/unload",
+    ), ())).value
+  }
+
   def info() = {
     database.session.exec[Unit, api.CollectionInfo](Request(RequestHeader(
       database = database.name,

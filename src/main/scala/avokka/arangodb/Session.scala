@@ -51,6 +51,22 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
     ), ())).value
   }
 
+  def databaseCreate(t: api.DatabaseCreate) = {
+    exec[api.DatabaseCreate, api.DatabaseCreate.Response](Request(RequestHeader(
+      database = _system.name,
+      requestType = RequestType.POST,
+      request = "/_api/database"
+    ), t)).value
+  }
+
+  def databaseDrop(name: DatabaseName) = {
+    exec[Unit, api.DatabaseDrop](Request(RequestHeader(
+      database = _system.name,
+      requestType = RequestType.DELETE,
+      request = s"/_api/database/$name",
+    ), ())).value
+  }
+
   def databases() = {
     exec[Unit, api.DatabaseList](Request(RequestHeader(
       database = _system.name,

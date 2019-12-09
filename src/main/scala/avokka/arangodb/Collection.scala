@@ -11,18 +11,6 @@ class Collection(val database: Database, collectionName: String) {
 
   def document[T: Decoder](key: DocumentKey): Future[Either[VPackError, Response[T]]] = database.document(DocumentHandle(name, key))
 
-  def create(t: api.CollectionCreate, waitForSyncReplication: Int = 1, enforceReplicationFactor: Int = 1) = {
-    database.session.exec[api.CollectionCreate, api.CollectionInfo](Request(RequestHeader(
-      database = database.name,
-      requestType = RequestType.POST,
-      request = s"/_api/collection",
-      parameters = Map(
-        "waitForSyncReplication" -> waitForSyncReplication.toString,
-        "enforceReplicationFactor" -> enforceReplicationFactor.toString
-      )
-    ), t)).value
-  }
-
   def drop(isSystem: Boolean = false) = {
     database.session.exec[Unit, api.CollectionDrop](Request(RequestHeader(
       database = database.name,

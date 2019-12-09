@@ -56,7 +56,7 @@ object Hello {
 //    println(Await.result(db.collection("nope"), 10.seconds))
 //    println(Await.result(db.document[Country]("countries/FR"), 10.seconds))
 //    println(Await.result(countries.document[Country]("FR"), 10.seconds))
-    println(Await.result(countries.properties(), 10.seconds))
+//    println(Await.result(countries.properties(), 10.seconds))
 
     /*
     println(Await.result(db.cursor[Map[String, Int], Photo](Cursor(
@@ -64,6 +64,10 @@ object Hello {
       bindVars = Map("limit" -> 1)
     )), 10.seconds))
 */
+    val scratch = new Database(session, "scratch")
+
+    println(Await.result(session.databaseCreate(api.DatabaseCreate(name = scratch.name)), 1.minute))
+    println(Await.result(session.databaseDrop(scratch.name), 1.minute))
 
     Await.ready(system.terminate(), 1.minute)
   }

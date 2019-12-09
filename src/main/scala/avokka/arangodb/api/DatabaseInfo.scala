@@ -1,11 +1,12 @@
 package avokka.arangodb.api
 
+import avokka.arangodb._
 import avokka.velocypack._
 import scodec.Codec
 
 case class DatabaseInfo
 (
-  name: String,
+  name: DatabaseName,
   id: String,
   path: String,
   isSystem: Boolean,

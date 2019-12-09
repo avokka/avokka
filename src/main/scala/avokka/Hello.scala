@@ -51,7 +51,7 @@ object Hello {
 
     println(Await.result(auth.value, 10.seconds))
 //    println(Await.result(db.engine(), 10.seconds))
-//    println(Await.result(session.databases(), 10.seconds))
+    println(Await.result(session.databases(), 10.seconds))
     println(Await.result(db.collections(), 10.seconds))
 //    println(Await.result(db.collection("nope"), 10.seconds))
 //    println(Await.result(db.document[Country]("countries/FR"), 10.seconds))

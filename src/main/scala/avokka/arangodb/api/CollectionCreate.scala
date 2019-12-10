@@ -12,7 +12,7 @@ import scodec.Codec
  * @param isSystem If *true*, create a  system collection. In this case *collection-name* should start with an underscore. End users should normally create non-system collections only. API implementors may be required to create system collections in very special occasions, but normally a regular collection will do. (The default is *false*)
  * @param isVolatile If *true* then the collection data is kept in-memory only and not made persistent. Unloading the collection will cause the collection data to be discarded. Stopping or re-starting the server will also cause full loss of data in the collection. Setting this option will make the resulting collection be slightly faster than regular collections because ArangoDB does not enforce any synchronization to disk and does not calculate any CRC checksums for datafiles (as there are no datafiles). This option should therefore be used for cache-type collections only, and not for data that cannot be re-created otherwise. (The default is *false*) This option is meaningful for the MMFiles storage engine only.
  * @param journalSize The maximal size of a journal or datafile in bytes. The value must be at least `1048576` (1 MiB). (The default is a configuration parameter) This option is meaningful for the MMFiles storage engine only.
- * @param keyOptions
+ * @param keyOptions additional options for key generation
  * @param numberOfShards (The default is *1*): in a cluster, this value determines the number of shards to create for the collection. In a single server setup, this option is meaningless.
  * @param replicationFactor (The default is *1*): in a cluster, this attribute determines how many copies of each shard are kept on different DBServers. The value 1 means that only one copy (no synchronous replication) is kept. A value of k means that k-1 replicas are kept. Any two copies reside on different DBServers. Replication between them is  synchronous, that is, every write operation to the \"leader\" copy will be replicated  to all \"follower\" replicas, before the write operation is reported successful.  If a server fails, this is detected automatically and one of the servers holding  copies take over, usually without an error being reported.
  * @param shardKeys (The default is *[ \"_key\" ]*): in a cluster, this attribute determines which document attributes are used to determine the target shard for documents. Documents are sent to shards based on the values of their shard key attributes. The values of all shard key attributes in a document are hashed, and the hash value is used to determine the target shard. **Note**: Values of shard key attributes cannot be changed once set.   This option is meaningless in a single server setup.
@@ -24,20 +24,20 @@ import scodec.Codec
 case class CollectionCreate
 (
   name: CollectionName,
-  distributeShardsLike: Option[String] = None,
-  doCompact: Option[Boolean] = None,
+  distributeShardsLike: String = "",
+  doCompact: Boolean = true,
   indexBuckets: Option[Long] = None,
-  isSystem: Option[Boolean] = None,
-  isVolatile: Option[Boolean] = None,
+  isSystem: Boolean = false,
+  isVolatile: Boolean = false,
   journalSize: Option[Long] = None,
   keyOptions: Option[CollectionCreate.KeyOptions] = None,
-  numberOfShards: Option[Long] = None,
-  replicationFactor: Option[Long] = None,
-  shardKeys: Option[String] = None,
+  numberOfShards: Long = 1,
+  replicationFactor: Long = 1,
+  shardKeys: List[String] = List("_key"),
   shardingStrategy: Option[String] = None,
   smartJoinAttribute: Option[String] = None,
-  `type`: Option[CollectionType] = None,
-  waitForSync: Option[Boolean] = None
+  `type`: CollectionType = CollectionType.Document,
+  waitForSync: Boolean = false,
 )
 
 object CollectionCreate {

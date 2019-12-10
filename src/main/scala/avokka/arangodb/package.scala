@@ -37,6 +37,8 @@ package object arangodb {
       val parts = path.split('/')
       DocumentHandle(CollectionName(parts(0)), DocumentKey(parts(1)))
     }
+
+    val empty = DocumentHandle(CollectionName(""), DocumentKey(""))
   }
 
   implicit val documentHandleCodec: Codec[DocumentHandle] = velocypack.stringCodec.xmap(DocumentHandle.apply, _.path)

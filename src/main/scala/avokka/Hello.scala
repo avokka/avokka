@@ -19,9 +19,9 @@ object Hello {
 
   case class Country
   (
-    _id: String,
-    _key: String,
-    _rev: String,
+    _id: DocumentHandle = DocumentHandle.empty,
+    _key: DocumentKey = DocumentKey(""),
+    _rev: String = "",
     name: String,
     flag: String,
   )
@@ -47,7 +47,7 @@ object Hello {
     val auth = session.authenticate("root", "root")
 
     val db = new Database(session, "v10")
-    val countries = new Collection(db, "countries")
+  //  val countries = new Collection(db, "countries")
 
     println(Await.result(auth.value, 10.seconds))
 //    println(Await.result(db.engine(), 10.seconds))
@@ -65,8 +65,12 @@ object Hello {
     )), 10.seconds))
 */
     val scratch = new Database(session, "scratch")
+    val countries = new Collection(scratch, "country")
 
     println(Await.result(session.databaseCreate(api.DatabaseCreate(name = scratch.name)), 1.minute))
+    println(Await.result(scratch.collectionCreate(api.CollectionCreate(name = countries.name)), 1.minute))
+    println(Await.result(countries.documentCreate(Country(name = "Moi", flag = "[X]")), 1.minute))
+
     println(Await.result(session.databaseDrop(scratch.name), 1.minute))
 
     Await.ready(system.terminate(), 1.minute)

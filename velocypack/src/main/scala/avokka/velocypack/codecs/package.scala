@@ -47,5 +47,5 @@ package object codecs {
     } yield size
   }
 
-  private[codecs] case class HeadLength(head: Int, length: Long)
+  private[codecs] case class HeadLength(head: VPackType, length: Long)
 }

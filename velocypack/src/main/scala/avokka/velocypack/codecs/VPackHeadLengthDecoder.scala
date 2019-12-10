@@ -61,10 +61,17 @@ private object VPackHeadLengthDecoder extends Decoder[HeadLength] {
       } yield h -> ulongLA(8 * l).map(1L + l + _))
   }
 
-  override def decode(bits: BitVector): Attempt[DecodeResult[HeadLength]] = {
+  def decodeDeprecated(bits: BitVector) = {
     for {
       head <- uint8L.decode(bits)
       len  <- vpLengthCodecs.getOrElse(head.value, fail(Err(s"unknown vpack header '${head.value.toHexString}'"))).decode(head.remainder)
+    } yield len.map(l => (head.value, l))
+  }
+
+  override def decode(bits: BitVector): Attempt[DecodeResult[HeadLength]] = {
+    for {
+      head <- VPackType.codec.decode(bits)
+      len  <- head.value.lengthDecoder.decode(head.remainder)
     } yield len.map(l => HeadLength(head.value, l))
   }
 }

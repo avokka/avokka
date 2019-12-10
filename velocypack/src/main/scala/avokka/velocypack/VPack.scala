@@ -72,10 +72,6 @@ object VPack {
 
 
   def main(args: Array[String]): Unit = {
-    println(8 << 0)
-    println(8 << 1)
-    println(8 << 2)
-    println(8 << 3)
     println(vpackEncoder.encode(VArray(Vector.empty)))
     println(vpackEncoder.encode(VArray(Vector(True, VArray(Vector(False, VNull))))))
     println(vpackDecoder.decode(hex"02021a02021918".bits))

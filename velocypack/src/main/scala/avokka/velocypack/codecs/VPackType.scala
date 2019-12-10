@@ -18,12 +18,12 @@ object VPackType {
 
   case class ArrayUnindexed(override val head: Int) extends VPackType(head) {
     require(head >= 0x02 && head <= 0x05)
-    override def lengthDecoder: Decoder[Long] = ulongLA(8 << (head - 0x02))
+    override val lengthDecoder: Decoder[Long] = ulongLA(8 << (head - 0x02))
   }
 
   case class ArrayIndexed(override val head: Int) extends VPackType(head) {
     require(head >= 0x06 && head <= 0x09)
-    override def lengthDecoder: Decoder[Long] = ulongLA(8 << (head - 0x06))
+    override val lengthDecoder: Decoder[Long] = ulongLA(8 << (head - 0x06))
   }
 
   case object ObjectEmpty extends VPackType(0x0a) {
@@ -32,12 +32,12 @@ object VPackType {
 
   case class ObjectSorted(override val head: Int) extends VPackType(head) {
     require(head >= 0x0b && head <= 0x0e)
-    override def lengthDecoder: Decoder[Long] = ulongLA(8 << (head - 0x0b))
+    override val lengthDecoder: Decoder[Long] = ulongLA(8 << (head - 0x0b))
   }
 
   case class ObjectUnsorted(override val head: Int) extends VPackType(head) {
     require(head >= 0x0f && head <= 0x12)
-    override def lengthDecoder: Decoder[Long] = ulongLA(8 << (head - 0x0f))
+    override val lengthDecoder: Decoder[Long] = ulongLA(8 << (head - 0x0f))
   }
 
   case object ArrayCompact extends VPackType(0x13) {
@@ -76,11 +76,11 @@ object VPackType {
 
   case class IntSigned(override val head: Int) extends VPackType(head) {
     require(head >= 0x20 && head <= 0x27)
-    override def lengthDecoder: Decoder[Long] = provide(1 + head - 0x20 + 1)
+    override val lengthDecoder: Decoder[Long] = provide(1 + head - 0x20 + 1)
   }
   case class IntUnsigned(override val head: Int) extends VPackType(head) {
     require(head >= 0x28 && head <= 0x2f)
-    override def lengthDecoder: Decoder[Long] = provide(1 + head - 0x28 + 1)
+    override val lengthDecoder: Decoder[Long] = provide(1 + head - 0x28 + 1)
   }
 
   case class SmallintPositive(override val head: Int) extends VPackType(head) {
@@ -94,7 +94,7 @@ object VPackType {
 
   case class StringShort(override val head: Int) extends VPackType(head) {
     require(head >= 0x40 && head <= 0xbe)
-    override def lengthDecoder: Decoder[Long] = provide(1 + head - 0x40)
+    override val lengthDecoder: Decoder[Long] = provide(1 + head - 0x40)
   }
   case object StringLong extends VPackType(0xbf) {
     override val lengthDecoder: Decoder[Long] = longL(64).map(1L + 8 + _)
@@ -102,7 +102,7 @@ object VPackType {
 
   case class Binary(override val head: Int) extends VPackType(head) {
     require(head >= 0xc0 && head <= 0xc7)
-    override def lengthDecoder: Decoder[Long] = {
+    override val lengthDecoder: Decoder[Long] = {
       val l = head - 0xc0 + 1
       ulongLA(8 * l).map(1L + l + _)
     }

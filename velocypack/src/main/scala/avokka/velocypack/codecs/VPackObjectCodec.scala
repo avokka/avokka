@@ -15,7 +15,7 @@ class VPackObjectCodec(compact: Boolean, sorted: Boolean) extends Codec[VPackObj
 
   val keyValueEncoder: Encoder[(String, BitVector)] = Encoder( kv =>
     for {
-      k <- VPackStringCodec.encode(VPackString(kv._1))
+      k <- VPackStringCodec.encoder.encode(VPackString(kv._1))
     } yield k ++ kv._2
   )
 

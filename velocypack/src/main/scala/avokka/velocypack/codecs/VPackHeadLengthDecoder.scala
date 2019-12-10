@@ -7,10 +7,11 @@ import scodec.{Attempt, DecodeResult, Decoder, Err}
 /**
  * Decodes the head byte and the total length in bytes of a velocypack value
  */
-private object VPackHeadLengthDecoder extends Decoder[HeadLength] {
+private object VPackHeadLengthDecoder {
 
   /**
    * determines the decoder for byte length from the head byte
+   * @deprecated
    */
   private val vpLengthCodecs: Map[Int, Decoder[Long]] = {
     Map(
@@ -61,6 +62,11 @@ private object VPackHeadLengthDecoder extends Decoder[HeadLength] {
       } yield h -> ulongLA(8 * l).map(1L + l + _))
   }
 
+  /**
+   * @deprecated
+   * @param bits
+   * @return
+   */
   def decodeDeprecated(bits: BitVector) = {
     for {
       head <- uint8L.decode(bits)
@@ -68,10 +74,12 @@ private object VPackHeadLengthDecoder extends Decoder[HeadLength] {
     } yield len.map(l => (head.value, l))
   }
 
+  /*
   override def decode(bits: BitVector): Attempt[DecodeResult[HeadLength]] = {
     for {
       head <- VPackType.codec.decode(bits)
       len  <- head.value.lengthDecoder.decode(head.remainder)
     } yield len.map(l => HeadLength(head.value, l))
   }
+   */
 }

@@ -28,6 +28,7 @@ lazy val velocypack = (project in file("velocypack"))
       shapeless ++
       scodec ++
       testSuite ++
+      circe ++
       arango.map(_ % Test) ++
       logback.map(_ % Test)
   )

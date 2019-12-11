@@ -101,7 +101,6 @@ object VPackValue {
     case t @ VPackType.StringLong => VPackStringCodec.decoder(t)
     case t : VPackType.Binary => VPackBinaryCodec.decoder(t)
     case t : VPackType.SingleByte => provide(t.singleton)
-    // case VPackType.ArrayUnindexed(b) => arrayCodec.map(VArray.apply)
   }
 
   val vpackCodec: Codec[VPackValue] = Codec(vpackEncoder, vpackDecoder)

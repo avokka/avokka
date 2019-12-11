@@ -48,80 +48,89 @@ object VPackType {
     val singleton: VPackValue
   ) extends VPackType
 
-  /**
-   * 0x00 : none - this indicates absence of any type and value, this is not allowed in VPack values
-   */
+  /** 0x00 : none - this indicates absence of any type and value, this is not allowed in VPack values */
   case object None extends VPackType { override val head: Int = 0x00 }
 
+  /** 0x01 : empty array */
   case object ArrayEmpty extends SingleByte(0x01, VPackValue.ArrayEmpty)
 
+  /** 0x02-0x05 : array without index table (all subitems have the same byte length), [1,2,4,8]-byte byte length */
   case class ArrayUnindexed(override val head: Int) extends VPackType with WithLength {
     require(head >= 0x02 && head <= 0x05)
     override val lengthSize: Int = 1 << (head - 0x02)
     override val lengthDecoder: Decoder[Long] = ulongLA(8 * lengthSize).map(_ - 1 - lengthSize)
   }
 
+  /** 0x06-0x09 : array with [1,2,4,8]-byte index table offsets, bytelen and # subvals */
   case class ArrayIndexed(override val head: Int) extends VPackType with WithLength {
     require(head >= 0x06 && head <= 0x09)
     override val lengthSize: Int = 1 << (head - 0x06)
     override val lengthDecoder: Decoder[Long] = ulongLA(8 * lengthSize).map(_ - 1 - lengthSize)
   }
 
+  /** 0x0a : empty object */
   case object ObjectEmpty extends SingleByte(0x0a, VPackValue.ObjectEmpty)
 
+  /** object with data */
   trait ObjectTrait extends VPackType with WithLength
 
+  /** 0x0b-0x0e : object with 1-byte index table offsets, sorted by attribute name, [1,2,4,8]-byte bytelen and # subvals */
   case class ObjectSorted(override val head: Int) extends ObjectTrait {
     require(head >= 0x0b && head <= 0x0e)
     override val lengthSize: Int = 1 << (head - 0x0b)
     override val lengthDecoder: Decoder[Long] = ulongLA(8 * lengthSize).map(_ - 1 - lengthSize)
   }
 
+  /** 0x0f-0x12 : object with 1-byte index table offsets, not sorted by attribute name, [1,2,4,8]-byte bytelen and # subvals */
   case class ObjectUnsorted(override val head: Int) extends ObjectTrait {
     require(head >= 0x0f && head <= 0x12)
     override val lengthSize: Int = 1 << (head - 0x0f)
     override val lengthDecoder: Decoder[Long] = ulongLA(8 * lengthSize).map(_ - 1 - lengthSize)
   }
 
+  /** 0x13 : compact array, no index table */
   case object ArrayCompact extends VPackType {
     override val head: Int = 0x13
  //   override val lengthDecoder: Decoder[Long] = VPackVLongCodec.map(l => l - 1 - vlongLength(l))
   }
 
+  /** 0x14 : compact object, no index table */
   case object ObjectCompact extends VPackType {
     override val head: Int = 0x14
     //  override val lengthDecoder: Decoder[Long] = VPackVLongCodec.map(l => l - 1 - vlongLength(l))
   }
 
-  /**
-   * 0x17 : illegal - this type can be used to indicate a value that is illegal in the embedding application
-   */
+  // 0x15-0x16 : reserved
+
+  /** 0x17 : illegal - this type can be used to indicate a value that is illegal in the embedding application */
   case object Illegal extends SingleByte(0x17, VPackIllegal)
 
-  /**
-   * 0x18 : null
-   */
+  /** 0x18 : null */
   case object Null extends SingleByte(0x18, VPackNull)
 
+  /** 0x19 : false */
   case object False extends SingleByte(0x19, VPackValue.False)
+
+  /** 0x1a : true */
   case object True extends SingleByte(0x1a, VPackValue.True)
 
+  /** 0x1b : double IEEE-754, 8 bytes follow, stored as little endian uint64 equivalent */
   case object Double extends VPackType {
     override val head: Int = 0x1b
   }
 
+  /** 0x1c : UTC-date in milliseconds since the epoch, stored as 8 byte signed int, little endian, two's complement */
   case object Date extends VPackType {
     override val head: Int = 0x1c
   }
 
-  /**
-   * 0x1e : minKey, nonsensical value that compares < than all other values
-   */
+  // 0x1d : external (only in memory): a char* pointing to the actual place in memory, where another VPack item resides,
+  // not allowed in VPack values on disk or on the network
+
+  /** 0x1e : minKey, nonsensical value that compares < than all other values */
   case object MinKey extends SingleByte(0x1e, VPackMinKey)
 
-  /**
-   * 0x1f : maxKey, nonsensical value that compares > than all other values
-   */
+  /** 0x1f : maxKey, nonsensical value that compares > than all other values */
   case object MaxKey extends SingleByte(0x1f, VPackMaxKey)
 
   case class IntSigned(override val head: Int) extends VPackType with WithLength {

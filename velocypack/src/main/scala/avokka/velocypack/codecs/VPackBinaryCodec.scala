@@ -1,6 +1,7 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.{VPackBinary, VPackString}
+import avokka.velocypack.codecs.VPackArrayCodec.encoder
+import avokka.velocypack.{VPackArray, VPackBinary, VPackString, VPackValue}
 import cats.implicits._
 import scodec.bits.BitVector
 import scodec.codecs.{bytes, fixedSizeBytes, uint8L}
@@ -32,14 +33,8 @@ object VPackBinaryCodec {
     bin <- fixedSizeBytes(len, bytes)
   } yield VPackBinary(bin)
 
-  /*
-  def decoder(t: VPackType.Binary): Decoder[VPackBinary] = new Decoder[VPackBinary] {
-    override def decode(bits: BitVector): Attempt[DecodeResult[VPackBinary]] = {
-      for {
-        len <- t.lengthDecoder.decode(bits)
-        bin <- fixedSizeBytes(len.value, bytes).decode(len.remainder)
-      } yield bin.map(VPackBinary.apply)
-    }
-  }
-   */
+  val codec: Codec[VPackBinary] = Codec(encoder, VPackValue.vpackDecoder.emap({
+    case v: VPackBinary => v.pure[Attempt]
+    case _ => Err("not a vpack binary").raiseError
+  }))
 }

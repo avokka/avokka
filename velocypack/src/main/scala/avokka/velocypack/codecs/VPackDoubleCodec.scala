@@ -1,6 +1,6 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.VPackDouble
+import avokka.velocypack.{VPackDouble, VPackValue}
 import cats.implicits._
 import scodec.bits.BitVector
 import scodec.codecs.{doubleL, uint8L}
@@ -25,4 +25,8 @@ object VPackDoubleCodec {
 
   val decoder: Decoder[VPackDouble] = doubleL.map(VPackDouble.apply)
 
+  val codec: Codec[VPackDouble] = Codec(encoder, VPackValue.vpackDecoder.emap({
+    case v: VPackDouble => v.pure[Attempt]
+    case _ => Err("not a vpack double").raiseError
+  }))
 }

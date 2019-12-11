@@ -7,7 +7,7 @@ import scodec.bits._
 class VPackCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
 
   "0x00" should "not be allowed in vpack values" in {
-    assert(VPackNullCodec.decode(hex"00".bits).isFailure)
+    assert(VPackValue.vpackCodec.decode(hex"00".bits).isFailure)
   }
 
 }

@@ -1,6 +1,7 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.VPackLong
+import avokka.velocypack.codecs.VPackDoubleCodec.encoder
+import avokka.velocypack.{VPackDouble, VPackLong, VPackValue}
 import cats.implicits._
 import scodec.bits.BitVector
 import scodec.codecs.{longL, uint8L, ulongL}
@@ -58,6 +59,11 @@ object VPackLongCodec {
   def decoderUnsigned(t: VPackType.IntUnsigned): Decoder[VPackLong] = for {
     l <- ulongLA(8 * t.lengthSize)
   } yield VPackLong(l)
+
+  val codec: Codec[VPackLong] = Codec(encoder, VPackValue.vpackDecoder.emap({
+    case v: VPackLong => v.pure[Attempt]
+    case _ => Err("not a vpack long").raiseError
+  }))
 
   /*
   override def decode(bits: BitVector): Attempt[DecodeResult[VPackLong]] = {

@@ -15,6 +15,6 @@ class VPackBooleanCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTr
   }
 
   it should "fail if head is not a boolean" in {
-    assert(VPackValue.vpackCodec.decode(hex"00".bits).isFailure)
+    assert(VPackBooleanCodec.codec.decode(hex"00".bits).isFailure)
   }
 }

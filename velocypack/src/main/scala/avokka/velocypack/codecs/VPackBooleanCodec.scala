@@ -1,9 +1,10 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.{VPackBoolean, VPackValue}
+import avokka.velocypack.codecs.VPackBinaryCodec.encoder
+import avokka.velocypack.{VPackBinary, VPackBoolean, VPackValue}
 import cats.implicits._
 import scodec.bits.BitVector
-import scodec.codecs.{uint8L, provide}
+import scodec.codecs.{provide, uint8L}
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Encoder, Err, SizeBound}
 
@@ -38,4 +39,9 @@ object VPackBooleanCodec {
     } yield head.map(h => VPackBoolean(h == trueByte))
   }
    */
+
+  val codec: Codec[VPackBoolean] = Codec(encoder, VPackValue.vpackDecoder.emap({
+    case v: VPackBoolean => v.pure[Attempt]
+    case _ => Err("not a vpack boolean").raiseError
+  }))
 }

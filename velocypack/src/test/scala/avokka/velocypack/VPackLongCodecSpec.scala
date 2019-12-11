@@ -32,6 +32,6 @@ class VPackLongCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait
   }
 
   "codec" should "fail if head is not a long" in {
-    assert(VPackValue.vpackCodec.decode(hex"00".bits).isFailure)
+    assert(VPackLongCodec.codec.decode(hex"00".bits).isFailure)
   }
 }

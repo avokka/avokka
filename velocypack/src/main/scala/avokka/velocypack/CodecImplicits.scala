@@ -28,9 +28,9 @@ trait CodecImplicits {
       case l => VPackLong(l) 
     }),
     VPackValue.vpackDecoder.emap({
-      case v : VPackSmallint => v.value.toInt.pure[Attempt]
-      case v : VPackLong if v.value.isValidInt => v.value.toInt.pure[Attempt]
-      case v : VPackLong => Err("vpack long overflow").raiseError
+      case VPackSmallint(s) => s.toInt.pure[Attempt]
+      case VPackLong(l) if l.isValidInt => l.toInt.pure[Attempt]
+      case VPackLong(l) => Err(s"vpack long $l overflow").raiseError
       case _ => Err("not an int").raiseError
     })
   )
@@ -42,9 +42,9 @@ trait CodecImplicits {
       case d => VPackDouble(d)
     }),
     VPackValue.vpackDecoder.emap({
-      case v : VPackSmallint => v.value.toDouble.pure[Attempt]
-      case v : VPackLong => v.value.toDouble.pure[Attempt]
-      case v : VPackDouble => v.value.pure[Attempt]
+      case VPackSmallint(s) => s.toDouble.pure[Attempt]
+      case VPackLong(l) => l.toDouble.pure[Attempt]
+      case VPackDouble(d) => d.pure[Attempt]
       case _ => Err("not a double").raiseError
     })
   )
@@ -62,9 +62,9 @@ trait CodecImplicits {
   implicit val instantCodec: Codec[Instant] = Codec(
     VPackDateCodec.encoder.contramap[Instant](v => VPackDate(v.toEpochMilli)),
     VPackValue.vpackDecoder.emap({
-      case v : VPackDate => Instant.ofEpochMilli(v.value).pure[Attempt]
-      case v : VPackLong => Instant.ofEpochMilli(v.value).pure[Attempt]
-      case v : VPackString => Attempt.fromTry(Try(Instant.parse(v.value)))
+      case VPackDate(d) => Instant.ofEpochMilli(d).pure[Attempt]
+      case VPackLong(l) => Instant.ofEpochMilli(l).pure[Attempt]
+      case VPackString(s) => Attempt.fromTry(Try(Instant.parse(s)))
       case _ => Err("not a date").raiseError
     })
   )
@@ -72,13 +72,13 @@ trait CodecImplicits {
   implicit val binaryCodec: Codec[ByteVector] = Codec(
     VPackBinaryCodec.encoder.contramap(VPackBinary.apply),
     VPackValue.vpackDecoder.emap({
-      case VPackBinary(s) => s.pure[Attempt]
+      case VPackBinary(b) => b.pure[Attempt]
       case _ => Err("not a binary").raiseError
     })
   )
 
   implicit def optionCodec[T](implicit codec: Codec[T]): Codec[Option[T]] = new Codec[Option[T]] {
-    override def sizeBound: SizeBound = VPackNullCodec.sizeBound | codec.sizeBound
+    override def sizeBound: SizeBound = SizeBound.exact(8) | codec.sizeBound
     override def encode(value: Option[T]): Attempt[BitVector] = value match {
       case Some(value) => codec.encode(value)
       case None => VPackType.Null.pureBits // VPackNullCodec.encode(VPackNull)

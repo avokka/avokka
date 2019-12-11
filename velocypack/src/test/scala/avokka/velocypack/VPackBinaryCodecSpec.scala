@@ -41,6 +41,6 @@ class VPackBinaryCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTra
   }
 
   "codec" should "fail if head is not a binary" in {
-    assert(VPackValue.vpackCodec.decode(hex"00".bits).isFailure)
+    assert(VPackBinaryCodec.codec.decode(hex"00".bits).isFailure)
   }
 }

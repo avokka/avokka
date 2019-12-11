@@ -5,6 +5,7 @@ import scodec.Codec
 import scodec.bits.HexStringSyntax
 import shapeless.{::, HNil}
 
+/*
 class VPackGenericSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
 
   import VPackGenericSpec._
@@ -77,3 +78,4 @@ object VPackGenericSpec {
   implicit val rccCodec: Codec[Rcc] = VPackGeneric[Rcc].codec()
 
 }
+ */

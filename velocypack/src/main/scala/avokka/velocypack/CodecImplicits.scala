@@ -14,99 +14,92 @@ import scala.util.Try
 
 trait CodecImplicits {
 
-  implicit val booleanCodec: Codec[Boolean] = VPackBooleanCodec.as
+  implicit val booleanCodec: Codec[Boolean] = Codec(
+    VPackBooleanCodec.encoder.contramap(VPackBoolean.apply),
+    VPackValue.vpackDecoder.emap({
+      case VPackBoolean(b) => b.pure[Attempt]
+      case _ => Err("not a boolean").raiseError
+    })
+  )
+  
+  implicit val intCodec: Codec[Int] = Codec(
+    VPackValue.vpackEncoder.contramap[Int]({
+      case VPackSmallint.From(s) => s
+      case l => VPackLong(l) 
+    }),
+    VPackValue.vpackDecoder.emap({
+      case v : VPackSmallint => v.value.toInt.pure[Attempt]
+      case v : VPackLong if v.value.isValidInt => v.value.toInt.pure[Attempt]
+      case v : VPackLong => Err("vpack long overflow").raiseError
+      case _ => Err("not an int").raiseError
+    })
+  )
 
-  implicit val intCodec: Codec[Int] = new Codec[Int] {
-    override def sizeBound: SizeBound = VPackSmallintCodec.sizeBound | VPackLongCodec.sizeBound
-
-    override def encode(value: Int): Attempt[BitVector] = value match {
-      case VPackSmallint(s) => VPackSmallintCodec.encode(s)
-      case VPackLong(l) => VPackLongCodec.encode(l)
-    }
-
-    private val decoder = Decoder.choiceDecoder(
-      VPackSmallintCodec.map(_.value.toInt),
-      VPackLongCodec.map(_.value).emap({
-        case l if l.isValidInt => l.toInt.pure[Attempt]
-        case _ => Err("vpack long overflow").raiseError
-      })
-    )
-
-    override def decode(bits: BitVector): Attempt[DecodeResult[Int]] = decoder.decode(bits)
-  }
-
-  implicit val longCodec: Codec[Long] = new Codec[Long] {
-    override def sizeBound: SizeBound = VPackSmallintCodec.sizeBound | VPackLongCodec.sizeBound
-
-    override def encode(value: Long): Attempt[BitVector] = value match {
-      case VPackSmallint(s) => VPackSmallintCodec.encode(s)
-      case l => VPackLongCodec.encode(VPackLong(l))
-    }
-
-    private val decoder = Decoder.choiceDecoder(
-      VPackSmallintCodec.map(_.value.toLong),
-      VPackLongCodec.map(_.value)
-    )
-
-    override def decode(bits: BitVector): Attempt[DecodeResult[Long]] = decoder.decode(bits)
-  }
-
-  implicit val doubleCodec: Codec[Double] = new Codec[Double] {
-    override def sizeBound: SizeBound = VPackSmallintCodec.sizeBound | VPackDoubleCodec.sizeBound | VPackLongCodec.sizeBound
-
-    override def encode(value: Double): Attempt[BitVector] = value match {
-      case VPackSmallint(s) => VPackSmallintCodec.encode(s)
-      case VPackLong(l) => VPackLongCodec.encode(l)
-      case d => VPackDoubleCodec.encode(VPackDouble(d))
-    }
-
-    private val decoder = Decoder.choiceDecoder(
-      VPackSmallintCodec.map(_.value.toDouble),
-      VPackLongCodec.map(_.value.toDouble),
-      VPackDoubleCodec.map(_.value),
-    )
-
-    override def decode(bits: BitVector): Attempt[DecodeResult[Double]] = decoder.decode(bits)
-  }
-
+  implicit val doubleCodec: Codec[Double] = Codec(
+    VPackValue.vpackEncoder.contramap[Double]({
+      case VPackSmallint.From(s) => s
+      case VPackLong.From(l) => l
+      case d => VPackDouble(d)
+    }),
+    VPackValue.vpackDecoder.emap({
+      case v : VPackSmallint => v.value.toDouble.pure[Attempt]
+      case v : VPackLong => v.value.toDouble.pure[Attempt]
+      case v : VPackDouble => v.value.pure[Attempt]
+      case _ => Err("not a double").raiseError
+    })
+  )
+  
   implicit val floatCodec: Codec[Float] = doubleCodec.xmap(_.toFloat, _.toDouble)
 
-  implicit val stringCodec: Codec[String] = VPackStringCodec.as
+  implicit val stringCodec: Codec[String] = Codec(
+    VPackStringCodec.encoder.contramap(VPackString.apply),
+    VPackValue.vpackDecoder.emap({
+      case VPackString(s) => s.pure[Attempt]
+      case _ => Err("not a string").raiseError
+    })
+  )
 
-  implicit val instantCodec: Codec[Instant] = new Codec[Instant] {
-    override def sizeBound: SizeBound = VPackDateCodec.sizeBound
-    override def encode(value: Instant): Attempt[BitVector] = VPackDateCodec.encode(VPackDate(value.toEpochMilli))
+  implicit val instantCodec: Codec[Instant] = Codec(
+    VPackDateCodec.encoder.contramap[Instant](v => VPackDate(v.toEpochMilli)),
+    VPackValue.vpackDecoder.emap({
+      case v : VPackDate => Instant.ofEpochMilli(v.value).pure[Attempt]
+      case v : VPackLong => Instant.ofEpochMilli(v.value).pure[Attempt]
+      case v : VPackString => Attempt.fromTry(Try(Instant.parse(v.value)))
+      case _ => Err("not a date").raiseError
+    })
+  )
 
-    private val decoder = Decoder.choiceDecoder(
-      VPackDateCodec.map(d => Instant.ofEpochMilli(d.value)),
-      VPackLongCodec.map(l => Instant.ofEpochMilli(l.value)),
-      VPackStringCodec.emap(s => Attempt.fromTry(Try(Instant.parse(s.value)))),
-    )
-
-    override def decode(bits: BitVector): Attempt[DecodeResult[Instant]] = decoder.decode(bits)
-  }
-
-  implicit val binaryCodec: Codec[ByteVector] = VPackBinaryCodec.as
+  implicit val binaryCodec: Codec[ByteVector] = Codec(
+    VPackBinaryCodec.encoder.contramap(VPackBinary.apply),
+    VPackValue.vpackDecoder.emap({
+      case VPackBinary(s) => s.pure[Attempt]
+      case _ => Err("not a binary").raiseError
+    })
+  )
 
   implicit def optionCodec[T](implicit codec: Codec[T]): Codec[Option[T]] = new Codec[Option[T]] {
     override def sizeBound: SizeBound = VPackNullCodec.sizeBound | codec.sizeBound
     override def encode(value: Option[T]): Attempt[BitVector] = value match {
       case Some(value) => codec.encode(value)
-      case None => VPackNullCodec.encode(VPackNull)
+      case None => VPackType.Null.pureBits // VPackNullCodec.encode(VPackNull)
     }
     private val decoder = Decoder.choiceDecoder(
       codec.map(Some(_)),
-      VPackNullCodec.map(_ => None),
+      VPackType.typeDecoder.emap({
+        case VPackType.Null => None.pure[Attempt]
+        case _ => Err("not null").raiseError
+      }),
     )
     override def decode(bits: BitVector): Attempt[DecodeResult[Option[T]]] = decoder.decode(bits)
   }
 
-  implicit def listCodec[T](implicit codec: Codec[T]): Codec[List[T]] = VPackArrayCodec.exmap(
+  /*
+  implicit def listCodec[T](implicit codec: Codec[T]): Codec[List[T]] = vpackArrayCodec.exmap(
     _.values.toList.traverse(codec.decodeValue),
     _.traverse(codec.encode).map(VPackArray.apply)
   )
 
-  implicit def vectorCodec[T](implicit codec: Codec[T]): Codec[Vector[T]] = VPackArrayCodec.exmap(
+  implicit def vectorCodec[T](implicit codec: Codec[T]): Codec[Vector[T]] = vpackArrayCodec.exmap(
     _.values.toVector.traverse(codec.decodeValue),
     _.traverse(codec.encode).map(VPackArray.apply)
   )
@@ -117,11 +110,10 @@ trait CodecImplicits {
   )
 
   implicit def genericCodec[T <: HList](implicit a: VPackGeneric[T]): Codec[T] = VPackGeneric.codec()(a)
-
-//  implicit def recordCodec[T](implicit a: VPackRecord.DeriveHelper[T]): Codec[T] = VPackHListCodec.codec(a)
+   */
 
   implicit def unitCodec: Codec[Unit] = provide(())
 
-  implicit val vpackObjectCodec: Codec[VPackObject] = VPackObjectCodec
-  implicit val vpackArrayCodec: Codec[VPackArray] = VPackArrayCodec
+  implicit val vpackObjectCodec: Codec[VPackObject] = VPackObjectCodec.codecSorted
+  implicit val vpackArrayCodec: Codec[VPackArray] = VPackArrayCodec.codec
 }

@@ -73,6 +73,7 @@ object VPackRecord {
     }
   }
 
+  /*
   def encoder[A <: HList, D <: HList](compact: Boolean = false)(implicit ev: VPackRecord[A, D]): Encoder[A] = Encoder { value =>
     for {
       values   <- ev.encode(value)
@@ -113,4 +114,6 @@ object VPackRecord {
   }
 
   def apply[T] = new DeriveHelper[T]
+
+   */
 }

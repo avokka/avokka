@@ -36,6 +36,7 @@ object VPackGeneric {
     }
   }
 
+  /*
   def encoder[A <: HList](compact: Boolean = false)(implicit ev: VPackGeneric[A]): Encoder[A] = Encoder { value =>
     for {
       values   <- ev.encode(value)
@@ -65,4 +66,6 @@ object VPackGeneric {
   }
 
   def apply[T] = new DeriveHelper[T]
+*/
 }
+

@@ -1,6 +1,6 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.VPackString
+import avokka.velocypack.{VPackString, VPackValue}
 import cats.implicits._
 import scodec.bits.BitVector
 import scodec.codecs.{fixedSizeBytes, int64L, uint8L, utf8}
@@ -36,7 +36,7 @@ object VPackStringCodec {
     }
   }
 
-  def decoder(t: VPackTypeLength): Decoder[VPackString] = new Decoder[VPackString] {
+  def decoder(t: VPackType.WithLength): Decoder[VPackString] = new Decoder[VPackString] {
     override def decode(bits: BitVector): Attempt[DecodeResult[VPackString]] = {
       for {
         len <- t.lengthDecoder.decode(bits)
@@ -44,5 +44,4 @@ object VPackStringCodec {
       } yield str.map(VPackString.apply)
     }
   }
-
 }

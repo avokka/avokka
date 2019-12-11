@@ -7,7 +7,7 @@ import scodec.bits._
 import shapeless.labelled.FieldType
 import shapeless.{::, HNil, Witness}
 import shapeless.syntax.singleton._
-
+/*
 class VPackObjectCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
   import VPackObjectCodecSpec._
 
@@ -88,3 +88,4 @@ object VPackObjectCodecSpec {
 
   val TestDefaultCodec: Codec[TestDefault] = VPackRecord[TestDefault].codecWithDefaults
 }
+*/

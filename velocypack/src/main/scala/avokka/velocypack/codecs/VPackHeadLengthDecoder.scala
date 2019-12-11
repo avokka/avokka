@@ -13,6 +13,7 @@ private object VPackHeadLengthDecoder {
    * determines the decoder for byte length from the head byte
    * @deprecated
    */
+    /*
   private val vpLengthCodecs: Map[Int, Decoder[Long]] = {
     Map(
 //      0x00 : none
@@ -61,18 +62,20 @@ private object VPackHeadLengthDecoder {
         l = h - VPackBinaryCodec.minByte + 1
       } yield h -> ulongLA(8 * l).map(1L + l + _))
   }
-
+*/
   /**
    * @deprecated
    * @param bits
    * @return
    */
+    /*
   def decodeDeprecated(bits: BitVector) = {
     for {
       head <- uint8L.decode(bits)
       len  <- vpLengthCodecs.getOrElse(head.value, fail(Err(s"unknown vpack header '${head.value.toHexString}'"))).decode(head.remainder)
     } yield len.map(l => (head.value, l))
   }
+     */
 
   /*
   override def decode(bits: BitVector): Attempt[DecodeResult[HeadLength]] = {

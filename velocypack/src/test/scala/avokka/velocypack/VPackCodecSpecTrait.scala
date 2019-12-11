@@ -2,7 +2,7 @@ package avokka.velocypack
 
 import com.arangodb.velocypack.VPackSlice
 import org.scalatest.{Assertion, Assertions, Matchers}
-import scodec.Codec
+import scodec.{Codec, Decoder, Encoder}
 import scodec.bits.{BitVector, ByteVector}
 
 trait VPackCodecSpecTrait { self: Matchers =>
@@ -11,16 +11,16 @@ trait VPackCodecSpecTrait { self: Matchers =>
 
   def toSlice(bits: BitVector) = new VPackSlice(bits.toByteArray)
 
-  def assertEncode[T](c: Codec[T], v: T, b: ByteVector): Assertion = {
+  def assertEncode[T](c: Encoder[T], v: T, b: ByteVector): Assertion = {
     assertResult(b)(c.encode(v).require.bytes)
   }
 
-  def assertEncodePack[T](c: Codec[T], v: T, json: String): Assertion = {
+  def assertEncodePack[T](c: Encoder[T], v: T, json: String): Assertion = {
     val r = c.encode(v).require
     assertResult(json)(toSlice(r).toString)
   }
 
-  def assertDecode[T](c: Codec[T], b: ByteVector, v: T): Assertion = {
+  def assertDecode[T](c: Decoder[T], b: ByteVector, v: T): Assertion = {
     assertResult(v)(c.decode(b.bits).require.value)
   }
 

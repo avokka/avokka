@@ -7,28 +7,28 @@ import scodec.bits._
 class VPackSmallintCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
 
   it should "encode small integers 0, 1, ... 9 to 0x30-0x39" in {
-    assertCodec(VPackSmallintCodec, VPackSmallint(0), hex"30")
-    assertCodec(VPackSmallintCodec, VPackSmallint(1), hex"31")
-    assertCodec(VPackSmallintCodec, VPackSmallint(2), hex"32")
-    assertCodec(VPackSmallintCodec, VPackSmallint(3), hex"33")
-    assertCodec(VPackSmallintCodec, VPackSmallint(4), hex"34")
-    assertCodec(VPackSmallintCodec, VPackSmallint(5), hex"35")
-    assertCodec(VPackSmallintCodec, VPackSmallint(6), hex"36")
-    assertCodec(VPackSmallintCodec, VPackSmallint(7), hex"37")
-    assertCodec(VPackSmallintCodec, VPackSmallint(8), hex"38")
-    assertCodec(VPackSmallintCodec, VPackSmallint(9), hex"39")
+    assertCodec(VPackValue.vpackCodec, VPackSmallint(0), hex"30")
+    assertCodec(VPackValue.vpackCodec, VPackSmallint(1), hex"31")
+    assertCodec(VPackValue.vpackCodec, VPackSmallint(2), hex"32")
+    assertCodec(VPackValue.vpackCodec, VPackSmallint(3), hex"33")
+    assertCodec(VPackValue.vpackCodec, VPackSmallint(4), hex"34")
+    assertCodec(VPackValue.vpackCodec, VPackSmallint(5), hex"35")
+    assertCodec(VPackValue.vpackCodec, VPackSmallint(6), hex"36")
+    assertCodec(VPackValue.vpackCodec, VPackSmallint(7), hex"37")
+    assertCodec(VPackValue.vpackCodec, VPackSmallint(8), hex"38")
+    assertCodec(VPackValue.vpackCodec, VPackSmallint(9), hex"39")
   }
 
   it should "encode small negative integers -6, -5, ..., -1 to 0x3a-0x3f" in {
-    assertCodec(VPackSmallintCodec, VPackSmallint(-6), hex"3a")
-    assertCodec(VPackSmallintCodec, VPackSmallint(-5), hex"3b")
-    assertCodec(VPackSmallintCodec, VPackSmallint(-4), hex"3c")
-    assertCodec(VPackSmallintCodec, VPackSmallint(-3), hex"3d")
-    assertCodec(VPackSmallintCodec, VPackSmallint(-2), hex"3e")
-    assertCodec(VPackSmallintCodec, VPackSmallint(-1), hex"3f")
+    assertCodec(VPackValue.vpackCodec, VPackSmallint(-6), hex"3a")
+    assertCodec(VPackValue.vpackCodec, VPackSmallint(-5), hex"3b")
+    assertCodec(VPackValue.vpackCodec, VPackSmallint(-4), hex"3c")
+    assertCodec(VPackValue.vpackCodec, VPackSmallint(-3), hex"3d")
+    assertCodec(VPackValue.vpackCodec, VPackSmallint(-2), hex"3e")
+    assertCodec(VPackValue.vpackCodec, VPackSmallint(-1), hex"3f")
   }
 
   it should "fail if head is not a smallint" in {
-    assert(VPackSmallintCodec.decode(hex"00".bits).isFailure)
+    assert(VPackValue.vpackCodec.decode(hex"00".bits).isFailure)
   }
 }

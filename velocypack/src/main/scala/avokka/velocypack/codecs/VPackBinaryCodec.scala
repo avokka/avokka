@@ -27,6 +27,12 @@ object VPackBinaryCodec {
     }
   }
 
+  def decoder(t: VPackType.Binary): Decoder[VPackBinary] = for {
+    len <- t.lengthDecoder
+    bin <- fixedSizeBytes(len, bytes)
+  } yield VPackBinary(bin)
+
+  /*
   def decoder(t: VPackType.Binary): Decoder[VPackBinary] = new Decoder[VPackBinary] {
     override def decode(bits: BitVector): Attempt[DecodeResult[VPackBinary]] = {
       for {
@@ -35,4 +41,5 @@ object VPackBinaryCodec {
       } yield bin.map(VPackBinary.apply)
     }
   }
+   */
 }

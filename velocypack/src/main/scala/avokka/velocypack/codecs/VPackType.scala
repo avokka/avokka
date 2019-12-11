@@ -48,7 +48,10 @@ object VPackType {
     val singleton: VPackValue
   ) extends VPackType
 
-  case object Void extends VPackType { override val head: Int = 0x00 }
+  /**
+   * 0x00 : none - this indicates absence of any type and value, this is not allowed in VPack values
+   */
+  case object None extends VPackType { override val head: Int = 0x00 }
 
   case object ArrayEmpty extends SingleByte(0x01, VPackValue.ArrayEmpty)
 
@@ -90,7 +93,14 @@ object VPackType {
     //  override val lengthDecoder: Decoder[Long] = VPackVLongCodec.map(l => l - 1 - vlongLength(l))
   }
 
+  /**
+   * 0x17 : illegal - this type can be used to indicate a value that is illegal in the embedding application
+   */
   case object Illegal extends SingleByte(0x17, VPackIllegal)
+
+  /**
+   * 0x18 : null
+   */
   case object Null extends SingleByte(0x18, VPackNull)
 
   case object False extends SingleByte(0x19, VPackValue.False)
@@ -104,7 +114,14 @@ object VPackType {
     override val head: Int = 0x1c
   }
 
+  /**
+   * 0x1e : minKey, nonsensical value that compares < than all other values
+   */
   case object MinKey extends SingleByte(0x1e, VPackMinKey)
+
+  /**
+   * 0x1f : maxKey, nonsensical value that compares > than all other values
+   */
   case object MaxKey extends SingleByte(0x1f, VPackMaxKey)
 
   case class IntSigned(override val head: Int) extends VPackType with WithLength {
@@ -125,11 +142,29 @@ object VPackType {
     require(head >= 0x3a && head <= 0x3f)
   }
 
+  /**
+   * 0x40-0xbe : UTF-8-string, using V - 0x40 bytes (not Unicode characters!)
+   * length 0 is possible, so 0x40 is the empty string
+   * maximal length is 126, note that strings here are not zero-terminated
+   */
   case class StringShort(override val head: Int) extends VPackType with WithLength {
-    require(head >= 0x40 && head <= 0xbe)
+    import StringShort._
+    require(head >= minByte && head <= maxByte)
     override val lengthSize: Int = 0
-    override val lengthDecoder: Decoder[Long] = provide(head - 0x40)
+    override val lengthDecoder: Decoder[Long] = provide(head - minByte)
   }
+
+  object StringShort {
+    /** lower bound of head for small strings */
+    val minByte = 0x40
+    /** head for long strings */
+    val maxByte  = 0xbe
+  }
+
+  /**
+   * 0xbf : long UTF-8-string, next 8 bytes are length of string in bytes (not Unicode characters)
+   * as little endian unsigned integer, note that long strings are not zero-terminated and may contain zero bytes
+   */
   case object StringLong extends VPackType with WithLength {
     override val head: Int = 0xbf
     override val lengthSize: Int = 8
@@ -143,7 +178,7 @@ object VPackType {
   }
 
   val typeDecoder: Decoder[VPackType] = uint8L.emap({
-    case Void.head => Attempt.failure(Err("absence of type is not allowed in values"))
+    case None.head => Attempt.failure(Err("absence of type is not allowed in values"))
     case ArrayEmpty.head => Attempt.successful(ArrayEmpty)
     case head if head >= 0x02 && head <= 0x05 => Attempt.successful(ArrayUnindexed(head))
     case head if head >= 0x06 && head <= 0x09 => Attempt.successful(ArrayIndexed(head))
@@ -164,7 +199,7 @@ object VPackType {
     case head if head >= 0x28 && head <= 0x2f => Attempt.successful(IntUnsigned(head))
     case head if head >= 0x30 && head <= 0x39 => Attempt.successful(SmallintPositive(head))
     case head if head >= 0x3a && head <= 0x3f => Attempt.successful(SmallintNegative(head))
-    case head if head >= 0x40 && head <= 0xbe => Attempt.successful(StringShort(head))
+    case head if head >= StringShort.minByte && head <= StringShort.maxByte => Attempt.successful(StringShort(head))
     case StringLong.head => Attempt.successful(StringLong)
     case head if head >= 0xc0 && head <= 0xc7 => Attempt.successful(Binary(head))
     case u => Attempt.failure(Err(s"unknown head byte ${u.toHexString}"))

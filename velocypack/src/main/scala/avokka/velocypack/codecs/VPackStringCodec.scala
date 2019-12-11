@@ -18,10 +18,6 @@ import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
  * as little endian unsigned integer, note that long strings are not zero-terminated and may contain zero bytes
  */
 object VPackStringCodec {
-  /** lower bound of head for small strings */
-  val smallByte = 0x40
-  /** head for long strings */
-  val longByte  = 0xbf
 
   val encoder: Encoder[VPackString] = new Encoder[VPackString] {
     override def sizeBound: SizeBound = SizeBound.atLeast(8)
@@ -30,8 +26,8 @@ object VPackStringCodec {
       for {
         bits  <- utf8.encode(v.value)
         len   = bits.size / 8
-        head  = if (len > 126) BitVector(longByte) ++ ulongBytes(len, 8)
-                else BitVector(smallByte + len)
+        head  = if (len > 126) BitVector(VPackType.StringLong.head) ++ ulongBytes(len, 8)
+                else BitVector(VPackType.StringShort.minByte + len)
       } yield head ++ bits
     }
   }

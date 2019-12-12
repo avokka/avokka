@@ -1,11 +1,11 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.{VPackDouble, VPackValue}
+import avokka.velocypack.VPack.VDouble
 import cats.implicits._
 import scodec.bits.BitVector
-import scodec.codecs.{doubleL, uint8L}
+import scodec.codecs.doubleL
 import scodec.interop.cats._
-import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
+import scodec.{Attempt, Codec, Decoder, Encoder, Err, SizeBound}
 
 /**
  * Codec of double
@@ -15,17 +15,17 @@ import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
 object VPackDoubleCodec {
   import VPackType.DoubleType
 
-  val encoder: Encoder[VPackDouble] = new Encoder[VPackDouble] {
+  val encoder: Encoder[VDouble] = new Encoder[VDouble] {
     override def sizeBound: SizeBound = SizeBound.exact(8 + 64)
-    override def encode(v: VPackDouble): Attempt[BitVector] = for {
+    override def encode(v: VDouble): Attempt[BitVector] = for {
       bits <- doubleL.encode(v.value)
     } yield DoubleType.bits ++ bits
   }
 
-  val decoder: Decoder[VPackDouble] = doubleL.map(VPackDouble.apply)
+  val decoder: Decoder[VDouble] = doubleL.map(VDouble.apply)
 
-  val codec: Codec[VPackDouble] = Codec(encoder, vpackDecoder.emap({
-    case v: VPackDouble => v.pure[Attempt]
+  val codec: Codec[VDouble] = Codec(encoder, vpackDecoder.emap({
+    case v: VDouble => v.pure[Attempt]
     case _ => Err("not a vpack double").raiseError
   }))
 }

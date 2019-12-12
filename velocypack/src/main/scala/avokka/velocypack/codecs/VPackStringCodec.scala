@@ -1,6 +1,6 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.VPackString
+import avokka.velocypack.VPack.VString
 import scodec.bits.BitVector
 import scodec.codecs.{fixedSizeBytes, utf8}
 import scodec.{Attempt, Decoder, Encoder, SizeBound}
@@ -18,21 +18,17 @@ import scodec.{Attempt, Decoder, Encoder, SizeBound}
 object VPackStringCodec {
   import VPackType.{StringShortType, StringLongType, StringType}
 
-  val encoder: Encoder[VPackString] = new Encoder[VPackString] {
-    override def sizeBound: SizeBound = SizeBound.atLeast(8)
-
-    override def encode(v: VPackString): Attempt[BitVector] = {
-      for {
-        bits  <- utf8.encode(v.value)
-        len   = bits.size / 8
-        head  = if (len > 126) StringLongType.bits ++ ulongBytes(len, 8)
-                else StringShortType.fromLength(len.toInt).bits
-      } yield head ++ bits
-    }
+  val encoder: Encoder[VString] = Encoder { v =>
+    for {
+      bits <- utf8.encode(v.value)
+      len = bits.size / 8
+      head = if (len > 126) StringLongType.bits ++ ulongBytes(len, 8)
+             else StringShortType.fromLength(len.toInt).bits
+    } yield head ++ bits
   }
 
-  def decoder(t: StringType): Decoder[VPackString] = for {
+  def decoder(t: StringType): Decoder[VString] = for {
     len <- t.lengthDecoder
     str <- fixedSizeBytes(len, utf8)
-  } yield VPackString(str)
+  } yield VString(str)
 }

@@ -1,7 +1,7 @@
 package avokka.velocypack
 
 trait VPackDecoder[T] {
-  def decode(v: VPackValue): Either[VPackError, T]
+  def decode(v: VPack): Either[VPackError, T]
 }
 
 object VPackDecoder {

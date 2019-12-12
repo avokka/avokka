@@ -1,6 +1,6 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.{VPackDate, VPackValue}
+import avokka.velocypack.VPack.VDate
 import cats.implicits._
 import scodec.bits.BitVector
 import scodec.codecs.int64L
@@ -15,18 +15,18 @@ import scodec.{Attempt, Codec, Decoder, Encoder, Err, SizeBound}
 object VPackDateCodec {
   import VPackType.DateType
 
-  val encoder: Encoder[VPackDate] = new Encoder[VPackDate] {
+  val encoder: Encoder[VDate] = new Encoder[VDate] {
     override def sizeBound: SizeBound = SizeBound.exact(8 + 64)
 
-    override def encode(v: VPackDate): Attempt[BitVector] = for {
+    override def encode(v: VDate): Attempt[BitVector] = for {
       bits <- int64L.encode(v.value)
     } yield DateType.bits ++ bits
   }
 
-  val decoder: Decoder[VPackDate] = int64L.map(VPackDate.apply)
+  val decoder: Decoder[VDate] = int64L.map(VDate.apply)
 
-  val codec: Codec[VPackDate] = Codec(encoder, vpackDecoder.emap({
-    case v: VPackDate => v.pure[Attempt]
+  val codec: Codec[VDate] = Codec(encoder, vpackDecoder.emap({
+    case v: VDate => v.pure[Attempt]
     case _ => Err("not a vpack date").raiseError
   }))
 }

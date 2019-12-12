@@ -2,6 +2,6 @@ package avokka.velocypack
 
 import org.scalatest.{FlatSpec, Matchers}
 
-class VPackValueSpec extends FlatSpec with Matchers {
+class VPackSpec extends FlatSpec with Matchers {
 
 }

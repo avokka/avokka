@@ -1,6 +1,6 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.{VPackIllegal, VPackMaxKey, VPackMinKey, VPackNull, VPackSmallint, VPackValue}
+import avokka.velocypack.VPack
 import scodec.bits.BitVector
 import scodec.codecs._
 import scodec.{Attempt, Codec, Decoder, Encoder, Err}
@@ -19,10 +19,11 @@ trait VPackType {
   /**
    * @return the bitvector of the head
    */
-  def bits: BitVector = BitVector(head)
+  lazy val bits: BitVector = BitVector(head)
 }
 
 object VPackType {
+  import VPack._
 
   /**
    * velocypack types having a length field after the head
@@ -44,13 +45,13 @@ object VPackType {
    * @param head byte head
    * @param singleton corresponding vpack value
    */
-  abstract class SingleByte(override val head: Int, val singleton: VPackValue) extends VPackType
+  abstract class SingleByte(override val head: Int, val singleton: VPack) extends VPackType
 
   /** 0x00 : none - this indicates absence of any type and value, this is not allowed in VPack values */
   case object NoneType extends VPackType { override val head: Int = 0x00 }
 
   /** 0x01 : empty array */
-  case object ArrayEmptyType extends SingleByte(0x01, VPackValue.ArrayEmpty)
+  case object ArrayEmptyType extends SingleByte(0x01, VArrayEmpty)
 
   /** 0x02-0x05 : array without index table (all subitems have the same byte length), [1,2,4,8]-byte byte length */
   case class ArrayUnindexedType(override val head: Int) extends VPackType with WithLength {
@@ -77,7 +78,7 @@ object VPackType {
   }
 
   /** 0x0a : empty object */
-  case object ObjectEmptyType extends SingleByte(0x0a, VPackValue.ObjectEmpty)
+  case object ObjectEmptyType extends SingleByte(0x0a, VObjectEmpty)
 
   /** object with data */
   trait ObjectType extends VPackType with WithLength
@@ -119,16 +120,16 @@ object VPackType {
   // 0x15-0x16 : reserved
 
   /** 0x17 : illegal - this type can be used to indicate a value that is illegal in the embedding application */
-  case object IllegalType extends SingleByte(0x17, VPackIllegal)
+  case object IllegalType extends SingleByte(0x17, VIllegal)
 
   /** 0x18 : null */
-  case object NullType extends SingleByte(0x18, VPackNull)
+  case object NullType extends SingleByte(0x18, VNull)
 
   /** 0x19 : false */
-  case object FalseType extends SingleByte(0x19, VPackValue.False)
+  case object FalseType extends SingleByte(0x19, VFalse)
 
   /** 0x1a : true */
-  case object TrueType extends SingleByte(0x1a, VPackValue.True)
+  case object TrueType extends SingleByte(0x1a, VTrue)
 
   /** 0x1b : double IEEE-754, 8 bytes follow, stored as little endian uint64 equivalent */
   case object DoubleType extends VPackType {
@@ -144,10 +145,10 @@ object VPackType {
   // not allowed in VPack values on disk or on the network
 
   /** 0x1e : minKey, nonsensical value that compares < than all other values */
-  case object MinKeyType extends SingleByte(0x1e, VPackMinKey)
+  case object MinKeyType extends SingleByte(0x1e, VMinKey)
 
   /** 0x1f : maxKey, nonsensical value that compares > than all other values */
-  case object MaxKeyType extends SingleByte(0x1f, VPackMaxKey)
+  case object MaxKeyType extends SingleByte(0x1f, VMaxKey)
 
   /** 0x20-0x27 : signed int, little endian, 1 to 8 bytes, number is V - 0x1f, two's complement */
   case class IntSignedType(override val head: Int) extends VPackType with WithLength {
@@ -234,7 +235,7 @@ object VPackType {
   /**
    * decode the head byte to the velocypack type
    */
-  val decoder: Decoder[VPackType] = uint8L.emap({
+  val vpackTypeDecoder: Decoder[VPackType] = uint8L.emap({
     case NoneType.head => Attempt.failure(Err("absence of type is not allowed in values"))
     case ArrayEmptyType.head => Attempt.successful(ArrayEmptyType)
     case head if head >= ArrayUnindexedType.minByte && head <= ArrayUnindexedType.maxByte => Attempt.successful(ArrayUnindexedType(head))
@@ -265,10 +266,10 @@ object VPackType {
   /**
    * encodes the type to the head byte
    */
-  val encoder: Encoder[VPackType] = Encoder(_.bits.pure[Attempt])
+  val vpackTypeEncoder: Encoder[VPackType] = Encoder(_.bits.pure[Attempt])
 
   /**
    * type codec
    */
-  val codec: Codec[VPackType] = Codec(encoder, decoder)
+  val vpackTypeCodec: Codec[VPackType] = Codec(vpackTypeEncoder, vpackTypeDecoder)
 }

@@ -1,7 +1,6 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.codecs.VPackDoubleCodec.encoder
-import avokka.velocypack.{VPackDouble, VPackLong, VPackValue}
+import avokka.velocypack.VPack.VLong
 import cats.implicits._
 import scodec.bits.BitVector
 import scodec.codecs.{longL, uint8L, ulongL}
@@ -18,10 +17,10 @@ import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
 object VPackLongCodec {
   import VPackType.{IntSignedType, IntUnsignedType}
 
-  val encoder: Encoder[VPackLong] = new Encoder[VPackLong] {
+  val encoder: Encoder[VLong] = new Encoder[VLong] {
     override def sizeBound: SizeBound = SizeBound.bounded(8 + 8, 8 + 64)
 
-    override def encode(v: VPackLong): Attempt[BitVector] = {
+    override def encode(v: VLong): Attempt[BitVector] = {
       v.value match {
         // negative as signed
         case s if s < 0 && s >= -(1L << 7)  => longL( 8).encode(s).map { BitVector(0x20) ++ _ }
@@ -53,16 +52,16 @@ object VPackLongCodec {
     } else l
   }
 
-  def decoderSigned(t: IntSignedType): Decoder[VPackLong] = for {
+  def decoderSigned(t: IntSignedType): Decoder[VLong] = for {
     l <- longL(8 * t.lengthSize).map(longLpatch(8 * t.lengthSize))
-  } yield VPackLong(l)
+  } yield VLong(l)
 
-  def decoderUnsigned(t: IntUnsignedType): Decoder[VPackLong] = for {
+  def decoderUnsigned(t: IntUnsignedType): Decoder[VLong] = for {
     l <- ulongLA(8 * t.lengthSize)
-  } yield VPackLong(l)
+  } yield VLong(l)
 
-  val codec: Codec[VPackLong] = Codec(encoder, vpackDecoder.emap({
-    case v: VPackLong => v.pure[Attempt]
+  val codec: Codec[VLong] = Codec(encoder, vpackDecoder.emap({
+    case v: VLong => v.pure[Attempt]
     case _ => Err("not a vpack long").raiseError
   }))
 

@@ -2,49 +2,49 @@ package avokka.velocypack
 
 import java.time.Instant
 
+import avokka.velocypack.VPack._
 import avokka.velocypack.codecs._
 import cats.implicits._
 import scodec.bits.{BitVector, ByteVector}
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Err, SizeBound}
 import scodec.codecs.provide
-import shapeless.HList
 
 import scala.util.Try
 
 trait CodecImplicits {
 
   implicit val booleanCodec: Codec[Boolean] = Codec(
-    VPackBooleanCodec.encoder.contramap(VPackBoolean.apply),
+    VPackBooleanCodec.encoder.contramap(VBoolean.apply),
     vpackDecoder.emap({
-      case VPackBoolean(b) => b.pure[Attempt]
+      case VPack.VBoolean(b) => b.pure[Attempt]
       case _ => Err("not a boolean").raiseError
     })
   )
   
   implicit val intCodec: Codec[Int] = Codec(
     vpackEncoder.contramap[Int]({
-      case VPackSmallint.From(s) => s
-      case l => VPackLong(l) 
+      case VSmallint.From(s) => s
+      case l => VLong(l)
     }),
     vpackDecoder.emap({
-      case VPackSmallint(s) => s.toInt.pure[Attempt]
-      case VPackLong(l) if l.isValidInt => l.toInt.pure[Attempt]
-      case VPackLong(l) => Err(s"vpack long $l overflow").raiseError
+      case VSmallint(s) => s.toInt.pure[Attempt]
+      case VLong(l) if l.isValidInt => l.toInt.pure[Attempt]
+      case VLong(l) => Err(s"vpack long $l overflow").raiseError
       case _ => Err("not an int").raiseError
     })
   )
 
   implicit val doubleCodec: Codec[Double] = Codec(
     vpackEncoder.contramap[Double]({
-      case VPackSmallint.From(s) => s
-      case VPackLong.From(l) => l
-      case d => VPackDouble(d)
+      case VSmallint.From(s) => s
+      case VLong.From(l) => l
+      case d => VDouble(d)
     }),
     vpackDecoder.emap({
-      case VPackSmallint(s) => s.toDouble.pure[Attempt]
-      case VPackLong(l) => l.toDouble.pure[Attempt]
-      case VPackDouble(d) => d.pure[Attempt]
+      case VSmallint(s) => s.toDouble.pure[Attempt]
+      case VLong(l) => l.toDouble.pure[Attempt]
+      case VDouble(d) => d.pure[Attempt]
       case _ => Err("not a double").raiseError
     })
   )
@@ -52,27 +52,27 @@ trait CodecImplicits {
   implicit val floatCodec: Codec[Float] = doubleCodec.xmap(_.toFloat, _.toDouble)
 
   implicit val stringCodec: Codec[String] = Codec(
-    VPackStringCodec.encoder.contramap(VPackString.apply),
+    VPackStringCodec.encoder.contramap(VString.apply),
     vpackDecoder.emap({
-      case VPackString(s) => s.pure[Attempt]
+      case VString(s) => s.pure[Attempt]
       case _ => Err("not a string").raiseError
     })
   )
 
   implicit val instantCodec: Codec[Instant] = Codec(
-    VPackDateCodec.encoder.contramap[Instant](v => VPackDate(v.toEpochMilli)),
+    VPackDateCodec.encoder.contramap[Instant](v => VDate(v.toEpochMilli)),
     vpackDecoder.emap({
-      case VPackDate(d) => Instant.ofEpochMilli(d).pure[Attempt]
-      case VPackLong(l) => Instant.ofEpochMilli(l).pure[Attempt]
-      case VPackString(s) => Attempt.fromTry(Try(Instant.parse(s)))
+      case VDate(d) => Instant.ofEpochMilli(d).pure[Attempt]
+      case VLong(l) => Instant.ofEpochMilli(l).pure[Attempt]
+      case VString(s) => Attempt.fromTry(Try(Instant.parse(s)))
       case _ => Err("not a date").raiseError
     })
   )
 
   implicit val binaryCodec: Codec[ByteVector] = Codec(
-    VPackBinaryCodec.encoder.contramap(VPackBinary.apply),
+    VPackBinaryCodec.encoder.contramap(VBinary.apply),
     vpackDecoder.emap({
-      case VPackBinary(b) => b.pure[Attempt]
+      case VBinary(b) => b.pure[Attempt]
       case _ => Err("not a binary").raiseError
     })
   )
@@ -85,7 +85,7 @@ trait CodecImplicits {
     }
     private val decoder = Decoder.choiceDecoder(
       codec.map(Some(_)),
-      VPackType.decoder.emap({
+      VPackType.vpackTypeDecoder.emap({
         case VPackType.NullType => None.pure[Attempt]
         case _ => Err("not null").raiseError
       }),
@@ -114,6 +114,6 @@ trait CodecImplicits {
 
   implicit def unitCodec: Codec[Unit] = provide(())
 
-  implicit val vpackObjectCodec: Codec[VPackObject] = VPackObjectCodec.codecSorted
-  implicit val vpackArrayCodec: Codec[VPackArray] = VPackArrayCodec.codec
+  implicit val vpackObjectCodec: Codec[VObject] = VPackObjectCodec.codecSorted
+  implicit val vpackArrayCodec: Codec[VArray] = VPackArrayCodec.codec
 }

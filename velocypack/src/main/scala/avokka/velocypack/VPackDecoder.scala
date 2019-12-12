@@ -3,15 +3,19 @@ package avokka.velocypack
 import java.time.Instant
 
 import avokka.velocypack.VPack._
+import avokka.velocypack.VPackDecoder.Result
 import scodec.bits.ByteVector
 import cats.implicits._
+import shapeless.HList
 
 import scala.annotation.implicitNotFound
 import scala.util.Try
 
 @implicitNotFound("Cannot find an velocypack decoder for ${T}")
-trait VPackDecoder[T] {
+trait VPackDecoder[T] { self =>
   def decode(v: VPack): VPackDecoder.Result[T]
+
+  def map[U](f: T => U): VPackDecoder[U] = (v: VPack) => self.decode(v).map(f)
 }
 
 object VPackDecoder {
@@ -93,4 +97,7 @@ object VPackDecoder {
     }
     case _ => VPackError.WrongType.asLeft
   }
+
+  implicit def genericDecoder[T <: HList](implicit a: VPackGeneric[T]): VPackDecoder[T] = VPackGeneric.decoder(a)
+
 }

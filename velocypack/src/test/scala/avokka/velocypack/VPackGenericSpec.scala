@@ -5,13 +5,12 @@ import scodec.Codec
 import scodec.bits.HexStringSyntax
 import shapeless.{::, HNil}
 
-/*
 class VPackGenericSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
-
+  import VPack._
   import VPackGenericSpec._
 
   type R = String :: Boolean :: HNil
-  val request: Codec[R] = VPackGeneric.codec[R]()
+  val request: VPackCodec[R] = VPackGeneric.codec[R]()
   val requests = VPackGeneric.codec[R :: R :: HNil]()
   val compact = VPackGeneric.codec[Int :: Boolean :: HNil](true)
   val i3 = VPackGeneric.codec[Int :: Int :: Int :: HNil]()
@@ -19,10 +18,9 @@ class VPackGenericSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
   "empty array" should "encode to 0x01" in {
     val c = VPackGeneric.codec[HNil]()
     val result = c.encode(HNil)
-    assert(result.isSuccessful)
-    assertResult(hex"01")(result.require.bytes)
+    assertResult(VArrayEmpty)(result)
   }
-
+/*
   "array encoders" should "conform specs" in {
 
     // compact
@@ -64,7 +62,7 @@ class VPackGenericSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
     val r = Rcc("a", true)
     assertCodec(rccCodec, r, hex"06 08 02 41 61 1a 03 05")
   }
-
+*/
 }
 
 object VPackGenericSpec {
@@ -75,7 +73,6 @@ object VPackGenericSpec {
     bool: Boolean
   )
 
-  implicit val rccCodec: Codec[Rcc] = VPackGeneric[Rcc].codec()
+  implicit val rccCodec: VPackCodec[Rcc] = VPackGeneric[Rcc].codec
 
 }
- */

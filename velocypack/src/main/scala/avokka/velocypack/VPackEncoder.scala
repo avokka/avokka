@@ -4,12 +4,15 @@ import java.time.Instant
 
 import avokka.velocypack.VPack._
 import scodec.bits.ByteVector
+import shapeless.HList
 
 import scala.annotation.implicitNotFound
 
 @implicitNotFound("Cannot find a velocypack encoder for ${T}")
-trait VPackEncoder[T] {
+trait VPackEncoder[T] { self =>
   def encode(t: T): VPack
+
+  def contramap[V](f: V => T): VPackEncoder[V] = (t: V) => self.encode(f(t))
 }
 
 object VPackEncoder {
@@ -51,5 +54,7 @@ object VPackEncoder {
   implicit def vectorEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Vector[T]] = a => VArray(a.map(e.encode))
   implicit def listEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[List[T]] = a => VArray(a.map(e.encode))
   implicit def mapEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Map[String, T]] = a => VObject(a.mapValues(e.encode))
+
+  implicit def genericEncoder[T <: HList](implicit a: VPackGeneric[T]): VPackEncoder[T] = VPackGeneric.encoder()(a)
 
 }

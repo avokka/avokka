@@ -1,71 +1,68 @@
 package avokka.velocypack
 
 import avokka.velocypack.VPack.VArray
-import avokka.velocypack.codecs.VPackArrayCodec
-import scodec.bits.BitVector
-import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
-import shapeless.{::, Generic, HList, HNil}
+import avokka.velocypack.VPackDecoder.Result
+import cats.data.Chain
 import cats.implicits._
+import shapeless.{::, Generic, HList, HNil}
 
-trait VPackGeneric[A <: HList] extends VPackCodec[A] {
-  def encode(t: A): VArray
-  def decode(values: VPack): VPackDecoder.Result[A]
+trait VPackGeneric[A <: HList] {
+  def encode(t: A): Chain[VPack]
+  def decode(v: Chain[VPack]): VPackDecoder.Result[A]
 }
 
 object VPackGeneric {
+  import Chain._
 
   implicit object hnilCodec extends VPackGeneric[HNil] {
-    override def encode(t: HNil): VArray = VArray()
-    override def decode(values: VPack): VPackDecoder.Result[HNil] = HNil.asRight
+    override def encode(t: HNil): Chain[VPack] = Chain.empty
+    override def decode(v: Chain[VPack]): VPackDecoder.Result[HNil] = HNil.asRight
   }
 
-  implicit def hconsCodec[T, A <: HList](implicit codec: VPackCodec[T], ev: VPackGeneric[A]): VPackGeneric[T :: A] = new VPackGeneric[T :: A] {
+  implicit def hconsCodec[T, A <: HList](implicit encoder: VPackEncoder[T], decoder: VPackDecoder[T], ev: VPackGeneric[A]): VPackGeneric[T :: A] = new VPackGeneric[T :: A] {
 
-    override def encode(arguments: T :: A): VArray = {
-      VArray(codec.encode(arguments.head) +: ev.encode(arguments.tail).values)
+    override def encode(t: T :: A): Chain[VPack] = {
+      encoder.encode(t.head) +: ev.encode(t.tail) //.prepend()
     }
 
-    override def decode(values: VPack): VPackDecoder.Result[T :: A] = {
-      values match {
-        case VArray(values) => values match {
-          case value +: tail => for {
-            rl <- codec.decode (value)
-            rr <- ev.decode(VArray(tail))
-          } yield rl :: rr
+    override def decode(v: Chain[VPack]): VPackDecoder.Result[T :: A] = {
+      v match {
+        case value ==: tail => for {
+          rl <- decoder.decode(value)
+          rr <- ev.decode(tail)
+        } yield rl :: rr
 
-          case _ => VPackError.NotEnoughElements.asLeft // Attempt.failure(Err("not enough elements in vpack array"))
-        }
-        case _ => VPackError.WrongType.asLeft
+        case _ => VPackError.NotEnoughElements.asLeft // Attempt.failure(Err("not enough elements in vpack array"))
       }
     }
   }
 
-  /*
-  def encoder[A <: HList](compact: Boolean = false)(implicit ev: VPackGeneric[A]): Encoder[A] = Encoder { value =>
-    val values = ev.encode(value)
-    val aEncoder = if (compact) VPackArrayCodec.encoderCompact else VPackArrayCodec.encoder
-    aEncoder.encode(VArray(values))
+  def encoder[A <: HList](compact: Boolean = false)(implicit ev: VPackGeneric[A]): VPackEncoder[A] = { value =>
+    VArray(ev.encode(value).toVector)
   }
 
-  def decoder[A <: HList](implicit ev: VPackGeneric[A]): Decoder[A] = Decoder { bits =>
-    for {
-      arr <- VPackArrayCodec.decode(bits)
-      res <- ev.decode(arr.value.values)
-    } yield DecodeResult(res, arr.remainder)
+  def decoder[A <: HList](implicit ev: VPackGeneric[A]): VPackDecoder[A] = {
+    case VArray(values) => ev.decode(Chain.fromSeq(values))
+    case _ => VPackError.WrongType.asLeft
   }
 
-  def codec[A <: HList](compact: Boolean = false)(implicit ev: VPackGeneric[A]): Codec[A] = Codec(
+  def codec[A <: HList](compact: Boolean = false)(implicit ev: VPackGeneric[A]): VPackCodec[A] = VPackCodec(
     encoder(compact)(ev),
     decoder(ev)
   )
-*/
 
   class DeriveHelper[T] {
 
-    def codec[R <: HList](implicit gen: Generic.Aux[T, R], vp: VPackGeneric[R]): VPackCodec[T] = {
-      vp(a => gen.from(a), a => gen.to(a))
-    }
-
+    def codec[R <: HList](implicit gen: Generic.Aux[T, R], vp: VPackGeneric[R]): VPackCodec[T] = VPackCodec(
+      encoder()(vp).contramap(gen.to), // VArray(vp.encode(gen.to(t)).toVector)
+      decoder(vp).map(gen.from)
+    )
+    /*
+    override def decode(v: VPack): Result[T] = v match {
+        case VArray(values) => vp.decode(Chain.fromSeq(values)).map(gen.from)
+        case _ => VPackError.WrongType.asLeft
+      }
+    }*/
   }
 
   def apply[T] = new DeriveHelper[T]

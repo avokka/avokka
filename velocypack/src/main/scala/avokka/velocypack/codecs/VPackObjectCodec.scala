@@ -1,6 +1,6 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.VPack.VObject
+import avokka.velocypack.VPack.{VObject, VString}
 import cats.implicits._
 import scodec.bits.BitVector
 import scodec.interop.cats._
@@ -11,7 +11,15 @@ import scala.collection.SortedMap
 object VPackObjectCodec extends VPackCompoundCodec {
   import VPackType.{ObjectEmptyType, ObjectType, ObjectCompactType}
 
-  private val keyValueCodec = avokka.velocypack.stringCodec ~~ vpackCodec
+  val stringCodec: Codec[String] = Codec(
+    VPackStringCodec.encoder.contramap(VString.apply),
+    vpackDecoder.emap({
+      case VString(s) => s.pure[Attempt]
+      case _ => Err("not a string").raiseError
+    })
+  )
+
+  private val keyValueCodec = stringCodec ~~ vpackCodec
 
   val encoderCompact: Encoder[VObject] = Encoder(_.values match {
     case values if values.isEmpty => ObjectEmptyType.bits.pure[Attempt]

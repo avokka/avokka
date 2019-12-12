@@ -18,4 +18,6 @@ object VPackError {
     override def toString: String = err.toString()
   }
 
+  case object NotEnoughElements extends VPackError
+
 }

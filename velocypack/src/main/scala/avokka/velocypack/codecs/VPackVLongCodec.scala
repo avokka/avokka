@@ -5,6 +5,9 @@ import scodec.{Attempt, Codec, DecodeResult, SizeBound}
 
 import scala.annotation.tailrec
 
+/**
+ * variable length long codec used in compact array and object
+ */
 object VPackVLongCodec extends Codec[Long] {
   override def sizeBound: SizeBound = SizeBound.bounded(8, 64)
 

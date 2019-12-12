@@ -13,19 +13,18 @@ import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
  * 0x1b : double IEEE-754, 8 bytes follow, stored as little endian uint64 equivalent
  */
 object VPackDoubleCodec {
-
-  val headByte = 0x1b
+  import VPackType.DoubleType
 
   val encoder: Encoder[VPackDouble] = new Encoder[VPackDouble] {
     override def sizeBound: SizeBound = SizeBound.exact(8 + 64)
     override def encode(v: VPackDouble): Attempt[BitVector] = for {
       bits <- doubleL.encode(v.value)
-    } yield BitVector(headByte) ++ bits
+    } yield DoubleType.bits ++ bits
   }
 
   val decoder: Decoder[VPackDouble] = doubleL.map(VPackDouble.apply)
 
-  val codec: Codec[VPackDouble] = Codec(encoder, VPackValue.vpackDecoder.emap({
+  val codec: Codec[VPackDouble] = Codec(encoder, vpackDecoder.emap({
     case v: VPackDouble => v.pure[Attempt]
     case _ => Err("not a vpack double").raiseError
   }))

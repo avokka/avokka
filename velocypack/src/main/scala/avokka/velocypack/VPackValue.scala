@@ -1,9 +1,11 @@
 package avokka.velocypack
 
 import avokka.velocypack.codecs.{VPackArrayCodec, VPackBinaryCodec, VPackBooleanCodec, VPackDateCodec, VPackDoubleCodec, VPackLongCodec, VPackObjectCodec, VPackSmallintCodec, VPackStringCodec, VPackType, VPackVLongCodec}
-import scodec.{Codec, Decoder, Encoder}
+import scodec.{Attempt, Codec, Decoder, Encoder}
 import scodec.bits._
 import scodec.codecs.provide
+import scodec.interop.cats._
+import cats.implicits._
 
 sealed trait VPackValue
 
@@ -63,45 +65,4 @@ object VPackValue {
   val True: VPackValue = VPackBoolean(true)
   val ArrayEmpty: VPackValue = VPackArray(Vector.empty)
   val ObjectEmpty: VPackValue = VPackObject(Map.empty)
-
-  val vpackEncoder: Encoder[VPackValue] = Encoder(_ match {
-    case v : VPackArray => VPackArrayCodec.encoder.encode(v)
-    case v : VPackObject => VPackObjectCodec.encoderSorted.encode(v)
-    case VPackIllegal => VPackType.Illegal.pureBits
-    case VPackNull => VPackType.Null.pureBits
-    case False => VPackType.False.pureBits
-    case True => VPackType.True.pureBits
-    case v : VPackDouble => VPackDoubleCodec.encoder.encode(v)
-    case v : VPackDate => VPackDateCodec.encoder.encode(v)
-    case VPackMinKey => VPackType.MinKey.pureBits
-    case VPackMaxKey => VPackType.MaxKey.pureBits
-    case v : VPackLong => VPackLongCodec.encoder.encode(v)
-    case v : VPackSmallint => VPackSmallintCodec.encoder.encode(v)
-    case v : VPackString => VPackStringCodec.encoder.encode(v)
-    case v : VPackBinary => VPackBinaryCodec.encoder.encode(v)
-  })
-
-  val vpackDecoder: Decoder[VPackValue] = VPackType.typeDecoder.flatMap {
-    case t : VPackType.ArrayUnindexed => VPackArrayCodec.decoderLinear(t)
-    case t : VPackType.ArrayIndexed if t.head == 0x09 => VPackArrayCodec.decoderOffsets64(t)
-    case t : VPackType.ArrayIndexed => VPackArrayCodec.decoderOffsets(t)
-    case t : VPackType.ObjectSorted if t.head == 0x0e => VPackObjectCodec.decoderOffsets64(t)
-    case t : VPackType.ObjectSorted => VPackObjectCodec.decoderOffsets(t)
-    case t : VPackType.ObjectUnsorted if t.head == 0x12 => VPackObjectCodec.decoderOffsets64(t)
-    case t : VPackType.ObjectUnsorted => VPackObjectCodec.decoderOffsets(t)
-    case VPackType.ArrayCompact => VPackArrayCodec.decoderCompact
-    case VPackType.ObjectCompact => VPackObjectCodec.decoderCompact
-    case VPackType.Double => VPackDoubleCodec.decoder
-    case VPackType.Date => VPackDateCodec.decoder
-    case t : VPackType.IntSigned => VPackLongCodec.decoderSigned(t)
-    case t : VPackType.IntUnsigned => VPackLongCodec.decoderUnsigned(t)
-    case t : VPackType.SmallintPositive => VPackSmallintCodec.decoderPositive(t)
-    case t : VPackType.SmallintNegative => VPackSmallintCodec.decoderNegative(t)
-    case t : VPackType.StringShort => VPackStringCodec.decoder(t)
-    case t @ VPackType.StringLong => VPackStringCodec.decoder(t)
-    case t : VPackType.Binary => VPackBinaryCodec.decoder(t)
-    case t : VPackType.SingleByte => provide(t.singleton)
-  }
-
-  val vpackCodec: Codec[VPackValue] = Codec(vpackEncoder, vpackDecoder)
 }

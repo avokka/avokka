@@ -15,22 +15,25 @@ import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
  * 0x3a-0x3f : small negative integers -6, -5, ..., -1
  */
 object VPackSmallintCodec {
+  import VPackType.{SmallintPositiveType, SmallintNegativeType}
 
   val encoder: Encoder[VPackSmallint] = new Encoder[VPackSmallint] {
     override def sizeBound: SizeBound = SizeBound.exact(8)
 
     override def encode(v: VPackSmallint): Attempt[BitVector] = {
-      BitVector(v.value + (if (v.value < 0) 0x40 else 0x30)).pure[Attempt]
+      val t = if (v.value < 0) SmallintNegativeType(SmallintNegativeType.topByte + v.value)
+              else SmallintPositiveType(SmallintPositiveType.minByte + v.value)
+      t.bits.pure[Attempt]
     }
   }
 
-  def decoderPositive(t: VPackType.SmallintPositive): Decoder[VPackSmallint] = provide(VPackSmallint((t.head - 0x30).toByte))
-  def decoderNegative(t: VPackType.SmallintNegative): Decoder[VPackSmallint] = provide(VPackSmallint((t.head - 0x40).toByte))
+  def decoderPositive(t: SmallintPositiveType): Decoder[VPackSmallint] = provide(
+    VPackSmallint((t.head - SmallintPositiveType.minByte).toByte)
+  )
+  def decoderNegative(t: SmallintNegativeType): Decoder[VPackSmallint] = provide(
+    VPackSmallint((t.head - SmallintNegativeType.topByte).toByte)
+  )
 
-  /*
-  override def decode(bits: BitVector): Attempt[DecodeResult[VPackSmallint]] = for {
-    head  <- uint8L.decode(bits).ensure(Err("not a vpack smallint"))(h => h.value >= 0x30 && h.value <= 0x3f)
-  } yield head.map(h => VPackSmallint((h - (if (h < 0x3a) 0x30 else 0x40)).toByte))
-*/
+
 }
 

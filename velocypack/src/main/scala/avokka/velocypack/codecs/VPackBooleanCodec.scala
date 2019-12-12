@@ -1,12 +1,10 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.codecs.VPackBinaryCodec.encoder
-import avokka.velocypack.{VPackBinary, VPackBoolean, VPackValue}
+import avokka.velocypack.{VPackBoolean, VPackValue}
 import cats.implicits._
 import scodec.bits.BitVector
-import scodec.codecs.{provide, uint8L}
 import scodec.interop.cats._
-import scodec.{Attempt, Codec, DecodeResult, Encoder, Err, SizeBound}
+import scodec.{Attempt, Codec, Encoder, Err, SizeBound}
 
 /**
  * Codec of bool
@@ -15,32 +13,17 @@ import scodec.{Attempt, Codec, DecodeResult, Encoder, Err, SizeBound}
  * 0x1a : true
  */
 object VPackBooleanCodec {
-
-  val falseByte = 0x19
-  val trueByte = 0x1a
+  import VPackType.{TrueType, FalseType}
 
   val encoder: Encoder[VPackBoolean] = new Encoder[VPackBoolean] {
     override def sizeBound: SizeBound = SizeBound.exact(8)
 
     override def encode(v: VPackBoolean): Attempt[BitVector] = {
-      BitVector(if (v.value) trueByte else falseByte).pure[Attempt]
+      (if (v.value) TrueType else FalseType).bits.pure[Attempt]
     }
   }
 
-  /*
-  val falseDecoder = provide(VPackValue.False)
-  val trueDecoder = provide(VPackValue.True)
-*/
-
-  /*
-  override def decode(bits: BitVector): Attempt[DecodeResult[VPackBoolean]] = {
-    for {
-      head <- uint8L.decode(bits).ensure(Err("not a vpack boolean"))(h => h.value == falseByte || h.value == trueByte)
-    } yield head.map(h => VPackBoolean(h == trueByte))
-  }
-   */
-
-  val codec: Codec[VPackBoolean] = Codec(encoder, VPackValue.vpackDecoder.emap({
+  val codec: Codec[VPackBoolean] = Codec(encoder, vpackDecoder.emap({
     case v: VPackBoolean => v.pure[Attempt]
     case _ => Err("not a vpack boolean").raiseError
   }))

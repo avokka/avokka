@@ -1,9 +1,11 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.{VPackArray, VPackIllegal, VPackMaxKey, VPackMinKey, VPackNull, VPackValue}
+import avokka.velocypack.{VPackIllegal, VPackMaxKey, VPackMinKey, VPackNull, VPackSmallint, VPackValue}
 import scodec.bits.BitVector
 import scodec.codecs._
 import scodec.{Attempt, Codec, Decoder, Encoder, Err}
+import scodec.interop.cats._
+import cats.implicits._
 
 /**
  * velocypack value type
@@ -17,7 +19,7 @@ trait VPackType {
   /**
    * @return the bitvector of the head
    */
-  def pureBits: Attempt[BitVector] = Attempt.successful(BitVector(head))
+  def bits: BitVector = BitVector(head)
 }
 
 object VPackType {
@@ -40,87 +42,101 @@ object VPackType {
   /**
    * types which don't have value body and map to a single value
    * @param head byte head
-   * @param singleton the value associated
+   * @param singleton corresponding vpack value
    */
-  abstract class SingleByte
-  (
-    override val head: Int,
-    val singleton: VPackValue
-  ) extends VPackType
+  abstract class SingleByte(override val head: Int, val singleton: VPackValue) extends VPackType
 
   /** 0x00 : none - this indicates absence of any type and value, this is not allowed in VPack values */
-  case object None extends VPackType { override val head: Int = 0x00 }
+  case object NoneType extends VPackType { override val head: Int = 0x00 }
 
   /** 0x01 : empty array */
-  case object ArrayEmpty extends SingleByte(0x01, VPackValue.ArrayEmpty)
+  case object ArrayEmptyType extends SingleByte(0x01, VPackValue.ArrayEmpty)
 
   /** 0x02-0x05 : array without index table (all subitems have the same byte length), [1,2,4,8]-byte byte length */
-  case class ArrayUnindexed(override val head: Int) extends VPackType with WithLength {
-    require(head >= 0x02 && head <= 0x05)
-    override val lengthSize: Int = 1 << (head - 0x02)
+  case class ArrayUnindexedType(override val head: Int) extends VPackType with WithLength {
+    import ArrayUnindexedType._
+    require(head >= minByte && head <= maxByte)
+    override val lengthSize: Int = 1 << (head - minByte)
     override val lengthDecoder: Decoder[Long] = ulongLA(8 * lengthSize).map(_ - 1 - lengthSize)
+  }
+  object ArrayUnindexedType {
+    val minByte = 0x02
+    val maxByte = 0x05
   }
 
   /** 0x06-0x09 : array with [1,2,4,8]-byte index table offsets, bytelen and # subvals */
-  case class ArrayIndexed(override val head: Int) extends VPackType with WithLength {
-    require(head >= 0x06 && head <= 0x09)
-    override val lengthSize: Int = 1 << (head - 0x06)
+  case class ArrayIndexedType(override val head: Int) extends VPackType with WithLength {
+    import ArrayIndexedType._
+    require(head >= minByte && head <= maxByte)
+    override val lengthSize: Int = 1 << (head - minByte)
     override val lengthDecoder: Decoder[Long] = ulongLA(8 * lengthSize).map(_ - 1 - lengthSize)
+  }
+  object ArrayIndexedType {
+    val minByte = 0x06
+    val maxByte = 0x09
   }
 
   /** 0x0a : empty object */
-  case object ObjectEmpty extends SingleByte(0x0a, VPackValue.ObjectEmpty)
+  case object ObjectEmptyType extends SingleByte(0x0a, VPackValue.ObjectEmpty)
 
   /** object with data */
-  trait ObjectTrait extends VPackType with WithLength
+  trait ObjectType extends VPackType with WithLength
 
   /** 0x0b-0x0e : object with 1-byte index table offsets, sorted by attribute name, [1,2,4,8]-byte bytelen and # subvals */
-  case class ObjectSorted(override val head: Int) extends ObjectTrait {
-    require(head >= 0x0b && head <= 0x0e)
-    override val lengthSize: Int = 1 << (head - 0x0b)
+  case class ObjectSortedType(override val head: Int) extends ObjectType {
+    import ObjectSortedType._
+    require(head >= minByte && head <= maxByte)
+    override val lengthSize: Int = 1 << (head - minByte)
     override val lengthDecoder: Decoder[Long] = ulongLA(8 * lengthSize).map(_ - 1 - lengthSize)
+  }
+  object ObjectSortedType {
+    val minByte = 0x0b
+    val maxByte = 0x0e
   }
 
   /** 0x0f-0x12 : object with 1-byte index table offsets, not sorted by attribute name, [1,2,4,8]-byte bytelen and # subvals */
-  case class ObjectUnsorted(override val head: Int) extends ObjectTrait {
-    require(head >= 0x0f && head <= 0x12)
-    override val lengthSize: Int = 1 << (head - 0x0f)
+  case class ObjectUnsortedType(override val head: Int) extends ObjectType {
+    import ObjectUnsortedType._
+    require(head >= minByte && head <= maxByte)
+    override val lengthSize: Int = 1 << (head - minByte)
     override val lengthDecoder: Decoder[Long] = ulongLA(8 * lengthSize).map(_ - 1 - lengthSize)
+  }
+  object ObjectUnsortedType {
+    val minByte = 0x0f
+    val maxByte = 0x12
   }
 
   /** 0x13 : compact array, no index table */
-  case object ArrayCompact extends VPackType {
+  case object ArrayCompactType extends VPackType {
     override val head: Int = 0x13
- //   override val lengthDecoder: Decoder[Long] = VPackVLongCodec.map(l => l - 1 - vlongLength(l))
   }
 
   /** 0x14 : compact object, no index table */
-  case object ObjectCompact extends VPackType {
+  case object ObjectCompactType extends VPackType {
     override val head: Int = 0x14
-    //  override val lengthDecoder: Decoder[Long] = VPackVLongCodec.map(l => l - 1 - vlongLength(l))
   }
 
   // 0x15-0x16 : reserved
 
   /** 0x17 : illegal - this type can be used to indicate a value that is illegal in the embedding application */
-  case object Illegal extends SingleByte(0x17, VPackIllegal)
+  case object IllegalType extends SingleByte(0x17, VPackIllegal)
 
   /** 0x18 : null */
-  case object Null extends SingleByte(0x18, VPackNull)
+  case object NullType extends SingleByte(0x18, VPackNull)
 
   /** 0x19 : false */
-  case object False extends SingleByte(0x19, VPackValue.False)
+  case object FalseType extends SingleByte(0x19, VPackValue.False)
 
   /** 0x1a : true */
-  case object True extends SingleByte(0x1a, VPackValue.True)
+  case object TrueType extends SingleByte(0x1a, VPackValue.True)
 
   /** 0x1b : double IEEE-754, 8 bytes follow, stored as little endian uint64 equivalent */
-  case object Double extends VPackType {
+  case object DoubleType extends VPackType {
     override val head: Int = 0x1b
   }
 
   /** 0x1c : UTC-date in milliseconds since the epoch, stored as 8 byte signed int, little endian, two's complement */
-  case object Date extends VPackType {
+  case object DateType extends VPackType {
     override val head: Int = 0x1c
   }
 
@@ -128,93 +144,131 @@ object VPackType {
   // not allowed in VPack values on disk or on the network
 
   /** 0x1e : minKey, nonsensical value that compares < than all other values */
-  case object MinKey extends SingleByte(0x1e, VPackMinKey)
+  case object MinKeyType extends SingleByte(0x1e, VPackMinKey)
 
   /** 0x1f : maxKey, nonsensical value that compares > than all other values */
-  case object MaxKey extends SingleByte(0x1f, VPackMaxKey)
+  case object MaxKeyType extends SingleByte(0x1f, VPackMaxKey)
 
-  case class IntSigned(override val head: Int) extends VPackType with WithLength {
+  /** 0x20-0x27 : signed int, little endian, 1 to 8 bytes, number is V - 0x1f, two's complement */
+  case class IntSignedType(override val head: Int) extends VPackType with WithLength {
     require(head >= 0x20 && head <= 0x27)
     override val lengthSize: Int = head - 0x20 + 1
     override val lengthDecoder: Decoder[Long] = provide(0)
   }
-  case class IntUnsigned(override val head: Int) extends VPackType with WithLength {
+
+  /** 0x28-0x2f : uint, little endian, 1 to 8 bytes, number is V - 0x27 */
+  case class IntUnsignedType(override val head: Int) extends VPackType with WithLength {
     require(head >= 0x28 && head <= 0x2f)
     override val lengthSize: Int = head - 0x28 + 1
     override val lengthDecoder: Decoder[Long] = provide(0)
   }
 
-  case class SmallintPositive(override val head: Int) extends VPackType {
-    require(head >= 0x30 && head <= 0x39)
+  /** 0x30-0x39 : small integers 0, 1, ... 9 */
+  case class SmallintPositiveType(override val head: Int) extends VPackType {
+    import SmallintPositiveType._
+    require(head >= minByte && head <= maxByte)
   }
-  case class SmallintNegative(override val head: Int) extends VPackType {
-    require(head >= 0x3a && head <= 0x3f)
+  object SmallintPositiveType {
+    val minByte = 0x30
+    val maxByte = 0x39
   }
+
+  /** 0x3a-0x3f : small negative integers -6, -5, ..., -1 */
+  case class SmallintNegativeType(override val head: Int) extends VPackType {
+    import SmallintNegativeType._
+    require(head >= minByte && head <= maxByte)
+  }
+  object SmallintNegativeType {
+    val minByte = 0x3a
+    val maxByte = 0x3f
+    val topByte = 0x40
+  }
+
+  // string types
+  trait StringType extends VPackType with WithLength
 
   /**
    * 0x40-0xbe : UTF-8-string, using V - 0x40 bytes (not Unicode characters!)
    * length 0 is possible, so 0x40 is the empty string
    * maximal length is 126, note that strings here are not zero-terminated
    */
-  case class StringShort(override val head: Int) extends VPackType with WithLength {
-    import StringShort._
+  case class StringShortType(override val head: Int) extends StringType {
+    import StringShortType._
     require(head >= minByte && head <= maxByte)
     override val lengthSize: Int = 0
     override val lengthDecoder: Decoder[Long] = provide(head - minByte)
   }
 
-  object StringShort {
+  object StringShortType {
     /** lower bound of head for small strings */
     val minByte = 0x40
-    /** head for long strings */
+    /** upper bound of head for small strings */
     val maxByte  = 0xbe
+
+    def fromLength(length: Int): StringShortType = StringShortType(minByte + length)
   }
 
   /**
    * 0xbf : long UTF-8-string, next 8 bytes are length of string in bytes (not Unicode characters)
    * as little endian unsigned integer, note that long strings are not zero-terminated and may contain zero bytes
    */
-  case object StringLong extends VPackType with WithLength {
+  case object StringLongType extends StringType {
     override val head: Int = 0xbf
     override val lengthSize: Int = 8
     override val lengthDecoder: Decoder[Long] = int64L
   }
 
-  case class Binary(override val head: Int) extends VPackType with WithLength {
-    require(head >= 0xc0 && head <= 0xc7)
-    override val lengthSize: Int = head - 0xc0 + 1
+  /** 0xc0-0xc7 : binary blob, next V - 0xbf bytes are the length of blob in bytes note that binary blobs are not zero-terminated */
+  case class BinaryType(override val head: Int) extends VPackType with WithLength {
+    import BinaryType._
+    require(head >= minByte && head <= maxByte)
+    override val lengthSize: Int = head - minByte + 1
     override val lengthDecoder: Decoder[Long] = ulongLA(8 * lengthSize)
   }
+  object BinaryType {
+    val minByte = 0xc0
+    val maxByte = 0xc7
+    def fromLength(length: Int): BinaryType = BinaryType(minByte - 1 + length)
+  }
 
-  val typeDecoder: Decoder[VPackType] = uint8L.emap({
-    case None.head => Attempt.failure(Err("absence of type is not allowed in values"))
-    case ArrayEmpty.head => Attempt.successful(ArrayEmpty)
-    case head if head >= 0x02 && head <= 0x05 => Attempt.successful(ArrayUnindexed(head))
-    case head if head >= 0x06 && head <= 0x09 => Attempt.successful(ArrayIndexed(head))
-    case ObjectEmpty.head => Attempt.successful(ObjectEmpty)
-    case head if head >= 0x0b && head <= 0x0e => Attempt.successful(ObjectSorted(head))
-    case head if head >= 0x0f && head <= 0x12 => Attempt.successful(ObjectUnsorted(head))
-    case ArrayCompact.head => Attempt.successful(ArrayCompact)
-    case ObjectCompact.head => Attempt.successful(ObjectCompact)
-    case Illegal.head => Attempt.successful(Illegal)
-    case Null.head => Attempt.successful(Null)
-    case False.head => Attempt.successful(False)
-    case True.head => Attempt.successful(True)
-    case Double.head => Attempt.successful(Double)
-    case Date.head => Attempt.successful(Date)
-    case MinKey.head => Attempt.successful(MinKey)
-    case MaxKey.head => Attempt.successful(MaxKey)
-    case head if head >= 0x20 && head <= 0x27 => Attempt.successful(IntSigned(head))
-    case head if head >= 0x28 && head <= 0x2f => Attempt.successful(IntUnsigned(head))
-    case head if head >= 0x30 && head <= 0x39 => Attempt.successful(SmallintPositive(head))
-    case head if head >= 0x3a && head <= 0x3f => Attempt.successful(SmallintNegative(head))
-    case head if head >= StringShort.minByte && head <= StringShort.maxByte => Attempt.successful(StringShort(head))
-    case StringLong.head => Attempt.successful(StringLong)
-    case head if head >= 0xc0 && head <= 0xc7 => Attempt.successful(Binary(head))
+  /**
+   * decode the head byte to the velocypack type
+   */
+  val decoder: Decoder[VPackType] = uint8L.emap({
+    case NoneType.head => Attempt.failure(Err("absence of type is not allowed in values"))
+    case ArrayEmptyType.head => Attempt.successful(ArrayEmptyType)
+    case head if head >= ArrayUnindexedType.minByte && head <= ArrayUnindexedType.maxByte => Attempt.successful(ArrayUnindexedType(head))
+    case head if head >= ArrayIndexedType.minByte && head <= ArrayIndexedType.maxByte => Attempt.successful(ArrayIndexedType(head))
+    case ObjectEmptyType.head => Attempt.successful(ObjectEmptyType)
+    case head if head >= ObjectSortedType.minByte && head <= ObjectSortedType.maxByte => Attempt.successful(ObjectSortedType(head))
+    case head if head >= ObjectUnsortedType.minByte && head <= ObjectUnsortedType.maxByte => Attempt.successful(ObjectUnsortedType(head))
+    case ArrayCompactType.head => Attempt.successful(ArrayCompactType)
+    case ObjectCompactType.head => Attempt.successful(ObjectCompactType)
+    case IllegalType.head => Attempt.successful(IllegalType)
+    case NullType.head => Attempt.successful(NullType)
+    case FalseType.head => Attempt.successful(FalseType)
+    case TrueType.head => Attempt.successful(TrueType)
+    case DoubleType.head => Attempt.successful(DoubleType)
+    case DateType.head => Attempt.successful(DateType)
+    case MinKeyType.head => Attempt.successful(MinKeyType)
+    case MaxKeyType.head => Attempt.successful(MaxKeyType)
+    case head if head >= 0x20 && head <= 0x27 => Attempt.successful(IntSignedType(head))
+    case head if head >= 0x28 && head <= 0x2f => Attempt.successful(IntUnsignedType(head))
+    case head if head >= SmallintPositiveType.minByte && head <= SmallintPositiveType.maxByte => Attempt.successful(SmallintPositiveType(head))
+    case head if head >= SmallintNegativeType.minByte && head <= SmallintNegativeType.maxByte => Attempt.successful(SmallintNegativeType(head))
+    case head if head >= StringShortType.minByte && head <= StringShortType.maxByte => Attempt.successful(StringShortType(head))
+    case StringLongType.head => Attempt.successful(StringLongType)
+    case head if head >= BinaryType.minByte && head <= BinaryType.maxByte => Attempt.successful(BinaryType(head))
     case u => Attempt.failure(Err(s"unknown head byte ${u.toHexString}"))
   })
 
-  val typeEncoder: Encoder[VPackType] = Encoder(_.pureBits)
+  /**
+   * encodes the type to the head byte
+   */
+  val encoder: Encoder[VPackType] = Encoder(_.bits.pure[Attempt])
 
-  val codec: Codec[VPackType] = Codec(typeEncoder, typeDecoder)
+  /**
+   * type codec
+   */
+  val codec: Codec[VPackType] = Codec(encoder, decoder)
 }

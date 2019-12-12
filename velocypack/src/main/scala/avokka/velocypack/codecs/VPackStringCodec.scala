@@ -1,11 +1,9 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.{VPackString, VPackValue}
-import cats.implicits._
+import avokka.velocypack.VPackString
 import scodec.bits.BitVector
-import scodec.codecs.{fixedSizeBytes, int64L, uint8L, utf8}
-import scodec.interop.cats._
-import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
+import scodec.codecs.{fixedSizeBytes, utf8}
+import scodec.{Attempt, Decoder, Encoder, SizeBound}
 
 /**
  * Codec of VPackString
@@ -18,6 +16,7 @@ import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
  * as little endian unsigned integer, note that long strings are not zero-terminated and may contain zero bytes
  */
 object VPackStringCodec {
+  import VPackType.{StringShortType, StringLongType, StringType}
 
   val encoder: Encoder[VPackString] = new Encoder[VPackString] {
     override def sizeBound: SizeBound = SizeBound.atLeast(8)
@@ -26,18 +25,14 @@ object VPackStringCodec {
       for {
         bits  <- utf8.encode(v.value)
         len   = bits.size / 8
-        head  = if (len > 126) BitVector(VPackType.StringLong.head) ++ ulongBytes(len, 8)
-                else BitVector(VPackType.StringShort.minByte + len)
+        head  = if (len > 126) StringLongType.bits ++ ulongBytes(len, 8)
+                else StringShortType.fromLength(len.toInt).bits
       } yield head ++ bits
     }
   }
 
-  def decoder(t: VPackType.WithLength): Decoder[VPackString] = new Decoder[VPackString] {
-    override def decode(bits: BitVector): Attempt[DecodeResult[VPackString]] = {
-      for {
-        len <- t.lengthDecoder.decode(bits)
-        str <- fixedSizeBytes(len.value, utf8).decode(len.remainder)
-      } yield str.map(VPackString.apply)
-    }
-  }
+  def decoder(t: StringType): Decoder[VPackString] = for {
+    len <- t.lengthDecoder
+    str <- fixedSizeBytes(len, utf8)
+  } yield VPackString(str)
 }

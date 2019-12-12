@@ -16,18 +16,18 @@ trait CodecImplicits {
 
   implicit val booleanCodec: Codec[Boolean] = Codec(
     VPackBooleanCodec.encoder.contramap(VPackBoolean.apply),
-    VPackValue.vpackDecoder.emap({
+    vpackDecoder.emap({
       case VPackBoolean(b) => b.pure[Attempt]
       case _ => Err("not a boolean").raiseError
     })
   )
   
   implicit val intCodec: Codec[Int] = Codec(
-    VPackValue.vpackEncoder.contramap[Int]({
+    vpackEncoder.contramap[Int]({
       case VPackSmallint.From(s) => s
       case l => VPackLong(l) 
     }),
-    VPackValue.vpackDecoder.emap({
+    vpackDecoder.emap({
       case VPackSmallint(s) => s.toInt.pure[Attempt]
       case VPackLong(l) if l.isValidInt => l.toInt.pure[Attempt]
       case VPackLong(l) => Err(s"vpack long $l overflow").raiseError
@@ -36,12 +36,12 @@ trait CodecImplicits {
   )
 
   implicit val doubleCodec: Codec[Double] = Codec(
-    VPackValue.vpackEncoder.contramap[Double]({
+    vpackEncoder.contramap[Double]({
       case VPackSmallint.From(s) => s
       case VPackLong.From(l) => l
       case d => VPackDouble(d)
     }),
-    VPackValue.vpackDecoder.emap({
+    vpackDecoder.emap({
       case VPackSmallint(s) => s.toDouble.pure[Attempt]
       case VPackLong(l) => l.toDouble.pure[Attempt]
       case VPackDouble(d) => d.pure[Attempt]
@@ -53,7 +53,7 @@ trait CodecImplicits {
 
   implicit val stringCodec: Codec[String] = Codec(
     VPackStringCodec.encoder.contramap(VPackString.apply),
-    VPackValue.vpackDecoder.emap({
+    vpackDecoder.emap({
       case VPackString(s) => s.pure[Attempt]
       case _ => Err("not a string").raiseError
     })
@@ -61,7 +61,7 @@ trait CodecImplicits {
 
   implicit val instantCodec: Codec[Instant] = Codec(
     VPackDateCodec.encoder.contramap[Instant](v => VPackDate(v.toEpochMilli)),
-    VPackValue.vpackDecoder.emap({
+    vpackDecoder.emap({
       case VPackDate(d) => Instant.ofEpochMilli(d).pure[Attempt]
       case VPackLong(l) => Instant.ofEpochMilli(l).pure[Attempt]
       case VPackString(s) => Attempt.fromTry(Try(Instant.parse(s)))
@@ -71,7 +71,7 @@ trait CodecImplicits {
 
   implicit val binaryCodec: Codec[ByteVector] = Codec(
     VPackBinaryCodec.encoder.contramap(VPackBinary.apply),
-    VPackValue.vpackDecoder.emap({
+    vpackDecoder.emap({
       case VPackBinary(b) => b.pure[Attempt]
       case _ => Err("not a binary").raiseError
     })
@@ -81,12 +81,12 @@ trait CodecImplicits {
     override def sizeBound: SizeBound = SizeBound.exact(8) | codec.sizeBound
     override def encode(value: Option[T]): Attempt[BitVector] = value match {
       case Some(value) => codec.encode(value)
-      case None => VPackType.Null.pureBits // VPackNullCodec.encode(VPackNull)
+      case None => VPackType.NullType.bits.pure[Attempt] // VPackNullCodec.encode(VPackNull)
     }
     private val decoder = Decoder.choiceDecoder(
       codec.map(Some(_)),
-      VPackType.typeDecoder.emap({
-        case VPackType.Null => None.pure[Attempt]
+      VPackType.decoder.emap({
+        case VPackType.NullType => None.pure[Attempt]
         case _ => Err("not null").raiseError
       }),
     )

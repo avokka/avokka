@@ -1,12 +1,11 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.codecs.VPackArrayCodec.encoder
-import avokka.velocypack.{VPackArray, VPackBinary, VPackString, VPackValue}
+import avokka.velocypack.{VPackBinary, VPackValue}
 import cats.implicits._
 import scodec.bits.BitVector
-import scodec.codecs.{bytes, fixedSizeBytes, uint8L}
+import scodec.codecs.{bytes, fixedSizeBytes}
 import scodec.interop.cats._
-import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
+import scodec.{Attempt, Codec, Decoder, Encoder, Err, SizeBound}
 
 /**
  * Codec of binary blob
@@ -15,8 +14,7 @@ import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
  * note that binary blobs are not zero-terminated
  */
 object VPackBinaryCodec {
-  val minByte = 0xc0
-  val maxByte = 0xc7
+  import VPackType.BinaryType
 
   val encoder: Encoder[VPackBinary] = new Encoder[VPackBinary] {
     override def sizeBound: SizeBound = SizeBound.atLeast(16)
@@ -24,16 +22,16 @@ object VPackBinaryCodec {
     override def encode(v: VPackBinary): Attempt[BitVector] = {
       val length = v.value.size
       val lengthBytes = ulongLength(length)
-      (BitVector(minByte - 1 + lengthBytes) ++ ulongBytes(length, lengthBytes) ++ v.value.bits).pure[Attempt]
+      (BinaryType.fromLength(lengthBytes).bits ++ ulongBytes(length, lengthBytes) ++ v.value.bits).pure[Attempt]
     }
   }
 
-  def decoder(t: VPackType.Binary): Decoder[VPackBinary] = for {
+  def decoder(t: BinaryType): Decoder[VPackBinary] = for {
     len <- t.lengthDecoder
     bin <- fixedSizeBytes(len, bytes)
   } yield VPackBinary(bin)
 
-  val codec: Codec[VPackBinary] = Codec(encoder, VPackValue.vpackDecoder.emap({
+  val codec: Codec[VPackBinary] = Codec(encoder, vpackDecoder.emap({
     case v: VPackBinary => v.pure[Attempt]
     case _ => Err("not a vpack binary").raiseError
   }))

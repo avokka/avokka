@@ -16,6 +16,7 @@ import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
  * 0x28-0x2f : uint, little endian, 1 to 8 bytes, number is V - 0x27
  */
 object VPackLongCodec {
+  import VPackType.{IntSignedType, IntUnsignedType}
 
   val encoder: Encoder[VPackLong] = new Encoder[VPackLong] {
     override def sizeBound: SizeBound = SizeBound.bounded(8 + 8, 8 + 64)
@@ -52,15 +53,15 @@ object VPackLongCodec {
     } else l
   }
 
-  def decoderSigned(t: VPackType.IntSigned): Decoder[VPackLong] = for {
+  def decoderSigned(t: IntSignedType): Decoder[VPackLong] = for {
     l <- longL(8 * t.lengthSize).map(longLpatch(8 * t.lengthSize))
   } yield VPackLong(l)
 
-  def decoderUnsigned(t: VPackType.IntUnsigned): Decoder[VPackLong] = for {
+  def decoderUnsigned(t: IntUnsignedType): Decoder[VPackLong] = for {
     l <- ulongLA(8 * t.lengthSize)
   } yield VPackLong(l)
 
-  val codec: Codec[VPackLong] = Codec(encoder, VPackValue.vpackDecoder.emap({
+  val codec: Codec[VPackLong] = Codec(encoder, vpackDecoder.emap({
     case v: VPackLong => v.pure[Attempt]
     case _ => Err("not a vpack long").raiseError
   }))

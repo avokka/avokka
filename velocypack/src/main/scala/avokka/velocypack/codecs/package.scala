@@ -70,11 +70,11 @@ package object codecs {
 
   val vpackDecoder: Decoder[VPack] = vpackTypeDecoder.flatMap {
     case t : ArrayUnindexedType => VPackArrayCodec.decoderLinear(t)
-    case t : ArrayIndexedType if t.head == 0x09 => VPackArrayCodec.decoderOffsets64(t)
+    case t : ArrayIndexedType if t.head == ArrayIndexedType.maxByte => VPackArrayCodec.decoderOffsets64(t)
     case t : ArrayIndexedType => VPackArrayCodec.decoderOffsets(t)
-    case t : ObjectSortedType if t.head == 0x0e => VPackObjectCodec.decoderOffsets64(t)
+    case t : ObjectSortedType if t.head == ObjectSortedType.maxByte => VPackObjectCodec.decoderOffsets64(t)
     case t : ObjectSortedType => VPackObjectCodec.decoderOffsets(t)
-    case t : ObjectUnsortedType if t.head == 0x12 => VPackObjectCodec.decoderOffsets64(t)
+    case t : ObjectUnsortedType if t.head == ObjectUnsortedType.maxByte => VPackObjectCodec.decoderOffsets64(t)
     case t : ObjectUnsortedType => VPackObjectCodec.decoderOffsets(t)
     case ArrayCompactType => VPackArrayCodec.decoderCompact
     case ObjectCompactType => VPackObjectCodec.decoderCompact

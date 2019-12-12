@@ -7,32 +7,35 @@ import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
 import shapeless.{::, Generic, HList, HNil}
 import cats.implicits._
 
-trait VPackGeneric[A <: HList] {
-  def encode(arguments: A): Seq[VPack]
-  def decode(values: Seq[VPack]): VPackDecoder.Result[A]
+trait VPackGeneric[A <: HList] extends VPackCodec[A] {
+  def encode(t: A): VArray
+  def decode(values: VPack): VPackDecoder.Result[A]
 }
 
 object VPackGeneric {
 
   implicit object hnilCodec extends VPackGeneric[HNil] {
-    override def encode(arguments: HNil): Seq[VPack] = Vector.empty
-    override def decode(values: Seq[VPack]): VPackDecoder.Result[HNil] = HNil.asRight
+    override def encode(t: HNil): VArray = VArray()
+    override def decode(values: VPack): VPackDecoder.Result[HNil] = HNil.asRight
   }
 
   implicit def hconsCodec[T, A <: HList](implicit codec: VPackCodec[T], ev: VPackGeneric[A]): VPackGeneric[T :: A] = new VPackGeneric[T :: A] {
 
-    override def encode(arguments: T :: A): Seq[VPack] = {
-      codec.encode(arguments.head) +: ev.encode(arguments.tail)
+    override def encode(arguments: T :: A): VArray = {
+      VArray(codec.encode(arguments.head) +: ev.encode(arguments.tail).values)
     }
 
-    override def decode(values: Seq[VPack]): VPackDecoder.Result[T :: A] = {
+    override def decode(values: VPack): VPackDecoder.Result[T :: A] = {
       values match {
-        case value +: tail => for {
-          rl <- codec.decode(value)
-          rr <- ev.decode(tail)
-        } yield rl :: rr
+        case VArray(values) => values match {
+          case value +: tail => for {
+            rl <- codec.decode (value)
+            rr <- ev.decode(VArray(tail))
+          } yield rl :: rr
 
-        case _ => VPackError.NotEnoughElements.asLeft // Attempt.failure(Err("not enough elements in vpack array"))
+          case _ => VPackError.NotEnoughElements.asLeft // Attempt.failure(Err("not enough elements in vpack array"))
+        }
+        case _ => VPackError.WrongType.asLeft
       }
     }
   }
@@ -60,7 +63,7 @@ object VPackGeneric {
   class DeriveHelper[T] {
 
     def codec[R <: HList](implicit gen: Generic.Aux[T, R], vp: VPackGeneric[R]): VPackCodec[T] = {
-      vp.xmap(a => gen.from(a), a => gen.to(a))
+      vp(a => gen.from(a), a => gen.to(a))
     }
 
   }

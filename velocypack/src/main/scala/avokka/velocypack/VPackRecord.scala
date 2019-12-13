@@ -1,44 +1,43 @@
 package avokka.velocypack
 
-import avokka.velocypack.codecs.VPackObjectCodec
-import scodec.bits.BitVector
-import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
+import avokka.velocypack.VPack.VObject
+import cats.syntax.either._
 import shapeless.labelled.{FieldType, field}
 import shapeless.{::, Default, HList, HNil, LabelledGeneric, Witness}
 
 trait VPackRecord[A <: HList, D <: HList] {
-  def encode(arguments: A): Attempt[Map[String, BitVector]]
-  def decode(values: Map[String, BitVector], defaults: D): Attempt[A]
+  def encode(t: A): Map[String, VPack]
+  def decode(v: Map[String, VPack], defaults: D): VPackDecoder.Result[A]
 }
 
-object VPackRecord {
+object VPackRecord { c =>
 
   implicit object hnilCodec extends VPackRecord[HNil, HNil] {
-    override def encode(arguments: HNil): Attempt[Map[String, BitVector]] = Attempt.successful(Map.empty)
-    override def decode(values: Map[String, BitVector], defaults: HNil): Attempt[HNil] = Attempt.successful(HNil)
+    override def encode(t: HNil): Map[String, VPack] = Map.empty
+    override def decode(v: Map[String, VPack], defaults: HNil): VPackDecoder.Result[HNil] = HNil.asRight
   }
 
   implicit def hconsCodec[K <: Symbol, T, A <: HList]
   (
-    implicit ev: VPackRecord[A, HNil],
+    implicit ev: VPackRecord[A, HNil.type],
     key: Witness.Aux[K],
-    codec: Codec[T]
-  ): VPackRecord[FieldType[K, T] :: A, HNil] = new VPackRecord[FieldType[K, T] :: A, HNil] {
+    encoder: VPackEncoder[T],
+    decoder: VPackDecoder[T]
+  ): VPackRecord[FieldType[K, T] :: A, HNil.type] = new VPackRecord[FieldType[K, T] :: A, HNil.type] {
     private val keyName: String = key.value.name
-    override def encode(arguments: FieldType[K, T] :: A): Attempt[Map[String, BitVector]] = {
-      for {
-        rl <- codec.encode(arguments.head).mapErr(_.pushContext(keyName))
-        rr <- ev.encode(arguments.tail)
-      } yield rr.updated(keyName, rl)
+
+    override def encode(t: FieldType[K, T] :: A): Map[String, VPack] = {
+      ev.encode(t.tail).updated(keyName, encoder.encode(t.head))
     }
-    override def decode(values: Map[String, BitVector], defaults: HNil): Attempt[FieldType[K, T] :: A] = {
-      values.get(keyName) match {
+
+    override def decode(v: Map[String, VPack], defaults: HNil.type): VPackDecoder.Result[FieldType[K, T] :: A] = {
+      v.get(keyName) match {
         case Some(value) => for {
-          rl <- codec.decodeValue(value).mapErr(_.pushContext(keyName))
-          rr <- ev.decode(values, HNil)
+          rl <- decoder.decode(value) //.mapErr(_.pushContext(keyName))
+          rr <- ev.decode(v, HNil)
         } yield field[K](rl) :: rr
 
-        case _ => Attempt.failure(Err(s"no field $keyName in vpack object"))
+        case _ => VPackError.ObjectFieldAbsent(keyName).asLeft // Attempt.failure(Err(s"no field $keyName in vpack object"))
       }
     }
   }
@@ -47,73 +46,67 @@ object VPackRecord {
   (
     implicit ev: VPackRecord[A, D],
     key: Witness.Aux[K],
-    codec: Codec[T]
+    encoder: VPackEncoder[T],
+    decoder: VPackDecoder[T]
   ): VPackRecord[FieldType[K, T] :: A, Option[T] :: D] = new VPackRecord[FieldType[K, T] :: A, Option[T] :: D] {
     private val keyName: String = key.value.name
-    override def encode(arguments: FieldType[K, T] :: A): Attempt[Map[String, BitVector]] = {
-      for {
-        rl <- codec.encode(arguments.head).mapErr(_.pushContext(keyName))
-        rr <- ev.encode(arguments.tail)
-      } yield rr.updated(key.value.name, rl)
+
+    override def encode(t: FieldType[K, T] :: A): Map[String, VPack] = {
+      ev.encode(t.tail).updated(keyName, encoder.encode(t.head))
     }
-    override def decode(values: Map[String, BitVector], defaults: Option[T] :: D): Attempt[FieldType[K, T] :: A] = {
+
+    override def decode(v: Map[String, VPack], defaults: Option[T] :: D): VPackDecoder.Result[FieldType[K, T] :: A] = {
       val default = defaults.head
-      values.get(keyName) match {
+      v.get(keyName) match {
         case Some(value) => for {
-          rl <- codec.decodeValue(value).mapErr(_.pushContext(keyName))
-          rr <- ev.decode(values, defaults.tail)
+          rl <- decoder.decode(value) //.mapErr(_.pushContext(keyName))
+          rr <- ev.decode(v, defaults.tail)
         } yield field[K](rl) :: rr
 
         case _ if default.isDefined => for {
-          rr <- ev.decode(values, defaults.tail)
+          rr <- ev.decode(v, defaults.tail)
         } yield field[K](default.get) :: rr
 
-        case _ => Attempt.failure(Err(s"no field $keyName in vpack object"))
+        case _ => VPackError.ObjectFieldAbsent(keyName).asLeft // Attempt.failure(Err(s"no field $keyName in vpack object"))
       }
     }
   }
 
-  /*
-  def encoder[A <: HList, D <: HList](compact: Boolean = false)(implicit ev: VPackRecord[A, D]): Encoder[A] = Encoder { value =>
-    for {
-      values   <- ev.encode(value)
-      oEncoder = if (compact) VPackObjectCodec.Compact else VPackObjectCodec
-      arr      <- oEncoder.encode(VPackObject(values))
-    } yield arr
+  def encoder[A <: HList, D <: HList](compact: Boolean = false)(implicit ev: VPackRecord[A, D]): VPackEncoder[A] = { value =>
+    VObject(ev.encode(value))
   }
 
-  def decoder[A <: HList, D <: HList](defaults: D)(implicit ev: VPackRecord[A, D]): Decoder[A] = Decoder { bits =>
-    for {
-      arr <- VPackObjectCodec.decode(bits)
-      res <- ev.decode(arr.value.values, defaults)
-    } yield DecodeResult(res, arr.remainder)
+  def decoder[A <: HList, D <: HList](defaults: D)(implicit ev: VPackRecord[A, D]): VPackDecoder[A] = {
+    case VObject(values) => ev.decode(values, defaults)
+    case _ => VPackError.WrongType.asLeft
   }
-
-  def codec[A <: HList, D <: HList](compact: Boolean = false, defaults: D = HNil)
-                                   (implicit ev: VPackRecord[A, D]): Codec[A] = Codec(
-    encoder(compact)(ev), decoder(defaults)(ev)
-  )
 
   class DeriveHelper[T] {
-    def codecWithDefaults[R <: HList, D <: HList]
+    def encoder[R <: HList]
+    (
+      implicit lgen: LabelledGeneric.Aux[T, R],
+      repr: VPackRecord[R, HNil.type],
+    ): VPackEncoder[T] = {
+      c.encoder()(repr).contramap(lgen.to) //.xmap(a => lgen.from(a), a => lgen.to(a))
+    }
+
+    def decoder[R <: HList]
+    (
+      implicit lgen: LabelledGeneric.Aux[T, R],
+      repr: VPackRecord[R, HNil.type],
+    ): VPackDecoder[T] = {
+      c.decoder(HNil)(repr).map(lgen.from) //.xmap(a => lgen.from(a), a => lgen.to(a))
+    }
+
+    def decoderWithDefaults[R <: HList, D <: HList]
     (
       implicit lgen: LabelledGeneric.Aux[T, R],
       defaults: Default.AsOptions.Aux[T, D],
-      reprCodec: VPackRecord[R, D],
-    ): Codec[T] = {
-      VPackRecord.codec[R, D](defaults = defaults()).xmap(a => lgen.from(a), a => lgen.to(a))
-    }
-
-    def codec[R <: HList]
-    (
-      implicit lgen: LabelledGeneric.Aux[T, R],
-      reprCodec: VPackRecord[R, HNil],
-    ): Codec[T] = {
-      VPackRecord.codec[R, HNil]().xmap(a => lgen.from(a), a => lgen.to(a))
+      repr: VPackRecord[R, D],
+    ): VPackDecoder[T] = {
+      c.decoder(defaults())(repr).map(lgen.from)
     }
   }
 
   def apply[T] = new DeriveHelper[T]
-
-   */
 }

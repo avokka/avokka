@@ -13,5 +13,5 @@ case class DatabaseInfo
 )
 
 object DatabaseInfo {
-  implicit val codec: Codec[DatabaseInfo] = VPackRecord[DatabaseInfo].codec
+  implicit val decoder: VPackDecoder[DatabaseInfo] = VPackRecord[DatabaseInfo].decoderWithDefaults
 }

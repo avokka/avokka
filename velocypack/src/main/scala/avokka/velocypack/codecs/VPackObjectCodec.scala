@@ -46,7 +46,7 @@ object VPackObjectCodec extends VPackCompoundCodec {
         lengthMax = 1 + 8 + 8 + valuesBytes + 8 * offsets.size
         (lengthBytes, head) = lengthUtils(lengthMax)
         headBytes = 1 + lengthBytes + lengthBytes
-        indexTable = offsets.mapValues(off => headBytes + off)
+        indexTable = offsets.mapValues(_ + headBytes)
 
         len = ulongBytes(headBytes + valuesBytes + lengthBytes * offsets.size, lengthBytes)
         nr = ulongBytes(offsets.size, lengthBytes)
@@ -55,7 +55,7 @@ object VPackObjectCodec extends VPackCompoundCodec {
 
         headBase = if (sorted) 0x0b else 0x0f
         result = if (head == 3) BitVector(headBase + head) ++ len ++ valuesAll ++ index ++ nr
-                 else BitVector(headBase + head) ++ len ++ nr ++ valuesAll ++ index
+                           else BitVector(headBase + head) ++ len ++ nr ++ valuesAll ++ index
 
       } yield result
     }
@@ -79,7 +79,7 @@ object VPackObjectCodec extends VPackCompoundCodec {
       length  <- t.lengthDecoder.decode(b)
       nr      <- ulongLA(8 * t.lengthSize).decode(length.remainder)
       bodyOffset = 1 + t.lengthSize + t.lengthSize
-      bodyLen = length.value - bodyOffset
+      bodyLen = length.value - t.lengthSize
       body    <- scodec.codecs.bits(8 * bodyLen).decode(nr.remainder)
       values  <- scodec.codecs.bits(8 * (bodyLen - nr.value * t.lengthSize)).decode(body.value)
       offsets <- Decoder.decodeCollect[Vector, Long](ulongLA(8 * t.lengthSize), Some(nr.value.toInt))(values.remainder)
@@ -94,7 +94,7 @@ object VPackObjectCodec extends VPackCompoundCodec {
     for {
       length    <- t.lengthDecoder.decode(b)
       bodyOffset = 1 + t.lengthSize
-      bodyLen    = length.value - bodyOffset
+      bodyLen    = length.value
       (body, remainder) = length.remainder.splitAt(8 * bodyLen)
       (valuesIndex, number) = body.splitAt(8 * (bodyLen - t.lengthSize))
       nr        <- ulongLA(8 * t.lengthSize).decode(number)

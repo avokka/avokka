@@ -9,5 +9,5 @@ case class DatabaseDrop
 )
 
 object DatabaseDrop {
-  implicit val codec: Codec[DatabaseDrop] = VPackRecord[DatabaseDrop].codecWithDefaults
+  implicit val decoder: VPackDecoder[DatabaseDrop] = VPackRecord[DatabaseDrop].decoderWithDefaults
 }

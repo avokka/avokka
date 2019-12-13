@@ -101,9 +101,9 @@ object VPackArrayCodec extends VPackCompoundCodec {
 
   def decoderOffsets64(t: ArrayIndexedType): Decoder[VArray] = Decoder(b =>
     for {
-      length    <- ulongLA(8 * t.lengthSize).decode(b)
+      length    <- t.lengthDecoder.decode(b)
       bodyOffset = 1 + t.lengthSize
-      bodyLen    = length.value - bodyOffset
+      bodyLen    = length.value
       (body, remainder) = length.remainder.splitAt(8 * bodyLen)
       (valuesIndex, number) = body.splitAt(8 * (bodyLen - t.lengthSize))
       nr        <- ulongLA(8 * t.lengthSize).decode(number)

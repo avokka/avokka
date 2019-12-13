@@ -4,10 +4,8 @@ import java.time.Instant
 
 import akka.actor._
 import akka.stream._
-import avokka.arangodb.api.Cursor
 import avokka.arangodb._
 import avokka.velocypack._
-import scodec.Codec
 
 import scala.concurrent._
 import scala.concurrent.duration._
@@ -25,7 +23,8 @@ object Hello {
     name: String,
     flag: String,
   )
-  implicit val countryCodec: Codec[Country] = VPackRecord[Country].codecWithDefaults
+  implicit val countryEncoder: VPackEncoder[Country] = VPackRecord[Country].encoder //codecWithDefaults
+  implicit val countryDecoder: VPackDecoder[Country] = VPackRecord[Country].decoderWithDefaults //codecWithDefaults
 
   case class Photo
   (
@@ -38,7 +37,8 @@ object Hello {
     created: Instant,
     deleted: Boolean,
   )
-  implicit val commentCodec: Codec[Photo] = VPackRecord[Photo].codecWithDefaults
+  implicit val commentEncoder: VPackEncoder[Photo] = VPackRecord[Photo].encoder
+  implicit val commentDecoder: VPackDecoder[Photo] = VPackRecord[Photo].decoderWithDefaults
 
   def main(args: Array[String]): Unit = {
     import system.dispatcher

@@ -2,7 +2,6 @@ package avokka.arangodb.api
 
 import avokka.arangodb._
 import avokka.velocypack._
-import scodec.Codec
 
 case class CollectionInfo
 (
@@ -15,5 +14,5 @@ case class CollectionInfo
 )
 
 object CollectionInfo {
-  implicit val codec: Codec[CollectionInfo] = VPackRecord[CollectionInfo].codecWithDefaults
+  implicit val decoder: VPackDecoder[CollectionInfo] = VPackRecord[CollectionInfo].decoderWithDefaults
 }

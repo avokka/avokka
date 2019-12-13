@@ -9,7 +9,7 @@ case class CollectionList
 )
 
 object CollectionList {
-  implicit val codec: Codec[CollectionList] = VPackRecord[CollectionList].codec
+  implicit val decoder: VPackDecoder[CollectionList] = VPackRecord[CollectionList].decoderWithDefaults
 }
 
 

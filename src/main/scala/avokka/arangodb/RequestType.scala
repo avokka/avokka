@@ -1,11 +1,9 @@
 package avokka.arangodb
 
-import avokka.velocypack
-import cats.implicits._
-import scodec.interop.cats._
-import scodec.{Attempt, Codec, Err}
+import avokka.velocypack.{VPackDecoder, VPackEncoder, VPackError}
+import cats.syntax.either._
 
-sealed abstract class RequestType(val i: Long)
+sealed abstract class RequestType(val i: Int)
 
 object RequestType {
 
@@ -17,14 +15,15 @@ object RequestType {
   case object PATCH extends RequestType(5)
   case object OPTIONS extends RequestType(6)
 
-  implicit val codec: Codec[RequestType] = velocypack.longCodec.exmap({
-    case DELETE.i => DELETE.pure[Attempt]
-    case GET.i => GET.pure[Attempt]
-    case POST.i => POST.pure[Attempt]
-    case PUT.i => PUT.pure[Attempt]
-    case HEAD.i => HEAD.pure[Attempt]
-    case PATCH.i => PATCH.pure[Attempt]
-    case OPTIONS.i => OPTIONS.pure[Attempt]
-    case i => Err(s"unknown request type $i").raiseError
-  }, _.i.pure[Attempt])
+  implicit val encoder: VPackEncoder[RequestType] = VPackEncoder.intEncoder.contramap(_.i)
+  implicit val decoder: VPackDecoder[RequestType] = VPackDecoder.intDecoder.flatMap {
+    case DELETE.i => DELETE.asRight
+    case GET.i => GET.asRight
+    case POST.i => POST.asRight
+    case PUT.i => PUT.asRight
+    case HEAD.i => HEAD.asRight
+    case PATCH.i => PATCH.asRight
+    case OPTIONS.i => OPTIONS.asRight
+    case i => VPackError.IllegalValue(s"unknown request type $i").asLeft
+  }
 }

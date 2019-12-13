@@ -59,8 +59,8 @@ object CollectionCreate {
   )
 
   object KeyOptions {
-    implicit val codec: Codec[KeyOptions] = VPackRecord[KeyOptions].codecWithDefaults
+    implicit val encoder: VPackEncoder[KeyOptions] = VPackRecord[KeyOptions].encoder
   }
 
-  implicit val codec: Codec[CollectionCreate] = VPackRecord[CollectionCreate].codecWithDefaults
+  implicit val encoder: VPackEncoder[CollectionCreate] = VPackRecord[CollectionCreate].encoder
 }

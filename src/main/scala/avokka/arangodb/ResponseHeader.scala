@@ -1,7 +1,6 @@
 package avokka.arangodb
 
 import avokka.velocypack._
-import scodec.Codec
 
 case class ResponseHeader
 (
@@ -12,5 +11,6 @@ case class ResponseHeader
 )
 
 object ResponseHeader {
-  implicit val codec: Codec[ResponseHeader] = VPackGeneric[ResponseHeader].codec(true)
+  implicit val encoder: VPackEncoder[ResponseHeader] = VPackGeneric[ResponseHeader].encoder
+  implicit val decoder: VPackDecoder[ResponseHeader] = VPackGeneric[ResponseHeader].decoder
 }

@@ -9,6 +9,6 @@ case class DatabaseCurrent
 )
 
 object DatabaseCurrent {
-  implicit val codec: Codec[DatabaseCurrent] = VPackRecord[DatabaseCurrent].codec
+  implicit val decoder: VPackDecoder[DatabaseCurrent] = VPackRecord[DatabaseCurrent].decoderWithDefaults
 
 }

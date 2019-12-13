@@ -1,7 +1,6 @@
 package avokka.arangodb.api
 
 import avokka.velocypack._
-import scodec.Codec
 
 case class CollectionChecksum
 (
@@ -10,7 +9,5 @@ case class CollectionChecksum
 )
 
 object CollectionChecksum {
-  implicit val codec: Codec[CollectionChecksum] = VPackRecord[CollectionChecksum].codec
+  implicit val decoder: VPackDecoder[CollectionChecksum] = VPackRecord[CollectionChecksum].decoder
 }
-
-

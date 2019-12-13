@@ -1,7 +1,6 @@
 package avokka.arangodb.api
 
 import avokka.velocypack._
-import scodec.Codec
 
 /**
  * the storage engine the server is configured to use
@@ -22,8 +21,8 @@ object Engine {
     indexes: List[String],
   )
   object Supports {
-    implicit val codec: Codec[Supports] = VPackRecord[Supports].codecWithDefaults
+    implicit val decoder: VPackDecoder[Supports] = VPackRecord[Supports].decoder
   }
 
-  implicit val codec: Codec[Engine] = VPackRecord[Engine].codecWithDefaults
+  implicit val decoder: VPackDecoder[Engine] = VPackRecord[Engine].decoder
 }

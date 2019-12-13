@@ -10,5 +10,5 @@ case class DatabaseList
 )
 
 object DatabaseList {
-  implicit val codec: Codec[DatabaseList] = VPackRecord[DatabaseList].codec
+  implicit val decoder: VPackDecoder[DatabaseList] = VPackRecord[DatabaseList].decoderWithDefaults
 }

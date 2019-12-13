@@ -1,6 +1,8 @@
 package avokka
 
+import avokka.velocypack._
 import scodec.Codec
+import scodec.codecs.provide
 import shapeless.tag
 import shapeless.tag.@@
 
@@ -10,19 +12,22 @@ package object arangodb {
   type DatabaseName = String @@ DatabaseNameTag
   def DatabaseName(value: String): DatabaseName = tag[DatabaseNameTag][String](value)
 
-  implicit val databaseNameCodec: Codec[DatabaseName] = velocypack.stringCodec.xmap(DatabaseName, _.asInstanceOf[String])
+  implicit val databaseNameEncoder: VPackEncoder[DatabaseName] = VPackEncoder.stringEncoder.contramap(_.asInstanceOf[String])
+  implicit val databaseNameDecoder: VPackDecoder[DatabaseName] = VPackDecoder.stringDecoder.map(DatabaseName)
 
   trait CollectionNameTag
   type CollectionName = String @@ CollectionNameTag
   def CollectionName(value: String): CollectionName = tag[CollectionNameTag][String](value)
 
-  implicit val collectionNameCodec: Codec[CollectionName] = velocypack.stringCodec.xmap(CollectionName, _.asInstanceOf[String])
+  implicit val collectionNameEncoder: VPackEncoder[CollectionName] = VPackEncoder.stringEncoder.contramap(_.asInstanceOf[String])
+  implicit val collectionNameDecoder: VPackDecoder[CollectionName] = VPackDecoder.stringDecoder.map(CollectionName)
 
   trait DocumentKeyTag
   type DocumentKey = String @@ DocumentKeyTag
   def DocumentKey(value: String): DocumentKey = tag[DocumentKeyTag][String](value)
 
-  implicit val documentKeyCodec: Codec[DocumentKey] = velocypack.stringCodec.xmap(DocumentKey, _.asInstanceOf[String])
+  implicit val documentKeyEncoder: VPackEncoder[DocumentKey] = VPackEncoder.stringEncoder.contramap(_.asInstanceOf[String])
+  implicit val documentKeyDecoder: VPackDecoder[DocumentKey] = VPackDecoder.stringDecoder.map(DocumentKey)
 
   case class DocumentHandle
   (
@@ -41,6 +46,9 @@ package object arangodb {
     val empty = DocumentHandle(CollectionName(""), DocumentKey(""))
   }
 
-  implicit val documentHandleCodec: Codec[DocumentHandle] = velocypack.stringCodec.xmap(DocumentHandle.apply, _.path)
+  implicit val documentHandleEncoder: VPackEncoder[DocumentHandle] = VPackEncoder.stringEncoder.contramap(_.path)
+  implicit val documentHandleDecoder: VPackDecoder[DocumentHandle] = VPackDecoder.stringDecoder.map(DocumentHandle.apply)
+
+  implicit val unitCodec: Codec[Unit] = provide(())
 
 }

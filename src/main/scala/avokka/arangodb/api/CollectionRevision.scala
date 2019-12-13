@@ -9,7 +9,7 @@ case class CollectionRevision
 )
 
 object CollectionRevision {
-  implicit val codec: Codec[CollectionRevision] = VPackRecord[CollectionRevision].codec
+  implicit val decoder: VPackDecoder[CollectionRevision] = VPackRecord[CollectionRevision].decoderWithDefaults
 }
 
 

@@ -2,7 +2,6 @@ package avokka.arangodb.api
 
 import avokka.arangodb._
 import avokka.velocypack._
-import scodec.Codec
 
 /**
  * @param name Has to contain a valid database name.
@@ -31,7 +30,7 @@ object DatabaseCreate {
   )
 
   object Users {
-    implicit val codec: Codec[Users] = VPackRecord[Users].codecWithDefaults
+    implicit val encoder: VPackEncoder[Users] = VPackRecord[Users].encoder
   }
 
   case class Response
@@ -39,9 +38,9 @@ object DatabaseCreate {
     result: Boolean
   )
   object Response {
-    implicit val codec: Codec[Response] = VPackRecord[Response].codecWithDefaults
+    implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoderWithDefaults
   }
 
-  implicit val codec: Codec[DatabaseCreate] = VPackRecord[DatabaseCreate].codecWithDefaults
+  implicit val encoder: VPackEncoder[DatabaseCreate] = VPackRecord[DatabaseCreate].encoder
 
 }

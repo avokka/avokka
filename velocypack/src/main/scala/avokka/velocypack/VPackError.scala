@@ -20,4 +20,7 @@ object VPackError {
 
   case object NotEnoughElements extends VPackError
 
+  case class ObjectFieldAbsent(name: String) extends VPackError
+
+  case class IllegalValue(detailMessage: String) extends VPackError
 }

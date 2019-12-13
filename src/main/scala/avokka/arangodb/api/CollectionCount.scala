@@ -1,7 +1,6 @@
 package avokka.arangodb.api
 
 import avokka.velocypack._
-import scodec.Codec
 
 case class CollectionCount
 (
@@ -9,7 +8,5 @@ case class CollectionCount
 )
 
 object CollectionCount {
-  implicit val codec: Codec[CollectionCount] = VPackRecord[CollectionCount].codec
+  implicit val decoder: VPackDecoder[CollectionCount] = VPackRecord[CollectionCount].decoder
 }
-
-

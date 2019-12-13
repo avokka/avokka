@@ -4,7 +4,6 @@ import avokka.velocypack.VPack
 import scodec.bits.BitVector
 import scodec.codecs._
 import scodec.{Attempt, Codec, Decoder, Encoder, Err}
-import scodec.interop.cats._
 
 /**
  * velocypack value type

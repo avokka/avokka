@@ -1,11 +1,9 @@
 package avokka.arangodb
 
-import avokka.velocypack
-import cats.implicits._
-import scodec.interop.cats._
-import scodec.{Attempt, Codec, Err}
+import avokka.velocypack.{VPackDecoder, VPackEncoder, VPackError}
+import cats.syntax.either._
 
-sealed abstract class MessageType(val i: Long)
+sealed abstract class MessageType(val i: Int)
 
 object MessageType {
 
@@ -14,11 +12,12 @@ object MessageType {
   case object ResponseChunk extends MessageType(3)
   case object Authentication extends MessageType(1000)
 
-  implicit val codec: Codec[MessageType] = velocypack.longCodec.exmap({
-    case Request.i => Request.pure[Attempt]
-    case ResponseFinal.i => ResponseFinal.pure[Attempt]
-    case ResponseChunk.i => ResponseChunk.pure[Attempt]
-    case Authentication.i => Authentication.pure[Attempt]
-    case i => Err(s"unknown message type $i").raiseError
-  }, _.i.pure[Attempt])
+  implicit val encoder: VPackEncoder[MessageType] = VPackEncoder.intEncoder.contramap(_.i)
+  implicit val decoder: VPackDecoder[MessageType] = VPackDecoder.intDecoder.flatMap {
+    case Request.i => Request.asRight
+    case ResponseFinal.i => ResponseFinal.asRight
+    case ResponseChunk.i => ResponseChunk.asRight
+    case Authentication.i => Authentication.asRight
+    case i => VPackError.IllegalValue(s"unknown message type $i").asLeft
+  }
 }

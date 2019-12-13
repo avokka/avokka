@@ -1,7 +1,6 @@
 package avokka.arangodb
 
 import avokka.velocypack._
-import scodec.{Codec, Encoder}
 
 case class RequestAuthentication
 (
@@ -13,5 +12,6 @@ case class RequestAuthentication
 )
 
 object RequestAuthentication {
-  implicit val codec: Codec[RequestAuthentication] = VPackGeneric[RequestAuthentication].codec(true)
+  implicit val encoder: VPackEncoder[RequestAuthentication] = VPackGeneric[RequestAuthentication].encoder //codec(true)
+  implicit val decoder: VPackDecoder[RequestAuthentication] = VPackGeneric[RequestAuthentication].decoder
 }

@@ -1,7 +1,6 @@
 package avokka.arangodb.api
 
 import avokka.velocypack._
-import scodec.Codec
 
 /**
  *
@@ -21,5 +20,5 @@ case class Version
 )
 
 object Version {
-  implicit val codec: Codec[Version] = VPackRecord[Version].codecWithDefaults
+  implicit val decoder: VPackDecoder[Version] = VPackRecord[Version].decoderWithDefaults
 }

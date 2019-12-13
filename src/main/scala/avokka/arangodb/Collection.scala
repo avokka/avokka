@@ -1,7 +1,6 @@
 package avokka.arangodb
 
 import avokka.velocypack._
-import scodec.{Codec, Decoder}
 
 import scala.concurrent.Future
 
@@ -9,9 +8,9 @@ class Collection(val database: Database, collectionName: String) {
 
   lazy val name = CollectionName(collectionName)
 
-  def document[T: Decoder](key: DocumentKey): Future[Either[VPackError, Response[T]]] = database.document(DocumentHandle(name, key))
+  def document[T](key: DocumentKey)(implicit d: VPackDecoder[T]): Future[Either[VPackError, Response[T]]] = database.document(DocumentHandle(name, key))(d)
 
-  def documentCreate[T: Codec](t: T, returnNew: Boolean = false) = {
+  def documentCreate[T](t: T, returnNew: Boolean = false)(implicit encoder: VPackEncoder[T], decoder: VPackDecoder[T]) = {
     database.session.exec[T, api.DocumentCreate[T]](Request(RequestHeader(
       database = database.name,
       requestType = RequestType.POST,

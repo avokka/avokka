@@ -46,7 +46,7 @@ class Database(val session: Session, databaseName: String = "_system") {
     ), ())).value
   }
 
-  def document[T: Decoder](handle: DocumentHandle) = {
+  def document[T](handle: DocumentHandle)(implicit d: VPackDecoder[T]) = {
     session.exec[Unit, T](Request(RequestHeader(
       database = name,
       requestType = RequestType.GET,

@@ -1,11 +1,9 @@
 package avokka.arangodb
 
-import avokka.velocypack
-import cats.implicits._
-import scodec.interop.cats._
-import scodec.{Attempt, Codec, Err}
+import avokka.velocypack.{VPackDecoder, VPackEncoder, VPackError}
+import cats.syntax.either._
 
-sealed abstract class CollectionStatus(val i: Long)
+sealed abstract class CollectionStatus(val i: Int)
 
 object CollectionStatus {
 
@@ -17,15 +15,16 @@ object CollectionStatus {
   case object Deleted extends CollectionStatus(5)
   case object Loading extends CollectionStatus(6)
 
-  implicit val codec: Codec[CollectionStatus] = velocypack.longCodec.exmap({
-    case Unknown.i => Unknown.pure[Attempt]
-    case NewBorn.i => NewBorn.pure[Attempt]
-    case Unloaded.i => Unloaded.pure[Attempt]
-    case Loaded.i => Loaded.pure[Attempt]
-    case Unloading.i => Unloading.pure[Attempt]
-    case Deleted.i => Deleted.pure[Attempt]
-    case Loading.i => Loading.pure[Attempt]
-    case i => Err(s"unknown collection status $i").raiseError
-  }, _.i.pure[Attempt])
+  implicit val encoder: VPackEncoder[CollectionStatus] = VPackEncoder.intEncoder.contramap(_.i)
+  implicit val decoder: VPackDecoder[CollectionStatus] = VPackDecoder.intDecoder.flatMap {
+    case Unknown.i => Unknown.asRight
+    case NewBorn.i => NewBorn.asRight
+    case Unloaded.i => Unloaded.asRight
+    case Loaded.i => Loaded.asRight
+    case Unloading.i => Unloading.asRight
+    case Deleted.i => Deleted.asRight
+    case Loading.i => Loading.asRight
+    case i => VPackError.IllegalValue(s"unknown collection status $i").asLeft
+  }
 }
 

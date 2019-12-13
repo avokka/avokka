@@ -60,7 +60,7 @@ object Cursor {
   )
 
   object Options {
-    implicit val codec: Codec[Options] = VPackRecord[Options].codecWithDefaults
+    implicit val encoder: VPackEncoder[Options] = VPackRecord[Options].encoder
   }
 
   /**
@@ -82,8 +82,8 @@ object Cursor {
   )
 
   object Response {
-    implicit def codec[T: Codec]: Codec[Response[T]] = VPackRecord[Response[T]].codecWithDefaults
+    implicit def decoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Response[T]] = VPackRecord[Response[T]].decoderWithDefaults
   }
 
-  implicit def codec[V: Codec]: Codec[Cursor[V]] = VPackRecord[Cursor[V]].codecWithDefaults
+  implicit def encoder[V](implicit e: VPackEncoder[V]): VPackEncoder[Cursor[V]] = VPackRecord[Cursor[V]].encoder
 }

@@ -1,7 +1,6 @@
 package avokka.arangodb
 
 import avokka.velocypack._
-import scodec.Codec
 
 case class RequestHeader
 (
@@ -15,5 +14,6 @@ case class RequestHeader
 )
 
 object RequestHeader {
-  implicit val codec: Codec[RequestHeader] = VPackGeneric[RequestHeader].codec(true)
+  implicit val encoder: VPackEncoder[RequestHeader] = VPackGeneric[RequestHeader].encoder
+  implicit val decoder: VPackDecoder[RequestHeader] = VPackGeneric[RequestHeader].decoder
 }

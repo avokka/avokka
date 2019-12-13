@@ -1,7 +1,6 @@
 package avokka.arangodb
 
 import avokka.velocypack._
-import scodec.Codec
 
 case class ResponseError
 (
@@ -14,5 +13,6 @@ case class ResponseError
 }
 
 object ResponseError {
-  implicit val codec: Codec[ResponseError] = VPackRecord[ResponseError].codec
+  implicit val encoder: VPackEncoder[ResponseError] = VPackGeneric[ResponseError].encoder
+  implicit val decoder: VPackDecoder[ResponseError] = VPackGeneric[ResponseError].decoder
 }

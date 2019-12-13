@@ -1,11 +1,9 @@
 package avokka.arangodb
 
-import avokka.velocypack
-import cats.implicits._
-import scodec.interop.cats._
-import scodec.{Attempt, Codec, Err}
+import avokka.velocypack.{VPackDecoder, VPackEncoder, VPackError}
+import cats.syntax.either._
 
-sealed abstract class CollectionType(val i: Long)
+sealed abstract class CollectionType(val i: Int)
 
 object CollectionType {
 
@@ -13,11 +11,12 @@ object CollectionType {
   case object Document extends CollectionType(2)
   case object Edge extends CollectionType(3)
 
-  implicit val codec: Codec[CollectionType] = velocypack.longCodec.exmap({
-    case Unknown.i => Unknown.pure[Attempt]
-    case Document.i => Document.pure[Attempt]
-    case Edge.i => Edge.pure[Attempt]
-    case i => Err(s"unknown collection type $i").raiseError
-  }, _.i.pure[Attempt])
+  implicit val encoder: VPackEncoder[CollectionType] = VPackEncoder.intEncoder.contramap(_.i)
+  implicit val decoder: VPackDecoder[CollectionType] = VPackDecoder.intDecoder.flatMap {
+    case Unknown.i => Unknown.asRight
+    case Document.i => Document.asRight
+    case Edge.i => Edge.asRight
+    case i => VPackError.IllegalValue(s"unknown collection type $i").asLeft
+  }
 }
 

@@ -7,8 +7,10 @@ import scodec.bits._
 import shapeless.labelled.FieldType
 import shapeless.{::, HNil, Witness}
 import shapeless.syntax.singleton._
+
 /*
-class VPackObjectCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
+class VPackRecordSpec extends FlatSpec with Matchers with VPackSpecTrait {
+  import VPack._
   import VPackObjectCodecSpec._
 
   "map codec" should "conform specs" in {
@@ -78,7 +80,8 @@ object VPackObjectCodecSpec {
     version: String
   )
 
-  val VersionResponseCodec: Codec[VersionResponse] = VPackRecord[VersionResponse].codec
+  val VersionResponseEncoder: VPackEncoder[VersionResponse] = VPackRecord[VersionResponse].encoder
+  val VersionResponseDecoder: VPackDecoder[VersionResponse] = VPackRecord[VersionResponse].decoder
 
   case class TestDefault
   (
@@ -86,6 +89,7 @@ object VPackObjectCodecSpec {
     i: Int = 10
   )
 
-  val TestDefaultCodec: Codec[TestDefault] = VPackRecord[TestDefault].codecWithDefaults
+  val TestDefaultEncoder: VPackEncoder[TestDefault] = VPackRecord[TestDefault].encoder
+  val TestDefaultDecoder: VPackDecoder[TestDefault] = VPackRecord[TestDefault].decoderWithDefaults
 }
 */

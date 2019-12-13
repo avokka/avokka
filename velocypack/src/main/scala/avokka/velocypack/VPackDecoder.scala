@@ -18,6 +18,8 @@ trait VPackDecoder[T] { self =>
   def decode(v: VPack): VPackDecoder.Result[T]
 
   def map[U](f: T => U): VPackDecoder[U] = (v: VPack) => self.decode(v).map(f)
+
+  def flatMap[U](f: T => VPackDecoder.Result[U]): VPackDecoder[U] = (v: VPack) => self.decode(v).flatMap(f)
 }
 
 object VPackDecoder {

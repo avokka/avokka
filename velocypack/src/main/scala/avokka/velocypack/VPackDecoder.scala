@@ -3,9 +3,11 @@ package avokka.velocypack
 import java.time.Instant
 
 import avokka.velocypack.VPack._
-import avokka.velocypack.VPackDecoder.Result
+import cats.syntax.either._
+import cats.syntax.traverse._
+import cats.instances.either._
+import cats.instances.list._
 import scodec.bits.ByteVector
-import cats.implicits._
 import shapeless.HList
 
 import scala.annotation.implicitNotFound
@@ -19,7 +21,7 @@ trait VPackDecoder[T] { self =>
 }
 
 object VPackDecoder {
-  final type Result[T] = Either[VPackError, T]
+  type Result[T] = Either[VPackError, T]
 
   def apply[T](implicit decoder: VPackDecoder[T]): VPackDecoder[T] = decoder
 
@@ -80,12 +82,12 @@ object VPackDecoder {
   }
 
   implicit def vectorDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Vector[T]] = {
-    case VArray(a) => a.toVector.traverse(d.decode)
+    case VArray(a) => a.traverse(d.decode).map(_.toVector)
     case _ => VPackError.WrongType.asLeft
   }
 
   implicit def listDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[List[T]] = {
-    case VArray(a) => a.toList.traverse(d.decode)
+    case VArray(a) => a.traverse(d.decode).map(_.toList)
     case _ => VPackError.WrongType.asLeft
   }
 

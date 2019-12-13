@@ -1,6 +1,7 @@
 package avokka.velocypack
 
-import cats.implicits._
+import cats.data.Chain
+import cats.syntax.applicative._
 import scodec._
 import scodec.bits._
 import scodec.codecs._
@@ -46,6 +47,9 @@ package object codecs {
   def ulongLA(bits: Int): Codec[Long] = if (bits < 64) ulongL(bits) else longL(bits)
 
   private[codecs] object AllSameSize {
+    def unapply(s: Chain[BitVector]): Option[Long] = for {
+      size <- s.headOption.map(_.size) if s.forall(_.size == size)
+    } yield size
     def unapply(s: Iterable[BitVector]): Option[Long] = for {
       size <- s.headOption.map(_.size) if s.forall(_.size == size)
     } yield size

@@ -1,7 +1,8 @@
 package avokka.velocypack.codecs
 
 import avokka.velocypack.VPack.VDate
-import cats.implicits._
+import cats.syntax.applicative._
+import cats.syntax.applicativeError._
 import scodec.bits.BitVector
 import scodec.codecs.int64L
 import scodec.interop.cats._

@@ -1,7 +1,8 @@
 package avokka.velocypack.codecs
 
 import avokka.velocypack.VPack.VLong
-import cats.implicits._
+import cats.syntax.applicative._
+import cats.syntax.applicativeError._
 import scodec.bits.BitVector
 import scodec.codecs.{longL, uint8L, ulongL}
 import scodec.interop.cats._

@@ -1,6 +1,7 @@
 package avokka.velocypack.codecs
 
 import avokka.velocypack.VPack._
+import cats.data.Chain
 import org.scalatest._
 import scodec.bits._
 
@@ -10,7 +11,7 @@ class VPackArrayCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrai
   val a10false = VArray(VLong(10),  VFalse)
   val avoidtrue = VArray(VString(""),  VTrue)
   val a123 = VArray(VSmallint(1), VSmallint(2), VSmallint(3))
-  val bigArray = VArray(Vector.fill(1000)(VSmallint(0)))
+  val bigArray = VArray(Chain.fromSeq(Vector.fill(1000)(VSmallint(0))))
   val bigArraJson: String = "[" + Seq.fill(1000)("0").mkString(",") + "]"
 
   "empty array" should "encode to 0x01" in {

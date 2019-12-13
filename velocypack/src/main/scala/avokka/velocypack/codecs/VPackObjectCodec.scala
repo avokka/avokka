@@ -1,10 +1,14 @@
 package avokka.velocypack.codecs
 
 import avokka.velocypack.VPack.{VObject, VString}
-import cats.implicits._
+import cats.data.Chain
+import cats.syntax.applicative._
+import cats.syntax.applicativeError._
+import cats.syntax.traverse._
+import cats.instances.vector._
 import scodec.bits.BitVector
 import scodec.interop.cats._
-import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
+import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
 
 import scala.collection.SortedMap
 
@@ -24,8 +28,8 @@ object VPackObjectCodec extends VPackCompoundCodec {
   val encoderCompact: Encoder[VObject] = Encoder(_.values match {
     case values if values.isEmpty => ObjectEmptyType.bits.pure[Attempt]
     case values => for {
-      valuesAll <- values.toList.traverse(keyValueCodec.encode)
-      result <- encodeCompact(ObjectCompactType.head, valuesAll)
+      valuesAll <- values.toVector.traverse(keyValueCodec.encode)
+      result <- encodeCompact(ObjectCompactType.head, Chain.fromSeq(valuesAll))
     } yield result
   })
 
@@ -33,7 +37,7 @@ object VPackObjectCodec extends VPackCompoundCodec {
     case values if values.isEmpty => ObjectEmptyType.bits.pure[Attempt]
     case values => {
       for {
-        keyValues <- values.toList.traverse(kv => keyValueCodec.encode(kv).map(b => kv._1 -> b))
+        keyValues <- values.toVector.traverse(kv => keyValueCodec.encode(kv).map(b => kv._1 -> b))
         (valuesAll, valuesBytes, offsets) = keyValues.foldLeft((BitVector.empty, 0L, Map.empty[String, Long])) {
           case ((bytes, offset, offsets), (key, value)) => {
             (bytes ++ value, offset + value.size / 8, offsets.updated(key, offset))
@@ -82,7 +86,7 @@ object VPackObjectCodec extends VPackCompoundCodec {
       result = offsetsToRanges(offsets.value.map(_ - bodyOffset), values.value.size / 8).map {
         case (from, until) => values.value.slice(8 * from, 8 * until)
       }
-      rr      <- result.toList.traverse(keyValueCodec.decodeValue)
+      rr      <- result.toVector.traverse(keyValueCodec.decodeValue)
     } yield DecodeResult(VObject(rr.toMap), body.remainder)
   )
 
@@ -99,7 +103,7 @@ object VPackObjectCodec extends VPackCompoundCodec {
       result = offsetsToRanges(offsets.value.map(_ - bodyOffset), values.size / 8).map {
         case (from, until) => values.slice(8 * from, 8 * until)
       }
-      rr        <- result.toList.traverse(keyValueCodec.decodeValue)
+      rr        <- result.toVector.traverse(keyValueCodec.decodeValue)
     } yield DecodeResult(VObject(rr.toMap), remainder)
   )
 

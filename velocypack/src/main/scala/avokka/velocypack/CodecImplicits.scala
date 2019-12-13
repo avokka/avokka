@@ -4,7 +4,8 @@ import java.time.Instant
 
 import avokka.velocypack.VPack._
 import avokka.velocypack.codecs._
-import cats.implicits._
+import cats.syntax.applicative._
+import cats.syntax.applicativeError._
 import scodec.bits.{BitVector, ByteVector}
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Err, SizeBound}

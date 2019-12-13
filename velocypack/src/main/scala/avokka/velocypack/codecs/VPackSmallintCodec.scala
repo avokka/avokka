@@ -1,7 +1,7 @@
 package avokka.velocypack.codecs
 
 import avokka.velocypack.VPack.VSmallint
-import cats.implicits._
+import cats.syntax.applicative._
 import scodec.bits.BitVector
 import scodec.codecs.provide
 import scodec.interop.cats._

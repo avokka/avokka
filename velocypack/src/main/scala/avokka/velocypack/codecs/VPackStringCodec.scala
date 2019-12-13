@@ -1,9 +1,8 @@
 package avokka.velocypack.codecs
 
 import avokka.velocypack.VPack.VString
-import scodec.bits.BitVector
 import scodec.codecs.{fixedSizeBytes, utf8}
-import scodec.{Attempt, Decoder, Encoder, SizeBound}
+import scodec.{Decoder, Encoder}
 
 /**
  * Codec of VPackString
@@ -16,7 +15,7 @@ import scodec.{Attempt, Decoder, Encoder, SizeBound}
  * as little endian unsigned integer, note that long strings are not zero-terminated and may contain zero bytes
  */
 object VPackStringCodec {
-  import VPackType.{StringShortType, StringLongType, StringType}
+  import VPackType.{StringLongType, StringShortType, StringType}
 
   val encoder: Encoder[VString] = Encoder { v =>
     for {

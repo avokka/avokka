@@ -1,11 +1,15 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.VPack
 import avokka.velocypack.VPack.VArray
-import cats.implicits._
+import cats.data.Chain
+import cats.syntax.applicative._
+import cats.syntax.applicativeError._
+import cats.syntax.traverse._
+import cats.syntax.foldable._
+import cats.instances.vector._
 import scodec.bits.BitVector
 import scodec.interop.cats._
-import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
+import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
 
 import scala.language.higherKinds
 
@@ -23,7 +27,7 @@ object VPackArrayCodec extends VPackCompoundCodec {
     case values if values.isEmpty => ArrayEmptyType.bits.pure[Attempt]
     // encode elements
     case values => for {
-      valuesBits <- values.toVector.traverse(vpackEncoder.encode)
+      valuesBits <- values.traverse(vpackEncoder.encode)
       result <- encodeCompact(ArrayCompactType.head, valuesBits)
     } yield result
   })
@@ -35,7 +39,7 @@ object VPackArrayCodec extends VPackCompoundCodec {
     // empty array
     case values if values.isEmpty => ArrayEmptyType.bits.pure[Attempt]
     // encode elements
-    case values => values.toVector.traverse(vpackEncoder.encode).map({
+    case values => values.traverse(vpackEncoder.encode).map({
       // all elements have the same length, no need for index table
       case values @ AllSameSize(size) => {
         val valuesBytes = values.length * size / 8
@@ -44,25 +48,25 @@ object VPackArrayCodec extends VPackCompoundCodec {
         val arrayBytes = 1 + lengthBytes + valuesBytes
         val len = ulongBytes(arrayBytes, lengthBytes)
 
-        BitVector(0x02 + head) ++ len ++ values.reduce(_ ++ _)
+        BitVector(0x02 + head) ++ len ++ values.fold // reduce(_ ++ _)
       }
 
       // build index table offsets
       case values => {
-        val (valuesAll, valuesBytes, offsets) = values.foldLeft((BitVector.empty, 0L, Vector.empty[Long])) {
+        val (valuesAll, valuesBytes, offsets) = values.foldLeft((BitVector.empty, 0L, Chain.empty[Long])) {
           case ((bytes, offset, offsets), element) => (bytes ++ element, offset + element.size / 8, offsets :+ offset)
         }
         val lengthMax = 1 + 8 + 8 + valuesBytes + 8 * offsets.length
         val (lengthBytes, head) = lengthUtils(lengthMax)
         val headBytes = 1 + lengthBytes + lengthBytes
-        val indexTable = offsets.map(off => headBytes + off)
+        val indexTable = offsets.map(_ + headBytes)
 
         val len = ulongBytes(headBytes + valuesBytes + lengthBytes * offsets.length, lengthBytes)
         val nr = ulongBytes(offsets.length, lengthBytes)
         val index = indexTable.foldLeft(BitVector.empty)((b, l) => b ++ ulongBytes(l, lengthBytes))
 
         if (head == 3) BitVector(0x06 + head) ++ len ++ valuesAll ++ index ++ nr
-        else BitVector(0x06 + head) ++ len ++ nr ++ valuesAll ++ index
+                  else BitVector(0x06 + head) ++ len ++ nr ++ valuesAll ++ index
       }
     })
   })
@@ -76,7 +80,7 @@ object VPackArrayCodec extends VPackCompoundCodec {
       //valueLen <- VPackHeadLengthDecoder.decodeValue(values.bits)
       //nr = (values.size / valueLen.length).toInt
       //result = Seq.range(0, nr).map(n => values.slice(n * valueLen.length, (n + 1) * valueLen.length).bits)
-    } yield DecodeResult(VArray(result.value.toVector), body.remainder)
+    } yield DecodeResult(VArray(Chain.fromSeq(result.value)), body.remainder)
   )
 
   def decoderOffsets(t: ArrayIndexedType): Decoder[VArray] = Decoder(b =>
@@ -92,7 +96,7 @@ object VPackArrayCodec extends VPackCompoundCodec {
         case (from, until) => values.value.slice(8 * from, 8 * until)
       }
       a       <- result.toVector.traverse(vpackDecoder.decodeValue)
-    } yield DecodeResult(VArray(a), body.remainder)
+    } yield DecodeResult(VArray(Chain.fromSeq(a)), body.remainder)
   )
 
   def decoderOffsets64(t: ArrayIndexedType): Decoder[VArray] = Decoder(b =>
@@ -109,7 +113,7 @@ object VPackArrayCodec extends VPackCompoundCodec {
         case (from, until) => values.slice(8 * from, 8 * until)
       }
       a       <- result.toVector.traverse(vpackDecoder.decodeValue)
-    } yield DecodeResult(VArray(a), remainder)
+    } yield DecodeResult(VArray(Chain.fromSeq(a)), remainder)
   )
 
   val decoderCompact: Decoder[VArray] = Decoder(b =>
@@ -119,7 +123,7 @@ object VPackArrayCodec extends VPackCompoundCodec {
       body    <- scodec.codecs.bits(bodyLen).decode(length.remainder)
       nr      <- VPackVLongCodec.decode(body.value.reverseByteOrder)
       result  <- Decoder.decodeCollect(vpackDecoder, Some(nr.value.toInt))(body.value)
-    } yield DecodeResult(VArray(result.value.toVector), body.remainder)
+    } yield DecodeResult(VArray(Chain.fromSeq(result.value)), body.remainder)
   )
 
   /*

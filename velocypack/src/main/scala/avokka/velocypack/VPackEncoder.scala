@@ -3,6 +3,7 @@ package avokka.velocypack
 import java.time.Instant
 
 import avokka.velocypack.VPack._
+import cats.data.Chain
 import scodec.bits.ByteVector
 import shapeless.HList
 
@@ -51,8 +52,8 @@ object VPackEncoder {
 
   implicit def optionEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Option[T]] = _.fold[VPack](VNull)(e.encode)
 
-  implicit def vectorEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Vector[T]] = a => VArray(a.map(e.encode))
-  implicit def listEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[List[T]] = a => VArray(a.map(e.encode).toVector)
+  implicit def vectorEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Vector[T]] = a => VArray(Chain.fromSeq(a.map(e.encode)))
+  implicit def listEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[List[T]] = a => VArray(Chain.fromSeq(a.map(e.encode)))
   implicit def mapEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Map[String, T]] = a => VObject(a.mapValues(e.encode))
 
   implicit def genericEncoder[T <: HList](implicit a: VPackGeneric[T]): VPackEncoder[T] = VPackGeneric.encoder()(a)

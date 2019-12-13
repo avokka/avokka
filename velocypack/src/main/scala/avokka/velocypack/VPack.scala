@@ -1,5 +1,6 @@
 package avokka.velocypack
 
+import cats.data.Chain
 import scodec.bits.ByteVector
 
 sealed trait VPack
@@ -55,9 +56,9 @@ object VPack {
 
   case class VBinary(value: ByteVector) extends VPack
 
-  case class VArray(values: Vector[VPack]) extends VPack
+  case class VArray(values: Chain[VPack]) extends VPack
   object VArray {
-    def apply(values: VPack*): VArray = VArray(values.toVector)
+    def apply(values: VPack*): VArray = VArray(Chain.fromSeq(values))
   }
   val VArrayEmpty: VPack = VArray()
 

@@ -1,8 +1,8 @@
 package avokka
 
-import cats.implicits._
+import cats.syntax.either._
+import scodec.DecodeResult
 import scodec.bits.{BitVector, ByteVector}
-import scodec.{DecodeResult, Decoder, Encoder}
 
 package object velocypack {
 

@@ -1,9 +1,8 @@
 package avokka.velocypack
 
 import avokka.velocypack.VPack.VArray
-import avokka.velocypack.VPackDecoder.Result
 import cats.data.Chain
-import cats.implicits._
+import cats.syntax.either._
 import shapeless.{::, Generic, HList, HNil}
 
 trait VPackGeneric[A <: HList] {
@@ -22,7 +21,7 @@ object VPackGeneric { c =>
   implicit def hconsCodec[T, A <: HList](implicit encoder: VPackEncoder[T], decoder: VPackDecoder[T], ev: VPackGeneric[A]): VPackGeneric[T :: A] = new VPackGeneric[T :: A] {
 
     override def encode(t: T :: A): Chain[VPack] = {
-      encoder.encode(t.head) +: ev.encode(t.tail) //.prepend()
+      encoder.encode(t.head) +: ev.encode(t.tail)
     }
 
     override def decode(v: Chain[VPack]): VPackDecoder.Result[T :: A] = {
@@ -38,11 +37,11 @@ object VPackGeneric { c =>
   }
 
   def encoder[A <: HList](compact: Boolean = false)(implicit ev: VPackGeneric[A]): VPackEncoder[A] = { value =>
-    VArray(ev.encode(value).toVector)
+    VArray(ev.encode(value))
   }
 
   def decoder[A <: HList](implicit ev: VPackGeneric[A]): VPackDecoder[A] = {
-    case VArray(values) => ev.decode(Chain.fromSeq(values))
+    case VArray(values) => ev.decode(values)
     case _ => VPackError.WrongType.asLeft
   }
 

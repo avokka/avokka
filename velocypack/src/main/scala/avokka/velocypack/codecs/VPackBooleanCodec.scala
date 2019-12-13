@@ -1,7 +1,8 @@
 package avokka.velocypack.codecs
 
 import avokka.velocypack.VPack.VBoolean
-import cats.implicits._
+import cats.syntax.applicative._
+import cats.syntax.applicativeError._
 import scodec.bits.BitVector
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, Encoder, Err, SizeBound}

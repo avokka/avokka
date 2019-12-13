@@ -5,7 +5,6 @@ import scodec.bits.BitVector
 import scodec.codecs._
 import scodec.{Attempt, Codec, Decoder, Encoder, Err}
 import scodec.interop.cats._
-import cats.implicits._
 
 /**
  * velocypack value type
@@ -266,7 +265,7 @@ object VPackType {
   /**
    * encodes the type to the head byte
    */
-  val vpackTypeEncoder: Encoder[VPackType] = Encoder(_.bits.pure[Attempt])
+  val vpackTypeEncoder: Encoder[VPackType] = Encoder(t => Attempt.successful(t.bits))
 
   /**
    * type codec

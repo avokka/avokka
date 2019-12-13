@@ -1,7 +1,6 @@
 package avokka.arangodb
 
 import avokka.velocypack._
-import scodec.{Codec, Decoder, Encoder}
 
 class Database(val session: Session, databaseName: String = "_system") {
 
@@ -54,7 +53,7 @@ class Database(val session: Session, databaseName: String = "_system") {
     ), ())).value
   }
 
-  def cursor[V: Codec, T: Codec](cursor: api.Cursor[V]) = {
+  def cursor[V: VPackEncoder, T: VPackDecoder](cursor: api.Cursor[V]) = {
     session.exec[api.Cursor[V], api.Cursor.Response[T]](Request(RequestHeader(
       database = name,
       requestType = RequestType.POST,

@@ -1,7 +1,6 @@
 package avokka.arangodb.api
 
 import avokka.velocypack._
-import scodec.Codec
 
 case class DatabaseDrop
 (

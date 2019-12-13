@@ -1,7 +1,6 @@
 package avokka.arangodb.api.admin
 
 import avokka.velocypack._
-import scodec.Codec
 
 /**
  * @param authorized whether the session is authorized
@@ -55,7 +54,7 @@ object AdminEcho {
   )
 
   object Server {
-    implicit val codec: Codec[Server] = VPackRecord[Server].codecWithDefaults
+    implicit val decoder: VPackDecoder[Server] = VPackRecord[Server].decoderWithDefaults
   }
 
   case class Client
@@ -65,9 +64,9 @@ object AdminEcho {
     id: String,
   )
   object Client {
-    implicit val codec: Codec[Client] = VPackRecord[Client].codecWithDefaults
+    implicit val decoder: VPackDecoder[Client] = VPackRecord[Client].decoderWithDefaults
   }
 
-  implicit val codec: Codec[AdminEcho] = VPackRecord[AdminEcho].codecWithDefaults
+  implicit val decoder: VPackDecoder[AdminEcho] = VPackRecord[AdminEcho].decoderWithDefaults
 
 }

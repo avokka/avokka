@@ -19,18 +19,18 @@ object VPackRecord { c =>
 
   implicit def hconsCodec[K <: Symbol, T, A <: HList]
   (
-    implicit ev: VPackRecord[A, HNil.type],
+    implicit ev: VPackRecord[A, HNil],
     key: Witness.Aux[K],
     encoder: VPackEncoder[T],
     decoder: VPackDecoder[T]
-  ): VPackRecord[FieldType[K, T] :: A, HNil.type] = new VPackRecord[FieldType[K, T] :: A, HNil.type] {
+  ): VPackRecord[FieldType[K, T] :: A, HNil] = new VPackRecord[FieldType[K, T] :: A, HNil] {
     private val keyName: String = key.value.name
 
     override def encode(t: FieldType[K, T] :: A): Map[String, VPack] = {
       ev.encode(t.tail).updated(keyName, encoder.encode(t.head))
     }
 
-    override def decode(v: Map[String, VPack], defaults: HNil.type): VPackDecoder.Result[FieldType[K, T] :: A] = {
+    override def decode(v: Map[String, VPack], defaults: HNil): VPackDecoder.Result[FieldType[K, T] :: A] = {
       v.get(keyName) match {
         case Some(value) => for {
           rl <- decoder.decode(value) //.mapErr(_.pushContext(keyName))
@@ -85,7 +85,7 @@ object VPackRecord { c =>
     def encoder[R <: HList]
     (
       implicit lgen: LabelledGeneric.Aux[T, R],
-      repr: VPackRecord[R, HNil.type],
+      repr: VPackRecord[R, HNil],
     ): VPackEncoder[T] = {
       c.encoder()(repr).contramap(lgen.to) //.xmap(a => lgen.from(a), a => lgen.to(a))
     }
@@ -93,9 +93,9 @@ object VPackRecord { c =>
     def decoder[R <: HList]
     (
       implicit lgen: LabelledGeneric.Aux[T, R],
-      repr: VPackRecord[R, HNil.type],
+      repr: VPackRecord[R, HNil],
     ): VPackDecoder[T] = {
-      c.decoder(HNil)(repr).map(lgen.from) //.xmap(a => lgen.from(a), a => lgen.to(a))
+      c.decoder[R, HNil](HNil)(repr).map(lgen.from) //.xmap(a => lgen.from(a), a => lgen.to(a))
     }
 
     def decoderWithDefaults[R <: HList, D <: HList]

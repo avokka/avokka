@@ -1,18 +1,13 @@
 package avokka.velocypack
 
-import avokka.velocypack.codecs.VPackObjectCodec
+import avokka.velocypack.VPackRecordSpec.VersionResponse
 import org.scalatest.{FlatSpec, Matchers}
-import scodec.Codec
-import scodec.bits._
-import shapeless.labelled.FieldType
-import shapeless.{::, HNil, Witness}
-import shapeless.syntax.singleton._
 
-/*
 class VPackRecordSpec extends FlatSpec with Matchers with VPackSpecTrait {
   import VPack._
-  import VPackObjectCodecSpec._
+  import VPackRecordSpec._
 
+  /*
   "map codec" should "conform specs" in {
 
     val sint = VPackObjectCodec.mapOf(intCodec)
@@ -47,14 +42,19 @@ class VPackRecordSpec extends FlatSpec with Matchers with VPackSpecTrait {
       'test ->> true :: 'code ->> 5 :: HNil
     )
   }
+   */
 
   "case class codec" should "conform specs" in {
-    assertDecode(VersionResponseCodec,
-      hex"0b340346736572766572466172616e676f476c6963656e736549636f6d6d756e6974794776657273696f6e45332e352e32110323",
+    assertDec(VersionResponseDecoder,
+      VObject(Map("server" -> VString("arango"), "license" -> VString("community"), "version"-> VString("3.5.2"))),
       VersionResponse("arango", "community", "3.5.2")
     )
+    assertEnc(VersionResponseEncoder,
+      VersionResponse("arango", "community", "3.5.2"),
+      VObject(Map("server" -> VString("arango"), "license" -> VString("community"), "version"-> VString("3.5.2")))
+    )
   }
-
+/*
   "case class codec with defaults" should "conform specs" in {
     assertEncode(TestDefaultCodec,
       TestDefault(false, 0),
@@ -69,9 +69,11 @@ class VPackRecordSpec extends FlatSpec with Matchers with VPackSpecTrait {
       TestDefault(false),
     )
   }
+
+ */
 }
 
-object VPackObjectCodecSpec {
+object VPackRecordSpec {
 
   case class VersionResponse
   (
@@ -92,4 +94,3 @@ object VPackObjectCodecSpec {
   val TestDefaultEncoder: VPackEncoder[TestDefault] = VPackRecord[TestDefault].encoder
   val TestDefaultDecoder: VPackDecoder[TestDefault] = VPackRecord[TestDefault].decoderWithDefaults
 }
-*/

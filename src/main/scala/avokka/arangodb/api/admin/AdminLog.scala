@@ -22,5 +22,5 @@ case class AdminLog
 )
 
 object AdminLog {
-  implicit val codec: Codec[AdminLog] = VPackRecord[AdminLog].codecWithDefaults
+  implicit val decoder: VPackDecoder[AdminLog] = VPackRecord[AdminLog].decoder
 }

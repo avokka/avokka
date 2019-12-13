@@ -1,12 +1,12 @@
-package avokka.velocypack
+package avokka.velocypack.codecs
 
 import avokka.velocypack.VPack._
-import avokka.velocypack.codecs.{VPackDoubleCodec, vpackCodec}
+import avokka.velocypack.codecs
 import org.scalatest.{FlatSpec, Matchers}
-import scodec.bits._
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import scodec.bits._
 
-class VPackDoubleSpec extends FlatSpec with Matchers with ScalaCheckDrivenPropertyChecks with VPackCodecSpecTrait {
+class VPackDoubleCodecSpec extends FlatSpec with Matchers with ScalaCheckDrivenPropertyChecks with VPackCodecSpecTrait {
 
   it should "encode at 0x1b" in {
     forAll { d: Double =>

@@ -20,7 +20,7 @@ object VPackArrayCodec extends VPackCompoundCodec {
    */
   val encoderCompact: Encoder[VArray] = Encoder(_.values match {
     // empty array
-    case Nil => ArrayEmptyType.bits.pure[Attempt]
+    case values if values.isEmpty => ArrayEmptyType.bits.pure[Attempt]
     // encode elements
     case values => for {
       valuesBits <- values.toVector.traverse(vpackEncoder.encode)
@@ -33,7 +33,7 @@ object VPackArrayCodec extends VPackCompoundCodec {
    */
   val encoder: Encoder[VArray] = Encoder(_.values match {
     // empty array
-    case Nil => ArrayEmptyType.bits.pure[Attempt]
+    case values if values.isEmpty => ArrayEmptyType.bits.pure[Attempt]
     // encode elements
     case values => values.toVector.traverse(vpackEncoder.encode).map({
       // all elements have the same length, no need for index table
@@ -76,7 +76,7 @@ object VPackArrayCodec extends VPackCompoundCodec {
       //valueLen <- VPackHeadLengthDecoder.decodeValue(values.bits)
       //nr = (values.size / valueLen.length).toInt
       //result = Seq.range(0, nr).map(n => values.slice(n * valueLen.length, (n + 1) * valueLen.length).bits)
-    } yield DecodeResult(VArray(result.value), body.remainder)
+    } yield DecodeResult(VArray(result.value.toVector), body.remainder)
   )
 
   def decoderOffsets(t: ArrayIndexedType): Decoder[VArray] = Decoder(b =>
@@ -119,7 +119,7 @@ object VPackArrayCodec extends VPackCompoundCodec {
       body    <- scodec.codecs.bits(bodyLen).decode(length.remainder)
       nr      <- VPackVLongCodec.decode(body.value.reverseByteOrder)
       result  <- Decoder.decodeCollect(vpackDecoder, Some(nr.value.toInt))(body.value)
-    } yield DecodeResult(VArray(result.value), body.remainder)
+    } yield DecodeResult(VArray(result.value.toVector), body.remainder)
   )
 
   /*

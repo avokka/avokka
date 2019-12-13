@@ -1,68 +1,64 @@
 package avokka.velocypack
 
+import avokka.velocypack.codecs.VPackCodecSpecTrait
 import org.scalatest._
-import scodec.Codec
-import scodec.bits.HexStringSyntax
 import shapeless.{::, HNil}
 
-class VPackGenericSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
+class VPackGenericSpec extends FlatSpec with Matchers with VPackSpecTrait {
   import VPack._
   import VPackGenericSpec._
 
   type R = String :: Boolean :: HNil
-  val request: VPackCodec[R] = VPackGeneric.codec[R]()
-  val requests = VPackGeneric.codec[R :: R :: HNil]()
-  val compact = VPackGeneric.codec[Int :: Boolean :: HNil](true)
-  val i3 = VPackGeneric.codec[Int :: Int :: Int :: HNil]()
+  val requestE: VPackEncoder[R] = VPackGeneric.encoder[R]()
+  val requestD: VPackDecoder[R] = VPackGeneric.decoder[R]
+  val requestsE = VPackGeneric.encoder[R :: R :: HNil]()
+  val requestsD = VPackGeneric.decoder[R :: R :: HNil]
+  val compactE = VPackGeneric.encoder[Int :: Boolean :: HNil](true)
 
-  "empty array" should "encode to 0x01" in {
-    val c = VPackGeneric.codec[HNil]()
-    val result = c.encode(HNil)
-    assertResult(VArrayEmpty)(result)
+  "hnil" should "encode to empty array" in {
+    val c = VPackGeneric.encoder[HNil]()
+    assertEnc(c, HNil, VArrayEmpty)
   }
-/*
-  "array encoders" should "conform specs" in {
+
+  "hlist encoders" should "encode to arrays" in {
 
     // compact
-    assertCodec(compact, 10 :: false :: HNil, hex"13 06 28 0a 19 02")
-    assertEncodePack(compact, 10 :: false :: HNil, """[10,false]""")
+    assertEnc(compactE, 10 :: false :: HNil, VArray(VLong(10), VFalse))
 
     // indexed
-    assertCodec(request, "a" :: true :: HNil, hex"06 08 02 41 61 1a 03 05")
-    assertEncodePack(request, "a" :: true :: HNil, """["a",true]""")
-
-    // same size elements
-    assertCodec(request, "" :: true :: HNil, hex"02 04 40 1a")
-    assertEncodePack(request, "" :: true :: HNil, """["",true]""")
+    assertEnc(requestE, "a" :: true :: HNil, VArray(VString("a"), VTrue))
 
     // recurse
-    assertEncodePack(requests, ("a" :: true :: HNil) :: ("b" :: false :: HNil) :: HNil,
-      """[["a",true],["b",false]]"""
+    assertEnc(requestsE,
+      ("a" :: true :: HNil) :: ("b" :: false :: HNil) :: HNil,
+      VArray(VArray(VString("a"), VTrue), VArray(VString("b"), VFalse))
     )
   }
 
-  "array decoders" should "conform specs" in {
+  "hlist decoders" should "decode from arrays" in {
 
-    assert(i3.decode(hex"01".bits).isFailure)
+    val f = requestD.decode(VTrue)
+    assert(f.isLeft)
 
-    val ex = 1 :: 2 :: 3 :: HNil
-    assertDecode(i3, hex"02 05 31 32 33", ex)
-    assertDecode(i3, hex"03 06 00 31 32 33", ex)
-    assertDecode(i3, hex"04 08 00 00 00 31 32 33", ex)
-    assertDecode(i3, hex"05 0c 00 00 00 00 00 00 00 31 32 33", ex)
-    assertDecode(i3, hex"06 09 03 31 32 33 03 04 05", ex)
-    assertDecode(i3, hex"06 09 03 32 31 33 04 03 05", ex)
-    assertDecode(i3, hex"07 0e 00 03 00 31 32 33 05 00 06 00 07 00", ex)
-    assertDecode(i3, hex"08 18 00 00 00 03 00 00 00 31 32 33 09 00 00 00 0a 00 00 00 0b 00 00 00", ex)
-    assertDecode(i3, hex"09 2c 00 00 00 00 00 00 00 31 32 33 09 00 00 00 00 00 00 00 0a 00 00 00 00 00 00 00 0b 00 00 00 00 00 00 00 03 00 00 00 00 00 00 00", ex)
-
+    assertDec(requestD, VArray(VString("a"), VTrue), "a" :: true :: HNil)
+    assertDec(requestsD,
+      VArray(VArray(VString("a"), VTrue), VArray(VString("b"), VFalse)),
+      ("a" :: true :: HNil) :: ("b" :: false :: HNil) :: HNil
+    )
   }
 
   "derive from case class" should "encode to array" in {
     val r = Rcc("a", true)
-    assertCodec(rccCodec, r, hex"06 08 02 41 61 1a 03 05")
+    assertEnc(rccEncoder, r, VArray(VString("a"), VTrue))
   }
-*/
+
+  "derive from case class" should "decode from array" in {
+    val r = Rcc("a", true)
+    assertDec(rccDecoder, VArray(VString("a"), VTrue), r)
+
+    val f = rccDecoder.decode(VTrue)
+    assert(f.isLeft)
+  }
 }
 
 object VPackGenericSpec {
@@ -73,6 +69,7 @@ object VPackGenericSpec {
     bool: Boolean
   )
 
-  implicit val rccCodec: VPackCodec[Rcc] = VPackGeneric[Rcc].codec
+  implicit val rccEncoder: VPackEncoder[Rcc] = VPackGeneric[Rcc].encoder
+  implicit val rccDecoder: VPackDecoder[Rcc] = VPackGeneric[Rcc].decoder
 
 }

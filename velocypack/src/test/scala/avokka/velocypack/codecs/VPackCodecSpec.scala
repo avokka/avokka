@@ -1,6 +1,5 @@
-package avokka.velocypack
+package avokka.velocypack.codecs
 
-import codecs.vpackCodec
 import org.scalatest._
 import scodec.bits._
 

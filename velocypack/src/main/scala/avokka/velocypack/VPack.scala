@@ -55,10 +55,13 @@ object VPack {
 
   case class VBinary(value: ByteVector) extends VPack
 
-  case class VArray(values: Seq[VPack] = Vector.empty) extends VPack
+  case class VArray(values: Vector[VPack]) extends VPack
+  object VArray {
+    def apply(values: VPack*): VArray = VArray(values.toVector)
+  }
   val VArrayEmpty: VPack = VArray()
 
-  case class VObject(values: Map[String, VPack] = Map.empty) extends VPack
-  val VObjectEmpty: VPack = VObject()
+  case class VObject(values: Map[String, VPack]) extends VPack
+  val VObjectEmpty: VPack = VObject(Map.empty)
 
 }

@@ -11,7 +11,7 @@ trait VPackGeneric[A <: HList] {
   def decode(v: Chain[VPack]): VPackDecoder.Result[A]
 }
 
-object VPackGeneric {
+object VPackGeneric { c =>
   import Chain._
 
   implicit object hnilCodec extends VPackGeneric[HNil] {
@@ -46,23 +46,14 @@ object VPackGeneric {
     case _ => VPackError.WrongType.asLeft
   }
 
-  def codec[A <: HList](compact: Boolean = false)(implicit ev: VPackGeneric[A]): VPackCodec[A] = VPackCodec(
-    encoder(compact)(ev),
-    decoder(ev)
-  )
-
   class DeriveHelper[T] {
 
-    def codec[R <: HList](implicit gen: Generic.Aux[T, R], vp: VPackGeneric[R]): VPackCodec[T] = VPackCodec(
-      encoder()(vp).contramap(gen.to), // VArray(vp.encode(gen.to(t)).toVector)
-      decoder(vp).map(gen.from)
-    )
-    /*
-    override def decode(v: VPack): Result[T] = v match {
-        case VArray(values) => vp.decode(Chain.fromSeq(values)).map(gen.from)
-        case _ => VPackError.WrongType.asLeft
-      }
-    }*/
+    def encoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: VPackGeneric[R]): VPackEncoder[T] =
+      c.encoder()(vp).contramap(gen.to)
+
+    def decoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: VPackGeneric[R]): VPackDecoder[T] =
+      c.decoder(vp).map(gen.from)
+
   }
 
   def apply[T] = new DeriveHelper[T]

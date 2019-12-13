@@ -1,22 +1,20 @@
-package avokka.velocypack
+package avokka.velocypack.codecs
 
 import avokka.velocypack.VPack._
-import avokka.velocypack.codecs.{VPackArrayCodec, vpackCodec}
-import cats.implicits._
 import org.scalatest._
 import scodec.bits._
 
-class VPackArraySpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
+class VPackArrayCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
 
-  val a1false = VArray(Seq(VSmallint(1), VFalse))
-  val a10false = VArray(Seq(VLong(10),  VFalse))
-  val avoidtrue = VArray(Seq(VString(""),  VTrue))
-  val a123 = VArray(Seq(VSmallint(1), VSmallint(2), VSmallint(3)))
-  val bigArray = VArray(Seq.fill(1000)(VSmallint(0)))
+  val a1false = VArray(VSmallint(1), VFalse)
+  val a10false = VArray(VLong(10),  VFalse)
+  val avoidtrue = VArray(VString(""),  VTrue)
+  val a123 = VArray(VSmallint(1), VSmallint(2), VSmallint(3))
+  val bigArray = VArray(Vector.fill(1000)(VSmallint(0)))
   val bigArraJson: String = "[" + Seq.fill(1000)("0").mkString(",") + "]"
 
   "empty array" should "encode to 0x01" in {
-    assertEncode(vpackCodec, VArray(List.empty), hex"01")
+    assertEncode(vpackCodec, VArray(), hex"01")
   }
 
   "same size elements" should "encode at 0x02-0x05" in {

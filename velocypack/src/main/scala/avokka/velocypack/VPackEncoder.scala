@@ -16,7 +16,7 @@ trait VPackEncoder[T] { self =>
 
   def contramap[V](f: V => T): VPackEncoder[V] = (t: V) => self.encode(f(t))
 
-  def sencoder: Encoder[T] = codecs.vpackEncoder.contramap(self.encode)
+//  def sencoder: Encoder[T] = codecs.vpackEncoder.contramap(self.encode)
 }
 
 object VPackEncoder {

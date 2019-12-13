@@ -7,6 +7,7 @@ import cats.syntax.either._
 import cats.syntax.traverse._
 import cats.instances.either._
 import cats.instances.list._
+import scodec.Decoder
 import scodec.bits.ByteVector
 import shapeless.HList
 
@@ -20,6 +21,8 @@ trait VPackDecoder[T] { self =>
   def map[U](f: T => U): VPackDecoder[U] = (v: VPack) => self.decode(v).map(f)
 
   def flatMap[U](f: T => VPackDecoder.Result[U]): VPackDecoder[U] = (v: VPack) => self.decode(v).flatMap(f)
+
+ // def sdecoder: Decoder[T]
 }
 
 object VPackDecoder {

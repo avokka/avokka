@@ -13,6 +13,6 @@ case class ResponseError
 }
 
 object ResponseError {
-  implicit val encoder: VPackEncoder[ResponseError] = VPackGeneric[ResponseError].encoder
-  implicit val decoder: VPackDecoder[ResponseError] = VPackGeneric[ResponseError].decoder
+  implicit val encoder: VPackEncoder[ResponseError] = VPackRecord[ResponseError].encoder
+  implicit val decoder: VPackDecoder[ResponseError] = VPackRecord[ResponseError].decoder
 }

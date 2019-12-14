@@ -19,13 +19,13 @@ object Response {
   val vp = new VPack.Builder().build()
   def toSlice(bits: BitVector) = new VPackSlice(bits.toByteArray)
 
-  def decode[T](bits: BitVector)(implicit bodyDecoder: Decoder[T]): Either[VPackError, Response[T]] = {
-    ResponseHeader.codec.decode(bits).flatMap { header =>
+  def decode[T](bits: BitVector)(implicit bodyDecoder: VPackDecoder[T]): Either[VPackError, Response[T]] = {
+    ResponseHeader.decoder.deserializer.decode(bits).flatMap { header =>
       println(toSlice(header.remainder).toString)
       if (header.value.responseCode >= 400) {
-        ResponseError.codec.decodeValue(header.remainder).map(_.asLeft[Response[T]])
+        ResponseError.decoder.deserializer.decodeValue(header.remainder).map(_.asLeft[Response[T]])
       } else {
-        bodyDecoder.decodeValue(header.remainder).map(body =>
+        bodyDecoder.deserializer.decodeValue(header.remainder).map(body =>
           Response(header.value, body).asRight[VPackError]
         )
       }

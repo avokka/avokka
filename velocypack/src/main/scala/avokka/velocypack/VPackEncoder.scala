@@ -16,7 +16,7 @@ trait VPackEncoder[T] { self =>
 
   def contramap[V](f: V => T): VPackEncoder[V] = (t: V) => self.encode(f(t))
 
-//  def sencoder: Encoder[T] = codecs.vpackEncoder.contramap(self.encode)
+  lazy val serializer: Encoder[T] = codecs.vpackEncoder.contramap(self.encode)
 }
 
 object VPackEncoder {
@@ -59,6 +59,6 @@ object VPackEncoder {
   implicit def listEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[List[T]] = a => VArray(Chain.fromSeq(a.map(e.encode)))
   implicit def mapEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Map[String, T]] = a => VObject(a.mapValues(e.encode))
 
-  implicit def genericEncoder[T <: HList](implicit a: VPackGeneric[T]): VPackEncoder[T] = VPackGeneric.encoder()(a)
+  implicit def genericEncoder[T <: HList](implicit a: VPackGeneric.Encoder[T]): VPackEncoder[T] = VPackGeneric.Encoder()(a)
 
 }

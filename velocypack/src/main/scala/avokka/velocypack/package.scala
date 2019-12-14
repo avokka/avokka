@@ -5,6 +5,7 @@ import scodec.{Attempt, DecodeResult, Decoder, Encoder, Err}
 
 package object velocypack {
 
+  /*
   implicit def vpEncoder[T](implicit encoder: VPackEncoder[T]): Encoder[T] = codecs.vpackEncoder.contramap(encoder.encode)
 
   implicit def vpDecoder[T](implicit decoder: VPackDecoder[T]): Decoder[T] = new Decoder[T] {
@@ -15,6 +16,7 @@ package object velocypack {
       )
     }
   }
+*/
 
   implicit class SyntaxToVPack[T](v: T) {
     def toVPack(implicit encoder: VPackEncoder[T]): VPack = {

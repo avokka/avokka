@@ -7,8 +7,8 @@ import cats.syntax.either._
 import cats.syntax.traverse._
 import cats.instances.either._
 import cats.instances.list._
-import scodec.Decoder
-import scodec.bits.ByteVector
+import scodec.{Attempt, DecodeResult, Decoder, Err}
+import scodec.bits.{BitVector, ByteVector}
 import shapeless.HList
 
 import scala.annotation.implicitNotFound
@@ -22,7 +22,14 @@ trait VPackDecoder[T] { self =>
 
   def flatMap[U](f: T => VPackDecoder.Result[U]): VPackDecoder[U] = (v: VPack) => self.decode(v).flatMap(f)
 
- // def sdecoder: Decoder[T]
+  lazy val deserializer: Decoder[T] = new Decoder[T] {
+    override def decode(bits: BitVector): Attempt[DecodeResult[T]] = codecs.vpackDecoder.decode(bits).flatMap { r =>
+      self.decode(r.value).fold(
+        e => Attempt.failure(Err(e.getMessage)),
+        t => Attempt.successful(DecodeResult(t, r.remainder))
+      )
+    }
+  }
 }
 
 object VPackDecoder {
@@ -105,6 +112,6 @@ object VPackDecoder {
     case _ => VPackError.WrongType.asLeft
   }
 
-  implicit def genericDecoder[T <: HList](implicit a: VPackGeneric[T]): VPackDecoder[T] = VPackGeneric.decoder(a)
+  implicit def genericDecoder[T <: HList](implicit a: VPackGeneric.Decoder[T]): VPackDecoder[T] = VPackGeneric.Decoder(a)
 
 }

@@ -5,53 +5,73 @@ import cats.data.Chain
 import cats.syntax.either._
 import shapeless.{::, Generic, HList, HNil}
 
-trait VPackGeneric[A <: HList] {
-  def encode(t: A): Chain[VPack]
-  def decode(v: Chain[VPack]): VPackDecoder.Result[A]
-}
-
 object VPackGeneric { c =>
   import Chain._
 
-  implicit object hnilCodec extends VPackGeneric[HNil] {
-    override def encode(t: HNil): Chain[VPack] = Chain.empty
-    override def decode(v: Chain[VPack]): VPackDecoder.Result[HNil] = HNil.asRight
+  trait Encoder[A <: HList] {
+    def encode(t: A): Chain[VPack]
   }
 
-  implicit def hconsCodec[T, A <: HList](implicit encoder: VPackEncoder[T], decoder: VPackDecoder[T], ev: VPackGeneric[A]): VPackGeneric[T :: A] = new VPackGeneric[T :: A] {
+  object Encoder {
 
-    override def encode(t: T :: A): Chain[VPack] = {
-      encoder.encode(t.head) +: ev.encode(t.tail)
+    def apply[A <: HList](compact: Boolean = false)(implicit ev: Encoder[A]): VPackEncoder[A] = { value =>
+      VArray(ev.encode(value))
     }
 
-    override def decode(v: Chain[VPack]): VPackDecoder.Result[T :: A] = {
-      v match {
-        case value ==: tail => for {
-          rl <- decoder.decode(value)
-          rr <- ev.decode(tail)
-        } yield rl :: rr
+    implicit object hnilEncoder extends Encoder[HNil] {
+      override def encode(t: HNil): Chain[VPack] = Chain.empty
+    }
 
-        case _ => VPackError.NotEnoughElements.asLeft // Attempt.failure(Err("not enough elements in vpack array"))
+    implicit def hconsEncoder[T, A <: HList]
+    (
+      implicit encoder: VPackEncoder[T],
+      ev: Encoder[A]
+    ): Encoder[T :: A] = new Encoder[T :: A] {
+      override def encode(t: T :: A): Chain[VPack] = {
+        encoder.encode(t.head) +: ev.encode(t.tail)
       }
     }
   }
 
-  def encoder[A <: HList](compact: Boolean = false)(implicit ev: VPackGeneric[A]): VPackEncoder[A] = { value =>
-    VArray(ev.encode(value))
+  trait Decoder[A <: HList] {
+    def decode(v: Chain[VPack]): VPackDecoder.Result[A]
   }
 
-  def decoder[A <: HList](implicit ev: VPackGeneric[A]): VPackDecoder[A] = {
-    case VArray(values) => ev.decode(values)
-    case _ => VPackError.WrongType.asLeft
+  object Decoder {
+    def apply[A <: HList](implicit ev: Decoder[A]): VPackDecoder[A] = {
+      case VArray(values) => ev.decode(values)
+      case _ => VPackError.WrongType.asLeft
+    }
+
+    implicit object hnilDecoder extends Decoder[HNil] {
+      override def decode(v: Chain[VPack]): VPackDecoder.Result[HNil] = HNil.asRight
+    }
+
+    implicit def hconsDecoder[T, A <: HList]
+    (
+      implicit decoder: VPackDecoder[T], ev: Decoder[A]
+    ): Decoder[T :: A] = new Decoder[T :: A] {
+
+      override def decode(v: Chain[VPack]): VPackDecoder.Result[T :: A] = {
+        v match {
+          case value ==: tail => for {
+            rl <- decoder.decode(value)
+            rr <- ev.decode(tail)
+          } yield rl :: rr
+
+          case _ => VPackError.NotEnoughElements.asLeft // Attempt.failure(Err("not enough elements in vpack array"))
+        }
+      }
+    }
   }
 
   class DeriveHelper[T] {
 
-    def encoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: VPackGeneric[R]): VPackEncoder[T] =
-      c.encoder()(vp).contramap(gen.to)
+    def encoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: Encoder[R]): VPackEncoder[T] =
+      Encoder()(vp).contramap(gen.to)
 
-    def decoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: VPackGeneric[R]): VPackDecoder[T] =
-      c.decoder(vp).map(gen.from)
+    def decoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: Decoder[R]): VPackDecoder[T] =
+      Decoder(vp).map(gen.from)
 
   }
 

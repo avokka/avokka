@@ -7,6 +7,6 @@ import scodec.codecs.provide
 
 trait CodecImplicits {
 
-  implicit val vpackObjectCodec: Codec[VObject] = VPackObjectCodec.codecSorted
-  implicit val vpackArrayCodec: Codec[VArray] = VPackArrayCodec.codec
+//  implicit val vpackObjectCodec: Codec[VObject] = VPackObjectCodec.codecSorted
+//  implicit val vpackArrayCodec: Codec[VArray] = VPackArrayCodec.codec
 }

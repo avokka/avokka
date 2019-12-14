@@ -49,6 +49,6 @@ package object arangodb {
   implicit val documentHandleEncoder: VPackEncoder[DocumentHandle] = VPackEncoder.stringEncoder.contramap(_.path)
   implicit val documentHandleDecoder: VPackDecoder[DocumentHandle] = VPackDecoder.stringDecoder.map(DocumentHandle.apply)
 
-  implicit val unitCodec: Codec[Unit] = provide(())
+//  implicit val unitCodec: Codec[Unit] = provide(())
 
 }

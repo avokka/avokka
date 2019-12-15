@@ -1,6 +1,6 @@
 package avokka.arangodb
 
-import avokka.velocypack.VPackEncoder
+import avokka.velocypack.{VPackEncoder, codecs}
 import scodec.Encoder
 
 case class Request[T]
@@ -11,9 +11,11 @@ case class Request[T]
 
 object Request {
 
-  implicit val unitEncoder: Encoder[Request[Unit]] = RequestHeader.encoder.serializer.contramap(_.header)
+  def serializer[T](e: VPackEncoder[T]): Encoder[T] = codecs.vpackEncoder.contramap(e.encode)
+
+  implicit val unitEncoder: Encoder[Request[Unit]] = serializer(RequestHeader.encoder).contramap(_.header)
   implicit def encoder[T](implicit bodyEncoder: VPackEncoder[T]): Encoder[Request[T]] = Encoder { request =>
-    Encoder.encodeBoth(RequestHeader.encoder.serializer, bodyEncoder.serializer)(request.header, request.body)
+    Encoder.encodeBoth(serializer(RequestHeader.encoder), serializer(bodyEncoder))(request.header, request.body)
   }
 
 }

@@ -4,7 +4,6 @@ import java.time.Instant
 
 import avokka.velocypack.VPack._
 import cats.data.Chain
-import scodec.Encoder
 import scodec.bits.ByteVector
 import shapeless.HList
 
@@ -15,8 +14,6 @@ trait VPackEncoder[T] { self =>
   def encode(t: T): VPack
 
   def contramap[V](f: V => T): VPackEncoder[V] = (t: V) => self.encode(f(t))
-
-  lazy val serializer: Encoder[T] = codecs.vpackEncoder.contramap(self.encode)
 }
 
 object VPackEncoder {

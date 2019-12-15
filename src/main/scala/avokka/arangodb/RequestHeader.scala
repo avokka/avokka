@@ -31,7 +31,7 @@ object RequestHeader {
   ) extends RequestHeader
 
   object Authentication {
-    implicit val encoder: VPackEncoder[Authentication] = VPackGeneric[Authentication].encoder //codec(true)
+    implicit val encoder: VPackEncoder[Authentication] = VPackGeneric[Authentication].encoder
   }
 
   implicit val encoder: VPackEncoder[RequestHeader] = {

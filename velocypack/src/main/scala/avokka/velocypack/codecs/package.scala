@@ -95,4 +95,5 @@ package object codecs {
   }
 
   val vpackCodec: Codec[VPack] = Codec(vpackEncoder, vpackDecoder)
+
 }

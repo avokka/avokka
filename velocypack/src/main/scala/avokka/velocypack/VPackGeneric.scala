@@ -26,10 +26,8 @@ object VPackGeneric { c =>
     (
       implicit encoder: VPackEncoder[T],
       ev: Encoder[A]
-    ): Encoder[T :: A] = new Encoder[T :: A] {
-      override def encode(t: T :: A): Chain[VPack] = {
-        encoder.encode(t.head) +: ev.encode(t.tail)
-      }
+    ): Encoder[T :: A] = (t: T :: A) => {
+      encoder.encode(t.head) +: ev.encode(t.tail)
     }
   }
 
@@ -50,18 +48,13 @@ object VPackGeneric { c =>
     implicit def hconsDecoder[T, A <: HList]
     (
       implicit decoder: VPackDecoder[T], ev: Decoder[A]
-    ): Decoder[T :: A] = new Decoder[T :: A] {
+    ): Decoder[T :: A] = {
+      case value ==: tail => for {
+        rl <- decoder.decode(value)
+        rr <- ev.decode(tail)
+      } yield rl :: rr
 
-      override def decode(v: Chain[VPack]): VPackDecoder.Result[T :: A] = {
-        v match {
-          case value ==: tail => for {
-            rl <- decoder.decode(value)
-            rr <- ev.decode(tail)
-          } yield rl :: rr
-
-          case _ => VPackError.NotEnoughElements.asLeft // Attempt.failure(Err("not enough elements in vpack array"))
-        }
-      }
+      case _ => VPackError.NotEnoughElements.asLeft // Attempt.failure(Err("not enough elements in vpack array"))
     }
   }
 

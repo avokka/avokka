@@ -11,6 +11,5 @@ case class ResponseHeader
 )
 
 object ResponseHeader {
-//  implicit val encoder: VPackEncoder[ResponseHeader] = VPackGeneric[ResponseHeader].encoder
   implicit val decoder: VPackDecoder[ResponseHeader] = VPackGeneric[ResponseHeader].decoder
 }

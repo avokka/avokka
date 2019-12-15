@@ -3,6 +3,7 @@ package avokka.velocypack
 import java.time.Instant
 
 import avokka.velocypack.VPack._
+import cats.Contravariant
 import cats.data.Chain
 import scodec.bits.ByteVector
 import shapeless.HList
@@ -12,14 +13,18 @@ import scala.annotation.implicitNotFound
 @implicitNotFound("Cannot find a velocypack encoder for ${T}")
 trait VPackEncoder[T] { self =>
   def encode(t: T): VPack
-
-  def contramap[V](f: V => T): VPackEncoder[V] = (t: V) => self.encode(f(t))
 }
 
 object VPackEncoder {
   def apply[T](implicit encoder: VPackEncoder[T]): VPackEncoder[T] = encoder
 
   def apply[T](f: T => VPack): VPackEncoder[T] = (t: T) => f(t)
+
+  implicit val contravariance: Contravariant[VPackEncoder] = new Contravariant[VPackEncoder] {
+    override def contramap[A, B](fa: VPackEncoder[A])(f: B => A): VPackEncoder[B] = (t: B) => fa.encode(f(t))
+  }
+
+  // scala types encoders
 
   implicit val booleanEncoder: VPackEncoder[Boolean] = VBoolean.apply
 

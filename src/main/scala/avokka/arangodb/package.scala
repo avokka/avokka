@@ -5,6 +5,7 @@ import scodec.Codec
 import scodec.codecs.provide
 import shapeless.tag
 import shapeless.tag.@@
+import cats.syntax.contravariant._
 
 package object arangodb {
 
@@ -12,21 +13,21 @@ package object arangodb {
   type DatabaseName = String @@ DatabaseNameTag
   def DatabaseName(value: String): DatabaseName = tag[DatabaseNameTag][String](value)
 
-  implicit val databaseNameEncoder: VPackEncoder[DatabaseName] = VPackEncoder.stringEncoder.contramap(_.asInstanceOf[String])
+  implicit val databaseNameEncoder: VPackEncoder[DatabaseName] = VPackEncoder.stringEncoder.narrow //.contramap(_.asInstanceOf[String])
   implicit val databaseNameDecoder: VPackDecoder[DatabaseName] = VPackDecoder.stringDecoder.map(DatabaseName)
 
   trait CollectionNameTag
   type CollectionName = String @@ CollectionNameTag
   def CollectionName(value: String): CollectionName = tag[CollectionNameTag][String](value)
 
-  implicit val collectionNameEncoder: VPackEncoder[CollectionName] = VPackEncoder.stringEncoder.contramap(_.asInstanceOf[String])
+  implicit val collectionNameEncoder: VPackEncoder[CollectionName] = VPackEncoder.stringEncoder.narrow // contramap(_.asInstanceOf[String])
   implicit val collectionNameDecoder: VPackDecoder[CollectionName] = VPackDecoder.stringDecoder.map(CollectionName)
 
   trait DocumentKeyTag
   type DocumentKey = String @@ DocumentKeyTag
   def DocumentKey(value: String): DocumentKey = tag[DocumentKeyTag][String](value)
 
-  implicit val documentKeyEncoder: VPackEncoder[DocumentKey] = VPackEncoder.stringEncoder.contramap(_.asInstanceOf[String])
+  implicit val documentKeyEncoder: VPackEncoder[DocumentKey] = VPackEncoder.stringEncoder.narrow // contramap(_.asInstanceOf[String])
   implicit val documentKeyDecoder: VPackDecoder[DocumentKey] = VPackDecoder.stringDecoder.map(DocumentKey)
 
   case class DocumentHandle

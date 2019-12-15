@@ -3,6 +3,7 @@ package avokka.velocypack
 import avokka.velocypack.VPack.VArray
 import cats.data.Chain
 import cats.syntax.either._
+import cats.syntax.contravariant._
 import shapeless.{::, Generic, HList, HNil}
 
 object VPackGeneric { c =>

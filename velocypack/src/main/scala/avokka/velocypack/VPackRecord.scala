@@ -2,6 +2,7 @@ package avokka.velocypack
 
 import avokka.velocypack.VPack.VObject
 import cats.syntax.either._
+import cats.syntax.contravariant._
 import shapeless.labelled.{FieldType, field}
 import shapeless.{::, Default, HList, HNil, LabelledGeneric, Witness}
 

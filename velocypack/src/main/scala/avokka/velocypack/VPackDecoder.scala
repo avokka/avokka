@@ -3,8 +3,12 @@ package avokka.velocypack
 import java.time.Instant
 
 import avokka.velocypack.VPack._
+import cats.{ApplicativeError, Monad, MonadError}
 import cats.syntax.either._
 import cats.syntax.traverse._
+import cats.syntax.monad._
+import cats.syntax.monadError._
+import cats.syntax.applicativeError._
 import cats.instances.either._
 import cats.instances.list._
 import scodec.{Attempt, DecodeResult, Decoder, Err}
@@ -38,6 +42,47 @@ object VPackDecoder {
   def apply[T](implicit decoder: VPackDecoder[T]): VPackDecoder[T] = decoder
 
   def apply[T](f: VPack => Result[T]): VPackDecoder[T] = (v: VPack) => f(v)
+
+  implicit val applicativeError: ApplicativeError[VPackDecoder, VPackError] = new ApplicativeError[VPackDecoder, VPackError] {
+    override def raiseError[A](e: VPackError): VPackDecoder[A] = (v: VPack) => e.asLeft
+    override def handleErrorWith[A](fa: VPackDecoder[A])(f: VPackError => VPackDecoder[A]): VPackDecoder[A] = new VPackDecoder[A] {
+      override def decode(v: VPack): Result[A] = fa.decode(v).handleErrorWith(e => f(e).decode(v))
+    }
+    override def pure[A](x: A): VPackDecoder[A] = (v: VPack) => x.asRight
+    override def ap[A, B](ff: VPackDecoder[A => B])(fa: VPackDecoder[A]): VPackDecoder[B] = new VPackDecoder[B] {
+      override def decode(v: VPack): Result[B] = fa.decode(v) match {
+        case Left(l) => Left(l)
+        case Right(r) => ff.decode(v) match {
+          case Left(l) => Left(l)
+          case Right(ffv) => ffv(r).asRight
+        }
+      }
+    }
+  }
+
+  /*
+  implicit val monad = new MonadError[VPackDecoder, VPackError] {
+    override def flatMap[A, B](fa: VPackDecoder[A])(f: A => VPackDecoder[B]): VPackDecoder[B] = new VPackDecoder[B] {
+      override def decode(v: VPack): Result[B] = fa.decode(v) match {
+        case Left(value) => Left(value)
+        case Right(value) => f(value).decode(v)
+      }
+    }
+    override def tailRecM[A, B](a: A)(f: A => VPackDecoder[Either[A, B]]): VPackDecoder[B] = ???
+    override def pure[A](x: A): VPackDecoder[A] = new VPackDecoder[A] {
+      override def decode(v: VPack): Result[A] = x.asRight
+    }
+    override def raiseError[A](e: VPackError): VPackDecoder[A] = new VPackDecoder[A] {
+      override def decode(v: VPack): Result[A] = e.asLeft
+    }
+    override def handleErrorWith[A](fa: VPackDecoder[A])(f: VPackError => VPackDecoder[A]): VPackDecoder[A] =
+      new VPackDecoder[A] {
+        override def decode(v: VPack): Result[A] = fa.decode(v).leftFlatMap(f)
+      }
+  }
+  */
+
+  // scala types instances
 
   implicit val booleanDecoder: VPackDecoder[Boolean] = {
     case VBoolean(b) => b.asRight

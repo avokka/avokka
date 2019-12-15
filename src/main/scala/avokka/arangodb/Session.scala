@@ -22,37 +22,38 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
   implicit val timeout: Timeout = Timeout(2.minutes)
   import system.dispatcher
 
-  val vp = new VPack.Builder().build()
-  def toSlice(bits: BitVector) = new VPackSlice(bits.toByteArray)
+//  val vp = new VPack.Builder().build()
+//  def toSlice(bits: BitVector) = new VPackSlice(bits.toByteArray)
 
   def askClient[T](t: T)(implicit encoder: Encoder[T]): EitherT[Future, VPackError, VStreamMessage] = for {
     request <- EitherT.fromEither[Future](encoder.encode(t).toEither.leftMap(VPackError.Codec))
     msg <- EitherT.liftF(ask(client, request.bytes).mapTo[VStreamMessage])
   } yield msg
 
-  def authenticate(user: String, password: String): EitherT[Future, VPackError, Response[ResponseError]] = for {
-    message <- askClient(RequestAuthentication(encryption = "plain", user = user, password = password))
-    response <- EitherT.fromEither[Future](Response.decode[ResponseError](message.data.bits))
-  } yield response
-
-  def exec[T <: Request, O](request: T)(implicit encoder: Encoder[T], decoder: VPackDecoder[O]): EitherT[Future, VPackError, Response[O]] = for {
+  def exec[T <: Request[_], O](request: T)(implicit encoder: Encoder[T], decoder: VPackDecoder[O]): EitherT[Future, VPackError, Response[O]] = for {
     message <- askClient(request)
     response <- EitherT.fromEither[Future](Response.decode[O](message.data.bits))
   } yield response
 
   val _system = new Database(this, "_system")
 
+  def authenticate(user: String, password: String): EitherT[Future, VPackError, Response[ResponseError]] = {
+    exec[Request[Unit], ResponseError](Request(RequestHeader.Authentication(
+      encryption = "plain", user = user, password = password
+    ), ()))
+  }
+
   def version(details: Boolean = false) = {
-    exec[Request.Head, api.Version](Request.Head(RequestHeader(
+    exec[Request[Unit], api.Version](Request(RequestHeader.Header(
       database = _system.name,
       requestType = RequestType.GET,
       request = "/_api/version",
       parameters = Map("details" -> details.toString)
-    ))).value
+    ), ())).value
   }
 
   def databaseCreate(t: api.DatabaseCreate) = {
-    exec[Request.Payload[api.DatabaseCreate], api.DatabaseCreate.Response](Request.Payload(RequestHeader(
+    exec[Request[api.DatabaseCreate], api.DatabaseCreate.Response](Request(RequestHeader.Header(
       database = _system.name,
       requestType = RequestType.POST,
       request = "/_api/database"
@@ -60,34 +61,34 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
   }
 
   def databaseDrop(name: DatabaseName) = {
-    exec[Request.Head, api.DatabaseDrop](Request.Head(RequestHeader(
+    exec[Request[Unit], api.DatabaseDrop](Request(RequestHeader.Header(
       database = _system.name,
       requestType = RequestType.DELETE,
       request = s"/_api/database/$name",
-    ))).value
+    ), ())).value
   }
 
   def databases() = {
-    exec[Request.Head, api.DatabaseList](Request.Head(RequestHeader(
+    exec[Request[Unit], api.DatabaseList](Request(RequestHeader.Header(
       database = _system.name,
       requestType = RequestType.GET,
       request = "/_api/database/user",
-    ))).value
+    ), ())).value
   }
 
   def adminEcho() = {
-    exec[Request.Head, api.admin.AdminEcho](Request.Head(RequestHeader(
+    exec[Request[Unit], api.admin.AdminEcho](Request(RequestHeader.Header(
       database = _system.name,
       requestType = RequestType.POST,
       request = "/_admin/echo"
-    ))).value
+    ), ())).value
   }
 
   def adminLog() = {
-    exec[Request.Head, api.admin.AdminLog](Request.Head(RequestHeader(
+    exec[Request[Unit], api.admin.AdminLog](Request(RequestHeader.Header(
       database = _system.name,
       requestType = RequestType.GET,
       request = "/_admin/log"
-    ))).value
+    ), ())).value
   }
 }

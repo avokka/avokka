@@ -54,23 +54,27 @@ class VPackRecordSpec extends FlatSpec with Matchers with VPackSpecTrait {
       VObject(Map("server" -> VString("arango"), "license" -> VString("community"), "version"-> VString("3.5.2")))
     )
   }
-/*
+
   "case class codec with defaults" should "conform specs" in {
-    assertEncode(TestDefaultCodec,
+    assertEnc(TestDefaultEncoder,
       TestDefault(false, 0),
-      hex"0b0b024169304161190603",
+      VObject(Map("a" -> VFalse, "i" -> VSmallint(0)))
     )
-    assertDecode(TestDefaultCodec,
-      hex"0b 0b 02 416930 416119 06 03",
+    assertDec(TestDefaultDecoder,
+      VObject(Map("a" -> VFalse, "i" -> VSmallint(0))),
       TestDefault(false, 0),
     )
-    assertDecode(TestDefaultCodec,
-      hex"0b 07 01 416119 03",
+    assertDec(TestDefaultDecoder,
+      VObject(Map("i" -> VSmallint(0), "a" -> VFalse)),
+      TestDefault(false, 0),
+    )
+    assertDec(TestDefaultDecoder,
+      VObject(Map("a" -> VFalse)),
       TestDefault(false),
     )
+    assert(TestDefaultDecoder.decode(VObject(Map("i" -> VSmallint(0)))).isLeft)
   }
 
- */
 }
 
 object VPackRecordSpec {

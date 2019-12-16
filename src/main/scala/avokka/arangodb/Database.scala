@@ -8,7 +8,7 @@ class Database(val session: Session, databaseName: String = "_system") {
   lazy val name = DatabaseName(databaseName)
 
   def engine() = {
-    session.exec[api.Engine](RequestHeader.Header(
+    session.exec[api.Engine](Request.Header(
       database = name,
       requestType = RequestType.GET,
       request = "/_api/engine"
@@ -16,7 +16,7 @@ class Database(val session: Session, databaseName: String = "_system") {
   }
 
   def info() = {
-    session.exec[api.DatabaseCurrent](RequestHeader.Header(
+    session.exec[api.DatabaseCurrent](Request.Header(
       database = name,
       requestType = RequestType.GET,
       request = "/_api/database/current"
@@ -24,7 +24,7 @@ class Database(val session: Session, databaseName: String = "_system") {
   }
 
   def collectionCreate(t: api.CollectionCreate, waitForSyncReplication: Int = 1, enforceReplicationFactor: Int = 1) = {
-    session.exec[api.CollectionCreate, api.CollectionInfo](Request(RequestHeader.Header(
+    session.exec[api.CollectionCreate, api.CollectionInfo](Request(Request.Header(
       database = name,
       requestType = RequestType.POST,
       request = s"/_api/collection",
@@ -36,7 +36,7 @@ class Database(val session: Session, databaseName: String = "_system") {
   }
 
   def collections(excludeSystem: Boolean = false) = {
-    session.exec[api.CollectionList](RequestHeader.Header(
+    session.exec[api.CollectionList](Request.Header(
       database = name,
       requestType = RequestType.GET,
       request = "/_api/collection",
@@ -47,7 +47,7 @@ class Database(val session: Session, databaseName: String = "_system") {
   }
 
   def document[T](handle: DocumentHandle)(implicit d: VPackDecoder[T]) = {
-    session.exec[T](RequestHeader.Header(
+    session.exec[T](Request.Header(
       database = name,
       requestType = RequestType.GET,
       request = s"/_api/document/${handle.path}"
@@ -55,7 +55,7 @@ class Database(val session: Session, databaseName: String = "_system") {
   }
 
   def cursor[V: VPackEncoder, T: VPackDecoder](cursor: api.Cursor[V]) = {
-    session.exec[api.Cursor[V], api.Cursor.Response[T]](Request(RequestHeader.Header(
+    session.exec[api.Cursor[V], api.Cursor.Response[T]](Request(Request.Header(
       database = name,
       requestType = RequestType.POST,
       request = s"/_api/cursor"

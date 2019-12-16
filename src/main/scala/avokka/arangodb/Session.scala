@@ -7,11 +7,9 @@ import akka.util.Timeout
 import avokka.velocypack
 import avokka.velocypack._
 import avokka.velocystream._
-import cats.data.{EitherT, Validated}
-import com.arangodb.velocypack.{VPack, VPackSlice}
-import scodec.bits.BitVector
-import scodec.{Decoder, Encoder}
+import cats.data.EitherT
 import cats.implicits._
+import scodec.bits.BitVector
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -26,8 +24,8 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
 
   def askClient[T](bits: BitVector): FEE[VStreamMessage] = EitherT.liftF(ask(client, bits.bytes).mapTo[VStreamMessage])
 
-  def exec[O](head: RequestHeader)(implicit decoder: VPackDecoder[O]): FEE[Response[O]] = {
-    val header = RequestHeader.encoder.encode(head)
+  def exec[O](head: Request.HeaderTrait)(implicit decoder: VPackDecoder[O]): FEE[Response[O]] = {
+    val header = Request.headerEncoder.encode(head)
     for {
       bits   <- EitherT.fromEither[Future](vpackEncoder.encode(header).toEither.leftMap(VPackError.Codec))
       message <- askClient(bits)
@@ -36,11 +34,12 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
   }
 
   def exec[P, O](request: Request[P])(implicit encoder: VPackEncoder[P], decoder: VPackDecoder[O]): FEE[Response[O]] = {
-    val header = RequestHeader.encoder.encode(request.header)
+    val header = Request.headerEncoder.encode(request.header)
     val payload = encoder.encode(request.body)
     for {
-      bits <- EitherT.fromEither[Future](Encoder.encodeBoth(vpackEncoder, vpackEncoder)(header, payload).toEither.leftMap(VPackError.Codec))
-      message <- askClient(bits)
+      hBits   <- EitherT.fromEither[Future](vpackEncoder.encode(header).toEither.leftMap(VPackError.Codec))
+      pBits   <- EitherT.fromEither[Future](vpackEncoder.encode(payload).toEither.leftMap(VPackError.Codec))
+      message <- askClient(hBits ++ pBits)
       response <- EitherT.fromEither[Future](Response.decode[O](message.data.bits))
     } yield response
   }
@@ -48,13 +47,13 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
   val _system = new Database(this, "_system")
 
   def authenticate(user: String, password: String) = {
-    exec[ResponseError](RequestHeader.Authentication(
+    exec[ResponseError](Request.Authentication(
       encryption = "plain", user = user, password = password
     )).value
   }
 
   def version(details: Boolean = false) = {
-    exec[api.Version](RequestHeader.Header(
+    exec[api.Version](Request.Header(
       database = _system.name,
       requestType = RequestType.GET,
       request = "/_api/version",
@@ -63,7 +62,7 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
   }
 
   def databaseCreate(t: api.DatabaseCreate) = {
-    exec[api.DatabaseCreate, api.DatabaseCreate.Response](Request(RequestHeader.Header(
+    exec[api.DatabaseCreate, api.DatabaseCreate.Response](Request(Request.Header(
       database = _system.name,
       requestType = RequestType.POST,
       request = "/_api/database"
@@ -71,7 +70,7 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
   }
 
   def databaseDrop(name: DatabaseName) = {
-    exec[api.DatabaseDrop](RequestHeader.Header(
+    exec[api.DatabaseDrop](Request.Header(
       database = _system.name,
       requestType = RequestType.DELETE,
       request = s"/_api/database/$name",
@@ -79,7 +78,7 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
   }
 
   def databases() = {
-    exec[api.DatabaseList](RequestHeader.Header(
+    exec[api.DatabaseList](Request.Header(
       database = _system.name,
       requestType = RequestType.GET,
       request = "/_api/database/user",
@@ -87,7 +86,7 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
   }
 
   def adminEcho() = {
-    exec[api.admin.AdminEcho](RequestHeader.Header(
+    exec[api.admin.AdminEcho](Request.Header(
       database = _system.name,
       requestType = RequestType.POST,
       request = "/_admin/echo"
@@ -95,7 +94,7 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
   }
 
   def adminLog() = {
-    exec[api.admin.AdminLog](RequestHeader.Header(
+    exec[api.admin.AdminLog](Request.Header(
       database = _system.name,
       requestType = RequestType.GET,
       request = "/_admin/log"

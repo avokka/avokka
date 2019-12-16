@@ -63,6 +63,8 @@ object Cursor {
     implicit val encoder: VPackEncoder[Options] = VPackRecord[Options].encoder
   }
 
+  implicit def encoder[V](implicit e: VPackEncoder[V]): VPackEncoder[Cursor[V]] = VPackRecord[Cursor[V]].encoder
+
   /**
    * @param cached a boolean flag indicating whether the query result was served from the query cache or not. If the query result is served from the query cache, the *extra* return attribute will not contain any *stats* sub-attribute and no *profile* sub-attribute.
    * @param count the total number of result documents available (only available if the query was executed with the *count* attribute set)
@@ -85,5 +87,4 @@ object Cursor {
     implicit def decoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Response[T]] = VPackRecord[Response[T]].decoderWithDefaults
   }
 
-  implicit def encoder[V](implicit e: VPackEncoder[V]): VPackEncoder[Cursor[V]] = VPackRecord[Cursor[V]].encoder
 }

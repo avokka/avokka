@@ -10,17 +10,30 @@ import scodec.interop.cats._
 
 case class Response[T]
 (
-  header: ResponseHeader,
+  header: Response.Header,
   body: T
 )
 
 object Response {
 
+  case class Header
+  (
+    version: Int,
+    `type`: MessageType,
+    responseCode: Int,
+    meta: Map[String, String] = Map.empty
+  )
+
+  object Header {
+    implicit val decoder: VPackDecoder[Header] = VPackGeneric[Header].decoder
+  }
+
+
   val vp = new VPack.Builder().build()
   def toSlice(bits: BitVector) = new VPackSlice(bits.toByteArray)
 
   def decode[T](bits: BitVector)(implicit bodyDecoder: VPackDecoder[T]): Either[VPackError, Response[T]] = {
-    ResponseHeader.decoder.deserializer.decode(bits).flatMap { header =>
+    Header.decoder.deserializer.decode(bits).flatMap { header =>
       println(toSlice(header.remainder).toString)
       if (header.value.responseCode >= 400) {
         ResponseError.decoder.deserializer.decodeValue(header.remainder).map(_.asLeft[Response[T]])

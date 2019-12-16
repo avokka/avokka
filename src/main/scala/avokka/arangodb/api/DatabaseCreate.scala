@@ -10,7 +10,7 @@ import avokka.velocypack._
 case class DatabaseCreate
 (
   name: DatabaseName,
-  users: List[DatabaseCreate.Users] = List.empty
+  users: List[DatabaseCreate.Users] = List.empty,
 )
 
 object DatabaseCreate {

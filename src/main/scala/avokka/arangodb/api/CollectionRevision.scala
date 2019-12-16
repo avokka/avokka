@@ -11,5 +11,3 @@ case class CollectionRevision
 object CollectionRevision {
   implicit val decoder: VPackDecoder[CollectionRevision] = VPackRecord[CollectionRevision].decoderWithDefaults
 }
-
-

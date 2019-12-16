@@ -60,8 +60,7 @@ package object codecs {
     case v : VObject => VPackObjectCodec.encoderSorted.encode(v)
     case VIllegal => IllegalType.bits.pure[Attempt]
     case VNull => NullType.bits.pure[Attempt]
-    case VFalse => FalseType.bits.pure[Attempt]
-    case VTrue => TrueType.bits.pure[Attempt]
+    case v : VBoolean => VPackBooleanCodec.encoder.encode(v)
     case v : VDouble => VPackDoubleCodec.encoder.encode(v)
     case v : VDate => VPackDateCodec.encoder.encode(v)
     case VMinKey => MinKeyType.bits.pure[Attempt]

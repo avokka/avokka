@@ -43,7 +43,7 @@ object VPackRecord {
   object Decoder {
     def apply[A <: HList, D <: HList](defaults: D)(implicit ev: Decoder[A, D]): VPackDecoder[A] = {
       case VObject(values) => ev.decode(values, defaults)
-      case _ => VPackError.WrongType.asLeft
+      case v => VPackError.WrongType(v).asLeft
     }
 
     implicit object hnilDecoder extends Decoder[HNil, HNil] {
@@ -65,7 +65,7 @@ object VPackRecord {
             rr <- ev.decode(v, HNil)
           } yield field[K](rl) :: rr
 
-          case _ => VPackError.ObjectFieldAbsent(keyName).asLeft // Attempt.failure(Err(s"no field $keyName in vpack object"))
+          case _ => VPackError.ObjectFieldAbsent(keyName).asLeft
         }
       }
     }
@@ -90,7 +90,7 @@ object VPackRecord {
             rr <- ev.decode(v, defaults.tail)
           } yield field[K](default.get) :: rr
 
-          case _ => VPackError.ObjectFieldAbsent(keyName).asLeft // Attempt.failure(Err(s"no field $keyName in vpack object"))
+          case _ => VPackError.ObjectFieldAbsent(keyName).asLeft
         }
       }
     }

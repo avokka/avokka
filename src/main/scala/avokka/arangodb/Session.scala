@@ -4,6 +4,7 @@ import akka.actor.{ActorSystem, Props}
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
+import avokka.velocypack
 import avokka.velocypack._
 import avokka.velocystream._
 import cats.data.{EitherT, Validated}
@@ -16,44 +17,53 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, materializer: ActorMaterializer) {
+  import velocypack.codecs.vpackEncoder
 
   private val client = system.actorOf(Props(classOf[VStreamClient], host, port, materializer), name = s"velocystream-client")
 
   implicit val timeout: Timeout = Timeout(2.minutes)
   import system.dispatcher
 
-//  val vp = new VPack.Builder().build()
-//  def toSlice(bits: BitVector) = new VPackSlice(bits.toByteArray)
+  def askClient[T](bits: BitVector): FEE[VStreamMessage] = EitherT.liftF(ask(client, bits.bytes).mapTo[VStreamMessage])
 
-  def askClient[T](t: T)(implicit encoder: Encoder[T]): EitherT[Future, VPackError, VStreamMessage] = for {
-    request <- EitherT.fromEither[Future](encoder.encode(t).toEither.leftMap(VPackError.Codec))
-    msg <- EitherT.liftF(ask(client, request.bytes).mapTo[VStreamMessage])
-  } yield msg
+  def exec[O](head: RequestHeader)(implicit decoder: VPackDecoder[O]): FEE[Response[O]] = {
+    val header = RequestHeader.encoder.encode(head)
+    for {
+      bits   <- EitherT.fromEither[Future](vpackEncoder.encode(header).toEither.leftMap(VPackError.Codec))
+      message <- askClient(bits)
+      response <- EitherT.fromEither[Future](Response.decode[O](message.data.bits))
+    } yield response
+  }
 
-  def exec[T <: Request[_], O](request: T)(implicit encoder: Encoder[T], decoder: VPackDecoder[O]): EitherT[Future, VPackError, Response[O]] = for {
-    message <- askClient(request)
-    response <- EitherT.fromEither[Future](Response.decode[O](message.data.bits))
-  } yield response
+  def exec[P, O](request: Request[P])(implicit encoder: VPackEncoder[P], decoder: VPackDecoder[O]): FEE[Response[O]] = {
+    val header = RequestHeader.encoder.encode(request.header)
+    val payload = encoder.encode(request.body)
+    for {
+      bits <- EitherT.fromEither[Future](Encoder.encodeBoth(vpackEncoder, vpackEncoder)(header, payload).toEither.leftMap(VPackError.Codec))
+      message <- askClient(bits)
+      response <- EitherT.fromEither[Future](Response.decode[O](message.data.bits))
+    } yield response
+  }
 
   val _system = new Database(this, "_system")
 
-  def authenticate(user: String, password: String): EitherT[Future, VPackError, Response[ResponseError]] = {
-    exec[Request[Unit], ResponseError](Request(RequestHeader.Authentication(
+  def authenticate(user: String, password: String) = {
+    exec[ResponseError](RequestHeader.Authentication(
       encryption = "plain", user = user, password = password
-    ), ()))
+    )).value
   }
 
   def version(details: Boolean = false) = {
-    exec[Request[Unit], api.Version](Request(RequestHeader.Header(
+    exec[api.Version](RequestHeader.Header(
       database = _system.name,
       requestType = RequestType.GET,
       request = "/_api/version",
       parameters = Map("details" -> details.toString)
-    ), ())).value
+    )).value
   }
 
   def databaseCreate(t: api.DatabaseCreate) = {
-    exec[Request[api.DatabaseCreate], api.DatabaseCreate.Response](Request(RequestHeader.Header(
+    exec[api.DatabaseCreate, api.DatabaseCreate.Response](Request(RequestHeader.Header(
       database = _system.name,
       requestType = RequestType.POST,
       request = "/_api/database"
@@ -61,34 +71,34 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
   }
 
   def databaseDrop(name: DatabaseName) = {
-    exec[Request[Unit], api.DatabaseDrop](Request(RequestHeader.Header(
+    exec[api.DatabaseDrop](RequestHeader.Header(
       database = _system.name,
       requestType = RequestType.DELETE,
       request = s"/_api/database/$name",
-    ), ())).value
+    )).value
   }
 
   def databases() = {
-    exec[Request[Unit], api.DatabaseList](Request(RequestHeader.Header(
+    exec[api.DatabaseList](RequestHeader.Header(
       database = _system.name,
       requestType = RequestType.GET,
       request = "/_api/database/user",
-    ), ())).value
+    )).value
   }
 
   def adminEcho() = {
-    exec[Request[Unit], api.admin.AdminEcho](Request(RequestHeader.Header(
+    exec[api.admin.AdminEcho](RequestHeader.Header(
       database = _system.name,
       requestType = RequestType.POST,
       request = "/_admin/echo"
-    ), ())).value
+    )).value
   }
 
   def adminLog() = {
-    exec[Request[Unit], api.admin.AdminLog](Request(RequestHeader.Header(
+    exec[api.admin.AdminLog](RequestHeader.Header(
       database = _system.name,
       requestType = RequestType.GET,
       request = "/_admin/log"
-    ), ())).value
+    )).value
   }
 }

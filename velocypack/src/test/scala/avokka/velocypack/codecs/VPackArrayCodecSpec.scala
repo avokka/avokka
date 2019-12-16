@@ -56,25 +56,6 @@ class VPackArrayCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrai
     assertDecode(vpackCodec, hex"09 2c 00 00 00 00 00 00 00 31 32 33 09 00 00 00 00 00 00 00 0a 00 00 00 00 00 00 00 0b 00 00 00 00 00 00 00 03 00 00 00 00 00 00 00", a123)
   }
 
-  /*
-  "codec from vector" should "encode vectors" in {
-    val lint = vectorCodec(intCodec)
-    assertCodec(lint, Vector(1,2,3), hex"02 05 31 32 33")
-
-    val cint = VPackArrayCodec.Compact.traverse[Int, Vector](intCodec)
-    assertCodec(cint, Vector(0,1,2), hex"13 06 30 31 32 03")
-  }
-
-  "codec from list" should "encode lists" in {
-    val lint = listCodec(intCodec)
-    assertCodec(lint, List(1,2,3), hex"02 05 31 32 33")
-    assertCodec(lint, List(16,32,64,128), hex"02 0a 2810 2820 2840 2880")
-    assertCodec(lint, List(1,16), hex"06 08 02 31 2810 03 04")
-    assertCodec(lint, List(16,1), hex"06 08 02 2810 31 03 05")
-    assertDecode(lint, hex"06 09 02 00 2810 31 04 06", List(16,1))
-  }
-*/
-
   "codec" should "fail if head is not a array" in {
     assert(VPackArrayCodec.codec.decode(hex"00".bits).isFailure)
   }

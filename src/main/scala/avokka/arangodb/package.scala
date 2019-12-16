@@ -1,34 +1,39 @@
 package avokka
 
 import avokka.velocypack._
+import cats.data.EitherT
 import scodec.Codec
 import scodec.codecs.provide
 import shapeless.tag
 import shapeless.tag.@@
 import cats.syntax.contravariant._
 
+import scala.concurrent.Future
+
 package object arangodb {
+
+  type FEE[T] = EitherT[Future, VPackError, T]
 
   trait DatabaseNameTag
   type DatabaseName = String @@ DatabaseNameTag
   def DatabaseName(value: String): DatabaseName = tag[DatabaseNameTag][String](value)
 
-  implicit val databaseNameEncoder: VPackEncoder[DatabaseName] = VPackEncoder.stringEncoder.narrow //.contramap(_.asInstanceOf[String])
-  implicit val databaseNameDecoder: VPackDecoder[DatabaseName] = VPackDecoder.stringDecoder.map(DatabaseName)
+  implicit val databaseNameEncoder: VPackEncoder[DatabaseName] = VPackEncoder[String].narrow
+  implicit val databaseNameDecoder: VPackDecoder[DatabaseName] = VPackDecoder[String].map(DatabaseName)
 
   trait CollectionNameTag
   type CollectionName = String @@ CollectionNameTag
   def CollectionName(value: String): CollectionName = tag[CollectionNameTag][String](value)
 
-  implicit val collectionNameEncoder: VPackEncoder[CollectionName] = VPackEncoder.stringEncoder.narrow // contramap(_.asInstanceOf[String])
-  implicit val collectionNameDecoder: VPackDecoder[CollectionName] = VPackDecoder.stringDecoder.map(CollectionName)
+  implicit val collectionNameEncoder: VPackEncoder[CollectionName] = VPackEncoder[String].narrow
+  implicit val collectionNameDecoder: VPackDecoder[CollectionName] = VPackDecoder[String].map(CollectionName)
 
   trait DocumentKeyTag
   type DocumentKey = String @@ DocumentKeyTag
   def DocumentKey(value: String): DocumentKey = tag[DocumentKeyTag][String](value)
 
-  implicit val documentKeyEncoder: VPackEncoder[DocumentKey] = VPackEncoder.stringEncoder.narrow // contramap(_.asInstanceOf[String])
-  implicit val documentKeyDecoder: VPackDecoder[DocumentKey] = VPackDecoder.stringDecoder.map(DocumentKey)
+  implicit val documentKeyEncoder: VPackEncoder[DocumentKey] = VPackEncoder[String].narrow
+  implicit val documentKeyDecoder: VPackDecoder[DocumentKey] = VPackDecoder[String].map(DocumentKey)
 
   case class DocumentHandle
   (
@@ -47,7 +52,7 @@ package object arangodb {
     val empty = DocumentHandle(CollectionName(""), DocumentKey(""))
   }
 
-  implicit val documentHandleEncoder: VPackEncoder[DocumentHandle] = VPackEncoder.stringEncoder.contramap(_.path)
-  implicit val documentHandleDecoder: VPackDecoder[DocumentHandle] = VPackDecoder.stringDecoder.map(DocumentHandle.apply)
+  implicit val documentHandleEncoder: VPackEncoder[DocumentHandle] = VPackEncoder[String].contramap(_.path)
+  implicit val documentHandleDecoder: VPackDecoder[DocumentHandle] = VPackDecoder[String].map(DocumentHandle.apply)
 
 }

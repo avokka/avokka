@@ -8,23 +8,23 @@ class Database(val session: Session, databaseName: String = "_system") {
   lazy val name = DatabaseName(databaseName)
 
   def engine() = {
-    session.exec[Request[Unit], api.Engine](Request(RequestHeader.Header(
+    session.exec[api.Engine](RequestHeader.Header(
       database = name,
       requestType = RequestType.GET,
       request = "/_api/engine"
-    ), ())).value
+    )).value
   }
 
   def info() = {
-    session.exec[Request[Unit], api.DatabaseCurrent](Request(RequestHeader.Header(
+    session.exec[api.DatabaseCurrent](RequestHeader.Header(
       database = name,
       requestType = RequestType.GET,
       request = "/_api/database/current"
-    ), ())).value
+    )).value
   }
 
   def collectionCreate(t: api.CollectionCreate, waitForSyncReplication: Int = 1, enforceReplicationFactor: Int = 1) = {
-    session.exec[Request[api.CollectionCreate], api.CollectionInfo](Request(RequestHeader.Header(
+    session.exec[api.CollectionCreate, api.CollectionInfo](Request(RequestHeader.Header(
       database = name,
       requestType = RequestType.POST,
       request = s"/_api/collection",
@@ -36,26 +36,26 @@ class Database(val session: Session, databaseName: String = "_system") {
   }
 
   def collections(excludeSystem: Boolean = false) = {
-    session.exec[Request[Unit], api.CollectionList](Request(RequestHeader.Header(
+    session.exec[api.CollectionList](RequestHeader.Header(
       database = name,
       requestType = RequestType.GET,
       request = "/_api/collection",
       parameters = Map(
         "excludeSystem" -> excludeSystem.toString
       )
-    ), ())).value
+    )).value
   }
 
   def document[T](handle: DocumentHandle)(implicit d: VPackDecoder[T]) = {
-    session.exec[Request[Unit], T](Request(RequestHeader.Header(
+    session.exec[T](RequestHeader.Header(
       database = name,
       requestType = RequestType.GET,
       request = s"/_api/document/${handle.path}"
-    ), ())).value
+    )).value
   }
 
   def cursor[V: VPackEncoder, T: VPackDecoder](cursor: api.Cursor[V]) = {
-    session.exec[Request[api.Cursor[V]], api.Cursor.Response[T]](Request(RequestHeader.Header(
+    session.exec[api.Cursor[V], api.Cursor.Response[T]](Request(RequestHeader.Header(
       database = name,
       requestType = RequestType.POST,
       request = s"/_api/cursor"

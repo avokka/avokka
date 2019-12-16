@@ -13,8 +13,8 @@ object MessageType {
   case object ResponseChunk extends MessageType(3)
   case object Authentication extends MessageType(1000)
 
-  implicit val encoder: VPackEncoder[MessageType] = VPackEncoder.intEncoder.contramap(_.i)
-  implicit val decoder: VPackDecoder[MessageType] = VPackDecoder.intDecoder.flatMap {
+  implicit val encoder: VPackEncoder[MessageType] = VPackEncoder[Int].contramap(_.i)
+  implicit val decoder: VPackDecoder[MessageType] = VPackDecoder[Int].emap {
     case Request.i => Request.asRight
     case ResponseFinal.i => ResponseFinal.asRight
     case ResponseChunk.i => ResponseChunk.asRight

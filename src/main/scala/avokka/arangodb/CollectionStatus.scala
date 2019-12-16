@@ -16,8 +16,8 @@ object CollectionStatus {
   case object Deleted extends CollectionStatus(5)
   case object Loading extends CollectionStatus(6)
 
-  implicit val encoder: VPackEncoder[CollectionStatus] = VPackEncoder.intEncoder.contramap(_.i)
-  implicit val decoder: VPackDecoder[CollectionStatus] = VPackDecoder.intDecoder.flatMap {
+  implicit val encoder: VPackEncoder[CollectionStatus] = VPackEncoder[Int].contramap(_.i)
+  implicit val decoder: VPackDecoder[CollectionStatus] = VPackDecoder[Int].emap {
     case Unknown.i => Unknown.asRight
     case NewBorn.i => NewBorn.asRight
     case Unloaded.i => Unloaded.asRight

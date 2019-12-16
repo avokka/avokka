@@ -18,7 +18,7 @@ trait VPackEncoder[T] { self =>
 object VPackEncoder {
   def apply[T](implicit encoder: VPackEncoder[T]): VPackEncoder[T] = encoder
 
-  def apply[T](f: T => VPack): VPackEncoder[T] = (t: T) => f(t)
+//  def apply[T](f: T => VPack): VPackEncoder[T] = (t: T) => f(t)
 
   implicit val contravariance: Contravariant[VPackEncoder] = new Contravariant[VPackEncoder] {
     override def contramap[A, B](fa: VPackEncoder[A])(f: B => A): VPackEncoder[B] = (t: B) => fa.encode(f(t))

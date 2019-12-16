@@ -10,7 +10,7 @@ object VPackError {
 
   case object Overflow extends VPackError
 
-  case object WrongType extends VPackError
+  case class WrongType(v: VPack) extends VPackError
 
   case class Conversion(from: Throwable) extends VPackError
 

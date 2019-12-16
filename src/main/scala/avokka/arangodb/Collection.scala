@@ -11,7 +11,7 @@ class Collection(val database: Database, collectionName: String) {
   def document[T](key: DocumentKey)(implicit d: VPackDecoder[T]): Future[Either[VPackError, Response[T]]] = database.document(DocumentHandle(name, key))(d)
 
   def documentCreate[T](t: T, returnNew: Boolean = false)(implicit encoder: VPackEncoder[T], decoder: VPackDecoder[T]) = {
-    database.session.exec[Request[T], api.DocumentCreate[T]](Request(RequestHeader.Header(
+    database.session.exec[T, api.DocumentCreate[T]](Request(RequestHeader.Header(
       database = database.name,
       requestType = RequestType.POST,
       request = s"/_api/document/$name"
@@ -19,53 +19,52 @@ class Collection(val database: Database, collectionName: String) {
   }
 
   def drop(isSystem: Boolean = false) = {
-    database.session.exec[Request[Unit], api.CollectionDrop](Request(RequestHeader.Header(
+    database.session.exec[api.CollectionDrop](RequestHeader.Header(
       database = database.name,
       requestType = RequestType.DELETE,
       request = s"/_api/collection/$name",
       parameters = Map("isSystem" -> isSystem.toString)
-    ), ())).value
+    )).value
   }
 
   def truncate() = {
-    database.session.exec[Request[Unit], api.CollectionInfo](Request(RequestHeader.Header(
+    database.session.exec[api.CollectionInfo](RequestHeader.Header(
       database = database.name,
       requestType = RequestType.PUT,
       request = s"/_api/collection/$name/truncate",
-    ), ())).value
+    )).value
   }
 
   def unload() = {
-    database.session.exec[Request[Unit], api.CollectionInfo](Request(RequestHeader.Header(
+    database.session.exec[api.CollectionInfo](RequestHeader.Header(
       database = database.name,
       requestType = RequestType.PUT,
       request = s"/_api/collection/$name/unload",
-    ), ())).value
+    )).value
   }
 
   def info() = {
-    database.session.exec[Request[Unit], api.CollectionInfo](Request(RequestHeader.Header(
+    database.session.exec[api.CollectionInfo](RequestHeader.Header(
       database = database.name,
       requestType = RequestType.GET,
       request = s"/_api/collection/$name",
-    ), ())).value
+    )).value
   }
 
   def properties() = {
-    database.session.exec[Request[Unit], api.CollectionProperties](Request(RequestHeader.Header(
+    database.session.exec[api.CollectionProperties](RequestHeader.Header(
       database = database.name,
       requestType = RequestType.GET,
       request = s"/_api/collection/$name/properties",
-    ), ())).value
+    )).value
   }
 
   def count() = {
-    database.session.exec[Request[Unit], api.CollectionCount](Request(
-      RequestHeader.Header(
-        database = database.name,
-        requestType = RequestType.GET,
-        request = s"/_api/collection/$name/count",
-      ), ())).value
+    database.session.exec[api.CollectionCount](RequestHeader.Header(
+      database = database.name,
+      requestType = RequestType.GET,
+      request = s"/_api/collection/$name/count",
+    )).value
   }
 
   /**
@@ -86,21 +85,19 @@ class Collection(val database: Database, collectionName: String) {
    * @return
    */
   def checksum(withRevisions: Boolean = false, withData: Boolean = false) = {
-    database.session.exec[Request[Unit], api.CollectionChecksum](Request(
-      RequestHeader.Header(
-        database = database.name,
-        requestType = RequestType.GET,
-        request = s"/_api/collection/$name/checksum",
-        parameters = Map("withRevisions" -> withRevisions.toString, "withData" -> withData.toString)
-      ), ())).value
+    database.session.exec[api.CollectionChecksum](RequestHeader.Header(
+      database = database.name,
+      requestType = RequestType.GET,
+      request = s"/_api/collection/$name/checksum",
+      parameters = Map("withRevisions" -> withRevisions.toString, "withData" -> withData.toString)
+    )).value
   }
 
   def revision() = {
-    database.session.exec[Request[Unit], api.CollectionRevision](Request(
-      RequestHeader.Header(
-        database = database.name,
-        requestType = RequestType.GET,
-        request = s"/_api/collection/$name/revision",
-      ), ())).value
+    database.session.exec[api.CollectionRevision](RequestHeader.Header(
+      database = database.name,
+      requestType = RequestType.GET,
+      request = s"/_api/collection/$name/revision",
+    )).value
   }
 }

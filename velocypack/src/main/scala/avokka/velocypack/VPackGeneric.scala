@@ -39,7 +39,7 @@ object VPackGeneric { c =>
   object Decoder {
     def apply[A <: HList](implicit ev: Decoder[A]): VPackDecoder[A] = {
       case VArray(values) => ev.decode(values)
-      case _ => VPackError.WrongType.asLeft
+      case v => VPackError.WrongType(v).asLeft
     }
 
     implicit object hnilDecoder extends Decoder[HNil] {

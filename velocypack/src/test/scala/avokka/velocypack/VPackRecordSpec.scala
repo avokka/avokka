@@ -8,20 +8,6 @@ class VPackRecordSpec extends FlatSpec with Matchers with VPackSpecTrait {
   import VPackRecordSpec._
 
   /*
-  "map codec" should "conform specs" in {
-
-    val sint = VPackObjectCodec.mapOf(intCodec)
-    assertEncodePack(sint, Map("z" -> 1, "a" -> 2), """{"z":1,"a":2}""")
-
-    val mint = VPackObjectCodec.Unsorted.mapOf(intCodec)
-    assertEncodePack(mint, Map("z" -> 1, "a" -> 2), """{"z":1,"a":2}""")
-
-    val cint = VPackObjectCodec.Compact.mapOf(intCodec)
-    assertCodec(cint, Map.empty[String, Int], hex"0a")
-    assertCodec(cint, Map("a" -> 0, "b" -> 1, "c" -> 2), hex"14 0c 4161 30 4162 31 4163 32 03")
-
-  }
-
   "generic codec" should "conform specs" in {
 
     val c = VPackRecord.codec[

@@ -1,6 +1,6 @@
 package avokka.arangodb.api
 
-import avokka.arangodb.{api, _}
+import avokka.arangodb._
 import avokka.velocypack.VPack.VObject
 import avokka.velocypack._
 
@@ -26,6 +26,7 @@ object DocumentCreate { self =>
   }
 
   implicit def api[T](implicit encoder: VPackEncoder[T], decoder: VPackDecoder[T]): ApiPayload.Aux[Collection, DocumentCreate[T], T, Response[T]] = new ApiPayload[Collection, DocumentCreate[T], T] {
+    override type Response = self.Response[T]
     override def requestHeader(collection: Collection, command: DocumentCreate[T]): Request.HeaderTrait = Request.Header(
       database = collection.database.name,
       requestType = RequestType.POST,
@@ -40,7 +41,5 @@ object DocumentCreate { self =>
       case VObject(values) => VObject(values -- Seq("_key", "_id"))
       case v => v
     }
-    override type Response = self.Response[T]
-//    override val responseDecoder: VPackDecoder[Response] = Response.decoder
   }
 }

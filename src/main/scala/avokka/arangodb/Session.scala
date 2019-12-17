@@ -16,8 +16,10 @@ import scodec.bits.BitVector
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, materializer: ActorMaterializer) {
+class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, materializer: ActorMaterializer) extends ApiContext[Session] {
   import velocypack.codecs.vpackEncoder
+
+  lazy val session = this
 
   private val client = system.actorOf(Props(classOf[VStreamClient], host, port, materializer), name = s"velocystream-client")
 

@@ -61,8 +61,8 @@ object Hello {
 //    println(Await.result(countries.document[Country]("FR"), 10.seconds))
 //    println(Await.result(countries.properties(), 10.seconds))
 
-    /*
-    println(Await.result(db.cursor[Map[String, Int], Photo](Cursor(
+/*
+    println(Await.result(db(Cursor[Map[String, Int], Photo](
       query = "FOR p IN photos LIMIT @limit RETURN p",
       bindVars = Map("limit" -> 1)
     )), 10.seconds))

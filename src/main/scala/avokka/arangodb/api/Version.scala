@@ -43,6 +43,5 @@ object Version { self =>
       request = "/_api/version",
       parameters = command.parameters
     )
-   // override val responseDecoder: VPackDecoder[Response] = Response.decoder
   }
 }

@@ -1,7 +1,7 @@
 package avokka.arangodb.api
 
+import avokka.arangodb.{Database, Request, RequestType}
 import avokka.velocypack._
-import scodec.Codec
 
 /**
  * @param batchSize maximum number of result documents to be transferred from the server to the client in one roundtrip. If this attribute is not set, a server-controlled default value will be used. A *batchSize* value of *0* is disallowed.
@@ -13,7 +13,7 @@ import scodec.Codec
  * @param query contains the query string to be executed
  * @param ttl The time-to-live for the cursor (in seconds). The cursor will be removed on the server automatically after the specified amount of time. This is useful to ensure garbage collection of cursors that are not fully fetched by clients. If not set, a server-defined value will be used (default: 30 seconds).
  */
-case class Cursor[V]
+case class Cursor[V, T]
 (
   query: String,
   bindVars: V,
@@ -25,7 +25,7 @@ case class Cursor[V]
   ttl: Option[Long] = None,
 )
 
-object Cursor {
+object Cursor { self =>
 
   /**
   * key/value object with extra options for the query.
@@ -63,7 +63,7 @@ object Cursor {
     implicit val encoder: VPackEncoder[Options] = VPackRecord[Options].encoder
   }
 
-  implicit def encoder[V](implicit e: VPackEncoder[V]): VPackEncoder[Cursor[V]] = VPackRecord[Cursor[V]].encoder
+  implicit def encoder[V, T](implicit e: VPackEncoder[V]): VPackEncoder[Cursor[V, T]] = VPackRecord[Cursor[V, T]].encoder
 
   /**
    * @param cached a boolean flag indicating whether the query result was served from the query cache or not. If the query result is served from the query cache, the *extra* return attribute will not contain any *stats* sub-attribute and no *profile* sub-attribute.
@@ -86,5 +86,17 @@ object Cursor {
   object Response {
     implicit def decoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Response[T]] = VPackRecord[Response[T]].decoderWithDefaults
   }
+
+  implicit def api[V, T](implicit encoder: VPackEncoder[V], decoder: VPackDecoder[T]): ApiPayload.Aux[Database, Cursor[V, T], Cursor[V, T], Response[T]] =
+    new ApiPayload[Database, Cursor[V, T], Cursor[V, T]] {
+      override type Response = self.Response[T]
+      override def requestHeader(database: Database, command: Cursor[V, T]): Request.HeaderTrait = Request.Header(
+        database = database.name,
+        requestType = RequestType.POST,
+        request = s"/_api/cursor"
+      )
+      override def body(context: Database, command: Cursor[V, T]): Cursor[V, T] = command
+      override def bodyEncoder: VPackEncoder[Cursor[V, T]] = implicitly
+    }
 
 }

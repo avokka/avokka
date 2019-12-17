@@ -4,17 +4,11 @@ import avokka.velocypack._
 
 import scala.concurrent.Future
 
-class Collection(val database: Database, collectionName: String) {
+class Collection(val database: Database, collectionName: String) extends ApiContext[Collection] {
 
   lazy val name = CollectionName(collectionName)
 
-  def get[C, O](c: C)(implicit command: api.Api.Aux[Collection, C, O], decoder: VPackDecoder[O]): Future[Either[VPackError, Response[O]]] = {
-    database.session.exec(command.requestHeader(this, c))(decoder).value
-  }
-
-  def apply[C, T, O](c: C)(implicit command: api.ApiPayload.Aux[Collection, C, T, O], encoder: VPackEncoder[T], decoder: VPackDecoder[O]): Future[Either[VPackError, Response[O]]] = {
-    database.session.exec(Request(command.requestHeader(this, c), command.body(this, c)))(command.bodyEncoder, decoder).value
-  }
+  lazy val session = database.session
 
   def document[T](key: DocumentKey)(implicit d: VPackDecoder[T]): Future[Either[VPackError, Response[T]]] = database.document(DocumentHandle(name, key))(d)
 

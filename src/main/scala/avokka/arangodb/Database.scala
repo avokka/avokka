@@ -2,15 +2,9 @@ package avokka.arangodb
 
 import avokka.velocypack._
 
-import scala.concurrent.Future
-
-class Database(val session: Session, databaseName: String) {
+class Database(val session: Session, databaseName: String) extends ApiContext[Database] {
 
   lazy val name = DatabaseName(databaseName)
-
-  def apply[C, O](c: C)(implicit command: api.Api.Aux[Database, C, O], decoder: VPackDecoder[O]): Future[Either[VPackError, Response[O]]] = {
-    session.exec(command.requestHeader(this, c))(decoder).value
-  }
 
   def info() = {
     session.exec[api.DatabaseCurrent](Request.Header(
@@ -49,14 +43,6 @@ class Database(val session: Session, databaseName: String) {
       requestType = RequestType.GET,
       request = s"/_api/document/${handle.path}"
     )).value
-  }
-
-  def cursor[V: VPackEncoder, T: VPackDecoder](cursor: api.Cursor[V]) = {
-    session.exec[api.Cursor[V], api.Cursor.Response[T]](Request(Request.Header(
-      database = name,
-      requestType = RequestType.POST,
-      request = s"/_api/cursor"
-    ), cursor)).value
   }
 
 }

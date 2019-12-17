@@ -19,9 +19,7 @@ class VPackSpec extends FlatSpec with Matchers with VPackSpecTrait {
   }
 
   "map" should "encode to objects" in {
-
     val sint = VPackEncoder[Map[String, Int]]
     assertEnc(sint, Map("z" -> 1, "a" -> 2), VObject(Map("z" -> VSmallint(1), "a" -> VSmallint(2))))
-
   }
 }

@@ -2,8 +2,6 @@ package avokka
 
 import avokka.velocypack._
 import cats.data.EitherT
-import scodec.Codec
-import scodec.codecs.provide
 import shapeless.tag
 import shapeless.tag.@@
 import cats.syntax.contravariant._

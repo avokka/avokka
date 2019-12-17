@@ -8,8 +8,13 @@ import avokka.velocypack
 import avokka.velocypack._
 import avokka.velocystream._
 import cats.data.EitherT
-import cats.implicits._
+import cats.instances.future._
+import cats.instances.vector._
+import cats.syntax.either._
+import cats.syntax.traverse._
+import cats.syntax.foldable._
 import scodec.bits.BitVector
+import scodec.interop.cats._
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -44,7 +49,7 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
     } yield response
   }
 
-  val _system = new Database(this, "_system")
+  val _system = new Database(this, Database.systemName)
 
   def authenticate(user: String, password: String) = {
     exec[ResponseError](Request.Authentication(

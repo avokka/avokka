@@ -1,9 +1,8 @@
 package avokka.arangodb
 
-import avokka.arangodb
 import avokka.velocypack._
 
-class Database(val session: Session, databaseName: String = "_system") {
+class Database(val session: Session, databaseName: String) {
 
   lazy val name = DatabaseName(databaseName)
 
@@ -62,4 +61,8 @@ class Database(val session: Session, databaseName: String = "_system") {
     ), cursor)).value
   }
 
+}
+
+object Database {
+  val systemName: DatabaseName = DatabaseName("_system")
 }

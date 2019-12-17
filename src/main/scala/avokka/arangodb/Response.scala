@@ -1,12 +1,9 @@
 package avokka.arangodb
 
 import avokka.velocypack._
-import cats.data.Validated
-import cats.implicits._
+import cats.syntax.either._
 import com.arangodb.velocypack.{VPack, VPackSlice}
-import scodec.{Attempt, Decoder, Err}
 import scodec.bits.BitVector
-import scodec.interop.cats._
 
 case class Response[T]
 (

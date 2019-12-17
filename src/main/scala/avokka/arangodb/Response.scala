@@ -30,11 +30,15 @@ object Response {
   def toSlice(bits: BitVector) = new VPackSlice(bits.toByteArray)
 
   def decode[T](bits: BitVector)(implicit bodyDecoder: VPackDecoder[T]): Either[VPackError, Response[T]] = {
+    println("response header", toSlice(bits).toString)
     Header.decoder.deserializer.decode(bits).flatMap { header =>
-      println(toSlice(header.remainder).toString)
+      println("response header vpack", header.value)
+      println("response body", toSlice(header.remainder).toString)
       if (header.value.responseCode >= 400) {
         ResponseError.decoder.deserializer.decodeValue(header.remainder).map(_.asLeft[Response[T]])
       } else {
+        println("response body raw", header.remainder.bytes.toHex)
+        println("response body vpack", codecs.vpackDecoder.decode(header.remainder))
         bodyDecoder.deserializer.decodeValue(header.remainder).map(body =>
           Response(header.value, body).asRight[VPackError]
         )

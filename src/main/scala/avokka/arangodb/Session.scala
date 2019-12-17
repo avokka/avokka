@@ -7,14 +7,11 @@ import akka.util.Timeout
 import avokka.velocypack
 import avokka.velocypack._
 import avokka.velocystream._
+import cats.Show
 import cats.data.EitherT
 import cats.instances.future._
-import cats.instances.vector._
 import cats.syntax.either._
-import cats.syntax.traverse._
-import cats.syntax.foldable._
 import scodec.bits.BitVector
-import scodec.interop.cats._
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -31,6 +28,7 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
 
   def exec[O](head: Request.HeaderTrait)(implicit decoder: VPackDecoder[O]): FEE[Response[O]] = {
     val header = Request.headerEncoder.encode(head)
+//    println("request header", Show[VPack].show(header))
     for {
       bits   <- EitherT.fromEither[Future](vpackEncoder.encode(header).toEither.leftMap(VPackError.Codec))
       message <- askClient(bits)
@@ -40,7 +38,9 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
 
   def exec[P, O](request: Request[P])(implicit encoder: VPackEncoder[P], decoder: VPackDecoder[O]): FEE[Response[O]] = {
     val header = Request.headerEncoder.encode(request.header)
+//    println("request header", Show[VPack].show(header))
     val payload = encoder.encode(request.body)
+//    println("request payload", Show[VPack].show(payload))
     for {
       hBits   <- EitherT.fromEither[Future](vpackEncoder.encode(header).toEither.leftMap(VPackError.Codec))
       pBits   <- EitherT.fromEither[Future](vpackEncoder.encode(payload).toEither.leftMap(VPackError.Codec))
@@ -49,7 +49,7 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
     } yield response
   }
 
-  val _system = new Database(this, Database.systemName)
+  lazy val _system = new Database(this, Database.systemName)
 
   def authenticate(user: String, password: String) = {
     exec[ResponseError](Request.Authentication(
@@ -57,18 +57,9 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
     )).value
   }
 
-  def version(details: Boolean = false) = {
-    exec[api.Version](Request.Header(
-      database = _system.name,
-      requestType = RequestType.GET,
-      request = "/_api/version",
-      parameters = Map("details" -> details.toString)
-    )).value
-  }
-
   def databaseCreate(t: api.DatabaseCreate) = {
     exec[api.DatabaseCreate, api.DatabaseCreate.Response](Request(Request.Header(
-      database = _system.name,
+      database = Database.systemName,
       requestType = RequestType.POST,
       request = "/_api/database"
     ), t)).value
@@ -76,7 +67,7 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
 
   def databaseDrop(name: DatabaseName) = {
     exec[api.DatabaseDrop](Request.Header(
-      database = _system.name,
+      database = Database.systemName,
       requestType = RequestType.DELETE,
       request = s"/_api/database/$name",
     )).value
@@ -84,7 +75,7 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
 
   def databases() = {
     exec[api.DatabaseList](Request.Header(
-      database = _system.name,
+      database = Database.systemName,
       requestType = RequestType.GET,
       request = "/_api/database/user",
     )).value
@@ -92,7 +83,7 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
 
   def adminEcho() = {
     exec[api.admin.AdminEcho](Request.Header(
-      database = _system.name,
+      database = Database.systemName,
       requestType = RequestType.POST,
       request = "/_admin/echo"
     )).value
@@ -100,7 +91,7 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
 
   def adminLog() = {
     exec[api.admin.AdminLog](Request.Header(
-      database = _system.name,
+      database = Database.systemName,
       requestType = RequestType.GET,
       request = "/_admin/log"
     )).value

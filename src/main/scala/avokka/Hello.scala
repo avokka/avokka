@@ -5,6 +5,7 @@ import java.time.Instant
 import akka.actor._
 import akka.stream._
 import avokka.arangodb._
+import avokka.arangodb.api._
 import avokka.velocypack._
 
 import scala.concurrent._
@@ -50,6 +51,8 @@ object Hello {
   //  val countries = new Collection(db, "countries")
 
     println(Await.result(auth, 10.seconds))
+//    println(Await.result(db(Version()), 10.seconds))
+//    println(Await.result(db(Engine), 10.seconds))
 //    println(Await.result(db.engine(), 10.seconds))
 //    println(Await.result(session.databases(), 10.seconds))
 //    println(Await.result(db.collections(), 10.seconds))
@@ -69,7 +72,7 @@ object Hello {
 
     println(Await.result(session.databaseCreate(api.DatabaseCreate(name = scratch.name)), 1.minute))
     println(Await.result(scratch.collectionCreate(api.CollectionCreate(name = countries.name)), 1.minute))
-    println(Await.result(countries.documentCreate(Country(name = "Moi", flag = "[X]")), 1.minute))
+    println(Await.result(countries(DocumentCreate(Country(name = "Moi", flag = "[X]"))), 1.minute))
 
     println(Await.result(session.databaseDrop(scratch.name), 1.minute))
 

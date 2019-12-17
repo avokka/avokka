@@ -29,7 +29,14 @@ class VPackObjectCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTra
 
     assertDecode(vpackCodec,
       hex"0b340346736572766572466172616e676f476c6963656e736549636f6d6d756e6974794776657273696f6e45332e352e32110323",
-      VObject(Map("server" -> VString("arango"), "license" -> VString("community"), "version"-> VString("3.5.2")))
+      VObject(Map("server" -> VString("arango"), "license" -> VString("community"), "version" -> VString("3.5.2")))
+    )
+  }
+
+  "object codec" should "deal with integer keys" in {
+    assertDecode(vpackCodec,
+      hex"0b41033359636f756e7472792f313431333737343930363530303239393431513134313337373439303635303032393934324b5f5a7650777a57572d2d5f031e31",
+      VObject(Map("_id" -> VString("country/14137749065002994"), "_key" -> VString("14137749065002994"), "_rev" -> VString("_ZvPwzWW--_")))
     )
   }
 

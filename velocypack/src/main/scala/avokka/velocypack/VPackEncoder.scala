@@ -13,6 +13,7 @@ import scala.annotation.implicitNotFound
 @implicitNotFound("Cannot find a velocypack encoder for ${T}")
 trait VPackEncoder[T] { self =>
   def encode(t: T): VPack
+  def map(f: VPack => VPack): VPackEncoder[T] = (t: T) => f(self.encode(t))
 }
 
 object VPackEncoder {

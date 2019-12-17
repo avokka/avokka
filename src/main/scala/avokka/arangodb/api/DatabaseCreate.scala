@@ -33,6 +33,8 @@ object DatabaseCreate {
     implicit val encoder: VPackEncoder[Users] = VPackRecord[Users].encoder
   }
 
+  implicit val encoder: VPackEncoder[DatabaseCreate] = VPackRecord[DatabaseCreate].encoder
+
   case class Response
   (
     result: Boolean
@@ -40,7 +42,5 @@ object DatabaseCreate {
   object Response {
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoderWithDefaults
   }
-
-  implicit val encoder: VPackEncoder[DatabaseCreate] = VPackRecord[DatabaseCreate].encoder
 
 }

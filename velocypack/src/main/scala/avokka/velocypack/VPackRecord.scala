@@ -37,7 +37,7 @@ object VPackRecord {
   }
 
   trait Decoder[A <: HList, D <: HList] {
-    def decode(v: Map[String, VPack], defaults: D): VPackDecoder.Result[A]
+    def decode(v: Map[String, VPack], defaults: D): Result[A]
   }
 
   object Decoder {
@@ -47,7 +47,7 @@ object VPackRecord {
     }
 
     implicit object hnilDecoder extends Decoder[HNil, HNil] {
-      override def decode(v: Map[String, VPack], defaults: HNil): VPackDecoder.Result[HNil] = HNil.asRight
+      override def decode(v: Map[String, VPack], defaults: HNil): Result[HNil] = HNil.asRight
     }
 
     implicit def hconsDecoder[K <: Symbol, H, T <: HList]
@@ -58,7 +58,7 @@ object VPackRecord {
     ): Decoder[FieldType[K, H] :: T, HNil] = new Decoder[FieldType[K, H] :: T, HNil] {
       private val keyName: String = key.value.name
 
-      override def decode(v: Map[String, VPack], defaults: HNil): VPackDecoder.Result[FieldType[K, H] :: T] = {
+      override def decode(v: Map[String, VPack], defaults: HNil): Result[FieldType[K, H] :: T] = {
         v.get(keyName) match {
           case Some(value) => for {
             rl <- decoder.decode(value) //.mapErr(_.pushContext(keyName))
@@ -78,7 +78,7 @@ object VPackRecord {
     ): Decoder[FieldType[K, H] :: T, Option[H] :: D] = new Decoder[FieldType[K, H] :: T, Option[H] :: D] {
       private val keyName: String = key.value.name
 
-      override def decode(v: Map[String, VPack], defaults: Option[H] :: D): VPackDecoder.Result[FieldType[K, H] :: T] = {
+      override def decode(v: Map[String, VPack], defaults: Option[H] :: D): Result[FieldType[K, H] :: T] = {
         val default = defaults.head
         v.get(keyName) match {
           case Some(value) => for {

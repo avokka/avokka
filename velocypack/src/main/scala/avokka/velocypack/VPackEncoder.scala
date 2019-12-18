@@ -13,7 +13,10 @@ import scala.annotation.implicitNotFound
 @implicitNotFound("Cannot find a velocypack encoder for ${T}")
 trait VPackEncoder[T] { self =>
   def encode(t: T): VPack
+
   def map(f: VPack => VPack): VPackEncoder[T] = (t: T) => f(self.encode(t))
+
+  def contramap[U](f: U => T): VPackEncoder[U] = (u: U) => self.encode(f(u))
 }
 
 object VPackEncoder {
@@ -22,7 +25,7 @@ object VPackEncoder {
 //  def apply[T](f: T => VPack): VPackEncoder[T] = (t: T) => f(t)
 
   implicit val contravariance: Contravariant[VPackEncoder] = new Contravariant[VPackEncoder] {
-    override def contramap[A, B](fa: VPackEncoder[A])(f: B => A): VPackEncoder[B] = (t: B) => fa.encode(f(t))
+    override def contramap[A, B](fa: VPackEncoder[A])(f: B => A): VPackEncoder[B] = fa.contramap(f)
   }
 
   // scala types encoders

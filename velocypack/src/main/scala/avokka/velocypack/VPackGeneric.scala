@@ -33,7 +33,7 @@ object VPackGeneric { c =>
   }
 
   trait Decoder[A <: HList] {
-    def decode(v: Chain[VPack]): VPackDecoder.Result[A]
+    def decode(v: Chain[VPack]): Result[A]
   }
 
   object Decoder {
@@ -43,7 +43,7 @@ object VPackGeneric { c =>
     }
 
     implicit object hnilDecoder extends Decoder[HNil] {
-      override def decode(v: Chain[VPack]): VPackDecoder.Result[HNil] = HNil.asRight
+      override def decode(v: Chain[VPack]): Result[HNil] = HNil.asRight
     }
 
     implicit def hconsDecoder[T, A <: HList]

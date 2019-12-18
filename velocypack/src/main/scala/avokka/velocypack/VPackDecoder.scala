@@ -7,8 +7,7 @@ import cats.instances.either._
 import cats.instances.list._
 import cats.syntax.either._
 import cats.syntax.traverse._
-import scodec.bits.{BitVector, ByteVector}
-import scodec.{Attempt, DecodeResult, Decoder, Err}
+import scodec.bits.ByteVector
 import shapeless.HList
 
 import scala.annotation.implicitNotFound
@@ -16,69 +15,16 @@ import scala.util.Try
 
 @implicitNotFound("Cannot find an velocypack decoder for ${T}")
 trait VPackDecoder[T] { self =>
-  def decode(v: VPack): VPackDecoder.Result[T]
+  def decode(v: VPack): Result[T]
 
   def map[U](f: T => U): VPackDecoder[U] = (v: VPack) => decode(v).map(f)
 
-  def emap[U](f: T => VPackDecoder.Result[U]): VPackDecoder[U] = (v: VPack) => decode(v).flatMap(f)
+  def emap[U](f: T => Result[U]): VPackDecoder[U] = (v: VPack) => decode(v).flatMap(f)
 
-  lazy val deserializer: Decoder[T] = new Decoder[T] {
-    override def decode(bits: BitVector): Attempt[DecodeResult[T]] = codecs.vpackDecoder.decode(bits).flatMap { r =>
-      self.decode(r.value).fold(
-        e => Attempt.failure(Err(e.getMessage)),
-        t => Attempt.successful(DecodeResult(t, r.remainder))
-      )
-    }
-  }
 }
 
 object VPackDecoder {
-  type Result[T] = Either[VPackError, T]
-
   def apply[T](implicit decoder: VPackDecoder[T]): VPackDecoder[T] = decoder
-
-//  def apply[T](f: VPack => Result[T]): VPackDecoder[T] = (v: VPack) => f(v)
-
-  /*
-  implicit val applicativeError: ApplicativeError[VPackDecoder, VPackError] = new ApplicativeError[VPackDecoder, VPackError] {
-    override def raiseError[A](e: VPackError): VPackDecoder[A] = (v: VPack) => e.asLeft
-    override def handleErrorWith[A](fa: VPackDecoder[A])(f: VPackError => VPackDecoder[A]): VPackDecoder[A] = new VPackDecoder[A] {
-      override def decode(v: VPack): Result[A] = fa.decode(v).handleErrorWith(e => f(e).decode(v))
-    }
-    override def pure[A](x: A): VPackDecoder[A] = (v: VPack) => x.asRight
-    override def ap[A, B](ff: VPackDecoder[A => B])(fa: VPackDecoder[A]): VPackDecoder[B] = new VPackDecoder[B] {
-      override def decode(v: VPack): Result[B] = fa.decode(v) match {
-        case Left(l) => Left(l)
-        case Right(r) => ff.decode(v) match {
-          case Left(l) => Left(l)
-          case Right(ffv) => ffv(r).asRight
-        }
-      }
-    }
-  }
-*/
-
-  /*
-  implicit val monad = new MonadError[VPackDecoder, VPackError] {
-    override def flatMap[A, B](fa: VPackDecoder[A])(f: A => VPackDecoder[B]): VPackDecoder[B] = new VPackDecoder[B] {
-      override def decode(v: VPack): Result[B] = fa.decode(v) match {
-        case Left(value) => Left(value)
-        case Right(value) => f(value).decode(v)
-      }
-    }
-    override def tailRecM[A, B](a: A)(f: A => VPackDecoder[Either[A, B]]): VPackDecoder[B] = ???
-    override def pure[A](x: A): VPackDecoder[A] = new VPackDecoder[A] {
-      override def decode(v: VPack): Result[A] = x.asRight
-    }
-    override def raiseError[A](e: VPackError): VPackDecoder[A] = new VPackDecoder[A] {
-      override def decode(v: VPack): Result[A] = e.asLeft
-    }
-    override def handleErrorWith[A](fa: VPackDecoder[A])(f: VPackError => VPackDecoder[A]): VPackDecoder[A] =
-      new VPackDecoder[A] {
-        override def decode(v: VPack): Result[A] = fa.decode(v).leftFlatMap(f)
-      }
-  }
-  */
 
   // scala types instances
 

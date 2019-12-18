@@ -2,7 +2,6 @@ package avokka.arangodb
 
 import avokka.velocypack.{VPackDecoder, VPackEncoder, VPackError}
 import cats.syntax.either._
-import cats.syntax.contravariant._
 
 sealed abstract class CollectionType(val i: Int)
 

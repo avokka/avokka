@@ -4,20 +4,16 @@ import akka.actor.{ActorSystem, Props}
 import akka.pattern.ask
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import avokka.velocypack
 import avokka.velocypack._
 import avokka.velocystream._
-import cats.Show
 import cats.data.EitherT
 import cats.instances.future._
-import cats.syntax.either._
 import scodec.bits.BitVector
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, materializer: ActorMaterializer) extends ApiContext[Session] {
-  import velocypack.codecs.vpackEncoder
 
   lazy val session = this
 
@@ -29,23 +25,17 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
   def askClient[T](bits: BitVector): FEE[VStreamMessage] = EitherT.liftF(ask(client, bits.bytes).mapTo[VStreamMessage])
 
   def exec[O](head: Request.HeaderTrait)(implicit decoder: VPackDecoder[O]): FEE[Response[O]] = {
-    val header = Request.headerEncoder.encode(head)
-//    println("request header", Show[VPack].show(header))
     for {
-      bits   <- EitherT.fromEither[Future](vpackEncoder.encode(header).toEither.leftMap(VPackError.Codec))
+      bits   <- EitherT.fromEither[Future](head.toVPackBits)
       message <- askClient(bits)
       response <- EitherT.fromEither[Future](Response.decode[O](message.data.bits))
     } yield response
   }
 
   def exec[P, O](request: Request[P])(implicit encoder: VPackEncoder[P], decoder: VPackDecoder[O]): FEE[Response[O]] = {
-    val header = Request.headerEncoder.encode(request.header)
-//    println("request header", Show[VPack].show(header))
-    val payload = encoder.encode(request.body)
-//    println("request payload", Show[VPack].show(payload))
     for {
-      hBits   <- EitherT.fromEither[Future](vpackEncoder.encode(header).toEither.leftMap(VPackError.Codec))
-      pBits   <- EitherT.fromEither[Future](vpackEncoder.encode(payload).toEither.leftMap(VPackError.Codec))
+      hBits   <- EitherT.fromEither[Future](request.header.toVPackBits)
+      pBits   <- EitherT.fromEither[Future](request.body.toVPackBits)
       message <- askClient(hBits ++ pBits)
       response <- EitherT.fromEither[Future](Response.decode[O](message.data.bits))
     } yield response

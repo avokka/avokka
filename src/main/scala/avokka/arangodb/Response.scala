@@ -25,26 +25,23 @@ object Response {
     implicit val decoder: VPackDecoder[Header] = VPackGeneric[Header].decoder
   }
 
-
   val vp = new VPack.Builder().build()
   def toSlice(bits: BitVector) = new VPackSlice(bits.toByteArray)
 
   def decode[T](bits: BitVector)(implicit bodyDecoder: VPackDecoder[T]): Either[VPackError, Response[T]] = {
-    println("response header", toSlice(bits).toString)
-    Header.decoder.deserializer.decode(bits).flatMap { header =>
+    println("response header slice", toSlice(bits).toString)
+    bits.as[Header].flatMap { header =>
       println("response header vpack", header.value)
-      println("response body", toSlice(header.remainder).toString)
+      println("response body slice", toSlice(header.remainder).toString)
       if (header.value.responseCode >= 400) {
-        ResponseError.decoder.deserializer.decodeValue(header.remainder).map(_.asLeft[Response[T]])
-      } else {
+        header.remainder.as[ResponseError].flatMap(_.value.asLeft)
+      }
+      else {
         println("response body raw", header.remainder.bytes.toHex)
         println("response body vpack", codecs.vpackDecoder.decode(header.remainder))
-        bodyDecoder.deserializer.decodeValue(header.remainder).map(body =>
-          Response(header.value, body).asRight[VPackError]
-        )
+        header.remainder.as[T].flatMap(body => Response(header.value, body.value).asRight)
       }
-    }.fold(err => VPackError.Codec(err).asLeft, identity)
-
+    }
     /*
     for {
       header <- bits.fromVPack[ResponseHeader]
@@ -52,21 +49,6 @@ object Response {
     } yield Response(header.value, body.value)
     */
 
-    /*
-
-    for {
-      header <- ResponseHeader.codec.decode(bits)
-      _ = println(toSlice(header.remainder).toString)
-      body   <- if (header.value.responseCode >= 400) {
-                  ResponseError.codec.decode(header.remainder).flatMap { err =>
-                    Attempt.failure(Err(err.value.errorMessage))
-                  }
-                }
-                else bodyDecoder.decode(header.remainder)
-    } yield body.map(b => Response(header.value, b))
-
-     */
-//    Decoder.decodeBothCombine(ResponseHeader.codec, tDecoder)(bits)(Response[T])
   }
 
 }

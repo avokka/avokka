@@ -1,11 +1,10 @@
 package avokka
 
-import avokka.arangodb.api.Api
 import avokka.velocypack._
 import cats.data.EitherT
+import cats.syntax.contravariant._
 import shapeless.tag
 import shapeless.tag.@@
-import cats.syntax.contravariant._
 
 import scala.concurrent.Future
 

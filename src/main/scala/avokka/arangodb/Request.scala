@@ -1,5 +1,6 @@
 package avokka.arangodb
 
+import avokka.arangodb.api.Api
 import avokka.velocypack._
 
 case class Request[T]
@@ -31,13 +32,18 @@ object Request {
   (
     version: Int = 1,
     `type`: MessageType = MessageType.Authentication,
-    encryption: String,
+    encryption: String = "plain",
     user: String,
     password: String
   ) extends HeaderTrait
 
   object Authentication {
     implicit val encoder: VPackEncoder[Authentication] = VPackGeneric[Authentication].encoder
+
+    implicit val api: Api.EmptyBody.Aux[Session, Authentication, ResponseError] = new Api.EmptyBody[Session, Authentication] {
+      override type Response = ResponseError
+      override def requestHeader(session: Session, command: Authentication): HeaderTrait = command
+    }
   }
 
   implicit val headerEncoder: VPackEncoder[HeaderTrait] = {

@@ -45,7 +45,7 @@ object Hello {
     import system.dispatcher
 
     val session = new Session("bak")
-    val auth = session.authenticate("root", "root")
+    val auth = session(Request.Authentication(user = "root", password = "root"))
 
     val db = new Database(session, "v10")
     val countries = new Collection(db, "countries")
@@ -67,7 +67,7 @@ object Hello {
 //    println(Await.result(countries.document[Country]("FR"), 10.seconds))
 //    println(Await.result(countries.properties(), 10.seconds))
 
-/*
+    /*
     println(Await.result(db(Cursor[Map[String, Int], Photo](
       query = "FOR p IN photos LIMIT @limit RETURN p",
       bindVars = Map("limit" -> 1)

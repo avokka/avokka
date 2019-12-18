@@ -1,12 +1,25 @@
 package avokka.arangodb.api
 
+import avokka.arangodb.{Collection, Request, RequestType}
 import avokka.velocypack._
 
-case class CollectionCount
-(
-  count: Long,
-)
+object CollectionCount { self =>
 
-object CollectionCount {
-  implicit val decoder: VPackDecoder[CollectionCount] = VPackRecord[CollectionCount].decoder
+  case class Response
+  (
+    count: Long,
+  )
+
+  object Response {
+    implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
+  }
+
+  implicit val api: Api.Aux[Collection, CollectionCount.type, Response] = new Api[Collection, CollectionCount.type] {
+    override type Response = self.Response
+    override def requestHeader(collection: Collection, command: CollectionCount.type): Request.HeaderTrait = Request.Header(
+      database = collection.database.name,
+      requestType = RequestType.GET,
+      request = s"/_api/collection/${collection.name}/count",
+    )
+  }
 }

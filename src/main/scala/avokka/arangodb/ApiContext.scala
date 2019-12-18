@@ -5,6 +5,7 @@ import avokka.velocypack.{VPackDecoder, VPackEncoder, VPackError}
 import scala.concurrent.Future
 
 trait ApiContext[Ctx] { self: Ctx =>
+
   def session: Session
 
   def get[C, O](c: C)(implicit command: api.Api.Aux[Ctx, C, O], decoder: VPackDecoder[O]): Future[Either[VPackError, Response[O]]] = {

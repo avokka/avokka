@@ -63,7 +63,7 @@ object Cursor { self =>
     implicit val encoder: VPackEncoder[Options] = VPackRecord[Options].encoder
   }
 
-  implicit def encoder[V, T](implicit e: VPackEncoder[V]): VPackEncoder[Cursor[V, T]] = VPackRecord[Cursor[V, T]].encoder
+  implicit def encoder[V : VPackEncoder, T]: VPackEncoder[Cursor[V, T]] = VPackRecord[Cursor[V, T]].encoder
 
   /**
    * @param cached a boolean flag indicating whether the query result was served from the query cache or not. If the query result is served from the query cache, the *extra* return attribute will not contain any *stats* sub-attribute and no *profile* sub-attribute.
@@ -84,7 +84,7 @@ object Cursor { self =>
   )
 
   object Response {
-    implicit def decoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Response[T]] = VPackRecord[Response[T]].decoderWithDefaults
+    implicit def decoder[T : VPackDecoder]: VPackDecoder[Response[T]] = VPackRecord[Response[T]].decoderWithDefaults
   }
 
   implicit def api[V, T](implicit encoder: VPackEncoder[V], decoder: VPackDecoder[T]): ApiPayload.Aux[Database, Cursor[V, T], Cursor[V, T], Response[T]] =

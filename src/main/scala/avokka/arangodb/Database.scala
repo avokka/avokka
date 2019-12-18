@@ -14,18 +14,6 @@ class Database(val session: Session, databaseName: String) extends ApiContext[Da
     )).value
   }
 
-  def collectionCreate(t: api.CollectionCreate, waitForSyncReplication: Int = 1, enforceReplicationFactor: Int = 1) = {
-    session.exec[api.CollectionCreate, api.CollectionInfo](Request(Request.Header(
-      database = name,
-      requestType = RequestType.POST,
-      request = s"/_api/collection",
-      parameters = Map(
-        "waitForSyncReplication" -> waitForSyncReplication.toString,
-        "enforceReplicationFactor" -> enforceReplicationFactor.toString
-      )
-    ), t)).value
-  }
-
   def collections(excludeSystem: Boolean = false) = {
     session.exec[api.CollectionList](Request.Header(
       database = name,

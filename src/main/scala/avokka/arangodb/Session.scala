@@ -49,27 +49,4 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
     )).value
   }
 
-  def databases() = {
-    exec[api.DatabaseList](Request.Header(
-      database = Database.systemName,
-      requestType = RequestType.GET,
-      request = "/_api/database/user",
-    )).value
-  }
-
-  def adminEcho() = {
-    exec[api.admin.AdminEcho](Request.Header(
-      database = Database.systemName,
-      requestType = RequestType.POST,
-      request = "/_admin/echo"
-    )).value
-  }
-
-  def adminLog() = {
-    exec[api.admin.AdminLog](Request.Header(
-      database = Database.systemName,
-      requestType = RequestType.GET,
-      request = "/_admin/log"
-    )).value
-  }
 }

@@ -8,7 +8,8 @@ case class DocumentCreate[T]
 (
   document: T,
   returnNew: Boolean = false
-) {
+)
+{
   def parameters = Map(
     "returnNew" -> returnNew.toString
   )

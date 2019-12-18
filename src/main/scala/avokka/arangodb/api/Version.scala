@@ -35,10 +35,10 @@ object Version { self =>
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoderWithDefaults
   }
 
-  implicit val api: Api.EmptyBody.Aux[Database, Version, Response] = new Api.EmptyBody[Database, Version] {
+  implicit val api: Api.EmptyBody.Aux[Session, Version, Response] = new Api.EmptyBody[Session, Version] {
     override type Response = self.Response
-    override def requestHeader(database: Database, command: Version): Request.HeaderTrait = Request.Header(
-      database = database.name,
+    override def requestHeader(session: Session, command: Version): Request.HeaderTrait = Request.Header(
+      database = Database.systemName,
       requestType = RequestType.GET,
       request = "/_api/version",
       parameters = command.parameters

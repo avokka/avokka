@@ -55,7 +55,7 @@ object VPackGeneric { c =>
         rr <- ev.decode(tail)
       } yield rl :: rr
 
-      case _ => VPackError.NotEnoughElements.asLeft // Attempt.failure(Err("not enough elements in vpack array"))
+      case _ => VPackError.NotEnoughElements.asLeft
     }
   }
 

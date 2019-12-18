@@ -3,6 +3,9 @@ package avokka.velocypack
 import cats.data.Chain
 import scodec.bits.ByteVector
 
+/**
+ * Velocypack values
+ */
 sealed trait VPack
 
 object VPack {

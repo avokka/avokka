@@ -1,6 +1,6 @@
-package avokka.arangodb.api
+package avokka.arangodb
+package api
 
-import avokka.arangodb.{Collection, Request, RequestType}
 import avokka.velocypack._
 
 case class CollectionDrop

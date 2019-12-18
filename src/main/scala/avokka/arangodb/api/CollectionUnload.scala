@@ -1,6 +1,5 @@
-package avokka.arangodb.api
-
-import avokka.arangodb.{Collection, Request, RequestType}
+package avokka.arangodb
+package api
 
 object CollectionUnload {
 

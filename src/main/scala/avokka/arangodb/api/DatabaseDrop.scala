@@ -1,6 +1,6 @@
-package avokka.arangodb.api
+package avokka.arangodb
+package api
 
-import avokka.arangodb.{Database, Request, RequestType}
 import avokka.velocypack._
 
 object DatabaseDrop { self =>

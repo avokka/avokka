@@ -1,7 +1,7 @@
 package avokka.arangodb.api.admin
 
-import avokka.arangodb.{Database, Request, RequestType, Session}
 import avokka.arangodb.api.Api
+import avokka.arangodb.{Database, Request, RequestType, Session}
 import avokka.velocypack._
 
 object AdminEcho { self =>

@@ -1,7 +1,6 @@
-package avokka.arangodb.api
+package avokka.arangodb
+package api
 
-import avokka.arangodb._
-import avokka.velocypack.VPack.VObject
 import avokka.velocypack._
 
 case class DocumentCreate[T]
@@ -41,7 +40,7 @@ object DocumentCreate { self =>
 
     override def body(collection: Collection, command: DocumentCreate[T]): T = command.document
     override val bodyEncoder: VPackEncoder[T] = encoder.map {
-      case VObject(values) => VObject(values -- Vector("_id", "_key", "_rev"))
+      case VPack.VObject(values) => VPack.VObject(values -- Vector("_id", "_key", "_rev"))
       case v => v
     }
   }

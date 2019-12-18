@@ -1,6 +1,6 @@
-package avokka.arangodb.api
+package avokka.arangodb
+package api
 
-import avokka.arangodb._
 import avokka.velocypack._
 
 case class DatabaseList

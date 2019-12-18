@@ -10,6 +10,6 @@ class Collection(val database: Database, collectionName: String) extends ApiCont
 
   lazy val session = database.session
 
-  def document[T](key: DocumentKey)(implicit d: VPackDecoder[T]): Future[Either[VPackError, Response[T]]] = database.document(DocumentHandle(name, key))(d)
+ // def document[T](key: DocumentKey)(implicit d: VPackDecoder[T]): Future[Either[VPackError, Response[T]]] = database.document(DocumentHandle(name, key))(d)
 
 }

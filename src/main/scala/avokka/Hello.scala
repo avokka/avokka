@@ -63,7 +63,7 @@ object Hello {
 //    println(Await.result(session(DatabaseList()), 10.seconds))
 //    println(Await.result(db(CollectionList()), 10.seconds))
 //    println(Await.result(db.collection("nope"), 10.seconds))
-//    println(Await.result(db.document[Country]("countries/FR"), 10.seconds))
+    println(Await.result(db(DocumentRead[Country](DocumentHandle("countries/FR"))), 10.seconds))
 //    println(Await.result(countries.document[Country]("FR"), 10.seconds))
 //    println(Await.result(countries.properties(), 10.seconds))
 
@@ -74,6 +74,7 @@ object Hello {
     )), 10.seconds))
 */
 
+    /*
     val scratch = new Database(session, "scratch")
     val country = new Collection(scratch, "country")
 
@@ -84,7 +85,7 @@ object Hello {
     println(Await.result(country(CollectionUnload), 1.minute))
     println(Await.result(country(CollectionDrop()), 1.minute))
     println(Await.result(scratch(DatabaseDrop), 1.minute))
-
+*/
     Await.ready(system.terminate(), 1.minute)
   }
 

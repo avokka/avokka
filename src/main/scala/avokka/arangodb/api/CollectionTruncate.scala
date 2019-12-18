@@ -1,7 +1,5 @@
-package avokka.arangodb.api
-
-import avokka.arangodb.{Collection, Request, RequestType}
-import avokka.velocypack._
+package avokka.arangodb
+package api
 
 object CollectionTruncate {
 

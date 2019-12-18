@@ -6,14 +6,6 @@ class Database(val session: Session, databaseName: String) extends ApiContext[Da
 
   lazy val name = DatabaseName(databaseName)
 
-  def document[T](handle: DocumentHandle)(implicit d: VPackDecoder[T]) = {
-    session.exec[T](Request.Header(
-      database = name,
-      requestType = RequestType.GET,
-      request = s"/_api/document/${handle.path}"
-    )).value
-  }
-
 }
 
 object Database {

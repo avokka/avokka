@@ -56,6 +56,7 @@ package object codecs {
   }
 
   val vpackEncoder: Encoder[VPack] = Encoder(_ match {
+    case VNone => BitVector.empty.pure[Attempt]
     case v : VArray => VPackArrayCodec.encoder.encode(v)
     case v : VObject => VPackObjectCodec.encoderSorted.encode(v)
     case VIllegal => IllegalType.bits.pure[Attempt]

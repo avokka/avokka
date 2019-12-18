@@ -9,6 +9,7 @@ trait ShowInstances {
   import VPack._
 
   implicit val vpackShow: Show[VPack] = Show.show {
+    case VPack.VNone => "undefined"
     case VPack.VIllegal => "undefined"
     case VPack.VNull => "null"
     case VBoolean(value) => if (value) "true" else "false"

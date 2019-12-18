@@ -14,7 +14,7 @@ object CollectionCount { self =>
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
   }
 
-  implicit val api: Api.Aux[Collection, CollectionCount.type, Response] = new Api[Collection, CollectionCount.type] {
+  implicit val api: Api.EmptyBody.Aux[Collection, CollectionCount.type, Response] = new Api.EmptyBody[Collection, CollectionCount.type] {
     override type Response = self.Response
     override def requestHeader(collection: Collection, command: CollectionCount.type): Request.HeaderTrait = Request.Header(
       database = collection.database.name,

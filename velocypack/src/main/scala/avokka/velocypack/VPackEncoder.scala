@@ -67,4 +67,5 @@ object VPackEncoder {
 
   implicit def genericEncoder[T <: HList](implicit a: VPackGeneric.Encoder[T]): VPackEncoder[T] = VPackGeneric.Encoder()(a)
 
+  implicit val unitEncoder: VPackEncoder[Unit] = _ => VNone
 }

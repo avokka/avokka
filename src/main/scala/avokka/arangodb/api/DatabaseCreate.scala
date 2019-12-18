@@ -13,7 +13,7 @@ case class DatabaseCreate
   users: List[DatabaseCreate.Users] = List.empty,
 )
 
-object DatabaseCreate {
+object DatabaseCreate { self =>
 
   /**
    * @param active A flag indicating whether the user account should be activated or not. The default value is *true*. If set to *false*, the user won't be able to log into the database.
@@ -41,6 +41,16 @@ object DatabaseCreate {
   )
   object Response {
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoderWithDefaults
+  }
+
+  implicit val api: Api.Command.Aux[Session, DatabaseCreate, Response] = new Api.Command[Session, DatabaseCreate] {
+    override type Response = self.Response
+    override def requestHeader(session: Session, command: DatabaseCreate): Request.HeaderTrait = Request.Header(
+      database = Database.systemName,
+      requestType = RequestType.POST,
+      request = "/_api/database"
+    )
+    override def bodyEncoder: VPackEncoder[DatabaseCreate] = encoder
   }
 
 }

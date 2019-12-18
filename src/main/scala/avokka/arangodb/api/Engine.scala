@@ -30,7 +30,7 @@ object Engine { self =>
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
   }
 
-  implicit val api: Api.Aux[Database, Engine.type, Response] = new Api[Database, Engine.type] {
+  implicit val api: Api.EmptyBody.Aux[Database, Engine.type, Response] = new Api.EmptyBody[Database, Engine.type] {
     override type Response = self.Response
     override def requestHeader(database: Database, command: Engine.type): Request.HeaderTrait = Request.Header(
       database = database.name,

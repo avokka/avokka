@@ -103,4 +103,6 @@ object VPackDecoder {
 
   implicit def genericDecoder[T <: HList](implicit a: VPackGeneric.Decoder[T]): VPackDecoder[T] = VPackGeneric.Decoder(a)
 
+//  implicit val unitDecoder: VPackDecoder[Unit] = _ => ().asRight
+
 }

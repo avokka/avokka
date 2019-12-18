@@ -1,15 +1,24 @@
 package avokka.arangodb.api
 
 import avokka.arangodb.Request.HeaderTrait
+import avokka.velocypack.VPackEncoder
 
 /**
  * arangodb api call
- * @tparam Ctx context type (session, database, collection)
- * @tparam C command type
+ *
+ * @tparam Ctx context (session, database, collection)
+ * @tparam C   command
+ * @tparam B   body
  */
-trait Api[Ctx, C] {
+trait Api[Ctx, C, B] {
+  /**
+   * response type
+   */
+  type Response
+
   /**
    * builds the request header
+   *
    * @param command command value
    * @param context context
    * @return header value
@@ -17,26 +26,40 @@ trait Api[Ctx, C] {
   def requestHeader(context: Ctx, command: C): HeaderTrait
 
   /**
-   * response type
+   * build the request body
+   *
+   * @param context context
+   * @param command command value
+   * @return body value
    */
-  type Response
+  def body(context: Ctx, command: C): B
+
+  /**
+   * @return body vpack encoder
+   */
+  def bodyEncoder: VPackEncoder[B]
 }
 
 object Api {
 
-  /**
-   * aux pattern for implicits
-   * @tparam C command type
-   * @tparam R response type
-   */
-  type Aux[Ctx, C, R] = Api[Ctx, C] { type Response = R }
-
-  /*
-  def instance[C, R : Decoder](m: HttpMethod, p: C => String): Aux[C, R] = new Command[C] {
-    override type Response = R
-    override val method: HttpMethod = m
-    override def path(c: C): String = p(c)
-    override def responseDecoder: Decoder[R] = implicitly
+  // no body to send
+  trait EmptyBody[Ctx, C] extends Api[Ctx, C, Unit] {
+    override def body(context: Ctx, command: C): Unit = ()
+    override val bodyEncoder: VPackEncoder[Unit] = implicitly
   }
-   */
+  object EmptyBody {
+    type Aux[Ctx, C, R] = Api.EmptyBody[Ctx, C] { type Response = R }
+  }
+
+  // body is command
+  trait Command[Ctx, C] extends Api[Ctx, C, C] {
+    override def body(context: Ctx, command: C): C = command
+  }
+  object Command {
+    type Aux[Ctx, C, R] = Api.Command[Ctx, C] { type Response = R }
+  }
+
+  // aux pattern for implicits
+  type Aux[Ctx, C, B, R] = Api[Ctx, C, B] { type Response = R }
+
 }

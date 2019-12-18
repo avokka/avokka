@@ -43,7 +43,7 @@ object CollectionChecksum { self =>
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
   }
 
-  implicit val api: Api.Aux[Collection, CollectionChecksum, Response] = new Api[Collection, CollectionChecksum] {
+  implicit val api: Api.EmptyBody.Aux[Collection, CollectionChecksum, Response] = new Api.EmptyBody[Collection, CollectionChecksum] {
     override type Response = self.Response
     override def requestHeader(collection: Collection, command: CollectionChecksum): Request.HeaderTrait = Request.Header(
       database = collection.database.name,

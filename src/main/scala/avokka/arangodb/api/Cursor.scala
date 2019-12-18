@@ -87,15 +87,14 @@ object Cursor { self =>
     implicit def decoder[T : VPackDecoder]: VPackDecoder[Response[T]] = VPackRecord[Response[T]].decoderWithDefaults
   }
 
-  implicit def api[V, T](implicit encoder: VPackEncoder[V], decoder: VPackDecoder[T]): ApiPayload.Aux[Database, Cursor[V, T], Cursor[V, T], Response[T]] =
-    new ApiPayload[Database, Cursor[V, T], Cursor[V, T]] {
+  implicit def api[V, T](implicit encoder: VPackEncoder[V], decoder: VPackDecoder[T]): Api.Command.Aux[Database, Cursor[V, T], Response[T]] =
+    new Api.Command[Database, Cursor[V, T]] {
       override type Response = self.Response[T]
       override def requestHeader(database: Database, command: Cursor[V, T]): Request.HeaderTrait = Request.Header(
         database = database.name,
         requestType = RequestType.POST,
         request = s"/_api/cursor"
       )
-      override def body(context: Database, command: Cursor[V, T]): Cursor[V, T] = command
       override def bodyEncoder: VPackEncoder[Cursor[V, T]] = implicitly
     }
 

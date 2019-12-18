@@ -1,12 +1,25 @@
 package avokka.arangodb.api
 
+import avokka.arangodb.{Database, Request, RequestType}
 import avokka.velocypack._
 
-case class DatabaseDrop
-(
-  result: Boolean
-)
+object DatabaseDrop { self =>
 
-object DatabaseDrop {
-  implicit val decoder: VPackDecoder[DatabaseDrop] = VPackRecord[DatabaseDrop].decoderWithDefaults
+  case class Response
+  (
+    result: Boolean
+  )
+
+  object Response {
+    implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
+  }
+
+  implicit val api: Api.EmptyBody.Aux[Database, DatabaseDrop.type, Response] = new Api.EmptyBody[Database, DatabaseDrop.type] {
+    override type Response = self.Response
+    override def requestHeader(database: Database, command: DatabaseDrop.type): Request.HeaderTrait = Request.Header(
+      database = Database.systemName,
+      requestType = RequestType.DELETE,
+      request = s"/_api/database/${database.name}",
+    )
+  }
 }

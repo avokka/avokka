@@ -51,8 +51,8 @@ object Hello {
     val countries = new Collection(db, "countries")
 
     println(Await.result(auth, 10.seconds))
-//    println(Await.result(countries.get(CollectionChecksum()), 10.seconds))
-//    println(Await.result(countries.get(CollectionCount), 10.seconds))
+//    println(Await.result(countries(CollectionChecksum()), 10.seconds))
+//    println(Await.result(countries(CollectionCount), 10.seconds))
 //    println(Await.result(db(Engine), 10.seconds))
 //    println(Await.result(db.engine(), 10.seconds))
 //    println(Await.result(session.databases(), 10.seconds))
@@ -72,12 +72,11 @@ object Hello {
     val scratch = new Database(session, "scratch")
     val country = new Collection(scratch, "country")
 
-    println(Await.result(session.databaseCreate(api.DatabaseCreate(name = scratch.name)), 1.minute))
+    println(Await.result(session(DatabaseCreate(scratch.name)), 1.minute))
     println(Await.result(scratch(CollectionCreate(name = country.name)), 1.minute))
     println(Await.result(country(DocumentCreate(Country(name = "Moi", flag = "[X]"))), 1.minute))
-    println(Await.result(country.get(CollectionDrop()), 1.minute))
-
-    println(Await.result(session.databaseDrop(scratch.name), 1.minute))
+    println(Await.result(country(CollectionDrop()), 1.minute))
+    println(Await.result(scratch(DatabaseDrop), 1.minute))
 
     Await.ready(system.terminate(), 1.minute)
   }

@@ -10,6 +10,8 @@ sealed trait VPack
 
 object VPack {
 
+  case object VNone extends VPack
+
   case object VIllegal extends VPack
 
   case object VNull extends VPack

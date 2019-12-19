@@ -3,6 +3,8 @@ package api
 
 import avokka.velocypack._
 
+import scala.collection.mutable
+
 /**
  * Removes a document
  * @param handle      Removes the document identified by document-handle.
@@ -30,9 +32,11 @@ case class DocumentDelete[T]
     "returnOld" -> returnOld.toString,
     "silent" -> silent.toString,
   )
-  def meta = Map(
-    "If-Match" -> ifMatch
-  ).flatMap { case (k, v) => v.map(vv => k -> vv) }
+  def meta = {
+    val m = new mutable.HashMap[String, String]
+    ifMatch.foreach(m.update("If-Match", _))
+    m.toMap
+  }
 }
 
 object DocumentDelete {

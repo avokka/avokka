@@ -1,6 +1,8 @@
 package avokka.arangodb
 package api
 
+import scala.collection.mutable
+
 /**
  * Returns the document identified by *document-handle*. The returned document contains three special attributes:
  * *_id* containing the document handle, *_key* containing key which uniquely identifies a document
@@ -19,12 +21,13 @@ case class DocumentRead[T]
   handle: DocumentHandle,
   ifNoneMatch: Option[String] = None,
   ifMatch: Option[String] = None,
-) {
+)
+{
   def meta: Map[String, String] = {
-    Map(
-      "If-None-Match" -> ifNoneMatch,
-      "If-Match" -> ifMatch
-    ).flatMap { case (k, v) => v.map(vv => k -> vv) }
+    val m = new mutable.HashMap[String, String]
+    ifNoneMatch.foreach(m.update("If-None-Match", _))
+    ifMatch.foreach(m.update("If-Match", _))
+    m.toMap
   }
 }
 

@@ -1,5 +1,6 @@
 package avokka.velocypack
 
+import cats.Show
 import cats.instances.either._
 import cats.syntax.either._
 import cats.syntax.traverse._
@@ -23,7 +24,9 @@ trait SyntaxImplicits {
      * @return
      */
     def toVPackBits(implicit encoder: VPackEncoder[T]): Result[BitVector] = {
-      codecs.vpackEncoder.encode(encoder.encode(value)).toEither.leftMap(VPackError.Codec)
+      val vpack = encoder.encode(value)
+      println(Show[VPack].show(vpack))
+      codecs.vpackEncoder.encode(vpack).toEither.leftMap(VPackError.Codec)
     }
   }
 

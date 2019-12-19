@@ -23,7 +23,7 @@ trait ApiContext[Ctx] { self: Ctx =>
     implicit command: api.Api.Aux[Ctx, C, T, O],
     encoder: VPackEncoder[T],
     decoder: VPackDecoder[O]
-  ): Future[Either[VPackError, Response[O]]] = {
+  ): Future[Either[ArangoError, Response[O]]] = {
     val header = command.header(self, c)
     val body = command.body(self, c)
     session.execute(Request(header, body))(command.encoder, decoder).value

@@ -6,6 +6,7 @@ import akka.actor._
 import akka.stream._
 import avokka.arangodb._
 import avokka.arangodb.api._
+import avokka.velocypack.VPack._
 import avokka.velocypack._
 
 import scala.concurrent._
@@ -63,7 +64,7 @@ object Hello {
 //    println(Await.result(session(DatabaseList()), 10.seconds))
 //    println(Await.result(db(CollectionList()), 10.seconds))
 //    println(Await.result(db.collection("nope"), 10.seconds))
-    println(Await.result(db(DocumentRead[Country](DocumentHandle("countries/FR"))), 10.seconds))
+//    println(Await.result(db(DocumentRead[Country](DocumentHandle("countries/FR"), ifMatch = Some("_ZfKin5f--_"))), 10.seconds))
 //    println(Await.result(countries.document[Country]("FR"), 10.seconds))
 //    println(Await.result(countries.properties(), 10.seconds))
 
@@ -74,18 +75,21 @@ object Hello {
     )), 10.seconds))
 */
 
-    /*
     val scratch = new Database(session, "scratch")
     val country = new Collection(scratch, "country")
 
     println(Await.result(session(DatabaseCreate(scratch.name)), 1.minute))
     println(Await.result(scratch(CollectionCreate(name = country.name)), 1.minute))
-    println(Await.result(country(DocumentCreate(Country(name = "Moi", flag = "[X]"))), 1.minute))
+    val doc = Await.result(country(DocumentCreate(Country(name = "Moi", flag = "[X]"))), 1.minute)
+    println(doc)
+    println(Await.result(scratch(DocumentPatch[VObject, Country](doc.right.get.body._id, VObject(Map("test" -> VTrue)))), 1.minute))
+    println(Await.result(scratch(DocumentDelete[Country](doc.right.get.body._id)), 1.minute))
     println(Await.result(country(CollectionTruncate), 1.minute))
     println(Await.result(country(CollectionUnload), 1.minute))
     println(Await.result(country(CollectionDrop()), 1.minute))
     println(Await.result(scratch(DatabaseDrop), 1.minute))
-*/
+
+
     Await.ready(system.terminate(), 1.minute)
   }
 

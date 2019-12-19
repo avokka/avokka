@@ -28,27 +28,27 @@ object Response {
   val vp = new VPack.Builder().build()
   def toSlice(bits: BitVector) = new VPackSlice(bits.toByteArray)
 
-  def decode[T](bits: BitVector)(implicit bodyDecoder: VPackDecoder[T]): Either[VPackError, Response[T]] = {
+  def decode[T](bits: BitVector)(implicit bodyDecoder: VPackDecoder[T]): Either[ArangoError, Response[T]] = {
     println("response header slice", toSlice(bits).toString)
-    bits.as[Header].flatMap { header =>
+    bits.as[Header].leftMap(ArangoError.VPack).flatMap { header =>
       println("response header vpack", header.value)
-      println("response body slice", toSlice(header.remainder).toString)
-      if (header.value.responseCode >= 400) {
-        header.remainder.as[ResponseError].flatMap(_.value.asLeft)
+      if (header.remainder.isEmpty) {
+        ArangoError.Head(header.value).asLeft
       }
       else {
-        println("response body raw", header.remainder.bytes.toHex)
-        println("response body vpack", codecs.vpackDecoder.decode(header.remainder))
-        header.remainder.as[T].flatMap(body => Response(header.value, body.value).asRight)
+        println("response body slice", toSlice(header.remainder).toString)
+        if (header.value.responseCode >= 400) {
+          header.remainder.as[ResponseError].leftMap(ArangoError.VPack)
+            .flatMap(body => ArangoError.Resp(header.value, body.value).asLeft)
+        }
+        else {
+        //  println("response body raw", header.remainder.bytes.toHex)
+          println("response body vpack", codecs.vpackDecoder.decode(header.remainder))
+          header.remainder.as[T].leftMap(ArangoError.VPack)
+            .flatMap(body => Response(header.value, body.value).asRight)
+        }
       }
     }
-    /*
-    for {
-      header <- bits.fromVPack[ResponseHeader]
-      body   <- header.remainder.fromVPack[T]
-    } yield Response(header.value, body.value)
-    */
-
   }
 
 }

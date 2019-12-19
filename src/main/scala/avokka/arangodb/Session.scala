@@ -8,6 +8,7 @@ import avokka.velocypack._
 import avokka.velocystream._
 import cats.data.EitherT
 import cats.instances.future._
+import cats.syntax.either._
 import scodec.bits.BitVector
 
 import scala.concurrent.Future
@@ -27,8 +28,8 @@ class Session(host: String, port: Int = 8529)(implicit system: ActorSystem, mate
 
   private[arangodb] def execute[P : VPackEncoder, O : VPackDecoder](request: Request[P]): FEE[Response[O]] = {
     for {
-      hBits   <- EitherT.fromEither[Future](request.header.toVPackBits)
-      pBits   <- EitherT.fromEither[Future](request.body.toVPackBits)
+      hBits   <- EitherT.fromEither[Future](request.header.toVPackBits.leftMap(ArangoError.VPack))
+      pBits   <- EitherT.fromEither[Future](request.body.toVPackBits.leftMap(ArangoError.VPack))
       message <- askClient(hBits ++ pBits)
       response <- EitherT.fromEither[Future](Response.decode[O](message.data.bits))
     } yield response

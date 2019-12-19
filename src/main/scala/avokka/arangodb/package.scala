@@ -10,7 +10,7 @@ import scala.concurrent.Future
 
 package object arangodb {
 
-  type FEE[T] = EitherT[Future, VPackError, T]
+  type FEE[T] = EitherT[Future, ArangoError, T]
 
 
   trait DatabaseNameTag

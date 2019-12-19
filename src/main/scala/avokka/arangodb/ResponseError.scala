@@ -8,9 +8,7 @@ case class ResponseError
   error: Boolean,
   errorMessage: String,
   errorNum: Long,
-) extends VPackError {
-  override def getMessage: String = errorMessage
-}
+)
 
 object ResponseError {
   implicit val decoder: VPackDecoder[ResponseError] = VPackRecord[ResponseError].decoder

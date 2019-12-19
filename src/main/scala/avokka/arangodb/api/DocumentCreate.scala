@@ -16,21 +16,8 @@ case class DocumentCreate[T]
 
 object DocumentCreate { self =>
 
-  case class Response[T]
-  (
-    _id: DocumentHandle,
-    _key: DocumentKey,
-    _rev: String,
-    `new`: Option[T] = None,
-    old: Option[T] = None,
-  )
-
-  object Response {
-    implicit def decoder[T : VPackDecoder]: VPackDecoder[Response[T]] = VPackRecord[Response[T]].decoderWithDefaults
-  }
-
-  implicit def api[T : VPackDecoder](implicit e: VPackEncoder[T]): Api.Aux[Collection, DocumentCreate[T], T, Response[T]] = new Api[Collection, DocumentCreate[T], T] {
-    override type Response = self.Response[T]
+  implicit def api[T : VPackDecoder](implicit e: VPackEncoder[T]): Api.Aux[Collection, DocumentCreate[T], T, Document.Response[T]] = new Api[Collection, DocumentCreate[T], T] {
+    override type Response = Document.Response[T]
     override def header(collection: Collection, command: DocumentCreate[T]): Request.HeaderTrait = Request.Header(
       database = collection.database.name,
       requestType = RequestType.POST,

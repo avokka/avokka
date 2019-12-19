@@ -42,7 +42,7 @@ object Request {
 
     implicit val api: Api.EmptyBody.Aux[Session, Authentication, ResponseError] = new Api.EmptyBody[Session, Authentication] {
       override type Response = ResponseError
-      override def requestHeader(session: Session, command: Authentication): HeaderTrait = command
+      override def header(session: Session, command: Authentication): HeaderTrait = command
     }
   }
 

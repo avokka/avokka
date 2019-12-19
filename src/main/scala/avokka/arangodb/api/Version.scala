@@ -37,7 +37,7 @@ object Version { self =>
 
   implicit val api: Api.EmptyBody.Aux[Session, Version, Response] = new Api.EmptyBody[Session, Version] {
     override type Response = self.Response
-    override def requestHeader(session: Session, command: Version): Request.HeaderTrait = Request.Header(
+    override def header(session: Session, command: Version): Request.HeaderTrait = Request.Header(
       database = Database.systemName,
       requestType = RequestType.GET,
       request = "/_api/version",

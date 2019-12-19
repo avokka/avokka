@@ -74,7 +74,7 @@ object CollectionProperties { self =>
 
   implicit val api: Api.EmptyBody.Aux[Collection, CollectionProperties.type, Response] = new Api.EmptyBody[Collection, CollectionProperties.type] {
     override type Response = self.Response
-    override def requestHeader(collection: Collection, command: CollectionProperties.type): Request.HeaderTrait = Request.Header(
+    override def header(collection: Collection, command: CollectionProperties.type): Request.HeaderTrait = Request.Header(
       database = collection.database.name,
       requestType = RequestType.GET,
       request = s"/_api/collection/${collection.name}/properties",

@@ -20,7 +20,7 @@ object DatabaseList { self =>
 
   implicit val api: Api.EmptyBody.Aux[Session, DatabaseList, Response] = new Api.EmptyBody[Session, DatabaseList] {
     override type Response = self.Response
-    override def requestHeader(session: Session, command: DatabaseList): Request.HeaderTrait = Request.Header(
+    override def header(session: Session, command: DatabaseList): Request.HeaderTrait = Request.Header(
       database = Database.systemName,
       requestType = RequestType.GET,
       request = "/_api/database/user",

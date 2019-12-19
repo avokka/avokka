@@ -45,7 +45,7 @@ object CollectionChecksum { self =>
 
   implicit val api: Api.EmptyBody.Aux[Collection, CollectionChecksum, Response] = new Api.EmptyBody[Collection, CollectionChecksum] {
     override type Response = self.Response
-    override def requestHeader(collection: Collection, command: CollectionChecksum): Request.HeaderTrait = Request.Header(
+    override def header(collection: Collection, command: CollectionChecksum): Request.HeaderTrait = Request.Header(
       database = collection.database.name,
       requestType = RequestType.GET,
       request = s"/_api/collection/${collection.name}/checksum",

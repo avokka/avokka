@@ -79,12 +79,12 @@ object CollectionCreate { self =>
 
   implicit val api: Api.Command.Aux[Database, CollectionCreate, CollectionInfo.Response] = new Api.Command[Database, CollectionCreate] {
     override type Response = CollectionInfo.Response
-    override def requestHeader(database: Database, command: CollectionCreate): Request.HeaderTrait = Request.Header(
+    override def header(database: Database, command: CollectionCreate): Request.HeaderTrait = Request.Header(
       database = database.name,
       requestType = RequestType.POST,
       request = s"/_api/collection",
       parameters = command.parameters
     )
-    override val bodyEncoder: VPackEncoder[CollectionCreate] = encoder
+    override val encoder: VPackEncoder[CollectionCreate] = self.encoder
   }
 }

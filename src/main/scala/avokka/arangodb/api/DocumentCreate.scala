@@ -29,9 +29,9 @@ object DocumentCreate { self =>
     implicit def decoder[T : VPackDecoder]: VPackDecoder[Response[T]] = VPackRecord[Response[T]].decoderWithDefaults
   }
 
-  implicit def api[T : VPackDecoder](implicit encoder: VPackEncoder[T]): Api.Aux[Collection, DocumentCreate[T], T, Response[T]] = new Api[Collection, DocumentCreate[T], T] {
+  implicit def api[T : VPackDecoder](implicit e: VPackEncoder[T]): Api.Aux[Collection, DocumentCreate[T], T, Response[T]] = new Api[Collection, DocumentCreate[T], T] {
     override type Response = self.Response[T]
-    override def requestHeader(collection: Collection, command: DocumentCreate[T]): Request.HeaderTrait = Request.Header(
+    override def header(collection: Collection, command: DocumentCreate[T]): Request.HeaderTrait = Request.Header(
       database = collection.database.name,
       requestType = RequestType.POST,
       request = s"/_api/document/${collection.name}",
@@ -39,7 +39,7 @@ object DocumentCreate { self =>
     )
 
     override def body(collection: Collection, command: DocumentCreate[T]): T = command.document
-    override val bodyEncoder: VPackEncoder[T] = encoder.map {
+    override val encoder: VPackEncoder[T] = e.map {
       case VPack.VObject(values) => VPack.VObject(values -- Vector("_id", "_key", "_rev"))
       case v => v
     }

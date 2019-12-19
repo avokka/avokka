@@ -23,7 +23,7 @@ trait Api[Ctx, C, B] {
    * @param context context
    * @return header value
    */
-  def requestHeader(context: Ctx, command: C): HeaderTrait
+  def header(context: Ctx, command: C): HeaderTrait
 
   /**
    * build the request body
@@ -37,7 +37,7 @@ trait Api[Ctx, C, B] {
   /**
    * @return body vpack encoder
    */
-  def bodyEncoder: VPackEncoder[B]
+  def encoder: VPackEncoder[B]
 }
 
 object Api {
@@ -45,7 +45,7 @@ object Api {
   // no body to send
   trait EmptyBody[Ctx, C] extends Api[Ctx, C, Unit] {
     override def body(context: Ctx, command: C): Unit = ()
-    override val bodyEncoder: VPackEncoder[Unit] = implicitly
+    override val encoder: VPackEncoder[Unit] = implicitly
   }
   object EmptyBody {
     type Aux[Ctx, C, R] = Api.EmptyBody[Ctx, C] { type Response = R }

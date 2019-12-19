@@ -45,12 +45,12 @@ object DatabaseCreate { self =>
 
   implicit val api: Api.Command.Aux[Session, DatabaseCreate, Response] = new Api.Command[Session, DatabaseCreate] {
     override type Response = self.Response
-    override def requestHeader(session: Session, command: DatabaseCreate): Request.HeaderTrait = Request.Header(
+    override def header(session: Session, command: DatabaseCreate): Request.HeaderTrait = Request.Header(
       database = Database.systemName,
       requestType = RequestType.POST,
       request = "/_api/database"
     )
-    override def bodyEncoder: VPackEncoder[DatabaseCreate] = encoder
+    override val encoder: VPackEncoder[DatabaseCreate] = self.encoder
   }
 
 }

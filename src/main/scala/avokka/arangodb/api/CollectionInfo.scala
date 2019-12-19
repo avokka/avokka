@@ -20,7 +20,7 @@ object CollectionInfo { self =>
 
   implicit val api: Api.EmptyBody.Aux[Collection, CollectionInfo.type, Response] = new Api.EmptyBody[Collection, CollectionInfo.type] {
     override type Response = self.Response
-    override def requestHeader(collection: Collection, command: CollectionInfo.type): Request.HeaderTrait = Request.Header(
+    override def header(collection: Collection, command: CollectionInfo.type): Request.HeaderTrait = Request.Header(
       database = collection.database.name,
       requestType = RequestType.GET,
       request = s"/_api/collection/${collection.name}",

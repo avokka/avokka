@@ -76,7 +76,7 @@ object AdminEcho { self =>
 
   implicit val api: Api.EmptyBody.Aux[Session, AdminEcho.type, Response] = new Api.EmptyBody[Session, AdminEcho.type] {
     override type Response = self.Response
-    override def requestHeader(session: Session, command: AdminEcho.type): Request.HeaderTrait = Request.Header(
+    override def header(session: Session, command: AdminEcho.type): Request.HeaderTrait = Request.Header(
       database = Database.systemName,
       requestType = RequestType.POST,
       request = "/_admin/echo"

@@ -5,7 +5,7 @@ import avokka.velocypack._
 
 /**
   * Create document
-  * @param document document value
+  * @param documents documents value
   * @param waitForSync Wait until document has been synced to disk.   (optional)
   * @param returnNew Additionally return the complete new document under the attribute *new* in the result.   (optional)
   * @param returnOld Additionally return the complete old document under the attribute *old* in the result. Only available if the overwrite option is used.   (optional)
@@ -13,8 +13,8 @@ import avokka.velocypack._
   * @param overwrite If set to *true*, the insert becomes a replace-insert. If a document with the same *_key* already exists the new document is not rejected with unique constraint violated but will replace the old document.   (optional)
   * @tparam T document type
   */
-case class DocumentCreate[T](
-    document: T,
+case class DocumentCreateMulti[T](
+    documents: List[T],
     waitForSync: Boolean = false,
     returnNew: Boolean = false,
     returnOld: Boolean = false,
@@ -30,13 +30,13 @@ case class DocumentCreate[T](
   )
 }
 
-object DocumentCreate { self =>
+object DocumentCreateMulti { self =>
 
   implicit def api[T: VPackDecoder: VPackEncoder]
-    : Api.Aux[Collection, DocumentCreate[T], T, Document.Response[T]] =
-    new Api[Collection, DocumentCreate[T], T] {
-      override type Response = Document.Response[T]
-      override def header(collection: Collection, command: DocumentCreate[T]): Request.HeaderTrait =
+    : Api.Aux[Collection, DocumentCreateMulti[T], List[T], List[Document.Response[T]]] =
+    new Api[Collection, DocumentCreateMulti[T], List[T]] {
+      override type Response = List[Document.Response[T]]
+      override def header(collection: Collection, command: DocumentCreateMulti[T]): Request.HeaderTrait =
         Request.Header(
           database = collection.database.name,
           requestType = RequestType.POST,
@@ -44,7 +44,7 @@ object DocumentCreate { self =>
           parameters = command.parameters
         )
 
-      override def body(collection: Collection, command: DocumentCreate[T]): T = command.document
-      override val encoder: VPackEncoder[T] = implicitly
+      override def body(collection: Collection, command: DocumentCreateMulti[T]): List[T] = command.documents
+      override val encoder: VPackEncoder[List[T]] = implicitly
     }
 }

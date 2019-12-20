@@ -59,7 +59,7 @@ object VPackRecord {
         v.get(keyName) match {
           case Some(value) =>
             for {
-              rl <- decoder.decode(value) //.mapErr(_.pushContext(keyName))
+              rl <- decoder.decode(value).leftMap(_.historyAdd(keyName)) //.mapErr(_.pushContext(keyName))
               rr <- ev.decode(v, HNil)
             } yield field[K](rl) :: rr
 
@@ -82,7 +82,7 @@ object VPackRecord {
           v.get(keyName) match {
             case Some(value) =>
               for {
-                rl <- decoder.decode(value) //.mapErr(_.pushContext(keyName))
+                rl <- decoder.decode(value).leftMap(_.historyAdd(keyName)) //.mapErr(_.pushContext(keyName))
                 rr <- ev.decode(v, defaults.tail)
               } yield field[K](rl) :: rr
 

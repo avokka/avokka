@@ -83,6 +83,7 @@ object Hello {
 
     println(Await.result(session(DatabaseCreate(scratch.name)), 1.minute))
     println(Await.result(scratch(CollectionCreate(name = country.name)), 1.minute))
+    println(Await.result(country(DocumentCreateMulti(List(Country(name = "a", flag = "a"), Country(name = "b", flag = "b")), returnNew = true)), 1.minute))
     val doc = Await.result(country(DocumentCreate(Country(name = "Moi", flag = "[X]"), returnNew = true)), 1.minute)
     println(doc)
     val res = doc.right.get.body.`new`.get

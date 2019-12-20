@@ -4,7 +4,8 @@ import avokka.velocypack.VPack.VArray
 import cats.data.Chain
 import cats.syntax.either._
 import cats.syntax.contravariant._
-import shapeless.{::, Generic, HList, HNil}
+import shapeless.ops.hlist.Length
+import shapeless.{::, Generic, HList, HNil, Nat}
 
 object VPackGeneric { c =>
   import Chain._
@@ -47,7 +48,7 @@ object VPackGeneric { c =>
 
     implicit def hconsDecoder[T, A <: HList](
         implicit decoder: VPackDecoder[T],
-        ev: Decoder[A]
+        ev: Decoder[A],
     ): Decoder[T :: A] = {
       case value ==: tail =>
         for {
@@ -55,7 +56,7 @@ object VPackGeneric { c =>
           rr <- ev.decode(tail)
         } yield rl :: rr
 
-      case _ => VPackError.NotEnoughElements.asLeft
+      case _ => VPackError.NotEnoughElements().asLeft
     }
   }
 

@@ -3,6 +3,7 @@ package avokka.velocypack
 import java.time.Instant
 
 import avokka.velocypack.VPack._
+import cats.data.Chain
 import cats.instances.either._
 import cats.instances.list._
 import cats.syntax.either._
@@ -42,14 +43,14 @@ object VPackDecoder {
   implicit val shortDecoder: VPackDecoder[Short] = {
     case VSmallint(s)               => s.toShort.asRight
     case VLong(l) if l.isValidShort => l.toShort.asRight
-    case VLong(l)                   => VPackError.Overflow.asLeft
+    case VLong(l)                   => VPackError.Overflow(l).asLeft
     case v                          => VPackError.WrongType(v).asLeft
   }
 
   implicit val intDecoder: VPackDecoder[Int] = {
     case VSmallint(s)             => s.toInt.asRight
     case VLong(l) if l.isValidInt => l.toInt.asRight
-    case VLong(l)                 => VPackError.Overflow.asLeft
+    case VLong(l)                 => VPackError.Overflow(l).asLeft
     case v                        => VPackError.WrongType(v).asLeft
   }
 
@@ -68,7 +69,7 @@ object VPackDecoder {
   implicit val instantDecoder: VPackDecoder[Instant] = {
     case VDate(d)   => Instant.ofEpochMilli(d).asRight
     case VLong(l)   => Instant.ofEpochMilli(l).asRight
-    case VString(s) => Either.fromTry(Try(Instant.parse(s))).leftMap(VPackError.Conversion.apply)
+    case VString(s) => Either.fromTry(Try(Instant.parse(s))).leftMap(ex => VPackError.Conversion(ex))
     case v          => VPackError.WrongType(v).asLeft
   }
 
@@ -92,11 +93,18 @@ object VPackDecoder {
     case v         => VPackError.WrongType(v).asLeft
   }
 
+  implicit def chainDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Chain[T]] = {
+    case VArray(a) => a.traverse(d.decode)
+    case v         => VPackError.WrongType(v).asLeft
+  }
+
   implicit def mapDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Map[String, T]] = {
     case VObject(o) => {
-      o.values.toList.traverse(d.decode).map { r =>
-        (o.keys zip r).toMap
-      }
+      o.toList.traverse[Result, (String, T)]({
+        case (key, v) => d.decode(v).leftMap(_.historyAdd(key)).map(r => key -> r)
+      }).map(_.toMap)
+
+     // o.values.toList.traverse(d.decode).map { r => (o.keys zip r).toMap }
     }
     case v => VPackError.WrongType(v).asLeft
   }

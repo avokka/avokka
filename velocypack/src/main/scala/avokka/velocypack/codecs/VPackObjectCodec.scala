@@ -28,7 +28,7 @@ object VPackObjectCodec extends VPackCompoundCodec {
     })
   )
 
-  private val keyValueCodec = keyCodec ~~ vpackCodec
+  private val keyValueCodec = keyCodec >>~ { key => vpackCodec.withContext(key) }
 
   val encoderCompact: Encoder[VObject] = Encoder(_.values match {
     case values if values.isEmpty => ObjectEmptyType.bits.pure[Attempt]

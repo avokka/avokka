@@ -88,7 +88,7 @@ object Hello {
     val res = doc.right.get.body.`new`.get
     println(Await.result(scratch(DocumentUpdate[Country, VObject](res._id, VObject(Map("test" -> VTrue)))), 1.minute))
     println(Await.result(scratch(DocumentReplace[Country](res._id, res.copy(name = "Vous"))), 1.minute))
-    println(Await.result(scratch(DocumentDelete[Country](res._id)), 1.minute))
+    println(Await.result(scratch(DocumentRemove[Country](res._id)), 1.minute))
     println(Await.result(country(CollectionTruncate), 1.minute))
     println(Await.result(country(CollectionUnload), 1.minute))
     println(Await.result(country(CollectionDrop()), 1.minute))

@@ -16,7 +16,7 @@ import avokka.velocypack._
   *                    using the if-match HTTP header.
   * @tparam T          Response body type
   */
-case class DocumentDelete[T](
+case class DocumentRemove[T](
     handle: DocumentHandle,
     waitForSync: Boolean = false,
     returnOld: Boolean = false,
@@ -35,12 +35,12 @@ case class DocumentDelete[T](
   }
 }
 
-object DocumentDelete {
+object DocumentRemove {
 
-  implicit def api[T: VPackDecoder]: Api.EmptyBody.Aux[Database, DocumentDelete[T], Document.Response[T]] =
-    new Api.EmptyBody[Database, DocumentDelete[T]] {
+  implicit def api[T: VPackDecoder]: Api.EmptyBody.Aux[Database, DocumentRemove[T], Document.Response[T]] =
+    new Api.EmptyBody[Database, DocumentRemove[T]] {
       override type Response = Document.Response[T]
-      override def header(database: Database, command: DocumentDelete[T]): Request.HeaderTrait = Request.Header(
+      override def header(database: Database, command: DocumentRemove[T]): Request.HeaderTrait = Request.Header(
         database = database.name,
         requestType = RequestType.DELETE,
         request = s"/_api/document/${command.handle.path}",

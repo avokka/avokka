@@ -2,7 +2,7 @@ package avokka.arangodb
 
 class Database(val session: Session, databaseName: String) extends ApiContext[Database] {
 
-  lazy val name = DatabaseName(databaseName)
+  lazy val name: DatabaseName = DatabaseName(databaseName)
 
 }
 

@@ -19,7 +19,8 @@ class Session(host: String, port: Int = 8529)(
     materializer: ActorMaterializer
 ) extends ApiContext[Session] {
 
-  lazy val session = this
+  override lazy val session: Session = this
+
   lazy val _system = new Database(this, Database.systemName)
 
   private val client = system.actorOf(Props(classOf[VStreamClient], host, port, materializer),

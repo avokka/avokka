@@ -4,39 +4,40 @@ import avokka.arangodb.Request.HeaderTrait
 import avokka.velocypack.VPackEncoder
 
 /**
- * arangodb api call
- *
- * @tparam Ctx context (session, database, collection)
- * @tparam C   command
- * @tparam B   body
- */
+  * arangodb api call
+  *
+  * @tparam Ctx context (session, database, collection)
+  * @tparam C   command
+  * @tparam B   body
+  */
 trait Api[Ctx, C, B] {
+
   /**
-   * response type
-   */
+    * response type
+    */
   type Response
 
   /**
-   * builds the request header
-   *
-   * @param command command value
-   * @param context context
-   * @return header value
-   */
+    * builds the request header
+    *
+    * @param command command value
+    * @param context context
+    * @return header value
+    */
   def header(context: Ctx, command: C): HeaderTrait
 
   /**
-   * build the request body
-   *
-   * @param context context
-   * @param command command value
-   * @return body value
-   */
+    * build the request body
+    *
+    * @param context context
+    * @param command command value
+    * @return body value
+    */
   def body(context: Ctx, command: C): B
 
   /**
-   * @return body vpack encoder
-   */
+    * @return body vpack encoder
+    */
   def encoder: VPackEncoder[B]
 }
 

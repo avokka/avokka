@@ -3,15 +3,13 @@ package api
 
 import avokka.velocypack._
 
-case class DatabaseList
-(
-)
+case class DatabaseList(
+    )
 
 object DatabaseList { self =>
 
-  case class Response
-  (
-    result: Vector[DatabaseName]
+  case class Response(
+      result: Vector[DatabaseName]
   )
 
   object Response {

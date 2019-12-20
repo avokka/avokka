@@ -6,8 +6,8 @@ import akka.stream.stage._
 import scala.collection.mutable
 
 /**
- * accumulates chunks in a map of message id and emits when message is complete
- */
+  * accumulates chunks in a map of message id and emits when message is complete
+  */
 class VStreamChunkMessageStage extends GraphStage[FlowShape[VStreamChunk, VStreamMessage]] {
   val in = Inlet[VStreamChunk]("VChunkMessageStage.in")
   val out = Outlet[VStreamMessage]("VChunkMessageStage.out")
@@ -38,8 +38,7 @@ class VStreamChunkMessageStage extends GraphStage[FlowShape[VStreamChunk, VStrea
           // solo chunk, bypass stack
           val message = VStreamMessage(chunk.messageId, chunk.data)
           pushMessage(message)
-        }
-        else {
+        } else {
           // retrieve the stack of chunks
           val stack = messages.getOrElseUpdate(chunk.messageId, VStreamChunkStack(chunk.messageId))
           // push chunk in stack

@@ -8,11 +8,11 @@ import scodec.interop.cats._
 import scodec.{Attempt, Codec, Encoder, Err, SizeBound}
 
 /**
- * Codec of bool
- *
- * 0x19 : false
- * 0x1a : true
- */
+  * Codec of bool
+  *
+  * 0x19 : false
+  * 0x1a : true
+  */
 object VPackBooleanCodec {
   import VPackType.{TrueType, FalseType}
 
@@ -26,6 +26,6 @@ object VPackBooleanCodec {
 
   val codec: Codec[VBoolean] = Codec(encoder, vpackDecoder.emap({
     case v: VBoolean => v.pure[Attempt]
-    case _ => Err("not a vpack boolean").raiseError
+    case _           => Err("not a vpack boolean").raiseError
   }))
 }

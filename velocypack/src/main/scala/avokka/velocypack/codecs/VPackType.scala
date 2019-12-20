@@ -6,17 +6,18 @@ import scodec.codecs._
 import scodec.{Attempt, Codec, Decoder, Encoder, Err}
 
 /**
- * velocypack value type
- */
+  * velocypack value type
+  */
 trait VPackType {
+
   /**
-   * @return the head byte
-   */
+    * @return the head byte
+    */
   def head: Int
 
   /**
-   * @return the bitvector of the head
-   */
+    * @return the bitvector of the head
+    */
   lazy val bits: BitVector = BitVector(head)
 }
 
@@ -24,25 +25,26 @@ object VPackType {
   import VPack._
 
   /**
-   * velocypack types having a length field after the head
-   */
+    * velocypack types having a length field after the head
+    */
   trait WithLength { self: VPackType =>
+
     /**
-     * @return size in bytes of the length field
-     */
+      * @return size in bytes of the length field
+      */
     def lengthSize: Int
 
     /**
-     * @return decoder of the value's length
-     */
+      * @return decoder of the value's length
+      */
     def lengthDecoder: Decoder[Long]
   }
 
   /**
-   * types which don't have value body and map to a single value
-   * @param head byte head
-   * @param singleton corresponding vpack value
-   */
+    * types which don't have value body and map to a single value
+    * @param head byte head
+    * @param singleton corresponding vpack value
+    */
   abstract class SingleByte(override val head: Int, val singleton: VPack) extends VPackType
 
   /** 0x00 : none - this indicates absence of any type and value, this is not allowed in VPack values */
@@ -187,10 +189,10 @@ object VPackType {
   trait StringType extends VPackType with WithLength
 
   /**
-   * 0x40-0xbe : UTF-8-string, using V - 0x40 bytes (not Unicode characters!)
-   * length 0 is possible, so 0x40 is the empty string
-   * maximal length is 126, note that strings here are not zero-terminated
-   */
+    * 0x40-0xbe : UTF-8-string, using V - 0x40 bytes (not Unicode characters!)
+    * length 0 is possible, so 0x40 is the empty string
+    * maximal length is 126, note that strings here are not zero-terminated
+    */
   case class StringShortType(override val head: Int) extends StringType {
     import StringShortType._
     require(head >= minByte && head <= maxByte)
@@ -199,18 +201,20 @@ object VPackType {
   }
 
   object StringShortType {
+
     /** lower bound of head for small strings */
     val minByte = 0x40
+
     /** upper bound of head for small strings */
-    val maxByte  = 0xbe
+    val maxByte = 0xbe
 
     def fromLength(length: Int): StringShortType = StringShortType(minByte + length)
   }
 
   /**
-   * 0xbf : long UTF-8-string, next 8 bytes are length of string in bytes (not Unicode characters)
-   * as little endian unsigned integer, note that long strings are not zero-terminated and may contain zero bytes
-   */
+    * 0xbf : long UTF-8-string, next 8 bytes are length of string in bytes (not Unicode characters)
+    * as little endian unsigned integer, note that long strings are not zero-terminated and may contain zero bytes
+    */
   case object StringLongType extends StringType {
     override val head: Int = 0xbf
     override val lengthSize: Int = 8
@@ -231,43 +235,50 @@ object VPackType {
   }
 
   /**
-   * decode the head byte to the velocypack type
-   */
+    * decode the head byte to the velocypack type
+    */
   val vpackTypeDecoder: Decoder[VPackType] = uint8L.emap({
-    case NoneType.head => Attempt.failure(Err("absence of type is not allowed in values"))
+    case NoneType.head       => Attempt.failure(Err("absence of type is not allowed in values"))
     case ArrayEmptyType.head => Attempt.successful(ArrayEmptyType)
-    case head if head >= ArrayUnindexedType.minByte && head <= ArrayUnindexedType.maxByte => Attempt.successful(ArrayUnindexedType(head))
-    case head if head >= ArrayIndexedType.minByte && head <= ArrayIndexedType.maxByte => Attempt.successful(ArrayIndexedType(head))
+    case head if head >= ArrayUnindexedType.minByte && head <= ArrayUnindexedType.maxByte =>
+      Attempt.successful(ArrayUnindexedType(head))
+    case head if head >= ArrayIndexedType.minByte && head <= ArrayIndexedType.maxByte =>
+      Attempt.successful(ArrayIndexedType(head))
     case ObjectEmptyType.head => Attempt.successful(ObjectEmptyType)
-    case head if head >= ObjectSortedType.minByte && head <= ObjectSortedType.maxByte => Attempt.successful(ObjectSortedType(head))
-    case head if head >= ObjectUnsortedType.minByte && head <= ObjectUnsortedType.maxByte => Attempt.successful(ObjectUnsortedType(head))
-    case ArrayCompactType.head => Attempt.successful(ArrayCompactType)
-    case ObjectCompactType.head => Attempt.successful(ObjectCompactType)
-    case IllegalType.head => Attempt.successful(IllegalType)
-    case NullType.head => Attempt.successful(NullType)
-    case FalseType.head => Attempt.successful(FalseType)
-    case TrueType.head => Attempt.successful(TrueType)
-    case DoubleType.head => Attempt.successful(DoubleType)
-    case DateType.head => Attempt.successful(DateType)
-    case MinKeyType.head => Attempt.successful(MinKeyType)
-    case MaxKeyType.head => Attempt.successful(MaxKeyType)
+    case head if head >= ObjectSortedType.minByte && head <= ObjectSortedType.maxByte =>
+      Attempt.successful(ObjectSortedType(head))
+    case head if head >= ObjectUnsortedType.minByte && head <= ObjectUnsortedType.maxByte =>
+      Attempt.successful(ObjectUnsortedType(head))
+    case ArrayCompactType.head                => Attempt.successful(ArrayCompactType)
+    case ObjectCompactType.head               => Attempt.successful(ObjectCompactType)
+    case IllegalType.head                     => Attempt.successful(IllegalType)
+    case NullType.head                        => Attempt.successful(NullType)
+    case FalseType.head                       => Attempt.successful(FalseType)
+    case TrueType.head                        => Attempt.successful(TrueType)
+    case DoubleType.head                      => Attempt.successful(DoubleType)
+    case DateType.head                        => Attempt.successful(DateType)
+    case MinKeyType.head                      => Attempt.successful(MinKeyType)
+    case MaxKeyType.head                      => Attempt.successful(MaxKeyType)
     case head if head >= 0x20 && head <= 0x27 => Attempt.successful(IntSignedType(head))
     case head if head >= 0x28 && head <= 0x2f => Attempt.successful(IntUnsignedType(head))
-    case head if head >= SmallintPositiveType.minByte && head <= SmallintPositiveType.maxByte => Attempt.successful(SmallintPositiveType(head))
-    case head if head >= SmallintNegativeType.minByte && head <= SmallintNegativeType.maxByte => Attempt.successful(SmallintNegativeType(head))
-    case head if head >= StringShortType.minByte && head <= StringShortType.maxByte => Attempt.successful(StringShortType(head))
-    case StringLongType.head => Attempt.successful(StringLongType)
+    case head if head >= SmallintPositiveType.minByte && head <= SmallintPositiveType.maxByte =>
+      Attempt.successful(SmallintPositiveType(head))
+    case head if head >= SmallintNegativeType.minByte && head <= SmallintNegativeType.maxByte =>
+      Attempt.successful(SmallintNegativeType(head))
+    case head if head >= StringShortType.minByte && head <= StringShortType.maxByte =>
+      Attempt.successful(StringShortType(head))
+    case StringLongType.head                                              => Attempt.successful(StringLongType)
     case head if head >= BinaryType.minByte && head <= BinaryType.maxByte => Attempt.successful(BinaryType(head))
-    case u => Attempt.failure(Err(s"unknown head byte ${u.toHexString}"))
+    case u                                                                => Attempt.failure(Err(s"unknown head byte ${u.toHexString}"))
   })
 
   /**
-   * encodes the type to the head byte
-   */
+    * encodes the type to the head byte
+    */
   val vpackTypeEncoder: Encoder[VPackType] = Encoder(t => Attempt.successful(t.bits))
 
   /**
-   * type codec
-   */
+    * type codec
+    */
   val vpackTypeCodec: Codec[VPackType] = Codec(vpackTypeEncoder, vpackTypeDecoder)
 }

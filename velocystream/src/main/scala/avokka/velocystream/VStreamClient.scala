@@ -26,7 +26,7 @@ class VStreamClient(host: String, port: Int)(implicit materializer: ActorMateria
     Source.single(ByteString(VST_HANDSHAKE)) ~> merge.in(0)
     FlowShape(merge.in(1), merge.out)
   }.named("VST")
-*/
+   */
 
   val connection = Tcp().outgoingConnection(host, port)
 
@@ -40,13 +40,14 @@ class VStreamClient(host: String, port: Int)(implicit materializer: ActorMateria
     .prepend(Source.single(ByteString(VST_HANDSHAKE)))
 
   val out = Flow[ByteString]
-    .via(Framing.lengthField(
-      fieldLength = 4,
-      fieldOffset = 0,
-      maximumFrameLength = Int.MaxValue,
-      byteOrder = ByteOrder.LITTLE_ENDIAN,
-      computeFrameSize = (_, l) => l
-    ))
+    .via(
+      Framing.lengthField(
+        fieldLength = 4,
+        fieldOffset = 0,
+        maximumFrameLength = Int.MaxValue,
+        byteOrder = ByteOrder.LITTLE_ENDIAN,
+        computeFrameSize = (_, l) => l
+      ))
     .map { bs =>
       VStreamChunk.codec.decodeValue(BitVector(bs)).require
     }
@@ -56,7 +57,8 @@ class VStreamClient(host: String, port: Int)(implicit materializer: ActorMateria
 
   val q = Source.queue[VStreamMessage](100, OverflowStrategy.fail)
 
-  val gr = q.via(in)
+  val gr = q
+    .via(in)
     //.groupBy(2, _.size > 30)
     .via(connection)
     //.mergeSubstreams
@@ -71,12 +73,15 @@ class VStreamClient(host: String, port: Int)(implicit materializer: ActorMateria
       val message = VStreamMessage(messageId.incrementAndGet(), b)
       val promise = Promise[VStreamMessage]()
       promises.update(message.id, promise)
-      conn.offer(message).map({
-        case QueueOfferResult.Enqueued => promise
-        case QueueOfferResult.Dropped => promise.failure(new RuntimeException("queue drop"))
-        case QueueOfferResult.Failure(cause) => promise.failure(cause)
-        case QueueOfferResult.QueueClosed => promise.failure(new RuntimeException("queue closed"))
-      }).flatMap(_.future) pipeTo sender()
+      conn
+        .offer(message)
+        .map({
+          case QueueOfferResult.Enqueued       => promise
+          case QueueOfferResult.Dropped        => promise.failure(new RuntimeException("queue drop"))
+          case QueueOfferResult.Failure(cause) => promise.failure(cause)
+          case QueueOfferResult.QueueClosed    => promise.failure(new RuntimeException("queue closed"))
+        })
+        .flatMap(_.future) pipeTo sender()
     }
 
     case r: VStreamMessage => {

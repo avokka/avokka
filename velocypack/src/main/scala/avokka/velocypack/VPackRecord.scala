@@ -21,11 +21,10 @@ object VPackRecord {
       override def encode(t: HNil): Map[String, VPack] = Map.empty
     }
 
-    implicit def hconsEncoder[K <: Symbol, H, T <: HList]
-    (
-      implicit ev: Encoder[T],
-      key: Witness.Aux[K],
-      encoder: VPackEncoder[H],
+    implicit def hconsEncoder[K <: Symbol, H, T <: HList](
+        implicit ev: Encoder[T],
+        key: Witness.Aux[K],
+        encoder: VPackEncoder[H],
     ): Encoder[FieldType[K, H] :: T] = new Encoder[FieldType[K, H] :: T] {
       private val keyName: String = key.value.name
 
@@ -42,52 +41,53 @@ object VPackRecord {
   object Decoder {
     def apply[A <: HList, D <: HList](defaults: D)(implicit ev: Decoder[A, D]): VPackDecoder[A] = {
       case VObject(values) => ev.decode(values, defaults)
-      case v => VPackError.WrongType(v).asLeft
+      case v               => VPackError.WrongType(v).asLeft
     }
 
     implicit object hnilDecoder extends Decoder[HNil, HNil] {
       override def decode(v: Map[String, VPack], defaults: HNil): Result[HNil] = HNil.asRight
     }
 
-    implicit def hconsDecoder[K <: Symbol, H, T <: HList]
-    (
-      implicit ev: Decoder[T, HNil],
-      key: Witness.Aux[K],
-      decoder: VPackDecoder[H]
+    implicit def hconsDecoder[K <: Symbol, H, T <: HList](
+        implicit ev: Decoder[T, HNil],
+        key: Witness.Aux[K],
+        decoder: VPackDecoder[H]
     ): Decoder[FieldType[K, H] :: T, HNil] = new Decoder[FieldType[K, H] :: T, HNil] {
       private val keyName: String = key.value.name
 
       override def decode(v: Map[String, VPack], defaults: HNil): Result[FieldType[K, H] :: T] = {
         v.get(keyName) match {
-          case Some(value) => for {
-            rl <- decoder.decode(value) //.mapErr(_.pushContext(keyName))
-            rr <- ev.decode(v, HNil)
-          } yield field[K](rl) :: rr
+          case Some(value) =>
+            for {
+              rl <- decoder.decode(value) //.mapErr(_.pushContext(keyName))
+              rr <- ev.decode(v, HNil)
+            } yield field[K](rl) :: rr
 
           case _ => VPackError.ObjectFieldAbsent(keyName).asLeft
         }
       }
     }
 
-    implicit def hconsDefaultsDecoder[K <: Symbol, H, T <: HList, D <: HList]
-    (
-      implicit ev: Decoder[T, D],
-      key: Witness.Aux[K],
-      decoder: VPackDecoder[H]
+    implicit def hconsDefaultsDecoder[K <: Symbol, H, T <: HList, D <: HList](
+        implicit ev: Decoder[T, D],
+        key: Witness.Aux[K],
+        decoder: VPackDecoder[H]
     ): Decoder[FieldType[K, H] :: T, Option[H] :: D] = new Decoder[FieldType[K, H] :: T, Option[H] :: D] {
       private val keyName: String = key.value.name
 
       override def decode(v: Map[String, VPack], defaults: Option[H] :: D): Result[FieldType[K, H] :: T] = {
         val default = defaults.head
         v.get(keyName) match {
-          case Some(value) => for {
-            rl <- decoder.decode(value) //.mapErr(_.pushContext(keyName))
-            rr <- ev.decode(v, defaults.tail)
-          } yield field[K](rl) :: rr
+          case Some(value) =>
+            for {
+              rl <- decoder.decode(value) //.mapErr(_.pushContext(keyName))
+              rr <- ev.decode(v, defaults.tail)
+            } yield field[K](rl) :: rr
 
-          case _ if default.isDefined => for {
-            rr <- ev.decode(v, defaults.tail)
-          } yield field[K](default.get) :: rr
+          case _ if default.isDefined =>
+            for {
+              rr <- ev.decode(v, defaults.tail)
+            } yield field[K](default.get) :: rr
 
           case _ => VPackError.ObjectFieldAbsent(keyName).asLeft
         }
@@ -104,11 +104,10 @@ object VPackRecord {
       Decoder[R, HNil](HNil)(d).map(lgen.from)
     }
 
-    def decoderWithDefaults[R <: HList, D <: HList]
-    (
-      implicit lgen: LabelledGeneric.Aux[T, R],
-      defaults: Default.AsOptions.Aux[T, D],
-      d: Decoder[R, D],
+    def decoderWithDefaults[R <: HList, D <: HList](
+        implicit lgen: LabelledGeneric.Aux[T, R],
+        defaults: Default.AsOptions.Aux[T, D],
+        d: Decoder[R, D],
     ): VPackDecoder[T] = {
       Decoder(defaults())(d).map(lgen.from)
     }

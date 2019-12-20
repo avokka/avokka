@@ -4,25 +4,23 @@ package api
 import scala.collection.mutable
 
 /**
- * Returns the document identified by *document-handle*. The returned document contains three special attributes:
- * *_id* containing the document handle, *_key* containing key which uniquely identifies a document
- * in a given collection and *_rev* containing the revision.
- *
- * @param handle      The handle of the document.
- * @param ifNoneMatch If the "If-None-Match" header is given, then it must contain exactly one
- *                    Etag. The document is returned, if it has a different revision than the
- *                    given Etag. Otherwise an HTTP 304 is returned.
- * @param ifMatch     If the "If-Match" header is given, then it must contain exactly one
- *                    Etag. The document is returned, if it has the same revision as the
- *                    given Etag. Otherwise a HTTP 412 is returned.
- */
-case class DocumentRead[T]
-(
-  handle: DocumentHandle,
-  ifNoneMatch: Option[String] = None,
-  ifMatch: Option[String] = None,
-)
-{
+  * Returns the document identified by *document-handle*. The returned document contains three special attributes:
+  * *_id* containing the document handle, *_key* containing key which uniquely identifies a document
+  * in a given collection and *_rev* containing the revision.
+  *
+  * @param handle      The handle of the document.
+  * @param ifNoneMatch If the "If-None-Match" header is given, then it must contain exactly one
+  *                    Etag. The document is returned, if it has a different revision than the
+  *                    given Etag. Otherwise an HTTP 304 is returned.
+  * @param ifMatch     If the "If-Match" header is given, then it must contain exactly one
+  *                    Etag. The document is returned, if it has the same revision as the
+  *                    given Etag. Otherwise a HTTP 412 is returned.
+  */
+case class DocumentRead[T](
+    handle: DocumentHandle,
+    ifNoneMatch: Option[String] = None,
+    ifMatch: Option[String] = None,
+) {
   def meta: Map[String, String] = {
     val m = new mutable.HashMap[String, String]
     ifNoneMatch.foreach(m.update("If-None-Match", _))

@@ -34,23 +34,23 @@ object VPackEncoder {
 
   implicit val longEncoder: VPackEncoder[Long] = {
     case VSmallint.From(s) => s
-    case l => VLong(l)
+    case l                 => VLong(l)
   }
 
   implicit val shortEncoder: VPackEncoder[Short] = {
     case VSmallint.From(s) => s
-    case i => VLong(i)
+    case i                 => VLong(i)
   }
 
   implicit val intEncoder: VPackEncoder[Int] = {
     case VSmallint.From(s) => s
-    case i => VLong(i)
+    case i                 => VLong(i)
   }
 
   implicit val doubleEncoder: VPackEncoder[Double] = {
     case VSmallint.From(s) => s
-    case VLong.From(l) => l
-    case d => VDouble(d)
+    case VLong.From(l)     => l
+    case d                 => VDouble(d)
   }
 
   implicit val stringEncoder: VPackEncoder[String] = VString.apply
@@ -61,11 +61,15 @@ object VPackEncoder {
 
   implicit def optionEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Option[T]] = _.fold[VPack](VNull)(e.encode)
 
-  implicit def vectorEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Vector[T]] = a => VArray(Chain.fromSeq(a.map(e.encode)))
-  implicit def listEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[List[T]] = a => VArray(Chain.fromSeq(a.map(e.encode)))
-  implicit def mapEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Map[String, T]] = a => VObject(a.mapValues(e.encode))
+  implicit def vectorEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Vector[T]] =
+    a => VArray(Chain.fromSeq(a.map(e.encode)))
+  implicit def listEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[List[T]] =
+    a => VArray(Chain.fromSeq(a.map(e.encode)))
+  implicit def mapEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Map[String, T]] =
+    a => VObject(a.mapValues(e.encode))
 
-  implicit def genericEncoder[T <: HList](implicit a: VPackGeneric.Encoder[T]): VPackEncoder[T] = VPackGeneric.Encoder()(a)
+  implicit def genericEncoder[T <: HList](implicit a: VPackGeneric.Encoder[T]): VPackEncoder[T] =
+    VPackGeneric.Encoder()(a)
 
   implicit val unitEncoder: VPackEncoder[Unit] = _ => VNone
 

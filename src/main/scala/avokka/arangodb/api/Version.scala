@@ -3,11 +3,9 @@ package api
 
 import avokka.velocypack._
 
-case class Version
-(
-  details: Boolean = false
-)
-{
+case class Version(
+    details: Boolean = false
+) {
   def parameters = Map(
     "details" -> details.toString
   )
@@ -16,19 +14,18 @@ case class Version
 object Version { self =>
 
   /**
-   * @param server  will always contain arango
-   * @param license the server license
-   * @param version the server version string. The string has the format
-   *                "major.minor.sub". major and minor will be numeric, and sub
-   *                may contain a number or a textual version
-   * @param details additional information about included components and their versions
-   */
-  case class Response
-  (
-    server: String,
-    license: String,
-    version: String,
-    details: Map[String, String] = Map.empty
+    * @param server  will always contain arango
+    * @param license the server license
+    * @param version the server version string. The string has the format
+    *                "major.minor.sub". major and minor will be numeric, and sub
+    *                may contain a number or a textual version
+    * @param details additional information about included components and their versions
+    */
+  case class Response(
+      server: String,
+      license: String,
+      version: String,
+      details: Map[String, String] = Map.empty
   )
 
   object Response {

@@ -4,8 +4,8 @@ import cats.data.Chain
 import scodec.bits.ByteVector
 
 /**
- * Velocypack values
- */
+  * Velocypack values
+  */
 sealed trait VPack
 
 object VPack {

@@ -6,21 +6,19 @@ import avokka.velocypack._
 object Engine { self =>
 
   /**
-   * the storage engine the server is configured to use
-   *
-   * @param name will be mmfiles or rocksdb
-   * @param supports what the engine supports
-   */
-  case class Response
-  (
-    name: String,
-    supports: Supports
+    * the storage engine the server is configured to use
+    *
+    * @param name will be mmfiles or rocksdb
+    * @param supports what the engine supports
+    */
+  case class Response(
+      name: String,
+      supports: Supports
   )
 
-  case class Supports
-  (
-    dfdb: Boolean,
-    indexes: List[String],
+  case class Supports(
+      dfdb: Boolean,
+      indexes: List[String],
   )
   object Supports {
     implicit val decoder: VPackDecoder[Supports] = VPackRecord[Supports].decoder

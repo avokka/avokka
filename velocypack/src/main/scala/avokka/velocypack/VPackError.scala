@@ -2,9 +2,7 @@ package avokka.velocypack
 
 import scodec.Err
 
-trait VPackError extends Throwable {
-
-}
+trait VPackError extends Throwable {}
 
 object VPackError {
 

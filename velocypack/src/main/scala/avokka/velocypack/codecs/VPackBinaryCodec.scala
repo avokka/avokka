@@ -23,7 +23,8 @@ object VPackBinaryCodec {
     override def encode(v: VBinary): Attempt[BitVector] = {
       val length = v.value.size
       val lengthBytes = ulongLength(length)
-      (BinaryType.fromLength(lengthBytes).bits ++ ulongBytes(length, lengthBytes) ++ v.value.bits).pure[Attempt]
+      (BinaryType.fromLength(lengthBytes).bits ++ ulongBytes(length, lengthBytes) ++ v.value.bits)
+        .pure[Attempt]
     }
   }
 

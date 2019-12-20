@@ -29,7 +29,10 @@ class VStreamChunkMessageStage extends GraphStage[FlowShape[VStreamChunk, VStrea
 
       override def onUpstreamFinish(): Unit = {
         if (messages.isEmpty) completeStage()
-        else failStage(new RuntimeException("Stream finished but there was incomplete messages in the chunks buffer"))
+        else
+          failStage(
+            new RuntimeException(
+              "Stream finished but there was incomplete messages in the chunks buffer"))
       }
 
       override def onPush(): Unit = {

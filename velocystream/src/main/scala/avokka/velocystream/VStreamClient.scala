@@ -13,7 +13,9 @@ import scodec.bits.{BitVector, ByteVector}
 import scala.collection.mutable
 import scala.concurrent.Promise
 
-class VStreamClient(host: String, port: Int)(implicit materializer: ActorMaterializer) extends Actor with ActorLogging {
+class VStreamClient(host: String, port: Int)(
+    implicit materializer: ActorMaterializer
+) extends Actor with ActorLogging {
   import VStreamClient._
   import context.{dispatcher, system}
 

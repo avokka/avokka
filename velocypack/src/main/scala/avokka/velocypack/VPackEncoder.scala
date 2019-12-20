@@ -59,7 +59,8 @@ object VPackEncoder {
 
   implicit val byteVectorEncoder: VPackEncoder[ByteVector] = VBinary.apply
 
-  implicit def optionEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Option[T]] = _.fold[VPack](VNull)(e.encode)
+  implicit def optionEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Option[T]] =
+    _.fold[VPack](VNull)(e.encode)
 
   implicit def vectorEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Vector[T]] =
     a => VArray(Chain.fromSeq(a.map(e.encode)))

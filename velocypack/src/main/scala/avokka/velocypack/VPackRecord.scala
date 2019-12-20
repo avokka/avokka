@@ -13,9 +13,9 @@ object VPackRecord {
 
   object Encoder {
 
-    def apply[A <: HList](compact: Boolean = false)(implicit ev: Encoder[A]): VPackEncoder[A] = { value =>
-      VObject(ev.encode(value))
-    }
+    def apply[A <: HList](compact: Boolean = false)(
+        implicit ev: Encoder[A]
+    ): VPackEncoder[A] = value => VObject(ev.encode(value))
 
     implicit object hnilEncoder extends Encoder[HNil] {
       override def encode(t: HNil): Map[String, VPack] = Map.empty
@@ -72,45 +72,49 @@ object VPackRecord {
         implicit ev: Decoder[T, D],
         key: Witness.Aux[K],
         decoder: VPackDecoder[H]
-    ): Decoder[FieldType[K, H] :: T, Option[H] :: D] = new Decoder[FieldType[K, H] :: T, Option[H] :: D] {
-      private val keyName: String = key.value.name
+    ): Decoder[FieldType[K, H] :: T, Option[H] :: D] =
+      new Decoder[FieldType[K, H] :: T, Option[H] :: D] {
+        private val keyName: String = key.value.name
 
-      override def decode(v: Map[String, VPack], defaults: Option[H] :: D): Result[FieldType[K, H] :: T] = {
-        val default = defaults.head
-        v.get(keyName) match {
-          case Some(value) =>
-            for {
-              rl <- decoder.decode(value) //.mapErr(_.pushContext(keyName))
-              rr <- ev.decode(v, defaults.tail)
-            } yield field[K](rl) :: rr
+        override def decode(v: Map[String, VPack],
+                            defaults: Option[H] :: D): Result[FieldType[K, H] :: T] = {
+          val default = defaults.head
+          v.get(keyName) match {
+            case Some(value) =>
+              for {
+                rl <- decoder.decode(value) //.mapErr(_.pushContext(keyName))
+                rr <- ev.decode(v, defaults.tail)
+              } yield field[K](rl) :: rr
 
-          case _ if default.isDefined =>
-            for {
-              rr <- ev.decode(v, defaults.tail)
-            } yield field[K](default.get) :: rr
+            case _ if default.isDefined =>
+              for {
+                rr <- ev.decode(v, defaults.tail)
+              } yield field[K](default.get) :: rr
 
-          case _ => VPackError.ObjectFieldAbsent(keyName).asLeft
+            case _ => VPackError.ObjectFieldAbsent(keyName).asLeft
+          }
         }
       }
-    }
   }
 
   class DeriveHelper[T] {
-    def encoder[R <: HList](implicit lgen: LabelledGeneric.Aux[T, R], e: Encoder[R]): VPackEncoder[T] = {
-      Encoder()(e).contramap(lgen.to)
-    }
+    
+    def encoder[R <: HList](
+        implicit lgen: LabelledGeneric.Aux[T, R],
+        e: Encoder[R]
+    ): VPackEncoder[T] = Encoder()(e).contramap(lgen.to)
 
-    def decoder[R <: HList](implicit lgen: LabelledGeneric.Aux[T, R], d: Decoder[R, HNil]): VPackDecoder[T] = {
-      Decoder[R, HNil](HNil)(d).map(lgen.from)
-    }
+    def decoder[R <: HList](
+        implicit lgen: LabelledGeneric.Aux[T, R],
+        d: Decoder[R, HNil]
+    ): VPackDecoder[T] = Decoder[R, HNil](HNil)(d).map(lgen.from)
 
     def decoderWithDefaults[R <: HList, D <: HList](
         implicit lgen: LabelledGeneric.Aux[T, R],
         defaults: Default.AsOptions.Aux[T, D],
         d: Decoder[R, D],
-    ): VPackDecoder[T] = {
-      Decoder(defaults())(d).map(lgen.from)
-    }
+    ): VPackDecoder[T] = Decoder(defaults())(d).map(lgen.from)
+
   }
 
   def apply[T] = new DeriveHelper[T]

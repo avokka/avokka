@@ -19,9 +19,9 @@ object VPackBooleanCodec {
   val encoder: Encoder[VBoolean] = new Encoder[VBoolean] {
     override def sizeBound: SizeBound = SizeBound.exact(8)
 
-    override def encode(v: VBoolean): Attempt[BitVector] = {
+    override def encode(v: VBoolean): Attempt[BitVector] =
       (if (v.value) TrueType else FalseType).bits.pure[Attempt]
-    }
+
   }
 
   val codec: Codec[VBoolean] = Codec(encoder, vpackDecoder.emap({

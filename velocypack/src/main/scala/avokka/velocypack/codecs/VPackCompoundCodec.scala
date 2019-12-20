@@ -30,10 +30,14 @@ trait VPackCompoundCodec {
     } yield BitVector(head) ++ len ++ valuesAll ++ nr.reverseByteOrder
   }
 
-
   def offsetsToRanges(offests: Seq[Long], size: Long): Seq[(Long, Long)] = {
-    offests.zipWithIndex.sortBy(_._1).foldRight((Vector.empty[(Int, Long, Long)], size))({
-      case ((offset, index), (acc, size)) => (acc :+ (index, offset, size), offset)
-    })._1.sortBy(_._1).map(r => r._2 -> r._3)
+    offests.zipWithIndex
+      .sortBy(_._1)
+      .foldRight((Vector.empty[(Int, Long, Long)], size))({
+        case ((offset, index), (acc, size)) => (acc :+ (index, offset, size), offset)
+      })
+      ._1
+      .sortBy(_._1)
+      .map(r => r._2 -> r._3)
   }
 }

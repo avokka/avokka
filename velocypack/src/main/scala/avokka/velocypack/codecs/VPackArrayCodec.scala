@@ -57,18 +57,21 @@ object VPackArrayCodec extends VPackCompoundCodec {
 
           // build index table offsets
           case values => {
-            val (valuesAll, valuesBytes, offsets) = values.foldLeft((BitVector.empty, 0L, Chain.empty[Long])) {
-              case ((bytes, offset, offsets), element) =>
-                (bytes ++ element, offset + element.size / 8, offsets :+ offset)
-            }
+            val (valuesAll, valuesBytes, offsets) =
+              values.foldLeft((BitVector.empty, 0L, Chain.empty[Long])) {
+                case ((bytes, offset, offsets), element) =>
+                  (bytes ++ element, offset + element.size / 8, offsets :+ offset)
+              }
             val lengthMax = 1 + 8 + 8 + valuesBytes + 8 * offsets.length
             val (lengthBytes, head) = lengthUtils(lengthMax)
             val headBytes = 1 + lengthBytes + lengthBytes
             val indexTable = offsets.map(_ + headBytes)
 
-            val len = ulongBytes(headBytes + valuesBytes + lengthBytes * offsets.length, lengthBytes)
+            val len =
+              ulongBytes(headBytes + valuesBytes + lengthBytes * offsets.length, lengthBytes)
             val nr = ulongBytes(offsets.length, lengthBytes)
-            val index = indexTable.foldLeft(BitVector.empty)((b, l) => b ++ ulongBytes(l, lengthBytes))
+            val index =
+              indexTable.foldLeft(BitVector.empty)((b, l) => b ++ ulongBytes(l, lengthBytes))
 
             if (head == 3) BitVector(0x06 + head) ++ len ++ valuesAll ++ index ++ nr
             else BitVector(0x06 + head) ++ len ++ nr ++ valuesAll ++ index
@@ -97,7 +100,8 @@ object VPackArrayCodec extends VPackCompoundCodec {
         bodyLen = length.value - t.lengthSize
         body <- scodec.codecs.bits(8 * bodyLen).decode(nr.remainder)
         values <- scodec.codecs.bits(8 * (bodyLen - nr.value * t.lengthSize)).decode(body.value)
-        offsets <- Decoder.decodeCollect(ulongLA(8 * t.lengthSize), Some(nr.value.toInt))(values.remainder)
+        offsets <- Decoder.decodeCollect(ulongLA(8 * t.lengthSize), Some(nr.value.toInt))(
+          values.remainder)
         result = offsetsToRanges(offsets.value.map(_ - bodyOffset), values.value.size / 8).map {
           case (from, until) => values.value.slice(8 * from, 8 * until)
         }
@@ -113,7 +117,8 @@ object VPackArrayCodec extends VPackCompoundCodec {
         (body, remainder) = length.remainder.splitAt(8 * bodyLen)
         (valuesIndex, number) = body.splitAt(8 * (bodyLen - t.lengthSize))
         nr <- ulongLA(8 * t.lengthSize).decode(number)
-        (values, index) = valuesIndex.splitAt(8 * (bodyLen - nr.value * t.lengthSize - t.lengthSize))
+        (values, index) = valuesIndex.splitAt(
+          8 * (bodyLen - nr.value * t.lengthSize - t.lengthSize))
         offsets <- Decoder.decodeCollect(ulongLA(8 * t.lengthSize), Some(nr.value.toInt))(index)
         result = offsetsToRanges(offsets.value.map(_ - bodyOffset), values.size / 8).map {
           case (from, until) => values.slice(8 * from, 8 * until)

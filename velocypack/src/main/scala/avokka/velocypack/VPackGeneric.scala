@@ -15,9 +15,10 @@ object VPackGeneric { c =>
 
   object Encoder {
 
-    def apply[A <: HList](compact: Boolean = false)(implicit ev: Encoder[A]): VPackEncoder[A] = { value =>
-      VArray(ev.encode(value))
-    }
+    def apply[A <: HList](compact: Boolean = false)(
+      implicit ev: Encoder[A]
+    ): VPackEncoder[A] = value => VArray(ev.encode(value))
+
 
     implicit object hnilEncoder extends Encoder[HNil] {
       override def encode(t: HNil): Chain[VPack] = Chain.empty
@@ -26,9 +27,8 @@ object VPackGeneric { c =>
     implicit def hconsEncoder[T, A <: HList](
         implicit encoder: VPackEncoder[T],
         ev: Encoder[A]
-    ): Encoder[T :: A] = (t: T :: A) => {
-      encoder.encode(t.head) +: ev.encode(t.tail)
-    }
+    ): Encoder[T :: A] = (t: T :: A) => encoder.encode(t.head) +: ev.encode(t.tail)
+
   }
 
   trait Decoder[A <: HList] {

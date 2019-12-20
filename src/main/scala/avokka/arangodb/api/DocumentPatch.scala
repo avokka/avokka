@@ -3,8 +3,6 @@ package api
 
 import avokka.velocypack._
 
-import scala.collection.mutable
-
 /**
   * @param handle document handle
   * @param patch representation of a document update as an object
@@ -31,7 +29,7 @@ case class DocumentPatch[P, T](
     silent: Boolean = false,
     ifMatch: Option[String] = None,
 ) {
-  def parameters = Map(
+  def parameters: Map[String, String] = Map(
     "keepNull" -> keepNull.toString,
     "mergeObjects" -> mergeObjects.toString,
     "waitForSync" -> waitForSync.toString,
@@ -41,9 +39,9 @@ case class DocumentPatch[P, T](
     "silent" -> silent.toString,
   )
   def meta: Map[String, String] = {
-    val m = new mutable.HashMap[String, String]
-    ifMatch.foreach(m.update("If-Match", _))
-    m.toMap
+    val m = Map.newBuilder[String, String]
+    ifMatch.foreach(m += "If-Match" -> _)
+    m.result
   }
 }
 

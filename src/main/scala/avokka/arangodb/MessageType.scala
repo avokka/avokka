@@ -14,10 +14,10 @@ object MessageType {
 
   implicit val encoder: VPackEncoder[MessageType] = VPackEncoder[Int].contramap(_.i)
   implicit val decoder: VPackDecoder[MessageType] = VPackDecoder[Int].emap {
-    case Request.i => Request.asRight
-    case ResponseFinal.i => ResponseFinal.asRight
-    case ResponseChunk.i => ResponseChunk.asRight
+    case Request.i        => Request.asRight
+    case ResponseFinal.i  => ResponseFinal.asRight
+    case ResponseChunk.i  => ResponseChunk.asRight
     case Authentication.i => Authentication.asRight
-    case i => VPackError.IllegalValue(s"unknown message type $i").asLeft
+    case i                => VPackError.IllegalValue(s"unknown message type $i").asLeft
   }
 }

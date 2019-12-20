@@ -17,27 +17,25 @@ object Hello {
   implicit val system = ActorSystem("avokka")
   implicit val materializer = ActorMaterializer()
 
-  case class Country
-  (
-    _id: DocumentHandle = DocumentHandle.empty,
-    _key: DocumentKey = DocumentKey(""),
-    _rev: String = "",
-    name: String,
-    flag: String,
+  case class Country(
+      _id: DocumentHandle = DocumentHandle.empty,
+      _key: DocumentKey = DocumentKey(""),
+      _rev: String = "",
+      name: String,
+      flag: String,
   )
-  implicit val countryEncoder: VPackEncoder[Country] = VPackRecord[Country].encoder //codecWithDefaults
-  implicit val countryDecoder: VPackDecoder[Country] = VPackRecord[Country].decoderWithDefaults //codecWithDefaults
+  implicit val countryEncoder: VPackEncoder[Country] = VPackRecord[Country].encoder
+  implicit val countryDecoder: VPackDecoder[Country] = VPackRecord[Country].decoderWithDefaults
 
-  case class Photo
-  (
-    _id: DocumentHandle,
-    _key: DocumentKey,
-    _rev: String,
-    title: Option[String] = None,
-    slug: Option[String] = None,
-    user: Option[String] = None,
-    created: Instant,
-    deleted: Boolean,
+  case class Photo(
+      _id: DocumentHandle,
+      _key: DocumentKey,
+      _rev: String,
+      title: Option[String] = None,
+      slug: Option[String] = None,
+      user: Option[String] = None,
+      created: Instant,
+      deleted: Boolean,
   )
   implicit val commentEncoder: VPackEncoder[Photo] = VPackRecord[Photo].encoder
   implicit val commentDecoder: VPackDecoder[Photo] = VPackRecord[Photo].decoderWithDefaults
@@ -73,7 +71,7 @@ object Hello {
       query = "FOR p IN photos LIMIT @limit RETURN p",
       bindVars = Map("limit" -> 1)
     )), 10.seconds))
-*/
+     */
 
     val scratch = new Database(session, "scratch")
     val country = new Collection(scratch, "country")
@@ -88,7 +86,6 @@ object Hello {
     println(Await.result(country(CollectionUnload), 1.minute))
     println(Await.result(country(CollectionDrop()), 1.minute))
     println(Await.result(scratch(DatabaseDrop), 1.minute))
-
 
     Await.ready(system.terminate(), 1.minute)
   }

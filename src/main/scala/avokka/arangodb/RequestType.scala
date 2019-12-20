@@ -17,13 +17,13 @@ object RequestType {
 
   implicit val encoder: VPackEncoder[RequestType] = VPackEncoder[Int].contramap(_.i)
   implicit val decoder: VPackDecoder[RequestType] = VPackDecoder[Int].emap {
-    case DELETE.i => DELETE.asRight
-    case GET.i => GET.asRight
-    case POST.i => POST.asRight
-    case PUT.i => PUT.asRight
-    case HEAD.i => HEAD.asRight
-    case PATCH.i => PATCH.asRight
+    case DELETE.i  => DELETE.asRight
+    case GET.i     => GET.asRight
+    case POST.i    => POST.asRight
+    case PUT.i     => PUT.asRight
+    case HEAD.i    => HEAD.asRight
+    case PATCH.i   => PATCH.asRight
     case OPTIONS.i => OPTIONS.asRight
-    case i => VPackError.IllegalValue(s"unknown request type $i").asLeft
+    case i         => VPackError.IllegalValue(s"unknown request type $i").asLeft
   }
 }

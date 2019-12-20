@@ -17,14 +17,13 @@ object CollectionStatus {
 
   implicit val encoder: VPackEncoder[CollectionStatus] = VPackEncoder[Int].contramap(_.i)
   implicit val decoder: VPackDecoder[CollectionStatus] = VPackDecoder[Int].emap {
-    case Unknown.i => Unknown.asRight
-    case NewBorn.i => NewBorn.asRight
-    case Unloaded.i => Unloaded.asRight
-    case Loaded.i => Loaded.asRight
+    case Unknown.i   => Unknown.asRight
+    case NewBorn.i   => NewBorn.asRight
+    case Unloaded.i  => Unloaded.asRight
+    case Loaded.i    => Loaded.asRight
     case Unloading.i => Unloading.asRight
-    case Deleted.i => Deleted.asRight
-    case Loading.i => Loading.asRight
-    case i => VPackError.IllegalValue(s"unknown collection status $i").asLeft
+    case Deleted.i   => Deleted.asRight
+    case Loading.i   => Loading.asRight
+    case i           => VPackError.IllegalValue(s"unknown collection status $i").asLeft
   }
 }
-

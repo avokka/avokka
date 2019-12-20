@@ -13,10 +13,9 @@ object CollectionType {
 
   implicit val encoder: VPackEncoder[CollectionType] = VPackEncoder[Int].contramap(_.i)
   implicit val decoder: VPackDecoder[CollectionType] = VPackDecoder[Int].emap {
-    case Unknown.i => Unknown.asRight
+    case Unknown.i  => Unknown.asRight
     case Document.i => Document.asRight
-    case Edge.i => Edge.asRight
-    case i => VPackError.IllegalValue(s"unknown collection type $i").asLeft
+    case Edge.i     => Edge.asRight
+    case i          => VPackError.IllegalValue(s"unknown collection type $i").asLeft
   }
 }
-

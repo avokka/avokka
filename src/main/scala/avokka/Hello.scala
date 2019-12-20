@@ -24,7 +24,12 @@ object Hello {
       name: String,
       flag: String,
   )
-  implicit val countryEncoder: VPackEncoder[Country] = VPackRecord[Country].encoder
+  implicit val countryEncoder: VPackEncoder[Country] = VPackRecord[Country].encoder.mapObject(_.filter {
+    case ("_id", DocumentHandle.empty) => false
+    case ("_key", VString("")) => false
+    case ("_rev", VString("")) => false
+    case _ => true
+  })
   implicit val countryDecoder: VPackDecoder[Country] = VPackRecord[Country].decoderWithDefaults
 
   case class Photo(
@@ -62,7 +67,7 @@ object Hello {
 //    println(Await.result(session(DatabaseList()), 10.seconds))
 //    println(Await.result(db(CollectionList()), 10.seconds))
 //    println(Await.result(db.collection("nope"), 10.seconds))
-    println(Await.result(db(DocumentRead[Country](DocumentHandle("countries/FR"), ifMatch = Some("_ZfKin5f--_"))), 10.seconds))
+//    println(Await.result(db(DocumentRead[Country](DocumentHandle("countries/FR"), ifMatch = Some("_ZfKin5f--_"))), 10.seconds))
 //    println(Await.result(countries.document[Country]("FR"), 10.seconds))
 //    println(Await.result(countries.properties(), 10.seconds))
 
@@ -78,10 +83,12 @@ object Hello {
 
     println(Await.result(session(DatabaseCreate(scratch.name)), 1.minute))
     println(Await.result(scratch(CollectionCreate(name = country.name)), 1.minute))
-    val doc = Await.result(country(DocumentCreate(Country(name = "Moi", flag = "[X]"))), 1.minute)
+    val doc = Await.result(country(DocumentCreate(Country(name = "Moi", flag = "[X]"), returnNew = true)), 1.minute)
     println(doc)
-    println(Await.result(scratch(DocumentPatch[VObject, Country](doc.right.get.body._id, VObject(Map("test" -> VTrue)))), 1.minute))
-    println(Await.result(scratch(DocumentDelete[Country](doc.right.get.body._id)), 1.minute))
+    val res = doc.right.get.body.`new`.get
+    println(Await.result(scratch(DocumentUpdate[Country, VObject](res._id, VObject(Map("test" -> VTrue)))), 1.minute))
+    println(Await.result(scratch(DocumentReplace[Country](res._id, res.copy(name = "Vous"))), 1.minute))
+    println(Await.result(scratch(DocumentDelete[Country](res._id)), 1.minute))
     println(Await.result(country(CollectionTruncate), 1.minute))
     println(Await.result(country(CollectionUnload), 1.minute))
     println(Await.result(country(CollectionDrop()), 1.minute))

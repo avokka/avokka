@@ -14,8 +14,7 @@ case class DocumentCreate[T](
 
 object DocumentCreate { self =>
 
-  implicit def api[T: VPackDecoder](
-      implicit e: VPackEncoder[T]): Api.Aux[Collection, DocumentCreate[T], T, Document.Response[T]] =
+  implicit def api[T: VPackDecoder : VPackEncoder]: Api.Aux[Collection, DocumentCreate[T], T, Document.Response[T]] =
     new Api[Collection, DocumentCreate[T], T] {
       override type Response = Document.Response[T]
       override def header(collection: Collection, command: DocumentCreate[T]): Request.HeaderTrait = Request.Header(
@@ -26,9 +25,6 @@ object DocumentCreate { self =>
       )
 
       override def body(collection: Collection, command: DocumentCreate[T]): T = command.document
-      override val encoder: VPackEncoder[T] = e.map {
-        case VPack.VObject(values) => VPack.VObject(values -- Vector("_id", "_key", "_rev"))
-        case v                     => v
-      }
+      override val encoder: VPackEncoder[T] = implicitly
     }
 }

@@ -17,6 +17,11 @@ trait VPackEncoder[T] { self =>
   def map(f: VPack => VPack): VPackEncoder[T] = (t: T) => f(self.encode(t))
 
   def contramap[U](f: U => T): VPackEncoder[U] = (u: U) => self.encode(f(u))
+
+  def mapObject(f: Map[String, VPack] => Map[String, VPack]): VPackEncoder[T] = map {
+    case VObject(values) => VObject(f(values))
+    case v => v
+  }
 }
 
 object VPackEncoder {

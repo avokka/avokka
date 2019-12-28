@@ -31,10 +31,12 @@ package object arangodb {
 
   trait DocumentKeyTag
   type DocumentKey = String @@ DocumentKeyTag
-  def DocumentKey(value: String): DocumentKey = tag[DocumentKeyTag][String](value)
-
+  object DocumentKey {
+    def apply(value: String): DocumentKey = tag[DocumentKeyTag][String](value)
+    val empty = apply("")
+  }
   implicit val documentKeyEncoder: VPackEncoder[DocumentKey] = VPackEncoder[String].narrow
-  implicit val documentKeyDecoder: VPackDecoder[DocumentKey] = VPackDecoder[String].map(DocumentKey)
+  implicit val documentKeyDecoder: VPackDecoder[DocumentKey] = VPackDecoder[String].map(DocumentKey.apply)
 
 
   case class DocumentHandle
@@ -51,7 +53,7 @@ package object arangodb {
       DocumentHandle(CollectionName(parts(0)), DocumentKey(parts(1)))
     }
 
-    val empty = DocumentHandle(CollectionName(""), DocumentKey(""))
+    val empty = DocumentHandle(CollectionName(""), DocumentKey.empty)
 
     implicit val encoder: VPackEncoder[DocumentHandle] = VPackEncoder[String].contramap(_.path)
     implicit val decoder: VPackDecoder[DocumentHandle] = VPackDecoder[String].map(DocumentHandle.apply)

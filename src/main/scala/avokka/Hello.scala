@@ -89,7 +89,7 @@ object Hello {
     val res = doc.right.get.body.`new`.get
     println(Await.result(scratch(DocumentUpdate[Country, VObject](res._id, VObject(Map("test" -> VTrue)))), 1.minute))
 //    println(Await.result(scratch(DocumentReplace[Country](res._id, res.copy(name = "Vous"))), 1.minute))
-    println(Await.result(country(DocumentReplaceMulti[Country](List(res.copy(name = "Vous")), returnNew = true)), 1.minute))
+    println(Await.result(country(DocumentUpdateMulti[Country, VObject](List(VObject(Map("_key" -> VString(res._key), "test" -> VTrue))), returnNew = true)), 1.minute))
     println(Await.result(scratch(DocumentRemove[Country](res._id)), 1.minute))
     println(Await.result(country(CollectionTruncate), 1.minute))
     println(Await.result(country(CollectionUnload), 1.minute))

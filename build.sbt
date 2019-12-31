@@ -12,7 +12,7 @@ ThisBuild / scalacOptions ++= Seq(
   "-unchecked",
   "-deprecation",
   "-feature",
-  //  "-Ypartial-unification"
+  "-Ypartial-unification"
 )
 
 ThisBuild / javacOptions ++= Seq(

@@ -71,13 +71,15 @@ object Hello {
 //    println(Await.result(countries.document[Country]("FR"), 10.seconds))
 //    println(Await.result(countries.properties(), 10.seconds))
 
-    /*
-    println(Await.result(db(Cursor[Map[String, Int], Photo](
+    val res = Await.result(db(Cursor[Map[String, Int], Photo](
       query = "FOR p IN photos LIMIT @limit RETURN p",
-      bindVars = Map("limit" -> 1)
-    )), 10.seconds))
-     */
+      bindVars = Map("limit" -> 10), batchSize = Some(2)
+    )), 10.seconds).right.get.body
+    println(res)
+    println(Await.result(db(CursorNext[Photo](res.id.get)), 10.seconds))
+    println(Await.result(db(CursorDelete(res.id.get)), 10.seconds))
 
+    /*
     val scratch = new Database(session, "scratch")
     val country = new Collection(scratch, "country")
 
@@ -96,7 +98,7 @@ object Hello {
     println(Await.result(country(CollectionUnload), 1.minute))
     println(Await.result(country(CollectionDrop()), 1.minute))
     println(Await.result(scratch(DatabaseDrop), 1.minute))
-
+*/
     Await.ready(system.terminate(), 1.minute)
   }
 

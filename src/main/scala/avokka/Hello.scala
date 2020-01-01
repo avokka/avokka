@@ -4,6 +4,7 @@ import java.time.Instant
 
 import akka.actor._
 import akka.stream._
+import akka.stream.scaladsl.Sink
 import avokka.arangodb._
 import avokka.arangodb.api._
 import avokka.velocypack.VPack._
@@ -71,6 +72,7 @@ object Hello {
 //    println(Await.result(countries.document[Country]("FR"), 10.seconds))
 //    println(Await.result(countries.properties(), 10.seconds))
 
+    /*
     val res = Await.result(db(Cursor[Map[String, Int], Photo](
       query = "FOR p IN photos LIMIT @limit RETURN p",
       bindVars = Map("limit" -> 10), batchSize = Some(2)
@@ -78,7 +80,14 @@ object Hello {
     println(res)
     println(Await.result(db(CursorNext[Photo](res.id.get)), 10.seconds))
     println(Await.result(db(CursorDelete(res.id.get)), 10.seconds))
-
+*/
+    Await.result(CursorSource(Cursor[Map[String, Int], Photo](
+      query = "FOR p IN photos LIMIT @limit RETURN p",
+      bindVars = Map("limit" -> 5), batchSize = Some(2)
+    ), db)
+        .wireTap(println(_))
+        .runWith(Sink.ignore)
+    , 10.seconds)
     /*
     val scratch = new Database(session, "scratch")
     val country = new Collection(scratch, "country")

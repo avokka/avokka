@@ -15,7 +15,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class Session(host: String, port: Int = 8529)(
-    implicit system: ActorSystem,
+    implicit val system: ActorSystem,
     materializer: ActorMaterializer
 ) extends ApiContext[Session] {
 

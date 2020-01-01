@@ -72,6 +72,7 @@ object Hello {
 //    println(Await.result(countries.document[Country]("FR"), 10.seconds))
 //    println(Await.result(countries.properties(), 10.seconds))
     println(Await.result(countries(IndexList), 10.seconds))
+    println(Await.result(db(IndexRead("countries/0")), 10.seconds))
 
     /*
     val res = Await.result(db(Cursor[Map[String, Int], Photo](

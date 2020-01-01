@@ -5,23 +5,9 @@ import avokka.velocypack._
 
 object IndexList { self =>
 
-  case class IndexDetails(
-      fields: List[String],
-      id: String,
-      name: String,
-      selectivityEstimate: Double,
-      sparse: Boolean,
-      `type`: String,
-      unique: Boolean,
-      deduplicate: Option[Boolean] = None,
-  )
-  object IndexDetails {
-    implicit val decoder: VPackDecoder[IndexDetails] = VPackRecord[IndexDetails].decoderWithDefaults
-  }
-
   case class Response(
-      indexes: List[IndexDetails],
-      identifiers: Map[String, IndexDetails]
+      indexes: List[Index.Response],
+      identifiers: Map[String, Index.Response]
   )
   object Response {
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoderWithDefaults

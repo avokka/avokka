@@ -71,6 +71,7 @@ object Hello {
 //    println(Await.result(db(DocumentRead[Country](DocumentHandle("countries/FR"), ifMatch = Some("_ZfKin5f--_"))), 10.seconds))
 //    println(Await.result(countries.document[Country]("FR"), 10.seconds))
 //    println(Await.result(countries.properties(), 10.seconds))
+    println(Await.result(countries(IndexList), 10.seconds))
 
     /*
     val res = Await.result(db(Cursor[Map[String, Int], Photo](
@@ -81,6 +82,7 @@ object Hello {
     println(Await.result(db(CursorNext[Photo](res.id.get)), 10.seconds))
     println(Await.result(db(CursorDelete(res.id.get)), 10.seconds))
 */
+    /*
     Await.result(CursorSource(Cursor[Map[String, Int], Photo](
       query = "FOR p IN photos LIMIT @limit RETURN p",
       bindVars = Map("limit" -> 5), batchSize = Some(2)
@@ -88,6 +90,7 @@ object Hello {
         .wireTap(println(_))
         .runWith(Sink.ignore)
     , 10.seconds)
+     */
     /*
     val scratch = new Database(session, "scratch")
     val country = new Collection(scratch, "country")

@@ -1,24 +1,11 @@
 package avokka.arangodb
 
-import akka.NotUsed
 import akka.stream.{Attributes, Outlet, SourceShape}
-import akka.stream.scaladsl.Source
 import akka.stream.stage.{GraphStage, GraphStageLogic, OutHandler}
 import avokka.velocypack.{VPackDecoder, VPackEncoder}
 import cats.data.EitherT
 import cats.instances.future._
 import api._
-
-object CursorSource {
-
-  def apply[C, T](c: C, db: Database)(
-      implicit api: Api.Command.Aux[Database, C, Cursor.Response[T]],
-      ce: VPackEncoder[C],
-      td: VPackDecoder[T]): Source[T, NotUsed] =
-    Source.fromGraph(
-      new CursorSource[C, T](c, db)(api, ce, td)
-    )
-}
 
 final class CursorSource[C, T](
     c: C,

@@ -73,6 +73,9 @@ object VPackEncoder {
     a => VArray(Chain.fromSeq(a.map(e.encode)))
   implicit def chainEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Chain[T]] =
     a => VArray(a.map(e.encode))
+  implicit def iterableEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Iterable[T]] =
+    a => VArray(Chain.fromSeq(a.map(e.encode).toSeq))
+
   implicit def mapEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Map[String, T]] =
     a => VObject(a.mapValues(e.encode))
 

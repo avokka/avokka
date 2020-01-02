@@ -15,12 +15,12 @@ import scala.concurrent.duration._
 
 object Hello {
 
-  implicit val system = ActorSystem("avokka")
-  implicit val materializer = ActorMaterializer()
+  implicit val system: ActorSystem = ActorSystem("avokka")
+  implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   case class Country(
       _id: DocumentHandle = DocumentHandle.empty,
-      _key: DocumentKey = DocumentKey(""),
+      _key: DocumentKey = DocumentKey.empty,
       _rev: String = "",
       name: String,
       flag: String,
@@ -73,7 +73,12 @@ object Hello {
 //    println(Await.result(countries.properties(), 10.seconds))
 //    println(Await.result(countries(IndexList), 10.seconds))
 //    println(Await.result(db(IndexRead("countries/0")), 10.seconds))
-
+/*
+    val res = Await.result(db(
+      countries.lookupQuery[Country](List(DocumentKey("DE"), DocumentKey("FR")))
+    ), 10.seconds)
+    println(res)
+*/
     /*
     val res = Await.result(db(Cursor[Map[String, Int], Photo](
       query = "FOR p IN photos LIMIT @limit RETURN p",
@@ -83,15 +88,10 @@ object Hello {
     println(Await.result(db(CursorNext[Photo](res.id.get)), 10.seconds))
     println(Await.result(db(CursorDelete(res.id.get)), 10.seconds))
 */
-    /*
-    Await.result(CursorSource(Cursor[Map[String, Int], Photo](
-      query = "FOR p IN photos LIMIT @limit RETURN p",
-      bindVars = Map("limit" -> 5), batchSize = Some(2)
-    ), db)
+    Await.result(db.source(countries.all[Country].withBatchSize(4))
         .wireTap(println(_))
         .runWith(Sink.ignore)
     , 10.seconds)
-     */
     val scratch = new Database(session, "scratch")
     val country = new Collection(scratch, "country")
 

@@ -22,7 +22,12 @@ case class Cursor[V, T](
     memoryLimit: Option[Long] = None,
     options: Option[Cursor.Options] = None,
     ttl: Option[Long] = None,
-)
+) {
+  def withBatchSize(size: Long): Cursor[V, T] = copy(batchSize = Some(size))
+  def withCache(flag: Boolean): Cursor[V, T] = copy(cache = Some(flag))
+  def withCount(flag: Boolean): Cursor[V, T] = copy(count = Some(flag))
+  def withTtl(seconds: Long): Cursor[V, T] = copy(ttl = Some(seconds))
+}
 
 object Cursor { self =>
 
@@ -97,5 +102,4 @@ object Cursor { self =>
         )
       override val encoder: VPackEncoder[Cursor[V, T]] = implicitly
     }
-
 }

@@ -1,7 +1,7 @@
-package avokka.arangodb.api.admin
+package avokka.arangodb
+package api
+package admin
 
-import avokka.arangodb._
-import avokka.arangodb.api.Api
 import avokka.velocypack._
 
 object AdminLog { self =>
@@ -29,7 +29,7 @@ object AdminLog { self =>
   implicit val api: Api.EmptyBody.Aux[Session, AdminLog.type, Response] = new Api.EmptyBody[Session, AdminLog.type] {
     override type Response = self.Response
     override def header(session: Session, command: AdminLog.type): Request.HeaderTrait = Request.Header(
-      database = Database.systemName,
+      database = DatabaseName.system,
       requestType = RequestType.GET,
       request = "/_admin/log"
     )

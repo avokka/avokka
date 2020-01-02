@@ -42,4 +42,6 @@ object Dependencies {
   val enumeratumVersion = "1.5.13"
   val enumeratum = Seq("com.beachape" %% "enumeratum" % enumeratumVersion)
 
+  val newtype = Seq("io.estatico" %% "newtype" % "0.4.3")
+
 }

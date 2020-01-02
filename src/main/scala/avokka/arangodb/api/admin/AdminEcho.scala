@@ -1,7 +1,7 @@
-package avokka.arangodb.api.admin
+package avokka.arangodb
+package api
+package admin
 
-import avokka.arangodb.api.Api
-import avokka.arangodb.{Database, Request, RequestType, Session}
 import avokka.velocypack._
 
 object AdminEcho { self =>
@@ -74,7 +74,7 @@ object AdminEcho { self =>
   implicit val api: Api.EmptyBody.Aux[Session, AdminEcho.type, Response] = new Api.EmptyBody[Session, AdminEcho.type] {
     override type Response = self.Response
     override def header(session: Session, command: AdminEcho.type): Request.HeaderTrait = Request.Header(
-      database = Database.systemName,
+      database = DatabaseName.system,
       requestType = RequestType.POST,
       request = "/_admin/echo"
     )

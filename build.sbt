@@ -48,9 +48,11 @@ lazy val root = (project in file("."))
   .dependsOn(velocystream)
   .aggregate(velocypack, velocystream)
   .settings(
+    addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full),
     name := "avokka",
     libraryDependencies ++=
 //      enumeratum ++
+      newtype ++
       Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value) ++
       arango
   )

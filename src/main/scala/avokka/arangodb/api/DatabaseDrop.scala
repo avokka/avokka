@@ -17,7 +17,7 @@ object DatabaseDrop { self =>
     new Api.EmptyBody[Database, DatabaseDrop.type] {
       override type Response = self.Response
       override def header(database: Database, command: DatabaseDrop.type): Request.HeaderTrait = Request.Header(
-        database = Database.systemName,
+        database = DatabaseName.system,
         requestType = RequestType.DELETE,
         request = s"/_api/database/${database.name}",
       )

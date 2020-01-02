@@ -21,7 +21,7 @@ object IndexList { self =>
           database = collection.database.name,
           requestType = RequestType.GET,
           request = "/_api/index",
-          parameters = Map("collection" -> collection.name)
+          parameters = Map("collection" -> collection.name.repr)
         )
     }
 }

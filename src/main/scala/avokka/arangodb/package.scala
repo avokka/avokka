@@ -2,61 +2,62 @@ package avokka
 
 import avokka.velocypack._
 import cats.data.EitherT
-import cats.syntax.contravariant._
-import shapeless.tag
-import shapeless.tag.@@
+import cats.syntax.either._
+import io.estatico.newtype.macros.newtype
 
 import scala.concurrent.Future
+
+import scala.language.{implicitConversions, higherKinds}
 
 package object arangodb {
 
   type FEE[T] = EitherT[Future, ArangoError, T]
 
-
-  trait DatabaseNameTag
-  type DatabaseName = String @@ DatabaseNameTag
-  def DatabaseName(value: String): DatabaseName = tag[DatabaseNameTag][String](value)
-
-  implicit val databaseNameEncoder: VPackEncoder[DatabaseName] = VPackEncoder[String].narrow
-  implicit val databaseNameDecoder: VPackDecoder[DatabaseName] = VPackDecoder[String].map(DatabaseName)
-
-
-  trait CollectionNameTag
-  type CollectionName = String @@ CollectionNameTag
-  def CollectionName(value: String): CollectionName = tag[CollectionNameTag][String](value)
-
-  implicit val collectionNameEncoder: VPackEncoder[CollectionName] = VPackEncoder[String].narrow
-  implicit val collectionNameDecoder: VPackDecoder[CollectionName] = VPackDecoder[String].map(CollectionName)
-
-
-  trait DocumentKeyTag
-  type DocumentKey = String @@ DocumentKeyTag
-  object DocumentKey {
-    def apply(value: String): DocumentKey = tag[DocumentKeyTag][String](value)
-    val empty = apply("")
+  @newtype case class DatabaseName(repr: String)
+  object DatabaseName {
+    implicit val encoder: VPackEncoder[DatabaseName] = deriving
+    implicit val decoder: VPackDecoder[DatabaseName] = deriving
+    val system: DatabaseName = DatabaseName("_system")
   }
-  implicit val documentKeyEncoder: VPackEncoder[DocumentKey] = VPackEncoder[String].narrow
-  implicit val documentKeyDecoder: VPackDecoder[DocumentKey] = VPackDecoder[String].map(DocumentKey.apply)
 
+  @newtype case class CollectionName(repr: String)
+  object CollectionName {
+    implicit val encoder: VPackEncoder[CollectionName] = deriving
+    implicit val decoder: VPackDecoder[CollectionName] = deriving
+  }
 
-  case class DocumentHandle
-  (
-    collection: CollectionName,
-    key: DocumentKey
-  ) {
+  @newtype case class DocumentKey(repr: String)
+  object DocumentKey {
+    implicit val encoder: VPackEncoder[DocumentKey] = deriving
+    implicit val decoder: VPackDecoder[DocumentKey] = deriving
+    val Empty = apply("")
+  }
+
+  @newtype case class DocumentHandle(repr: (CollectionName, DocumentKey)) {
+    def collection: CollectionName = repr._1
+    def key: DocumentKey = repr._2
     def path: String = s"$collection/$key"
   }
-
   object DocumentHandle {
-    def apply(path: String): DocumentHandle = {
-      val parts = path.split('/')
-      DocumentHandle(CollectionName(parts(0)), DocumentKey(parts(1)))
+
+    def apply(collection: CollectionName, key: DocumentKey): DocumentHandle =
+      apply((collection, key))
+
+    def parse(path: String): Option[DocumentHandle] = {
+      path.split('/') match {
+        case Array(c, k) => Some(apply(CollectionName(c), DocumentKey(k)))
+        case _           => None
+      }
     }
 
-    val empty = DocumentHandle(CollectionName(""), DocumentKey.empty)
-
     implicit val encoder: VPackEncoder[DocumentHandle] = VPackEncoder[String].contramap(_.path)
-    implicit val decoder: VPackDecoder[DocumentHandle] = VPackDecoder[String].map(DocumentHandle.apply)
+    implicit val decoder: VPackDecoder[DocumentHandle] = VPackDecoder[String].emap(path =>
+      parse(path) match {
+        case Some(value) => value.asRight
+        case None        => VPackError.IllegalValue(s"invalid document handle '$path'").asLeft
+    })
+
+    val Empty = apply(CollectionName(""), DocumentKey.Empty)
   }
 
 }

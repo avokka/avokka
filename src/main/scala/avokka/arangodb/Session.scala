@@ -21,7 +21,7 @@ class Session(host: String, port: Int = 8529)(
 
   override lazy val session: Session = this
 
-  lazy val _system = new Database(this, Database.systemName)
+  lazy val _system = new Database(this, DatabaseName.system)
 
   private val client = system.actorOf(Props(classOf[VStreamClient], host, port, materializer),
                                       name = s"velocystream-client")

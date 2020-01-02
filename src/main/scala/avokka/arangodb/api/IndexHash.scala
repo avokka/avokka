@@ -46,7 +46,7 @@ object IndexHash { self =>
           database = collection.database.name,
           requestType = RequestType.POST,
           request = s"/_api/index",
-          parameters = Map("collection" -> collection.name)
+          parameters = Map("collection" -> collection.name.repr)
         )
 
       override def encoder: VPackEncoder[IndexHash] = self.encoder.mapObject(_.updated("type", VString("hash")))

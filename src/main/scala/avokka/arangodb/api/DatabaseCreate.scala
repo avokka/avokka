@@ -43,7 +43,7 @@ object DatabaseCreate { self =>
   implicit val api: Api.Command.Aux[Session, DatabaseCreate, Response] = new Api.Command[Session, DatabaseCreate] {
     override type Response = self.Response
     override def header(session: Session, command: DatabaseCreate): Request.HeaderTrait = Request.Header(
-      database = Database.systemName,
+      database = DatabaseName.system,
       requestType = RequestType.POST,
       request = "/_api/database"
     )

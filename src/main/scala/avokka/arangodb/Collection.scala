@@ -4,9 +4,7 @@ import avokka.arangodb.api.{Cursor, DocumentRead}
 import avokka.velocypack.VPack.VObject
 import avokka.velocypack._
 
-class Collection(val database: Database, collectionName: String) extends ApiContext[Collection] {
-
-  lazy val name: CollectionName = CollectionName(collectionName)
+class Collection(val database: Database, val name: CollectionName) extends ApiContext[Collection] {
 
   override lazy val session: Session = database.session
 

@@ -71,8 +71,8 @@ object Hello {
 //    println(Await.result(db(DocumentRead[Country](DocumentHandle("countries/FR"), ifMatch = Some("_ZfKin5f--_"))), 10.seconds))
 //    println(Await.result(countries.document[Country]("FR"), 10.seconds))
 //    println(Await.result(countries.properties(), 10.seconds))
-    println(Await.result(countries(IndexList), 10.seconds))
-    println(Await.result(db(IndexRead("countries/0")), 10.seconds))
+//    println(Await.result(countries(IndexList), 10.seconds))
+//    println(Await.result(db(IndexRead("countries/0")), 10.seconds))
 
     /*
     val res = Await.result(db(Cursor[Map[String, Int], Photo](
@@ -92,26 +92,35 @@ object Hello {
         .runWith(Sink.ignore)
     , 10.seconds)
      */
-    /*
     val scratch = new Database(session, "scratch")
     val country = new Collection(scratch, "country")
 
     println(Await.result(session(DatabaseCreate(scratch.name)), 1.minute))
     println(Await.result(scratch(CollectionCreate(name = country.name)), 1.minute))
-    println(Await.result(country(DocumentCreateMulti(List(Country(name = "a", flag = "a"), Country(name = "b", flag = "b")), returnNew = true)), 1.minute))
-    val doc = Await.result(country(DocumentCreate(Country(name = "Moi", flag = "[X]"), returnNew = true)), 1.minute)
-    println(doc)
-    val res = doc.right.get.body.`new`.get
-    println(Await.result(scratch(DocumentUpdate[Country, VObject](res._id, VObject(Map("test" -> VTrue)))), 1.minute))
-//    println(Await.result(scratch(DocumentReplace[Country](res._id, res.copy(name = "Vous"))), 1.minute))
-    println(Await.result(country(DocumentUpdateMulti[Country, VObject](List(VObject(Map("_key" -> VString(res._key), "test" -> VTrue))), returnNew = true)), 1.minute))
-//    println(Await.result(scratch(DocumentRemove[Country](res._id)), 1.minute))
-    println(Await.result(country(DocumentRemoveMulti[Country, DocumentKey](List(res._key), returnOld = true)), 1.minute))
-    println(Await.result(country(CollectionTruncate), 1.minute))
-    println(Await.result(country(CollectionUnload), 1.minute))
+
+    if (false) {
+      println(Await.result(country(DocumentCreateMulti(List(Country(name = "a", flag = "a"), Country(name = "b", flag = "b")), returnNew = true)), 1.minute))
+      val doc = Await.result(country(DocumentCreate(Country(name = "Moi", flag = "[X]"), returnNew = true)), 1.minute)
+      println(doc)
+      val res = doc.right.get.body.`new`.get
+      println(Await.result(scratch(DocumentUpdate[Country, VObject](res._id, VObject(Map("test" -> VTrue)))), 1.minute))
+      //    println(Await.result(scratch(DocumentReplace[Country](res._id, res.copy(name = "Vous"))), 1.minute))
+      println(Await.result(country(DocumentUpdateMulti[Country, VObject](List(VObject(Map("_key" -> VString(res._key), "test" -> VTrue))), returnNew = true)), 1.minute))
+      //    println(Await.result(scratch(DocumentRemove[Country](res._id)), 1.minute))
+      println(Await.result(country(DocumentRemoveMulti[Country, DocumentKey](List(res._key), returnOld = true)), 1.minute))
+      println(Await.result(country(CollectionTruncate), 1.minute))
+      println(Await.result(country(CollectionUnload), 1.minute))
+    }
+
+    val idx = Await.result(country(IndexHash(fields = List("title"))), 1.minute)
+    println(idx)
+    println(Await.result(country(IndexList), 10.seconds))
+    println(Await.result(scratch(IndexDelete(idx.right.get.body.id)), 1.minute))
+    println(Await.result(country(IndexList), 10.seconds))
+
     println(Await.result(country(CollectionDrop()), 1.minute))
     println(Await.result(scratch(DatabaseDrop), 1.minute))
-*/
+
     Await.ready(system.terminate(), 1.minute)
   }
 

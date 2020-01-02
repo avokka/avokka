@@ -10,6 +10,7 @@ object Index {
       id: String,
       name: String,
       `type`: String,
+      isNewlyCreated: Boolean = false,
       selectivityEstimate: Option[Double] = None,
       sparse: Option[Boolean] = None,
       unique: Option[Boolean] = None,

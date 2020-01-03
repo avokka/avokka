@@ -57,6 +57,8 @@ package object arangodb {
       }
     }
 
+    def apply(path: String): DocumentHandle = parse(path).getOrElse(empty)
+
     implicit val encoder: VPackEncoder[DocumentHandle] = VPackEncoder[String].contramap(_.path)
     implicit val decoder: VPackDecoder[DocumentHandle] = VPackDecoder[String].emap(path =>
       parse(path) match {

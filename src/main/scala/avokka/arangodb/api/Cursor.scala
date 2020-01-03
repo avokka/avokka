@@ -2,6 +2,7 @@ package avokka.arangodb
 package api
 
 import avokka.velocypack._
+import cats.data.Chain
 
 /**
   * @param query contains the query string to be executed
@@ -84,7 +85,7 @@ object Cursor { self =>
 //    extra: Option[Map[String, Any]],
       hasMore: Boolean,
       id: Option[String] = None,
-      result: List[T]
+      result: Chain[T]
   )
 
   object Response {

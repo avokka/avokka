@@ -4,6 +4,7 @@ import java.time.Instant
 
 import avokka.velocypack.VPack._
 import cats.data.Chain
+import cats.data.Chain._
 import cats.instances.either._
 import cats.instances.list._
 import cats.syntax.either._
@@ -98,6 +99,21 @@ object VPackDecoder {
     case v         => VPackError.WrongType(v).asLeft
   }
 
+  implicit def genericDecoder[T <: HList](implicit a: VPackGeneric.Decoder[T]): VPackDecoder[T] =
+    VPackGeneric.Decoder(a)
+
+  implicit def tuple1Decoder[T1](implicit d1: VPackDecoder[T1]): VPackDecoder[Tuple1[T1]] = {
+    case VArray(a1 ==: nil) => d1.decode(a1).map(Tuple1.apply)
+    case v         => VPackError.WrongType(v).asLeft
+  }
+  implicit def tuple2Decoder[T1, T2](implicit d1: VPackDecoder[T1], d2: VPackDecoder[T2]): VPackDecoder[Tuple2[T1, T2]] = {
+    case VArray(a1 ==: a2 ==: nil) => for {
+      r1 <- d1.decode(a1)
+      r2 <- d2.decode(a2)
+    } yield Tuple2(r1, r2)
+    case v         => VPackError.WrongType(v).asLeft
+  }
+
   implicit def mapDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Map[String, T]] = {
     case VObject(o) => {
       o.toList.traverse[Result, (String, T)]({
@@ -108,9 +124,6 @@ object VPackDecoder {
     }
     case v => VPackError.WrongType(v).asLeft
   }
-
-  implicit def genericDecoder[T <: HList](implicit a: VPackGeneric.Decoder[T]): VPackDecoder[T] =
-    VPackGeneric.Decoder(a)
 
 //  implicit val unitDecoder: VPackDecoder[Unit] = _ => ().asRight
 

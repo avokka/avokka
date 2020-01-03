@@ -40,7 +40,7 @@ final class CursorSource[C, T](
       def handleResponse(response: Response[Cursor.Response[T]]): Unit = {
         cursorId = response.body.id
 
-        emitMultiple(out, response.body.result.toIterator)
+        emitMultiple(out, response.body.result.iterator)
         if (!response.body.hasMore) {
           completeStage()
         }

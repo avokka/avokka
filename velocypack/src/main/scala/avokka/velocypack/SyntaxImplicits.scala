@@ -48,14 +48,4 @@ trait SyntaxImplicits {
     }
   }
 
-  implicit class SyntaxTupleVObject(key: String) {
-
-    /**
-      * creates a tuple of (String, VPack) from "key" :> value
-      * @param value value
-      * @tparam T value type
-      * @return tuple
-      */
-    def :>[T: VPackEncoder](value: T): (String, VPack) = (key, value.toVPack)
-  }
 }

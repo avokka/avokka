@@ -67,13 +67,14 @@ object Hello {
 //    println(Await.result(db(CollectionList()), 10.seconds))
 //    println(Await.result(db.collection("nope"), 10.seconds))
 //    println(Await.result(db(DocumentRead[Country](DocumentHandle("countries/FR"), ifMatch = Some("_ZfKin5f--_"))), 10.seconds))
-//    println(Await.result(countries.document[Country]("FR"), 10.seconds))
+    println(Await.result(db(countries.read[Country](DocumentKey("FR"))), 10.seconds))
 //    println(Await.result(countries.properties(), 10.seconds))
 //    println(Await.result(countries(IndexList), 10.seconds))
 //    println(Await.result(db(IndexRead("countries/0")), 10.seconds))
-/*
+
+    /*
     val res = Await.result(db(
-      countries.lookupQuery[Country](List(DocumentKey("DE"), DocumentKey("FR")))
+      countries.lookup[Country](List(DocumentKey("DE"), DocumentKey("FR")))
     ), 10.seconds)
     println(res)
 */
@@ -95,10 +96,11 @@ object Hello {
     val scratch = new Database(session, DatabaseName("scratch"))
     val country = new Collection(scratch, CollectionName("country"))
 
+    /*
     println(Await.result(session(DatabaseCreate(scratch.name)), 1.minute))
     println(Await.result(scratch(CollectionCreate(name = country.name)), 1.minute))
 
-    if (true) {
+    if (false) {
       println(Await.result(country(DocumentCreateMulti(List(Country(name = "a", flag = "a"), Country(name = "b", flag = "b")), returnNew = true)), 1.minute))
       val doc = Await.result(country(DocumentCreate(Country(name = "Moi", flag = "[X]"), returnNew = true)), 1.minute)
       println(doc)
@@ -120,7 +122,7 @@ object Hello {
 
     println(Await.result(country(CollectionDrop()), 1.minute))
     println(Await.result(scratch(DatabaseDrop), 1.minute))
-
+*/
     Await.ready(system.terminate(), 1.minute)
   }
 

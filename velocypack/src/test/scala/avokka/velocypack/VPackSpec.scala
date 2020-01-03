@@ -24,6 +24,6 @@ class VPackSpec extends FlatSpec with Matchers with VPackSpecTrait {
   }
 
   "object syntax" should "allow simple object creation" in {
-    assertResult(VObject(Map("a" -> VTrue, "b" -> VSmallint(1))))(VObject("a" :> true, "b" :> 1))
+    assertResult(VObject(Map("a" -> VTrue, "b" -> VSmallint(1))))(VObject("a" -> true.toVPack, "b" -> 1.toVPack))
   }
 }

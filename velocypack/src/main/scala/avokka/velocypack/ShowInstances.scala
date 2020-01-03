@@ -9,14 +9,14 @@ trait ShowInstances {
   import VPack._
 
   implicit val vpackShow: Show[VPack] = Show.show {
-    case VPack.VNone      => "undefined"
-    case VPack.VIllegal   => "undefined"
-    case VPack.VNull      => "null"
+    case VNone            => "undefined"
+    case VIllegal         => "undefined"
+    case VNull            => "null"
     case VBoolean(value)  => if (value) "true" else "false"
     case VDouble(value)   => value.toString
     case VDate(value)     => s""""${Instant.ofEpochMilli(value)}""""
-    case VPack.VMinKey    => "-Infinity"
-    case VPack.VMaxKey    => "Infinity"
+    case VMinKey          => "-Infinity"
+    case VMaxKey          => "Infinity"
     case VSmallint(value) => value.toString
     case VLong(value)     => value.toString
     case VString(value)   => s""""$value""""

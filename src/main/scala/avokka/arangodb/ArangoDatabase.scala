@@ -5,10 +5,10 @@ import akka.stream.scaladsl.Source
 import avokka.arangodb.api.{Api, Cursor}
 import avokka.velocypack.{VPackDecoder, VPackEncoder}
 
-class Database(val session: Session, val name: DatabaseName) extends ApiContext[Database] {
+class ArangoDatabase(val session: ArangoSession, val name: DatabaseName) extends ApiContext[ArangoDatabase] {
 
   def source[C, T](c: C)(
-    implicit api: Api.Command.Aux[Database, C, Cursor.Response[T]],
+    implicit api: Api.Command.Aux[ArangoDatabase, C, Cursor.Response[T]],
     ce: VPackEncoder[C],
     td: VPackDecoder[T]): Source[T, NotUsed] =
     Source.fromGraph(

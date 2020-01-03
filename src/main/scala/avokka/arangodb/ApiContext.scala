@@ -6,7 +6,7 @@ import scala.concurrent.Future
 
 trait ApiContext[Ctx] { self: Ctx =>
 
-  def session: Session
+  def session: ArangoSession
 
   /**
    * executes an api command in this context
@@ -23,9 +23,9 @@ trait ApiContext[Ctx] { self: Ctx =>
     implicit command: api.Api.Aux[Ctx, C, T, O],
     encoder: VPackEncoder[T],
     decoder: VPackDecoder[O]
-  ): Future[Either[ArangoError, Response[O]]] = {
+  ): Future[Either[ArangoError, ArangoResponse[O]]] = {
     val header = command.header(self, c)
     val body = command.body(self, c)
-    session.execute(Request(header, body))(command.encoder, decoder).value
+    session.execute(ArangoRequest(header, body))(command.encoder, decoder).value
   }
 }

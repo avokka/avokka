@@ -14,14 +14,14 @@ import scodec.bits.BitVector
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-class Session(host: String, port: Int = 8529)(
+class ArangoSession(host: String, port: Int = 8529)(
     implicit val system: ActorSystem,
     materializer: ActorMaterializer
-) extends ApiContext[Session] {
+) extends ApiContext[ArangoSession] {
 
-  override lazy val session: Session = this
+  override lazy val session: ArangoSession = this
 
-  lazy val _system = new Database(this, DatabaseName.system)
+  lazy val _system = new ArangoDatabase(this, DatabaseName.system)
 
   private val client = system.actorOf(Props(classOf[VStreamClient], host, port, materializer),
                                       name = s"velocystream-client")
@@ -33,12 +33,12 @@ class Session(host: String, port: Int = 8529)(
     EitherT.liftF(ask(client, bits.bytes).mapTo[VStreamMessage])
 
   private[arangodb] def execute[P: VPackEncoder, O: VPackDecoder](
-      request: Request[P]): FEE[Response[O]] = {
+      request: ArangoRequest[P]): FEE[ArangoResponse[O]] = {
     for {
       hBits <- EitherT.fromEither[Future](request.header.toVPackBits.leftMap(ArangoError.VPack))
       pBits <- EitherT.fromEither[Future](request.body.toVPackBits.leftMap(ArangoError.VPack))
       message <- askClient(hBits ++ pBits)
-      response <- EitherT.fromEither[Future](Response.decode[O](message.data.bits))
+      response <- EitherT.fromEither[Future](ArangoResponse.decode[O](message.data.bits))
     } yield response
   }
 

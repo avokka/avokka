@@ -32,9 +32,9 @@ object Version { self =>
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoderWithDefaults
   }
 
-  implicit val api: Api.EmptyBody.Aux[Session, Version, Response] = new Api.EmptyBody[Session, Version] {
+  implicit val api: Api.EmptyBody.Aux[ArangoSession, Version, Response] = new Api.EmptyBody[ArangoSession, Version] {
     override type Response = self.Response
-    override def header(session: Session, command: Version): Request.HeaderTrait = Request.Header(
+    override def header(session: ArangoSession, command: Version): ArangoRequest.HeaderTrait = ArangoRequest.Header(
       database = DatabaseName.system,
       requestType = RequestType.GET,
       request = "/_api/version",

@@ -41,18 +41,18 @@ case class DocumentReplace[T](
 object DocumentReplace {
 
   implicit def api[T: VPackEncoder: VPackDecoder]
-    : Api.Aux[Database, DocumentReplace[T], T, Document.Response[T]] =
-    new Api[Database, DocumentReplace[T], T] {
+    : Api.Aux[ArangoDatabase, DocumentReplace[T], T, Document.Response[T]] =
+    new Api[ArangoDatabase, DocumentReplace[T], T] {
       override type Response = Document.Response[T]
-      override def header(database: Database, command: DocumentReplace[T]): Request.HeaderTrait =
-        Request.Header(
+      override def header(database: ArangoDatabase, command: DocumentReplace[T]): ArangoRequest.HeaderTrait =
+        ArangoRequest.Header(
           database = database.name,
           requestType = RequestType.PUT,
           request = s"/_api/document/${command.handle.path}",
           parameters = command.parameters,
           meta = command.meta,
         )
-      override def body(context: Database, command: DocumentReplace[T]): T = command.document
+      override def body(context: ArangoDatabase, command: DocumentReplace[T]): T = command.document
       override val encoder: VPackEncoder[T] =
         implicitly[VPackEncoder[T]].mapObject(_.filter(Document.filterEmptyInternalAttributes))
     }

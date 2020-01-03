@@ -24,10 +24,10 @@ object DatabaseInfo { self =>
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
   }
 
-  implicit val api: Api.EmptyBody.Aux[Database, DatabaseInfo.type, Response] =
-    new Api.EmptyBody[Database, DatabaseInfo.type] {
+  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, DatabaseInfo.type, Response] =
+    new Api.EmptyBody[ArangoDatabase, DatabaseInfo.type] {
       override type Response = self.Response
-      override def header(database: Database, command: DatabaseInfo.type): Request.HeaderTrait = Request.Header(
+      override def header(database: ArangoDatabase, command: DatabaseInfo.type): ArangoRequest.HeaderTrait = ArangoRequest.Header(
         database = database.name,
         requestType = RequestType.GET,
         request = "/_api/database/current"

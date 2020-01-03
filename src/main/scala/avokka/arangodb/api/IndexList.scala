@@ -13,11 +13,11 @@ object IndexList { self =>
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoderWithDefaults
   }
 
-  implicit val api: Api.EmptyBody.Aux[Collection, IndexList.type, Response] =
-    new Api.EmptyBody[Collection, IndexList.type] {
+  implicit val api: Api.EmptyBody.Aux[ArangoCollection, IndexList.type, Response] =
+    new Api.EmptyBody[ArangoCollection, IndexList.type] {
       override type Response = self.Response
-      override def header(collection: Collection, command: IndexList.type): Request.HeaderTrait =
-        Request.Header(
+      override def header(collection: ArangoCollection, command: IndexList.type): ArangoRequest.HeaderTrait =
+        ArangoRequest.Header(
           database = collection.database.name,
           requestType = RequestType.GET,
           request = "/_api/index",

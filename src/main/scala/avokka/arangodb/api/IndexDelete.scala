@@ -17,12 +17,12 @@ object IndexDelete { self =>
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
   }
 
-  implicit val api: Api.EmptyBody.Aux[Database, IndexDelete, Response] =
-    new Api.EmptyBody[Database, IndexDelete] {
+  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, IndexDelete, Response] =
+    new Api.EmptyBody[ArangoDatabase, IndexDelete] {
       override type Response = self.Response
 
-      override def header(database: Database, command: IndexDelete): Request.HeaderTrait =
-        Request.Header(
+      override def header(database: ArangoDatabase, command: IndexDelete): ArangoRequest.HeaderTrait =
+        ArangoRequest.Header(
           database = database.name,
           requestType = RequestType.DELETE,
           request = s"/_api/index/${command.handle}"

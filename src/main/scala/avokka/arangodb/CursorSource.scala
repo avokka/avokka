@@ -9,8 +9,8 @@ import api._
 
 final class CursorSource[C, T](
     c: C,
-    db: Database
-)(implicit api: Api.Command.Aux[Database, C, Cursor.Response[T]],
+    db: ArangoDatabase
+)(implicit api: Api.Command.Aux[ArangoDatabase, C, Cursor.Response[T]],
   ce: VPackEncoder[C],
   td: VPackDecoder[T],
 )
@@ -25,7 +25,7 @@ final class CursorSource[C, T](
     new GraphStageLogic(shape) with OutHandler {
 
       private var cursorId: Option[String] = None
-      private val responseHandler = getAsyncCallback[Response[Cursor.Response[T]]](handleResponse)
+      private val responseHandler = getAsyncCallback[ArangoResponse[Cursor.Response[T]]](handleResponse)
       private val failureHandler = getAsyncCallback[ArangoError](handleFailure)
 
       def sendScrollScanRequest(): Unit = {
@@ -37,7 +37,7 @@ final class CursorSource[C, T](
 
       def handleFailure(ex: ArangoError): Unit = failStage(new IllegalStateException(ex.message))
 
-      def handleResponse(response: Response[Cursor.Response[T]]): Unit = {
+      def handleResponse(response: ArangoResponse[Cursor.Response[T]]): Unit = {
         cursorId = response.body.id
 
         emitMultiple(out, response.body.result.iterator)

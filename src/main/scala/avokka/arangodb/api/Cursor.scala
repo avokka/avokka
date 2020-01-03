@@ -93,11 +93,11 @@ object Cursor { self =>
       VPackRecord[Response[T]].decoderWithDefaults
   }
 
-  implicit def api[V: VPackEncoder, T: VPackDecoder]: Api.Command.Aux[Database, Cursor[V, T], Response[T]] =
-    new Api.Command[Database, Cursor[V, T]] {
+  implicit def api[V: VPackEncoder, T: VPackDecoder]: Api.Command.Aux[ArangoDatabase, Cursor[V, T], Response[T]] =
+    new Api.Command[ArangoDatabase, Cursor[V, T]] {
       override type Response = self.Response[T]
-      override def header(database: Database, command: Cursor[V, T]): Request.HeaderTrait =
-        Request.Header(
+      override def header(database: ArangoDatabase, command: Cursor[V, T]): ArangoRequest.HeaderTrait =
+        ArangoRequest.Header(
           database = database.name,
           requestType = RequestType.POST,
           request = s"/_api/cursor"

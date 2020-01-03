@@ -26,9 +26,9 @@ object AdminLog { self =>
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
   }
 
-  implicit val api: Api.EmptyBody.Aux[Session, AdminLog.type, Response] = new Api.EmptyBody[Session, AdminLog.type] {
+  implicit val api: Api.EmptyBody.Aux[ArangoSession, AdminLog.type, Response] = new Api.EmptyBody[ArangoSession, AdminLog.type] {
     override type Response = self.Response
-    override def header(session: Session, command: AdminLog.type): Request.HeaderTrait = Request.Header(
+    override def header(session: ArangoSession, command: AdminLog.type): ArangoRequest.HeaderTrait = ArangoRequest.Header(
       database = DatabaseName.system,
       requestType = RequestType.GET,
       request = "/_admin/log"

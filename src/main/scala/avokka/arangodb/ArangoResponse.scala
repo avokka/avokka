@@ -6,12 +6,12 @@ import cats.Show
 import cats.syntax.either._
 import scodec.bits.BitVector
 
-case class Response[T](
-    header: Response.Header,
-    body: T
+case class ArangoResponse[T](
+                              header: ArangoResponse.Header,
+                              body: T
 )
 
-object Response {
+object ArangoResponse {
 
   case class Header(
       version: Int,
@@ -26,7 +26,7 @@ object Response {
 
   def decode[T](bits: BitVector)(
       implicit bodyDecoder: VPackDecoder[T]
-  ): Either[ArangoError, Response[T]] = {
+  ): Either[ArangoError, ArangoResponse[T]] = {
     println("response header slice", Show[VPack].show(bits.asVPack.fold(e => VString(e.message), identity)))
     bits.as[Header].leftMap(ArangoError.VPack).flatMap { header =>
       println("response header vpack", header.value)
@@ -45,7 +45,7 @@ object Response {
           header.remainder
             .as[T]
             .leftMap(ArangoError.VPack)
-            .flatMap(body => Response(header.value, body.value).asRight)
+            .flatMap(body => ArangoResponse(header.value, body.value).asRight)
         }
       }
     }

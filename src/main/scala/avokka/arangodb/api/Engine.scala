@@ -28,9 +28,9 @@ object Engine { self =>
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
   }
 
-  implicit val api: Api.EmptyBody.Aux[Database, Engine.type, Response] = new Api.EmptyBody[Database, Engine.type] {
+  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, Engine.type, Response] = new Api.EmptyBody[ArangoDatabase, Engine.type] {
     override type Response = self.Response
-    override def header(database: Database, command: Engine.type): Request.HeaderTrait = Request.Header(
+    override def header(database: ArangoDatabase, command: Engine.type): ArangoRequest.HeaderTrait = ArangoRequest.Header(
       database = database.name,
       requestType = RequestType.GET,
       request = "/_api/engine"

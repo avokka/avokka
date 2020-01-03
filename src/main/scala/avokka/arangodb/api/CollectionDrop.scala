@@ -21,11 +21,11 @@ object CollectionDrop { self =>
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
   }
 
-  implicit val api: Api.EmptyBody.Aux[Collection, CollectionDrop, Response] =
-    new Api.EmptyBody[Collection, CollectionDrop] {
+  implicit val api: Api.EmptyBody.Aux[ArangoCollection, CollectionDrop, Response] =
+    new Api.EmptyBody[ArangoCollection, CollectionDrop] {
       override type Response = self.Response
-      override def header(collection: Collection, command: CollectionDrop): Request.HeaderTrait =
-        Request.Header(
+      override def header(collection: ArangoCollection, command: CollectionDrop): ArangoRequest.HeaderTrait =
+        ArangoRequest.Header(
           database = collection.database.name,
           requestType = RequestType.DELETE,
           request = s"/_api/collection/${collection.name}",

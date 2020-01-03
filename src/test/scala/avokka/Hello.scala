@@ -40,11 +40,11 @@ object Hello {
 
   def main(args: Array[String]): Unit = {
 
-    val session = new Session("bak")
-    val auth = session(Request.Authentication(user = "root", password = "root"))
+    val session = new ArangoSession("bak")
+    val auth = session(ArangoRequest.Authentication(user = "root", password = "root"))
 
-    val db = new Database(session, DatabaseName("v10"))
-    val countries = new Collection(db, CollectionName("countries"))
+    val db = new ArangoDatabase(session, DatabaseName("v10"))
+    val countries = new ArangoCollection(db, CollectionName("countries"))
 
     println(Await.result(auth, 10.seconds))
 //    println(Await.result(session(Version()), 10.seconds))
@@ -86,8 +86,8 @@ object Hello {
         .runWith(Sink.ignore)
     , 10.seconds)
      */
-    val scratch = new Database(session, DatabaseName("scratch"))
-    val country = new Collection(scratch, CollectionName("country"))
+    val scratch = new ArangoDatabase(session, DatabaseName("scratch"))
+    val country = new ArangoCollection(scratch, CollectionName("country"))
 
     /*
     println(Await.result(session(DatabaseCreate(scratch.name)), 1.minute))

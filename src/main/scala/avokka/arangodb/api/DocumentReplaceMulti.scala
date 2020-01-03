@@ -39,17 +39,17 @@ case class DocumentReplaceMulti[T](
 object DocumentReplaceMulti {
 
   implicit def api[T: VPackEncoder: VPackDecoder]
-    : Api.Aux[Collection, DocumentReplaceMulti[T], List[T], List[Document.Response[T]]] =
-    new Api[Collection, DocumentReplaceMulti[T], List[T]] {
+    : Api.Aux[ArangoCollection, DocumentReplaceMulti[T], List[T], List[Document.Response[T]]] =
+    new Api[ArangoCollection, DocumentReplaceMulti[T], List[T]] {
       override type Response = List[Document.Response[T]]
-      override def header(collection: Collection,
-                          command: DocumentReplaceMulti[T]): Request.HeaderTrait = Request.Header(
+      override def header(collection: ArangoCollection,
+                          command: DocumentReplaceMulti[T]): ArangoRequest.HeaderTrait = ArangoRequest.Header(
         database = collection.database.name,
         requestType = RequestType.PUT,
         request = s"/_api/document/${collection.name}",
         parameters = command.parameters,
       )
-      override def body(collection: Collection, command: DocumentReplaceMulti[T]): List[T] =
+      override def body(collection: ArangoCollection, command: DocumentReplaceMulti[T]): List[T] =
         command.documents
       override val encoder: VPackEncoder[List[T]] = VPackEncoder.listEncoder(
         implicitly[VPackEncoder[T]].mapObject(_.filter(Document.filterEmptyInternalAttributes)))

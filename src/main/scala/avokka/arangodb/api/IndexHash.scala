@@ -37,12 +37,12 @@ object IndexHash { self =>
 
   implicit val encoder: VPackEncoder[IndexHash] = VPackRecord[IndexHash].encoder
 
-  implicit val api: Api.Command.Aux[Collection, IndexHash, Index.Response] =
-    new Api.Command[Collection, IndexHash] {
+  implicit val api: Api.Command.Aux[ArangoCollection, IndexHash, Index.Response] =
+    new Api.Command[ArangoCollection, IndexHash] {
       override type Response = Index.Response
 
-      override def header(collection: Collection, command: IndexHash): Request.HeaderTrait =
-        Request.Header(
+      override def header(collection: ArangoCollection, command: IndexHash): ArangoRequest.HeaderTrait =
+        ArangoRequest.Header(
           database = collection.database.name,
           requestType = RequestType.POST,
           request = s"/_api/index",

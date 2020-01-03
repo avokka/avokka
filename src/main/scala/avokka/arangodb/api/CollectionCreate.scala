@@ -74,11 +74,11 @@ object CollectionCreate { self =>
 
   implicit val encoder: VPackEncoder[CollectionCreate] = VPackRecord[CollectionCreate].encoder
 
-  implicit val api: Api.Command.Aux[Database, CollectionCreate, CollectionInfo.Response] =
-    new Api.Command[Database, CollectionCreate] {
+  implicit val api: Api.Command.Aux[ArangoDatabase, CollectionCreate, CollectionInfo.Response] =
+    new Api.Command[ArangoDatabase, CollectionCreate] {
       override type Response = CollectionInfo.Response
-      override def header(database: Database, command: CollectionCreate): Request.HeaderTrait =
-        Request.Header(
+      override def header(database: ArangoDatabase, command: CollectionCreate): ArangoRequest.HeaderTrait =
+        ArangoRequest.Header(
           database = database.name,
           requestType = RequestType.POST,
           request = s"/_api/collection",

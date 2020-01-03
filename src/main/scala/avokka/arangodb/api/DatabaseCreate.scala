@@ -40,9 +40,9 @@ object DatabaseCreate { self =>
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoderWithDefaults
   }
 
-  implicit val api: Api.Command.Aux[Session, DatabaseCreate, Response] = new Api.Command[Session, DatabaseCreate] {
+  implicit val api: Api.Command.Aux[ArangoSession, DatabaseCreate, Response] = new Api.Command[ArangoSession, DatabaseCreate] {
     override type Response = self.Response
-    override def header(session: Session, command: DatabaseCreate): Request.HeaderTrait = Request.Header(
+    override def header(session: ArangoSession, command: DatabaseCreate): ArangoRequest.HeaderTrait = ArangoRequest.Header(
       database = DatabaseName.system,
       requestType = RequestType.POST,
       request = "/_api/database"

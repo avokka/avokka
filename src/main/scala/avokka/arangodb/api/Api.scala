@@ -1,6 +1,6 @@
 package avokka.arangodb.api
 
-import avokka.arangodb.Request.HeaderTrait
+import avokka.arangodb.ArangoRequest.HeaderTrait
 import avokka.velocypack.VPackEncoder
 
 /**

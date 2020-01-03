@@ -13,11 +13,11 @@ object CollectionCount { self =>
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
   }
 
-  implicit val api: Api.EmptyBody.Aux[Collection, CollectionCount.type, Response] =
-    new Api.EmptyBody[Collection, CollectionCount.type] {
+  implicit val api: Api.EmptyBody.Aux[ArangoCollection, CollectionCount.type, Response] =
+    new Api.EmptyBody[ArangoCollection, CollectionCount.type] {
       override type Response = self.Response
 
-      override def header(collection: Collection, command: CollectionCount.type): Request.HeaderTrait = Request.Header(
+      override def header(collection: ArangoCollection, command: CollectionCount.type): ArangoRequest.HeaderTrait = ArangoRequest.Header(
         database = collection.database.name,
         requestType = RequestType.GET,
         request = s"/_api/collection/${collection.name}/count",

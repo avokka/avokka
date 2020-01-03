@@ -3,12 +3,12 @@ package avokka.arangodb
 import avokka.arangodb.api.Api
 import avokka.velocypack._
 
-case class Request[T](
-    header: Request.HeaderTrait,
-    body: T
+case class ArangoRequest[T](
+                             header: ArangoRequest.HeaderTrait,
+                             body: T
 )
 
-object Request {
+object ArangoRequest {
 
   sealed trait HeaderTrait
 
@@ -37,10 +37,10 @@ object Request {
   object Authentication {
     implicit val encoder: VPackEncoder[Authentication] = VPackGeneric[Authentication].encoder
 
-    implicit val api: Api.EmptyBody.Aux[Session, Authentication, ResponseError] =
-      new Api.EmptyBody[Session, Authentication] {
+    implicit val api: Api.EmptyBody.Aux[ArangoSession, Authentication, ResponseError] =
+      new Api.EmptyBody[ArangoSession, Authentication] {
         override type Response = ResponseError
-        override def header(session: Session, command: Authentication): HeaderTrait = command
+        override def header(session: ArangoSession, command: Authentication): HeaderTrait = command
       }
   }
 

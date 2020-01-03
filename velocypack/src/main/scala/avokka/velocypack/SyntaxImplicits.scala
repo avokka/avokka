@@ -31,17 +31,6 @@ trait SyntaxImplicits {
     }
   }
 
-  implicit class SyntaxFromVPack(value: VPack) {
-
-    /**
-      * decodes vpack value to T
-      * @param decoder implicit decoder
-      * @tparam T decoded type
-      * @return either error or T value
-      */
-    def as[T](implicit decoder: VPackDecoder[T]): Result[T] = decoder.decode(value)
-  }
-
   implicit class SyntaxFromVPackBits(bits: BitVector) {
 
     /**
@@ -60,6 +49,13 @@ trait SyntaxImplicits {
   }
 
   implicit class SyntaxTupleVObject(key: String) {
+
+    /**
+      * creates a tuple of (String, VPack) from "key" :> value
+      * @param value value
+      * @tparam T value type
+      * @return tuple
+      */
     def :>[T: VPackEncoder](value: T): (String, VPack) = (key, value.toVPack)
   }
 }

@@ -152,16 +152,26 @@ object VPackType {
 
   /** 0x20-0x27 : signed int, little endian, 1 to 8 bytes, number is V - 0x1f, two's complement */
   case class IntSignedType(override val head: Int) extends VPackType with WithLength {
-    require(head >= 0x20 && head <= 0x27)
-    override val lengthSize: Int = head - 0x20 + 1
+    import IntSignedType._
+    require(head >= minByte && head <= maxByte)
+    override val lengthSize: Int = head - minByte + 1
     override val lengthDecoder: Decoder[Long] = provide(0)
+  }
+  object IntSignedType {
+    val minByte = 0x20
+    val maxByte = 0x27
   }
 
   /** 0x28-0x2f : uint, little endian, 1 to 8 bytes, number is V - 0x27 */
   case class IntUnsignedType(override val head: Int) extends VPackType with WithLength {
-    require(head >= 0x28 && head <= 0x2f)
-    override val lengthSize: Int = head - 0x28 + 1
+    import IntUnsignedType._
+    require(head >= minByte && head <= maxByte)
+    override val lengthSize: Int = head - minByte + 1
     override val lengthDecoder: Decoder[Long] = provide(0)
+  }
+  object IntUnsignedType {
+    val minByte = 0x28
+    val maxByte = 0x2f
   }
 
   /** 0x30-0x39 : small integers 0, 1, ... 9 */
@@ -238,38 +248,50 @@ object VPackType {
     * decode the head byte to the velocypack type
     */
   val vpackTypeDecoder: Decoder[VPackType] = uint8L.emap({
-    case NoneType.head       => Attempt.failure(Err("absence of type is not allowed in values"))
+    case NoneType.head => Attempt.failure(Err("absence of type is not allowed in values"))
+
     case ArrayEmptyType.head => Attempt.successful(ArrayEmptyType)
     case head if head >= ArrayUnindexedType.minByte && head <= ArrayUnindexedType.maxByte =>
       Attempt.successful(ArrayUnindexedType(head))
     case head if head >= ArrayIndexedType.minByte && head <= ArrayIndexedType.maxByte =>
       Attempt.successful(ArrayIndexedType(head))
+
     case ObjectEmptyType.head => Attempt.successful(ObjectEmptyType)
     case head if head >= ObjectSortedType.minByte && head <= ObjectSortedType.maxByte =>
       Attempt.successful(ObjectSortedType(head))
     case head if head >= ObjectUnsortedType.minByte && head <= ObjectUnsortedType.maxByte =>
       Attempt.successful(ObjectUnsortedType(head))
-    case ArrayCompactType.head                => Attempt.successful(ArrayCompactType)
-    case ObjectCompactType.head               => Attempt.successful(ObjectCompactType)
-    case IllegalType.head                     => Attempt.successful(IllegalType)
-    case NullType.head                        => Attempt.successful(NullType)
-    case FalseType.head                       => Attempt.successful(FalseType)
-    case TrueType.head                        => Attempt.successful(TrueType)
-    case DoubleType.head                      => Attempt.successful(DoubleType)
-    case DateType.head                        => Attempt.successful(DateType)
-    case MinKeyType.head                      => Attempt.successful(MinKeyType)
-    case MaxKeyType.head                      => Attempt.successful(MaxKeyType)
-    case head if head >= 0x20 && head <= 0x27 => Attempt.successful(IntSignedType(head))
-    case head if head >= 0x28 && head <= 0x2f => Attempt.successful(IntUnsignedType(head))
+
+    case ArrayCompactType.head  => Attempt.successful(ArrayCompactType)
+    case ObjectCompactType.head => Attempt.successful(ObjectCompactType)
+
+    case IllegalType.head => Attempt.successful(IllegalType)
+    case NullType.head    => Attempt.successful(NullType)
+    case FalseType.head   => Attempt.successful(FalseType)
+    case TrueType.head    => Attempt.successful(TrueType)
+    case DoubleType.head  => Attempt.successful(DoubleType)
+    case DateType.head    => Attempt.successful(DateType)
+
+    case MinKeyType.head => Attempt.successful(MinKeyType)
+    case MaxKeyType.head => Attempt.successful(MaxKeyType)
+
+    case head if head >= IntSignedType.minByte && head <= IntSignedType.maxByte =>
+      Attempt.successful(IntSignedType(head))
+    case head if head >= IntUnsignedType.minByte && head <= IntUnsignedType.maxByte =>
+      Attempt.successful(IntUnsignedType(head))
     case head if head >= SmallintPositiveType.minByte && head <= SmallintPositiveType.maxByte =>
       Attempt.successful(SmallintPositiveType(head))
     case head if head >= SmallintNegativeType.minByte && head <= SmallintNegativeType.maxByte =>
       Attempt.successful(SmallintNegativeType(head))
+
     case head if head >= StringShortType.minByte && head <= StringShortType.maxByte =>
       Attempt.successful(StringShortType(head))
-    case StringLongType.head                                              => Attempt.successful(StringLongType)
-    case head if head >= BinaryType.minByte && head <= BinaryType.maxByte => Attempt.successful(BinaryType(head))
-    case u                                                                => Attempt.failure(Err(s"unknown head byte ${u.toHexString}"))
+    case StringLongType.head => Attempt.successful(StringLongType)
+
+    case head if head >= BinaryType.minByte && head <= BinaryType.maxByte =>
+      Attempt.successful(BinaryType(head))
+
+    case u => Attempt.failure(Err(s"unknown head byte ${u.toHexString}"))
   })
 
   /**

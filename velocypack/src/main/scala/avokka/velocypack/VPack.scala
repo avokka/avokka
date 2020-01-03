@@ -4,29 +4,73 @@ import cats.data.Chain
 import scodec.bits.ByteVector
 
 /**
-  * Velocypack values
+  * Velocypack value
   */
-sealed trait VPack
+sealed trait VPack {
+
+  /**
+   * decodes vpack value to T
+   * @param decoder implicit decoder
+   * @tparam T decoded type
+   * @return either error or T value
+   */
+  def as[T](implicit decoder: VPackDecoder[T]): Result[T] = decoder.decode(this)
+
+}
 
 object VPack {
 
+  /**
+   * indicates absence of any type and value, this is not allowed in VPack values
+   * encodes from Unit and serializes to empty bitvector
+   */
   case object VNone extends VPack
 
+  /**
+   * can be used to indicate a value that is illegal in the embedding application
+   */
   case object VIllegal extends VPack
 
+  /**
+   * null
+   */
   case object VNull extends VPack
 
+  /**
+   * boolean
+   * @param value value
+   */
   case class VBoolean(value: Boolean) extends VPack
-  val VFalse: VPack = VBoolean(false)
-  val VTrue: VPack = VBoolean(true)
 
+  val VFalse: VBoolean = VBoolean(false)
+  val VTrue: VBoolean = VBoolean(true)
+
+  /**
+   * double
+   * @param value value
+   */
   case class VDouble(value: Double) extends VPack
 
+  /**
+   * universal UTC-time measured in milliseconds since the epoch
+   * @param value milliseconds
+   */
   case class VDate(value: Long) extends VPack
 
+  /**
+   * artifical minimal key
+   */
   case object VMinKey extends VPack
+
+  /**
+   * artifical maximal key
+   */
   case object VMaxKey extends VPack
 
+  /**
+   * small values -6 to 9
+   * @param value value
+   */
   case class VSmallint(value: Byte) extends VPack {
     require(-7 < value && value < 10)
   }
@@ -47,6 +91,10 @@ object VPack {
     }
   }
 
+  /**
+   * integer
+   * @param value value
+   */
   case class VLong(value: Long) extends VPack
 
   object VLong {
@@ -57,16 +105,32 @@ object VPack {
     }
   }
 
+  /**
+   * string
+   * @param value value
+   */
   case class VString(value: String) extends VPack
 
+  /**
+   * binary data
+   * @param value value
+   */
   case class VBinary(value: ByteVector) extends VPack
 
+  /**
+   * array
+   * @param values values
+   */
   case class VArray(values: Chain[VPack]) extends VPack
   object VArray {
     def apply(values: VPack*): VArray = VArray(Chain.fromSeq(values))
     val empty: VArray = VArray()
   }
 
+  /**
+   * object
+   * @param values values
+   */
   case class VObject(values: Map[String, VPack]) extends VPack {
     def updated[T: VPackEncoder](key: String, value: T): VObject = copy(values = values.updated(key, value.toVPack))
     def filter(p: ((String, VPack)) => Boolean): VObject = copy(values = values.filter(p))

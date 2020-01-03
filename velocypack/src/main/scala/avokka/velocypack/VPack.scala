@@ -16,6 +16,12 @@ sealed trait VPack {
    */
   def as[T](implicit decoder: VPackDecoder[T]): Result[T] = decoder.decode(this)
 
+  /**
+   * the value is empty (none, null, "", [], {})
+   * @return
+   */
+  def isEmpty: Boolean
+
 }
 
 object VPack {
@@ -24,23 +30,31 @@ object VPack {
    * indicates absence of any type and value, this is not allowed in VPack values
    * encodes from Unit and serializes to empty bitvector
    */
-  case object VNone extends VPack
+  case object VNone extends VPack {
+    override val isEmpty: Boolean = true
+  }
 
   /**
    * can be used to indicate a value that is illegal in the embedding application
    */
-  case object VIllegal extends VPack
+  case object VIllegal extends VPack {
+    override val isEmpty: Boolean = false
+  }
 
   /**
    * null
    */
-  case object VNull extends VPack
+  case object VNull extends VPack {
+    override val isEmpty: Boolean = true
+  }
 
   /**
    * boolean
    * @param value value
    */
-  case class VBoolean(value: Boolean) extends VPack
+  case class VBoolean(value: Boolean) extends VPack {
+    override val isEmpty: Boolean = false
+  }
 
   val VFalse: VBoolean = VBoolean(false)
   val VTrue: VBoolean = VBoolean(true)
@@ -49,23 +63,31 @@ object VPack {
    * double
    * @param value value
    */
-  case class VDouble(value: Double) extends VPack
+  case class VDouble(value: Double) extends VPack {
+    override val isEmpty: Boolean = false
+  }
 
   /**
    * universal UTC-time measured in milliseconds since the epoch
    * @param value milliseconds
    */
-  case class VDate(value: Long) extends VPack
+  case class VDate(value: Long) extends VPack {
+    override val isEmpty: Boolean = false
+  }
 
   /**
    * artifical minimal key
    */
-  case object VMinKey extends VPack
+  case object VMinKey extends VPack {
+    override val isEmpty: Boolean = false
+  }
 
   /**
    * artifical maximal key
    */
-  case object VMaxKey extends VPack
+  case object VMaxKey extends VPack {
+    override val isEmpty: Boolean = false
+  }
 
   /**
    * small values -6 to 9
@@ -73,6 +95,7 @@ object VPack {
    */
   case class VSmallint(value: Byte) extends VPack {
     require(-7 < value && value < 10)
+    override val isEmpty: Boolean = false
   }
 
   object VSmallint {
@@ -95,7 +118,9 @@ object VPack {
    * integer
    * @param value value
    */
-  case class VLong(value: Long) extends VPack
+  case class VLong(value: Long) extends VPack {
+    override val isEmpty: Boolean = false
+  }
 
   object VLong {
     object From {
@@ -109,19 +134,25 @@ object VPack {
    * string
    * @param value value
    */
-  case class VString(value: String) extends VPack
+  case class VString(value: String) extends VPack {
+    override def isEmpty: Boolean = value.isEmpty
+  }
 
   /**
    * binary data
    * @param value value
    */
-  case class VBinary(value: ByteVector) extends VPack
+  case class VBinary(value: ByteVector) extends VPack {
+    override def isEmpty: Boolean = value.isEmpty
+  }
 
   /**
    * array
    * @param values values
    */
-  case class VArray(values: Chain[VPack]) extends VPack
+  case class VArray(values: Chain[VPack]) extends VPack {
+    override def isEmpty: Boolean = values.isEmpty
+  }
   object VArray {
     def apply(values: VPack*): VArray = VArray(Chain.fromSeq(values))
     val empty: VArray = VArray()
@@ -132,6 +163,7 @@ object VPack {
    * @param values values
    */
   case class VObject(values: Map[String, VPack]) extends VPack {
+    override def isEmpty: Boolean = values.isEmpty
     def updated[T: VPackEncoder](key: String, value: T): VObject = copy(values = values.updated(key, value.toVPack))
     def filter(p: ((String, VPack)) => Boolean): VObject = copy(values = values.filter(p))
   }

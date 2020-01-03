@@ -20,25 +20,32 @@ package object arangodb {
     val system: DatabaseName = DatabaseName("_system")
   }
 
-  @newtype case class CollectionName(repr: String)
+  @newtype case class CollectionName(repr: String) {
+    def isEmpty: Boolean = repr.isEmpty
+  }
   object CollectionName {
     implicit val encoder: VPackEncoder[CollectionName] = deriving
     implicit val decoder: VPackDecoder[CollectionName] = deriving
   }
 
-  @newtype case class DocumentKey(repr: String)
+  @newtype case class DocumentKey(repr: String) {
+    def isEmpty: Boolean = repr.isEmpty
+  }
   object DocumentKey {
+    val key: String = "_key"
     implicit val encoder: VPackEncoder[DocumentKey] = deriving
     implicit val decoder: VPackDecoder[DocumentKey] = deriving
-    val Empty = apply("")
+    val empty = apply("")
   }
 
   @newtype case class DocumentHandle(repr: (CollectionName, DocumentKey)) {
     def collection: CollectionName = repr._1
     def key: DocumentKey = repr._2
-    def path: String = s"$collection/$key"
+    def isEmpty: Boolean = collection.isEmpty || key.isEmpty
+    def path: String = if (isEmpty) "" else s"$collection/$key"
   }
   object DocumentHandle {
+    val key: String = "_id"
 
     def apply(collection: CollectionName, key: DocumentKey): DocumentHandle =
       apply((collection, key))
@@ -57,7 +64,17 @@ package object arangodb {
         case None        => VPackError.IllegalValue(s"invalid document handle '$path'").asLeft
     })
 
-    val Empty = apply(CollectionName(""), DocumentKey.Empty)
+    val empty = apply(CollectionName(""), DocumentKey.empty)
+  }
+
+  @newtype case class DocumentRevision(repr: String) {
+    def isEmpty: Boolean = repr.isEmpty
+  }
+  object DocumentRevision {
+    val key: String = "_rev"
+    implicit val encoder: VPackEncoder[DocumentRevision] = deriving
+    implicit val decoder: VPackDecoder[DocumentRevision] = deriving
+    val empty = apply("")
   }
 
 }

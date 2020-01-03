@@ -40,18 +40,21 @@ case class DocumentReplace[T](
 
 object DocumentReplace {
 
-  implicit def api[T: VPackEncoder : VPackDecoder]: Api.Aux[Database, DocumentReplace[T], T, Document.Response[T]] =
+  implicit def api[T: VPackEncoder: VPackDecoder]
+    : Api.Aux[Database, DocumentReplace[T], T, Document.Response[T]] =
     new Api[Database, DocumentReplace[T], T] {
       override type Response = Document.Response[T]
-      override def header(database: Database, command: DocumentReplace[T]): Request.HeaderTrait = Request.Header(
-        database = database.name,
-        requestType = RequestType.PUT,
-        request = s"/_api/document/${command.handle.path}",
-        parameters = command.parameters,
-        meta = command.meta,
-      )
+      override def header(database: Database, command: DocumentReplace[T]): Request.HeaderTrait =
+        Request.Header(
+          database = database.name,
+          requestType = RequestType.PUT,
+          request = s"/_api/document/${command.handle.path}",
+          parameters = command.parameters,
+          meta = command.meta,
+        )
       override def body(context: Database, command: DocumentReplace[T]): T = command.document
-      override val encoder: VPackEncoder[T] = implicitly
+      override val encoder: VPackEncoder[T] =
+        implicitly[VPackEncoder[T]].mapObject(_.filter(Document.filterEmptyInternalAttributes))
     }
 
 }

@@ -37,7 +37,7 @@ case class CollectionCreate(
     keyOptions: Option[CollectionCreate.KeyOptions] = None,
     numberOfShards: Long = 1,
     replicationFactor: Long = 1,
-    shardKeys: List[String] = List("_key"),
+    shardKeys: List[String] = List(DocumentKey.key),
     shardingStrategy: Option[String] = None,
     smartJoinAttribute: Option[String] = None,
     `type`: CollectionType = CollectionType.Document,

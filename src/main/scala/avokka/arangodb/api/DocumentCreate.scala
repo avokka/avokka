@@ -43,8 +43,8 @@ object DocumentCreate { self =>
           request = s"/_api/document/${collection.name}",
           parameters = command.parameters
         )
-
       override def body(collection: Collection, command: DocumentCreate[T]): T = command.document
-      override val encoder: VPackEncoder[T] = implicitly
+      override val encoder: VPackEncoder[T] =
+        implicitly[VPackEncoder[T]].mapObject(_.filter(Document.filterEmptyInternalAttributes))
     }
 }

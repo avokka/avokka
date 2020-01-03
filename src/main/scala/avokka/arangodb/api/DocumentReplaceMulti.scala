@@ -51,7 +51,8 @@ object DocumentReplaceMulti {
       )
       override def body(collection: Collection, command: DocumentReplaceMulti[T]): List[T] =
         command.documents
-      override val encoder: VPackEncoder[List[T]] = implicitly
+      override val encoder: VPackEncoder[List[T]] = VPackEncoder.listEncoder(
+        implicitly[VPackEncoder[T]].mapObject(_.filter(Document.filterEmptyInternalAttributes)))
     }
 
 }

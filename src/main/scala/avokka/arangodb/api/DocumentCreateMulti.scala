@@ -36,7 +36,8 @@ object DocumentCreateMulti { self =>
     : Api.Aux[Collection, DocumentCreateMulti[T], List[T], List[Document.Response[T]]] =
     new Api[Collection, DocumentCreateMulti[T], List[T]] {
       override type Response = List[Document.Response[T]]
-      override def header(collection: Collection, command: DocumentCreateMulti[T]): Request.HeaderTrait =
+      override def header(collection: Collection,
+                          command: DocumentCreateMulti[T]): Request.HeaderTrait =
         Request.Header(
           database = collection.database.name,
           requestType = RequestType.POST,
@@ -44,7 +45,9 @@ object DocumentCreateMulti { self =>
           parameters = command.parameters
         )
 
-      override def body(collection: Collection, command: DocumentCreateMulti[T]): List[T] = command.documents
-      override val encoder: VPackEncoder[List[T]] = implicitly
+      override def body(collection: Collection, command: DocumentCreateMulti[T]): List[T] =
+        command.documents
+      override val encoder: VPackEncoder[List[T]] = VPackEncoder.listEncoder(
+        implicitly[VPackEncoder[T]].mapObject(_.filter(Document.filterEmptyInternalAttributes)))
     }
 }

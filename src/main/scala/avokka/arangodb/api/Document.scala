@@ -15,7 +15,15 @@ object Document {
   )
 
   object Response {
-    implicit def decoder[T: VPackDecoder]: VPackDecoder[Response[T]] = VPackRecord[Response[T]].decoderWithDefaults
+    implicit def decoder[T: VPackDecoder]: VPackDecoder[Response[T]] =
+      VPackRecord[Response[T]].decoderWithDefaults
+  }
+
+  val filterEmptyInternalAttributes: ((String, VPack)) => Boolean = {
+    case (DocumentHandle.key, value) if value.isEmpty   => false
+    case (DocumentKey.key, value) if value.isEmpty      => false
+    case (DocumentRevision.key, value) if value.isEmpty => false
+    case _                                              => true
   }
 
 }

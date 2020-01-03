@@ -19,18 +19,13 @@ object Hello {
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   case class Country(
-      _id: DocumentHandle = DocumentHandle.Empty,
-      _key: DocumentKey = DocumentKey.Empty,
-      _rev: String = "",
-      name: String,
-      flag: String,
+                      _id: DocumentHandle = DocumentHandle.empty,
+                      _key: DocumentKey = DocumentKey.empty,
+                      _rev: String = "",
+                      name: String,
+                      flag: String,
   )
-  implicit val countryEncoder: VPackEncoder[Country] = VPackRecord[Country].encoder.mapObject(_.filter {
-    case ("_id", DocumentHandle.Empty) => false
-    case ("_key", VString("")) => false
-    case ("_rev", VString("")) => false
-    case _ => true
-  })
+  implicit val countryEncoder: VPackEncoder[Country] = VPackRecord[Country].encoder
   implicit val countryDecoder: VPackDecoder[Country] = VPackRecord[Country].decoderWithDefaults
 
   case class Photo(
@@ -91,23 +86,25 @@ object Hello {
     println(Await.result(db(CursorNext[Photo](res.id.get)), 10.seconds))
     println(Await.result(db(CursorDelete(res.id.get)), 10.seconds))
 */
+    /*
     Await.result(db.source(countries.all[Country].withBatchSize(4))
         .wireTap(println(_))
         .runWith(Sink.ignore)
     , 10.seconds)
+     */
     val scratch = new Database(session, DatabaseName("scratch"))
     val country = new Collection(scratch, CollectionName("country"))
 
     println(Await.result(session(DatabaseCreate(scratch.name)), 1.minute))
     println(Await.result(scratch(CollectionCreate(name = country.name)), 1.minute))
 
-    if (false) {
+    if (true) {
       println(Await.result(country(DocumentCreateMulti(List(Country(name = "a", flag = "a"), Country(name = "b", flag = "b")), returnNew = true)), 1.minute))
       val doc = Await.result(country(DocumentCreate(Country(name = "Moi", flag = "[X]"), returnNew = true)), 1.minute)
       println(doc)
       val res = doc.right.get.body.`new`.get
       println(Await.result(scratch(DocumentUpdate[Country, VObject](res._id, VObject("test" :> true))), 1.minute))
-      //    println(Await.result(scratch(DocumentReplace[Country](res._id, res.copy(name = "Vous"))), 1.minute))
+      println(Await.result(scratch(DocumentReplace[Country](res._id, res.copy(name = "Vous"))), 1.minute))
       println(Await.result(country(DocumentUpdateMulti[Country, VObject](List(VObject("_key" :> res._key, "test" :> true)), returnNew = true)), 1.minute))
       //    println(Await.result(scratch(DocumentRemove[Country](res._id)), 1.minute))
       println(Await.result(country(DocumentRemoveMulti[Country, DocumentKey](List(res._key), returnOld = true)), 1.minute))

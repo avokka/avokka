@@ -1,8 +1,9 @@
 package avokka.arangodb
 
+import avokka.velocypack.VPack.{VArray, VNone, VString}
 import avokka.velocypack._
+import cats.Show
 import cats.syntax.either._
-import com.arangodb.velocypack.{VPack, VPackSlice}
 import scodec.bits.BitVector
 
 case class Response[T](
@@ -23,19 +24,16 @@ object Response {
     implicit val decoder: VPackDecoder[Header] = VPackGeneric[Header].decoder
   }
 
-  val vp = new VPack.Builder().build()
-  def toSlice(bits: BitVector) = new VPackSlice(bits.toByteArray)
-
   def decode[T](bits: BitVector)(
       implicit bodyDecoder: VPackDecoder[T]
   ): Either[ArangoError, Response[T]] = {
-    println("response header slice", toSlice(bits).toString)
+    println("response header slice", Show[VPack].show(bits.asVPack.fold(e => VString(e.message), identity)))
     bits.as[Header].leftMap(ArangoError.VPack).flatMap { header =>
       println("response header vpack", header.value)
       if (header.remainder.isEmpty) {
         ArangoError.Head(header.value).asLeft
       } else {
-        println("response body slice", toSlice(header.remainder).toString)
+        println("response body slice", Show[VPack].show(header.remainder.asVPack.fold(e => VString(e.message), identity)))
         if (header.value.responseCode >= 400) {
           header.remainder
             .as[ResponseError]

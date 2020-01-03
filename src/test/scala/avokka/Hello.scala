@@ -2,16 +2,13 @@ package avokka
 
 import java.time.Instant
 
-import akka.actor._
-import akka.stream._
-import akka.stream.scaladsl.Sink
-import avokka.arangodb._
-import avokka.arangodb.api._
-import avokka.velocypack.VPack._
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
 import avokka.velocypack._
+import avokka.arangodb._
 
-import scala.concurrent._
 import scala.concurrent.duration._
+import scala.concurrent.Await
 
 object Hello {
 
@@ -42,10 +39,6 @@ object Hello {
   implicit val commentDecoder: VPackDecoder[Photo] = VPackRecord[Photo].decoderWithDefaults
 
   def main(args: Array[String]): Unit = {
-    import system.dispatcher
-
-      val p = DocumentHandle(CollectionName("a"), DocumentKey("1"))
-      println(p.path)
 
     val session = new Session("bak")
     val auth = session(Request.Authentication(user = "root", password = "root"))

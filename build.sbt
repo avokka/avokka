@@ -28,7 +28,7 @@ lazy val velocypack = (project in file("velocypack"))
       shapeless ++
       scodec ++
       testSuite ++
-      circe ++
+//      circe ++
       arango.map(_ % Test) ++
       logback.map(_ % Test)
   )
@@ -53,6 +53,6 @@ lazy val root = (project in file("."))
     libraryDependencies ++=
 //      enumeratum ++
       newtype ++
-      Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value) ++
-      arango
+      Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value) 
+//      arango
   )

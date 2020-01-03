@@ -89,5 +89,6 @@ object VPackEncoder {
 
   implicit val unitEncoder: VPackEncoder[Unit] = _ => VNone
 
+  implicit val vArrayEncoder: VPackEncoder[VArray] = identity
   implicit val vObjectEncoder: VPackEncoder[VObject] = identity
 }

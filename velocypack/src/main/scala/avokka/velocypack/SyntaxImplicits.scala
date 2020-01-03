@@ -33,6 +33,8 @@ trait SyntaxImplicits {
 
   implicit class SyntaxFromVPackBits(bits: BitVector) {
 
+    def asVPack: Result[VPack] = codecs.vpackDecoder.decodeValue(bits).toEither.leftMap(VPackError.Codec)
+
     /**
       * decodes vpack bitvector to T
       * @param decoder implicit decoder

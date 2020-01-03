@@ -131,9 +131,12 @@ object VPackDecoder {
 
 //  implicit val unitDecoder: VPackDecoder[Unit] = _ => ().asRight
 
+  implicit val vArrayDecoder: VPackDecoder[VArray] = {
+    case v: VArray => v.asRight
+    case v         => VPackError.WrongType(v).asLeft
+  }
   implicit val vObjectDecoder: VPackDecoder[VObject] = {
     case v: VObject => v.asRight
     case v          => VPackError.WrongType(v).asLeft
   }
-
 }

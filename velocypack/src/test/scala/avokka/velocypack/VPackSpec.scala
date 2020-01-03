@@ -22,4 +22,8 @@ class VPackSpec extends FlatSpec with Matchers with VPackSpecTrait {
     val sint = VPackEncoder[Map[String, Int]]
     assertEnc(sint, Map("z" -> 1, "a" -> 2), VObject(Map("z" -> VSmallint(1), "a" -> VSmallint(2))))
   }
+
+  "object syntax" should "allow simple object creation" in {
+    assertResult(VObject(Map("a" -> VTrue, "b" -> VSmallint(1))))(VObject("a" :> true, "b" :> 1))
+  }
 }

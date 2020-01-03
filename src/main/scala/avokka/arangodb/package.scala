@@ -45,8 +45,8 @@ package object arangodb {
 
     def parse(path: String): Option[DocumentHandle] = {
       path.split('/') match {
-        case Array(c, k) => Some(apply(CollectionName(c), DocumentKey(k)))
-        case _           => None
+        case Array(collection, key) => Some(apply(CollectionName(collection), DocumentKey(key)))
+        case _                      => None
       }
     }
 

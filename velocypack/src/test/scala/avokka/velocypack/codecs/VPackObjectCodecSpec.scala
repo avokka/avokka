@@ -10,7 +10,7 @@ class VPackObjectCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTra
 
     assertEncodePack(vpackCodec, VObject(Map("z" -> VSmallint(1), "a" -> VSmallint(2))), """{"z":1,"a":2}""")
 
-    assertCodec(VPackObjectCodec.codecCompact, VObject(Map.empty), hex"0a")
+    assertCodec(VPackObjectCodec.codecCompact, VObject.empty, hex"0a")
     assertCodec(VPackObjectCodec.codecCompact,
       VObject(Map("a" -> VSmallint(0), "b" -> VSmallint(1), "c" -> VSmallint(2))),
       hex"14 0c 4161 30 4162 31 4163 32 03"

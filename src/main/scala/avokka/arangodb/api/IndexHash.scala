@@ -49,6 +49,6 @@ object IndexHash { self =>
           parameters = Map("collection" -> collection.name.repr)
         )
 
-      override def encoder: VPackEncoder[IndexHash] = self.encoder.mapObject(_.updated("type", VString("hash")))
+      override def encoder: VPackEncoder[IndexHash] = self.encoder.mapObject(_.updated("type", "hash"))
     }
 }

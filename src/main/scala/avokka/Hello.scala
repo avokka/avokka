@@ -106,9 +106,9 @@ object Hello {
       val doc = Await.result(country(DocumentCreate(Country(name = "Moi", flag = "[X]"), returnNew = true)), 1.minute)
       println(doc)
       val res = doc.right.get.body.`new`.get
-      println(Await.result(scratch(DocumentUpdate[Country, VObject](res._id, VObject(Map("test" -> VTrue)))), 1.minute))
+      println(Await.result(scratch(DocumentUpdate[Country, VObject](res._id, VObject("test" :> true))), 1.minute))
       //    println(Await.result(scratch(DocumentReplace[Country](res._id, res.copy(name = "Vous"))), 1.minute))
-      println(Await.result(country(DocumentUpdateMulti[Country, VObject](List(VObject(Map("_key" -> res._key.toVPack, "test" -> VTrue))), returnNew = true)), 1.minute))
+      println(Await.result(country(DocumentUpdateMulti[Country, VObject](List(VObject("_key" :> res._key, "test" :> true)), returnNew = true)), 1.minute))
       //    println(Await.result(scratch(DocumentRemove[Country](res._id)), 1.minute))
       println(Await.result(country(DocumentRemoveMulti[Country, DocumentKey](List(res._key), returnOld = true)), 1.minute))
       println(Await.result(country(CollectionTruncate), 1.minute))

@@ -51,7 +51,7 @@ object VPackType {
   case object NoneType extends VPackType { override val head: Int = 0x00 }
 
   /** 0x01 : empty array */
-  case object ArrayEmptyType extends SingleByte(0x01, VArrayEmpty)
+  case object ArrayEmptyType extends SingleByte(0x01, VArray.empty)
 
   /** 0x02-0x05 : array without index table (all subitems have the same byte length), [1,2,4,8]-byte byte length */
   case class ArrayUnindexedType(override val head: Int) extends VPackType with WithLength {
@@ -78,7 +78,7 @@ object VPackType {
   }
 
   /** 0x0a : empty object */
-  case object ObjectEmptyType extends SingleByte(0x0a, VObjectEmpty)
+  case object ObjectEmptyType extends SingleByte(0x0a, VObject.empty)
 
   /** object with data */
   trait ObjectType extends VPackType with WithLength

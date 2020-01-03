@@ -58,4 +58,8 @@ trait SyntaxImplicits {
         .flatMap(_.traverse(decoder.decode))
     }
   }
+
+  implicit class SyntaxTupleVObject(key: String) {
+    def :>[T: VPackEncoder](value: T): (String, VPack) = (key, value.toVPack)
+  }
 }

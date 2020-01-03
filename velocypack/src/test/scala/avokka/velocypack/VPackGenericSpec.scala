@@ -16,7 +16,7 @@ class VPackGenericSpec extends FlatSpec with Matchers with VPackSpecTrait {
 
   "hnil" should "encode to empty array" in {
     val c = VPackGeneric.Encoder[HNil]()
-    assertEnc(c, HNil, VArrayEmpty)
+    assertEnc(c, HNil, VArray.empty)
   }
 
   "hlist encoders" should "encode to arrays" in {

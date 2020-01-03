@@ -64,10 +64,15 @@ object VPack {
   case class VArray(values: Chain[VPack]) extends VPack
   object VArray {
     def apply(values: VPack*): VArray = VArray(Chain.fromSeq(values))
+    val empty: VArray = VArray()
   }
-  val VArrayEmpty: VPack = VArray()
 
-  case class VObject(values: Map[String, VPack]) extends VPack
-  val VObjectEmpty: VPack = VObject(Map.empty)
-
+  case class VObject(values: Map[String, VPack]) extends VPack {
+    def updated[T: VPackEncoder](key: String, value: T): VObject = copy(values = values.updated(key, value.toVPack))
+    def filter(p: ((String, VPack)) => Boolean): VObject = copy(values = values.filter(p))
+  }
+  object VObject {
+    def apply(values: (String, VPack)*): VObject = VObject(values.toMap)
+    val empty: VObject = VObject()
+  }
 }

@@ -10,7 +10,7 @@ class Collection(val database: Database, val name: CollectionName) extends ApiCo
 
   def handle(key: DocumentKey): DocumentHandle = DocumentHandle(name, key)
 
-  def read[T: VPackDecoder](key: DocumentKey): DocumentRead[T] = DocumentRead[T](handle(key))
+  def read[T](key: DocumentKey): DocumentRead[T] = DocumentRead[T](handle(key))
 
   def all[T]: Cursor[VObject, T] = Cursor[VObject, T](
     query = "FOR doc IN @@collection RETURN doc",

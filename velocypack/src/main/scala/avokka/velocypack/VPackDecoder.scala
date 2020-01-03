@@ -68,10 +68,10 @@ object VPackDecoder {
   }
 
   implicit val instantDecoder: VPackDecoder[Instant] = {
-    case VDate(d)   => Instant.ofEpochMilli(d).asRight
-    case VLong(l)   => Instant.ofEpochMilli(l).asRight
+    case VDate(d) => Instant.ofEpochMilli(d).asRight
+    case VLong(l) => Instant.ofEpochMilli(l).asRight
     case VString(s) => Either.fromTry(Try(Instant.parse(s))).leftMap(ex => VPackError.Conversion(ex))
-    case v          => VPackError.WrongType(v).asLeft
+    case v => VPackError.WrongType(v).asLeft
   }
 
   implicit val byteVectorDecoder: VPackDecoder[ByteVector] = {
@@ -104,27 +104,36 @@ object VPackDecoder {
 
   implicit def tuple1Decoder[T1](implicit d1: VPackDecoder[T1]): VPackDecoder[Tuple1[T1]] = {
     case VArray(a1 ==: nil) => d1.decode(a1).map(Tuple1.apply)
-    case v         => VPackError.WrongType(v).asLeft
+    case v                  => VPackError.WrongType(v).asLeft
   }
-  implicit def tuple2Decoder[T1, T2](implicit d1: VPackDecoder[T1], d2: VPackDecoder[T2]): VPackDecoder[Tuple2[T1, T2]] = {
-    case VArray(a1 ==: a2 ==: nil) => for {
-      r1 <- d1.decode(a1)
-      r2 <- d2.decode(a2)
-    } yield Tuple2(r1, r2)
-    case v         => VPackError.WrongType(v).asLeft
+  implicit def tuple2Decoder[T1, T2](implicit d1: VPackDecoder[T1],
+                                     d2: VPackDecoder[T2]): VPackDecoder[Tuple2[T1, T2]] = {
+    case VArray(a1 ==: a2 ==: nil) =>
+      for {
+        r1 <- d1.decode(a1)
+        r2 <- d2.decode(a2)
+      } yield Tuple2(r1, r2)
+    case v => VPackError.WrongType(v).asLeft
   }
 
   implicit def mapDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Map[String, T]] = {
     case VObject(o) => {
-      o.toList.traverse[Result, (String, T)]({
-        case (key, v) => d.decode(v).leftMap(_.historyAdd(key)).map(r => key -> r)
-      }).map(_.toMap)
+      o.toList
+        .traverse[Result, (String, T)]({
+          case (key, v) => d.decode(v).leftMap(_.historyAdd(key)).map(r => key -> r)
+        })
+        .map(_.toMap)
 
-     // o.values.toList.traverse(d.decode).map { r => (o.keys zip r).toMap }
+      // o.values.toList.traverse(d.decode).map { r => (o.keys zip r).toMap }
     }
     case v => VPackError.WrongType(v).asLeft
   }
 
 //  implicit val unitDecoder: VPackDecoder[Unit] = _ => ().asRight
+
+  implicit val vObjectDecoder: VPackDecoder[VObject] = {
+    case v: VObject => v.asRight
+    case v          => VPackError.WrongType(v).asLeft
+  }
 
 }

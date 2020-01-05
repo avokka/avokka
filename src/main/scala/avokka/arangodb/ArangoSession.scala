@@ -14,7 +14,7 @@ import scodec.bits.BitVector
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-class ArangoSession(host: String, port: Int = 8529)(
+class ArangoSession(conf: ArangoConfiguration)(
     implicit val system: ActorSystem,
     materializer: ActorMaterializer
 ) extends ApiContext[ArangoSession] {
@@ -22,8 +22,9 @@ class ArangoSession(host: String, port: Int = 8529)(
   override lazy val session: ArangoSession = this
 
   lazy val _system = new ArangoDatabase(this, DatabaseName.system)
+  lazy val db = new ArangoDatabase(this, DatabaseName(conf.database))
 
-  private val client = system.actorOf(Props(classOf[VStreamClient], host, port, materializer),
+  private val client = system.actorOf(Props(classOf[VStreamClient], conf.host, conf.port, materializer),
                                       name = s"velocystream-client")
 
   implicit val timeout: Timeout = Timeout(2.minutes)

@@ -53,6 +53,7 @@ lazy val root = (project in file("."))
     libraryDependencies ++=
 //      enumeratum ++
       newtype ++
+      pureconfig ++
       Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value) 
 //      arango
   )

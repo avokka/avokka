@@ -1,6 +1,7 @@
 package avokka.velocypack
 
 import java.time.Instant
+import java.util.UUID
 
 import avokka.velocypack.VPack._
 import cats.data.Chain
@@ -76,6 +77,12 @@ object VPackDecoder {
 
   implicit val byteVectorDecoder: VPackDecoder[ByteVector] = {
     case VBinary(b) => b.asRight
+    case v          => VPackError.WrongType(v).asLeft
+  }
+
+  implicit val uuidDecoder: VPackDecoder[UUID] = {
+    case VBinary(b) => b.toUUID.asRight
+    case VString(s) => UUID.fromString(s).asRight
     case v          => VPackError.WrongType(v).asLeft
   }
 

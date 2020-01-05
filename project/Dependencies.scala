@@ -10,7 +10,6 @@ object Dependencies {
   val shapeless = Seq("com.chuusai" %% "shapeless" % "2.3.3")
 
   val akkaVersion = "2.5.26"
-
   val akka = Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
@@ -32,7 +31,6 @@ object Dependencies {
   val arango = Seq("com.arangodb" % "arangodb-java-driver" % "6.4.1")
 
   val circeVersion = "0.12.3"
-
   val circe = Seq(
     "io.circe" %% "circe-core",
     "io.circe" %% "circe-generic",
@@ -43,5 +41,7 @@ object Dependencies {
   val enumeratum = Seq("com.beachape" %% "enumeratum" % enumeratumVersion)
 
   val newtype = Seq("io.estatico" %% "newtype" % "0.4.3")
+
+  val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.12.2")
 
 }

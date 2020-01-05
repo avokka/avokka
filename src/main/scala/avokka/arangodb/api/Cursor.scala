@@ -1,6 +1,7 @@
 package avokka.arangodb
 package api
 
+import avokka.velocypack.VPack.VObject
 import avokka.velocypack._
 import cats.data.Chain
 
@@ -32,6 +33,8 @@ case class Cursor[V, T](
 }
 
 object Cursor { self =>
+
+  def apply[T](query: String): Cursor[VObject, T] = Cursor(query, VObject.empty)
 
   /**
     * key/value object with extra options for the query.

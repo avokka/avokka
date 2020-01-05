@@ -101,6 +101,11 @@ object VPackDecoder {
     case v         => VPackError.WrongType(v).asLeft
   }
 
+  implicit def setDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Set[T]] = {
+    case VArray(a) => a.traverse(d.decode).map(_.toVector.toSet)
+    case v         => VPackError.WrongType(v).asLeft
+  }
+
   implicit def chainDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Chain[T]] = {
     case VArray(a) => a.traverse(d.decode)
     case v         => VPackError.WrongType(v).asLeft

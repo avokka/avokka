@@ -74,6 +74,28 @@ object Cursor { self =>
   implicit def encoder[V: VPackEncoder, T]: VPackEncoder[Cursor[V, T]] =
     VPackRecord[Cursor[V, T]].encoder
 
+  case class ExtraStats(
+      writesExecuted: Option[Long] = None,
+      writesIgnored: Option[Long] = None,
+      scannedFull: Option[Long] = None,
+      scannedIndex: Option[Long] = None,
+      filtered: Option[Long] = None,
+      httpRequests: Option[Long] = None,
+      fullCount: Option[Long] = None,
+      executionTime: Option[Double] = None,
+      peakMemoryUsage: Option[Long] = None
+  )
+  object ExtraStats {
+    implicit val decoder: VPackDecoder[ExtraStats] = VPackRecord[ExtraStats].decoderWithDefaults
+  }
+
+  case class Extra(
+      stats: ExtraStats
+  )
+  object Extra {
+    implicit val decoder: VPackDecoder[Extra] = VPackRecord[Extra].decoderWithDefaults
+  }
+
   /**
     * @param cached a boolean flag indicating whether the query result was served from the query cache or not. If the query result is served from the query cache, the *extra* return attribute will not contain any *stats* sub-attribute and no *profile* sub-attribute.
     * @param count the total number of result documents available (only available if the query was executed with the *count* attribute set)
@@ -85,7 +107,7 @@ object Cursor { self =>
   case class Response[T](
       cached: Boolean,
       count: Option[Long] = None,
-//    extra: Option[Map[String, Any]],
+      extra: Option[Extra] = None,
       hasMore: Boolean,
       id: Option[String] = None,
       result: Chain[T]
@@ -96,10 +118,12 @@ object Cursor { self =>
       VPackRecord[Response[T]].decoderWithDefaults
   }
 
-  implicit def api[V: VPackEncoder, T: VPackDecoder]: Api.Command.Aux[ArangoDatabase, Cursor[V, T], Response[T]] =
+  implicit def api[V: VPackEncoder, T: VPackDecoder]
+    : Api.Command.Aux[ArangoDatabase, Cursor[V, T], Response[T]] =
     new Api.Command[ArangoDatabase, Cursor[V, T]] {
       override type Response = self.Response[T]
-      override def header(database: ArangoDatabase, command: Cursor[V, T]): ArangoRequest.HeaderTrait =
+      override def header(database: ArangoDatabase,
+                          command: Cursor[V, T]): ArangoRequest.HeaderTrait =
         ArangoRequest.Header(
           database = database.name,
           requestType = RequestType.POST,

@@ -20,7 +20,7 @@ trait ShowInstances {
     case VSmallint(value) => value.toString
     case VLong(value)     => value.toString
     case VString(value)   => s""""$value""""
-    case VBinary(value)   => s""""${value.toBase64}""""
+    case VBinary(value)   => s""""${value.toHex}""""
     case VArray(values)   => values.map(vpackShow.show).toList.mkString("[", ",", "]")
     case VObject(values) =>
       values.mapValues(vpackShow.show).map { case (k, v) => s""""$k":$v""" }.mkString("{", ",", "}")

@@ -77,6 +77,7 @@ object VPackDecoder {
 
   implicit val byteVectorDecoder: VPackDecoder[ByteVector] = {
     case VBinary(b) => b.asRight
+    case VString(s) => ByteVector.fromHexDescriptive(s).leftMap(s => VPackError.Conversion(new IllegalArgumentException(s)))
     case v          => VPackError.WrongType(v).asLeft
   }
 

@@ -2,6 +2,7 @@ package avokka.velocypack
 
 import avokka.velocypack.VPack._
 import org.scalatest.{FlatSpec, Matchers}
+import scodec.bits.ByteVector
 
 class VPackSpec extends FlatSpec with Matchers with VPackSpecTrait {
 
@@ -25,5 +26,9 @@ class VPackSpec extends FlatSpec with Matchers with VPackSpecTrait {
 
   "object syntax" should "allow simple object creation" in {
     assertResult(VObject(Map("a" -> VTrue, "b" -> VSmallint(1))))(VObject("a" -> true.toVPack, "b" -> 1.toVPack))
+  }
+
+  "empty string" should "decode to empty bytevector" in {
+    assertDec(VPackDecoder[ByteVector], VString(""), ByteVector.empty)
   }
 }

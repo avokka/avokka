@@ -1,5 +1,7 @@
 package avokka.arangodb
 
+import akka.NotUsed
+import akka.stream.scaladsl.Source
 import avokka.arangodb.api.{Cursor, DocumentRead, DocumentRemove, DocumentUpdate}
 import avokka.velocypack.VPack.VObject
 import avokka.velocypack._
@@ -23,4 +25,6 @@ class ArangoCollection(val database: ArangoDatabase, val name: CollectionName) e
     query = "RETURN DOCUMENT(@@collection, @keys)",
     bindVars = VObject("@collection" -> name.toVPack, "keys" -> keys.toVPack)
   )
+
+  def source[T : VPackDecoder](batchSize: Long): Source[T, NotUsed] = database.source(all[T].withBatchSize(batchSize))
 }

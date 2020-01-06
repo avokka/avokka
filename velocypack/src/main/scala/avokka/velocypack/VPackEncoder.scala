@@ -1,6 +1,6 @@
 package avokka.velocypack
 
-import java.time.Instant
+import java.time.{Instant, LocalDate}
 import java.util.UUID
 
 import avokka.velocypack.VPack._
@@ -74,6 +74,8 @@ object VPackEncoder {
     a => VArray(Chain.fromSeq(a.map(e.encode)))
   implicit def listEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[List[T]] =
     a => VArray(Chain.fromSeq(a.map(e.encode)))
+  implicit def seqEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Seq[T]] =
+    a => VArray(Chain.fromSeq(a.map(e.encode)))
   implicit def setEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Set[T]] =
     a => VArray(Chain.fromSeq(a.map(e.encode).toSeq))
   implicit def chainEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Chain[T]] =
@@ -96,4 +98,6 @@ object VPackEncoder {
 
   implicit val vArrayEncoder: VPackEncoder[VArray] = identity
   implicit val vObjectEncoder: VPackEncoder[VObject] = identity
+
+  implicit val localDateEncoder: VPackEncoder[LocalDate] = stringEncoder.contramap(_.toString)
 }

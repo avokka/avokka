@@ -1,6 +1,6 @@
 package avokka.velocypack
 
-import java.time.Instant
+import java.time.{Instant, LocalDate}
 import java.util.UUID
 
 import avokka.velocypack.VPack._
@@ -101,6 +101,11 @@ object VPackDecoder {
     case v         => VPackError.WrongType(v).asLeft
   }
 
+  implicit def seqDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Seq[T]] = {
+    case VArray(a) => a.traverse(d.decode).map(_.toVector)
+    case v         => VPackError.WrongType(v).asLeft
+  }
+
   implicit def setDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Set[T]] = {
     case VArray(a) => a.traverse(d.decode).map(_.toVector.toSet)
     case v         => VPackError.WrongType(v).asLeft
@@ -150,5 +155,10 @@ object VPackDecoder {
   implicit val vObjectDecoder: VPackDecoder[VObject] = {
     case v: VObject => v.asRight
     case v          => VPackError.WrongType(v).asLeft
+  }
+
+  implicit val localDateDecoder: VPackDecoder[LocalDate] = {
+    case VString(value) => LocalDate.parse(value).asRight
+    case v => VPackError.WrongType(v).asLeft
   }
 }

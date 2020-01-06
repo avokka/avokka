@@ -1,5 +1,7 @@
 package avokka.arangodb
 
+import java.util.concurrent.atomic.AtomicLong
+
 import akka.actor.{ActorSystem, Props}
 import akka.pattern.ask
 import akka.stream.Materializer
@@ -25,7 +27,7 @@ class ArangoSession(conf: ArangoConfiguration)(
   lazy val db = new ArangoDatabase(this, DatabaseName(conf.database))
 
   private val client = system.actorOf(Props(classOf[VStreamClient], conf.host, conf.port, materializer),
-                                      name = s"velocystream-client")
+                                      name = s"velocystream-client-${ArangoSession.id.incrementAndGet()}")
 
   implicit val timeout: Timeout = Timeout(2.minutes)
   import system.dispatcher
@@ -44,4 +46,8 @@ class ArangoSession(conf: ArangoConfiguration)(
   }
 
   session(ArangoRequest.Authentication(user = conf.username, password = conf.password))
+}
+
+object ArangoSession {
+  val id = new AtomicLong()
 }

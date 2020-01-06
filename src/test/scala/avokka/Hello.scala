@@ -40,13 +40,13 @@ object Hello {
 
   def main(args: Array[String]): Unit = {
 
-    val session = new ArangoSession(ArangoConfiguration().copy(host = "bak"))
-    val auth = session(ArangoRequest.Authentication(user = "root", password = "root"))
+    val session = new ArangoSession(ArangoConfiguration().copy(host = "bak", username = "root", password = "root"))
+//    val auth = session(ArangoRequest.Authentication())
 
     val db = new ArangoDatabase(session, DatabaseName("v10"))
     val countries = new ArangoCollection(db, CollectionName("countries"))
 
-    println(Await.result(auth, 10.seconds))
+//    println(Await.result(auth, 10.seconds))
 //    println(Await.result(session(Version()), 10.seconds))
 //    println(Await.result(session(Version(details = true)), 10.seconds))
 //    println(Await.result(session(admin.AdminLog), 10.seconds))

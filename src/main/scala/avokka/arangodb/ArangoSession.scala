@@ -2,7 +2,7 @@ package avokka.arangodb
 
 import akka.actor.{ActorSystem, Props}
 import akka.pattern.ask
-import akka.stream.ActorMaterializer
+import akka.stream.Materializer
 import akka.util.Timeout
 import avokka.velocypack._
 import avokka.velocystream._
@@ -16,7 +16,7 @@ import scala.concurrent.duration._
 
 class ArangoSession(conf: ArangoConfiguration)(
     implicit val system: ActorSystem,
-    materializer: ActorMaterializer
+    materializer: Materializer
 ) extends ApiContext[ArangoSession] {
 
   override lazy val session: ArangoSession = this
@@ -43,4 +43,5 @@ class ArangoSession(conf: ArangoConfiguration)(
     } yield response
   }
 
+  session(ArangoRequest.Authentication(user = conf.username, password = conf.password))
 }

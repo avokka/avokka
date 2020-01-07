@@ -26,7 +26,6 @@ trait SyntaxImplicits {
       */
     def toVPackBits(implicit encoder: VPackEncoder[T]): Result[BitVector] = {
       val vpack = encoder.encode(value)
-      println(Show[VPack].show(vpack))
       codecs.vpackEncoder.encode(vpack).toEither.leftMap(VPackError.Codec)
     }
   }

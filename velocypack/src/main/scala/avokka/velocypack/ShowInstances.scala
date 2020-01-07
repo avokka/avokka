@@ -27,4 +27,5 @@ trait ShowInstances {
   }
 
 //  implicit val vpackStringShow: Show[VString] = vpackShow.narrow
+  implicit val vpackErrorShow: Show[VPackError] = Show.fromToString[VPackError]
 }

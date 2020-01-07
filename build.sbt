@@ -44,12 +44,12 @@ lazy val velocystream = (project in file("velocystream"))
       logback.map(_ % Test)
   )
 
-lazy val root = (project in file("."))
+lazy val arangodb = (project in file("arangodb"))
   .dependsOn(velocystream)
   .aggregate(velocypack, velocystream)
   .settings(
+    name := "avokka-arangodb",
     addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full),
-    name := "avokka",
     libraryDependencies ++=
 //      enumeratum ++
       newtype ++
@@ -57,3 +57,7 @@ lazy val root = (project in file("."))
       Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value) 
 //      arango
   )
+
+lazy val root = (project in file("."))
+  .aggregate(arangodb, velocypack, velocystream)
+

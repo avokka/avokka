@@ -65,6 +65,8 @@ object VPackEncoder {
 
   implicit val byteVectorEncoder: VPackEncoder[ByteVector] = VBinary.apply
 
+  implicit val arrayByteEncoder: VPackEncoder[Array[Byte]] = byteVectorEncoder.contramap(ByteVector.apply)
+
   implicit val uuidEncoder: VPackEncoder[UUID] = byteVectorEncoder.contramap(ByteVector.fromUUID)
 
   implicit def optionEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Option[T]] =

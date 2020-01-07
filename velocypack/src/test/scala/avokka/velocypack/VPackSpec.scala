@@ -30,5 +30,6 @@ class VPackSpec extends FlatSpec with Matchers with VPackSpecTrait {
 
   "empty string" should "decode to empty bytevector" in {
     assertDec(VPackDecoder[ByteVector], VString(""), ByteVector.empty)
+    assertDec(VPackDecoder[Array[Byte]], VString(""), Array.empty[Byte])
   }
 }

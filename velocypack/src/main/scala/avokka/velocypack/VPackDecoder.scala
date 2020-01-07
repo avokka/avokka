@@ -81,6 +81,8 @@ object VPackDecoder {
     case v          => VPackError.WrongType(v).asLeft
   }
 
+  implicit val arrayByteDecoder: VPackDecoder[Array[Byte]] = byteVectorDecoder.map(_.toArray)
+
   implicit val uuidDecoder: VPackDecoder[UUID] = {
     case VBinary(b) => b.toUUID.asRight
     case VString(s) => UUID.fromString(s).asRight

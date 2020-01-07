@@ -2,7 +2,6 @@ package avokka
 
 import avokka.velocypack._
 import cats.data.EitherT
-import cats.syntax.either._
 import io.estatico.newtype.macros.newtype
 
 import scala.concurrent.Future
@@ -61,10 +60,8 @@ package object arangodb {
 
     implicit val encoder: VPackEncoder[DocumentHandle] = VPackEncoder[String].contramap(_.path)
     implicit val decoder: VPackDecoder[DocumentHandle] = VPackDecoder[String].emap(path =>
-      parse(path) match {
-        case Some(value) => value.asRight
-        case None        => VPackError.IllegalValue(s"invalid document handle '$path'").asLeft
-    })
+      parse(path).toRight(VPackError.IllegalValue(s"invalid document handle '$path'"))
+    )
 
     val empty = apply(CollectionName(""), DocumentKey.empty)
   }

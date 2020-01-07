@@ -26,8 +26,11 @@ case class VStreamChunkStack(
   def push(chunk: VStreamChunk): VStreamChunkStack = {
     require(messageId == chunk.messageId, "wrong message id in chunk stack")
     copy(
+      // append chunk
       chunks = chunks :+ chunk,
+      // increment received counter
       received = received + 1,
+      // first chunk index is the total number of expected chunks
       expected = if (chunk.x.first) Some(chunk.x.index) else expected
     )
   }

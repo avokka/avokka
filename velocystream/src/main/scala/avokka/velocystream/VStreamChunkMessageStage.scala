@@ -38,7 +38,7 @@ class VStreamChunkMessageStage extends GraphStage[FlowShape[VStreamChunk, VStrea
       override def onPush(): Unit = {
         val chunk = grab(in)
         if (chunk.x.isWhole) {
-          // solo chunk, bypass stack
+          // solo chunk, bypass stack merge computation
           val message = VStreamMessage(chunk.messageId, chunk.data)
           pushMessage(message)
         } else {

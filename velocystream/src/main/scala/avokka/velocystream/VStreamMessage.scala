@@ -1,5 +1,7 @@
 package avokka.velocystream
 
+import java.util.concurrent.atomic.AtomicLong
+
 import scodec.bits.ByteVector
 
 /**
@@ -17,7 +19,7 @@ case class VStreamMessage(
     * @param length maximum length of data chunk
     * @return stream of chunks
     */
-  def chunks(length: Long = VStreamChunk.maxLength): Stream[VStreamChunk] = {
+  def chunks(length: Long = VStreamConfiguration.CHUNK_LENGTH_DEFAULT): Stream[VStreamChunk] = {
     val count = (data.size.toDouble / length).ceil.toLong
 
     def stream(n: Long, slice: ByteVector): Stream[VStreamChunk] = {
@@ -27,4 +29,9 @@ case class VStreamMessage(
 
     stream(0, data)
   }
+}
+
+object VStreamMessage {
+  val id = new AtomicLong()
+  def apply(data: ByteVector): VStreamMessage = VStreamMessage(id.incrementAndGet(), data)
 }

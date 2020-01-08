@@ -6,7 +6,6 @@ import akka.actor.{ActorSystem, Props}
 import akka.pattern.ask
 import akka.stream.Materializer
 import akka.util.Timeout
-import avokka.arangodb
 import avokka.arangodb.ArangoResponse.Header
 import avokka.velocypack._
 import avokka.velocystream._
@@ -28,14 +27,18 @@ class ArangoSession(conf: ArangoConfiguration)(
   lazy val _system = new ArangoDatabase(this, DatabaseName.system)
   lazy val db = new ArangoDatabase(this, DatabaseName(conf.database))
 
-  private val client = system.actorOf(Props(classOf[VStreamClient], conf.host, conf.port, materializer),
-                                      name = s"velocystream-client-${ArangoSession.id.incrementAndGet()}")
+  val authRequest = ArangoRequest.Authentication(user = conf.username, password = conf.password)
+
+  private val client = system.actorOf(
+    VStreamClient(conf, authRequest.toVPackBits.map(bits => VStreamMessage(bits.bytes)).toOption.toList),
+    name = s"velocystream-client-${ArangoSession.id.incrementAndGet()}"
+  )
 
   implicit val timeout: Timeout = Timeout(2.minutes)
   import system.dispatcher
 
   def askClient[T](bits: BitVector): FEE[VStreamMessage] =
-    EitherT.liftF(ask(client, bits.bytes).mapTo[VStreamMessage])
+    EitherT.liftF(ask(client, VStreamClient.MessageSend(VStreamMessage(bits.bytes))).mapTo[VStreamMessage])
 
   private[arangodb] def execute[P: VPackEncoder, O: VPackDecoder](
       request: ArangoRequest[P]): FEE[ArangoResponse[O]] = {
@@ -62,39 +65,8 @@ class ArangoSession(conf: ArangoConfiguration)(
           .leftMap(ArangoError.VPack)
           .flatMap(body => ArangoResponse(head.value, body.value).asRight)
       })
-
-      //response <- EitherT.fromEither[Future](decode[O](message.data.bits))
     } yield response
   }
-
-  /*
-  def decode[T](bits: BitVector)(
-    implicit bodyDecoder: VPackDecoder[T]
-  ): Either[ArangoError, ArangoResponse[T]] = {
-    println("arango RES head", bits.asVPack.show)
-    bits.as[Header].leftMap(ArangoError.VPack).flatMap { header =>
-      if (header.remainder.isEmpty) {
-        ArangoError.Head(header.value).asLeft
-      } else {
-        println("arango RES body", header.remainder.asVPack.show)
-        if (header.value.responseCode >= 400) {
-          header.remainder
-            .as[ResponseError]
-            .leftMap(ArangoError.VPack)
-            .flatMap(body => ArangoError.Resp(header.value, body.value).asLeft)
-        } else {
-          header.remainder
-            .as[T]
-            .leftMap(ArangoError.VPack)
-            .flatMap(body => ArangoResponse(header.value, body.value).asRight)
-        }
-      }
-    }
-  }
-
-   */
-
-  apply(ArangoRequest.Authentication(user = conf.username, password = conf.password))
 }
 
 object ArangoSession {

@@ -6,6 +6,7 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import avokka.velocypack._
 import avokka.arangodb._
+import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._
 import scala.concurrent.Await
@@ -40,7 +41,7 @@ object Hello {
 
   def main(args: Array[String]): Unit = {
 
-    val session = new ArangoSession(ArangoConfiguration().copy(host = "bak", username = "root", password = "root"))
+    val session = new ArangoSession(ArangoConfiguration(ConfigFactory.load()))
 //    val auth = session(ArangoRequest.Authentication())
 
     val db = new ArangoDatabase(session, DatabaseName("v10"))

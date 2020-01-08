@@ -32,8 +32,6 @@ object VStreamChunk {
     )
   }
 
-  val maxLength: Long = 30000L
-
   implicit val codec: Codec[VStreamChunk] = {
     ("length" | uint32L) >>:~ { length =>
       ("chunkX" | VStreamChunkX.codec) ::

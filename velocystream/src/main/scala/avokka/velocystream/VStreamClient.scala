@@ -1,40 +1,36 @@
 package avokka.velocystream
 
 import java.nio.ByteOrder
-import java.util.concurrent.atomic.AtomicLong
 
+import akka.NotUsed
 import akka.actor._
 import akka.pattern.pipe
 import akka.stream.scaladsl._
-import akka.stream.{ActorMaterializer, OverflowStrategy, QueueOfferResult}
+import akka.stream.{Materializer, OverflowStrategy, QueueOfferResult}
 import akka.util.ByteString
 import scodec.bits.{BitVector, ByteVector}
 
 import scala.collection.mutable
-import scala.concurrent.Promise
+import scala.concurrent.{Future, Promise}
 
-class VStreamClient(host: String, port: Int)(
-    implicit materializer: ActorMaterializer
-) extends Actor with ActorLogging {
+/** Velocystream client actor
+  *
+  */
+class VStreamClient(conf: VStreamConfiguration, begin: Iterable[VStreamMessage])(implicit materializer: Materializer)
+    extends Actor
+    with ActorLogging {
   import VStreamClient._
   import context.{dispatcher, system}
 
-  val messageId = new AtomicLong()
   val promises = mutable.LongMap.empty[Promise[VStreamMessage]]
+  // val senders = mutable.LongMap.empty[ActorRef]
 
-  /*
-  val VST = GraphDSL.create() { implicit builder =>
-    val merge = builder.add(Concat[ByteString]())
-    Source.single(ByteString(VST_HANDSHAKE)) ~> merge.in(0)
-    FlowShape(merge.in(1), merge.out)
-  }.named("VST")
-   */
-
-  val connection = Tcp().outgoingConnection(host, port)
+  val connection = Tcp().outgoingConnection(conf.host, conf.port)
 
   val in = Flow[VStreamMessage]
+    .prepend(Source.fromIterator(() => begin.iterator))
     .log("SEND message")
-    .flatMapMerge(3, m => Source(m.chunks()))
+    .flatMapMerge(3, m => Source(m.chunks(conf.chunkLength)))
     .log("SEND chunk")
     .map { chunk =>
       ByteString.fromArrayUnsafe(VStreamChunk.codec.encode(chunk).require.toByteArray)
@@ -57,22 +53,24 @@ class VStreamClient(host: String, port: Int)(
     .via(new VStreamChunkMessageStage)
     .log("RECV message")
 
-  val q = Source.queue[VStreamMessage](100, OverflowStrategy.fail)
+  val protocol: Flow[VStreamMessage, VStreamMessage, NotUsed] = in.via(connection).via(out)
 
-  val gr = q
-    .via(in)
+  val q = Source.queue[VStreamMessage](conf.queueSize, OverflowStrategy.fail)
+
+  val gr = q.via(protocol)
+  //    .via(in)
     //.groupBy(2, _.size > 30)
-    .via(connection)
+//    .via(connection)
     //.mergeSubstreams
-    .via(out)
+//    .via(out)
 
-  val conn = gr.to(Sink.actorRef(self, MEND)).run()
+  val conn = gr.map(MessageReceived).to(Sink.actorRef(self, MEND)).run()
 
   override def receive: Receive = {
     case MEND => //context.stop(self)
 
-    case b: ByteVector => {
-      val message = VStreamMessage(messageId.incrementAndGet(), b)
+    case m: MessageSend => {
+      val message = m.message
       val promise = Promise[VStreamMessage]()
       promises.update(message.id, promise)
       conn
@@ -86,8 +84,8 @@ class VStreamClient(host: String, port: Int)(
         .flatMap(_.future) pipeTo sender()
     }
 
-    case r: VStreamMessage => {
-      promises.remove(r.id).foreach(_.success(r))
+    case m: MessageReceived => {
+      promises.remove(m.message.id).foreach(_.success(m.message))
     }
 
     case _ =>
@@ -95,7 +93,13 @@ class VStreamClient(host: String, port: Int)(
 }
 
 object VStreamClient {
+
+  def apply(conf: VStreamConfiguration, begin: Iterable[VStreamMessage])(implicit materializer: Materializer): Props =
+    Props(new VStreamClient(conf, begin)(materializer))
+
   val VST_HANDSHAKE = "VST/1.1\r\n\r\n"
 
+  case class MessageSend(message: VStreamMessage)
+  case class MessageReceived(message: VStreamMessage)
   case object MEND
 }

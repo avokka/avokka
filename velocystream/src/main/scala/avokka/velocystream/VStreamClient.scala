@@ -64,10 +64,10 @@ class VStreamClient(conf: VStreamConfiguration, begin: Iterable[VStreamMessage])
     //.mergeSubstreams
 //    .via(out)
 
-  val conn = gr.map(MessageReceived).to(Sink.actorRef(self, MEND)).run()
+  val conn = gr.map(MessageReceived).to(Sink.actorRef(self, ConnectionTerminated)).run()
 
   override def receive: Receive = {
-    case MEND => //context.stop(self)
+    case ConnectionTerminated => //context.stop(self)
 
     case m: MessageSend => {
       val message = m.message
@@ -101,5 +101,5 @@ object VStreamClient {
 
   case class MessageSend(message: VStreamMessage)
   case class MessageReceived(message: VStreamMessage)
-  case object MEND
+  case object ConnectionTerminated
 }

@@ -26,5 +26,13 @@ class ArangoCollection(val database: ArangoDatabase, val name: CollectionName) e
     bindVars = VObject("@collection" -> name.toVPack, "keys" -> keys.toVPack)
   )
 
+  def upsert[T](key: DocumentKey, obj: VObject): Cursor[VObject, T] = {
+    val kvs = obj.values.keys.map { key => s"$key:@$key" }.mkString(",")
+    Cursor[VObject, T](
+      s"UPSERT {_key:@_key} INSERT {_key:@_key,$kvs} UPDATE {$kvs} IN @@collection RETURN NEW",
+      obj.updated("@collection", name).updated("_key", key)
+    )
+  }
+
   def source[T : VPackDecoder](batchSize: Long): Source[T, NotUsed] = database.source(all[T].withBatchSize(batchSize))
 }

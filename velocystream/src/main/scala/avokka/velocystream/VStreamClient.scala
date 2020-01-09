@@ -78,15 +78,20 @@ object VStreamClient {
       decider = decider)
 
   val poolResizer: Resizer = DefaultResizer(
-    lowerBound = 1,
+    lowerBound = 2,
     upperBound = 10,
     pressureThreshold = 1,
+    messagesPerResize = 100
   )
 
   val routerConfig: RouterConfig = SmallestMailboxPool(
-    nrOfInstances = 1,
+    nrOfInstances = 2,
     supervisorStrategy = supervisionStrategy,
     resizer = Some(poolResizer)
+  )
+  val routerBalanceConfig: RouterConfig = BalancingPool(
+    nrOfInstances = 2,
+    supervisorStrategy = supervisionStrategy,
   )
 
   def apply(conf: VStreamConfiguration, begin: Source[VStreamMessage, _])(

@@ -36,7 +36,7 @@ class ArangoSession(conf: ArangoConfiguration)(
     name = s"velocystream-client-${ArangoSession.id.incrementAndGet()}"
   )
 
-  implicit val timeout: Timeout = Timeout(2.minutes)
+  implicit val timeout: Timeout = Timeout(30.seconds)
   import system.dispatcher
 
   def askClient[T](bits: BitVector): FEE[VStreamMessage] =

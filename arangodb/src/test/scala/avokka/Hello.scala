@@ -79,7 +79,7 @@ object Hello {
     )), 10.seconds).right.get.body
     println(res)
     println(Await.result(db(CursorNext[Photo](res.id.get)), 10.seconds))
-    println(Await.result(db(CursorDelete(res.id.get)), 10.seconds))
+   //  println(Await.result(db(CursorDelete(res.id.get)), 10.seconds))
 
     /*
     Await.result(db.source(countries.all[Country].withBatchSize(4))

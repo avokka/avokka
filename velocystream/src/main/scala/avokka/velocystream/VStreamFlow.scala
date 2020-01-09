@@ -8,6 +8,8 @@ import akka.stream.scaladsl._
 import akka.util.ByteString
 import scodec.bits.BitVector
 
+import scala.concurrent.duration._
+
 /** Velocystream flow
   *
   */
@@ -22,9 +24,12 @@ class VStreamFlow(conf: VStreamConfiguration, begin: Source[VStreamMessage, _])(
     .flatMapMerge(3, m => Source(m.chunks(conf.chunkLength)))
     .log("SEND chunk")
     .map { chunk =>
-      ByteString.fromArrayUnsafe(VStreamChunk.codec.encode(chunk).require.toByteArray)
+      VStreamChunk.codec.encode(chunk).require
     }
-    .prepend(Source.single(ByteString(VST_HANDSHAKE)))
+    .map { bits =>
+      ByteString.fromArrayUnsafe(bits.toByteArray)
+    }
+    .prepend(Source.single(VST_HANDSHAKE))
 
   private val out = Flow[ByteString]
     .via(
@@ -42,10 +47,15 @@ class VStreamFlow(conf: VStreamConfiguration, begin: Source[VStreamMessage, _])(
     .via(new VStreamChunkMessageStage)
     .log("RECV message")
 
-  val protocol: Flow[VStreamMessage, VStreamMessage, NotUsed] = in.via(connection).via(out)
-
+  val protocol: Flow[VStreamMessage, VStreamMessage, NotUsed] = {
+    RestartFlow.onFailuresWithBackoff(
+      minBackoff = 3.seconds,
+      maxBackoff = 30.seconds,
+      randomFactor = 0.2,
+      maxRestarts = -1)(() => in.via(connection)).via(out)
+  }
 }
 
 object VStreamFlow {
-  val VST_HANDSHAKE = "VST/1.1\r\n\r\n"
+  val VST_HANDSHAKE = ByteString("VST/1.1\r\n\r\n")
 }

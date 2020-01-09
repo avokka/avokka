@@ -2,9 +2,10 @@ package avokka.arangodb
 
 import java.util.concurrent.atomic.AtomicLong
 
-import akka.actor.{ActorSystem, Props}
+import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.stream.Materializer
+import akka.stream.scaladsl.Source
 import akka.util.Timeout
 import avokka.arangodb.ArangoResponse.Header
 import avokka.velocypack._
@@ -28,9 +29,10 @@ class ArangoSession(conf: ArangoConfiguration)(
   lazy val db = new ArangoDatabase(this, DatabaseName(conf.database))
 
   val authRequest = ArangoRequest.Authentication(user = conf.username, password = conf.password)
+  val authSource = Source.fromIterator(() => authRequest.toVPackBits.map(bits => VStreamMessage(bits.bytes)).toOption.iterator)
 
   private val client = system.actorOf(
-    VStreamClient(conf, authRequest.toVPackBits.map(bits => VStreamMessage(bits.bytes)).toOption.toList),
+    VStreamClient(conf, authSource),
     name = s"velocystream-client-${ArangoSession.id.incrementAndGet()}"
   )
 

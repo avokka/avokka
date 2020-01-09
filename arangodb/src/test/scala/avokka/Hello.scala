@@ -6,6 +6,7 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import avokka.velocypack._
 import avokka.arangodb._
+import avokka.arangodb.api.{Cursor, CursorDelete, CursorNext}
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._
@@ -72,15 +73,14 @@ object Hello {
     ), 10.seconds)
     println(res)
 */
-    /*
     val res = Await.result(db(Cursor[Map[String, Int], Photo](
       query = "FOR p IN photos LIMIT @limit RETURN p",
-      bindVars = Map("limit" -> 10), batchSize = Some(2)
+      bindVars = Map("limit" -> 10), batchSize = Some(5)
     )), 10.seconds).right.get.body
     println(res)
     println(Await.result(db(CursorNext[Photo](res.id.get)), 10.seconds))
     println(Await.result(db(CursorDelete(res.id.get)), 10.seconds))
-*/
+
     /*
     Await.result(db.source(countries.all[Country].withBatchSize(4))
         .wireTap(println(_))

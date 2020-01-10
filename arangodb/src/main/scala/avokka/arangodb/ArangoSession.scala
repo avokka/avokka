@@ -28,8 +28,8 @@ class ArangoSession(conf: ArangoConfiguration)(
   lazy val _system = new ArangoDatabase(this, DatabaseName.system)
   lazy val db = new ArangoDatabase(this, DatabaseName(conf.database))
 
-  val authRequest = ArangoRequest.Authentication(user = conf.username, password = conf.password)
-  val authSource = Source.fromIterator(() => authRequest.toVPackBits.map(bits => VStreamMessage(bits.bytes)).toOption.iterator)
+  val authRequest = ArangoRequest.Authentication(user = conf.username, password = conf.password).toVPackBits
+  val authSource = Source.fromIterator(() => authRequest.map(bits => VStreamMessage(bits.bytes)).toOption.iterator)
 
   private val client = system.actorOf(
     VStreamClient(conf, authSource),

@@ -1,5 +1,6 @@
 package avokka.velocystream
 
+import java.net.InetSocketAddress
 import java.nio.ByteOrder
 
 import akka.NotUsed
@@ -16,7 +17,12 @@ import scala.concurrent.duration._
 class VStreamFlow(conf: VStreamConfiguration, begin: Source[VStreamMessage, _])(implicit system: ActorSystem) {
   import VStreamFlow._
 
-  private val connection = Tcp().outgoingConnection(conf.host, conf.port)
+  private val address = InetSocketAddress.createUnresolved(conf.host, conf.port)
+  private val connection = Tcp().outgoingConnection(
+    remoteAddress = address,
+    connectTimeout = 5.seconds,
+    idleTimeout = 1.hour
+  )
 
   private val in = Flow[VStreamMessage]
     .prepend(begin)
@@ -48,11 +54,11 @@ class VStreamFlow(conf: VStreamConfiguration, begin: Source[VStreamMessage, _])(
     .log("RECV message")
 
   val protocol: Flow[VStreamMessage, VStreamMessage, NotUsed] = {
-    RestartFlow.onFailuresWithBackoff(
-      minBackoff = 3.seconds,
+    RestartFlow.withBackoff(
+      minBackoff = 1.second,
       maxBackoff = 30.seconds,
       randomFactor = 0.2,
-      maxRestarts = -1)(() => in.via(connection)).via(out)
+      maxRestarts = -1)(() => in.via(connection).via(out))
   }
 }
 

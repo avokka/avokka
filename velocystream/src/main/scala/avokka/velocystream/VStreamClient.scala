@@ -4,7 +4,7 @@ import akka.actor._
 import akka.pattern.pipe
 import akka.routing._
 import akka.stream.scaladsl._
-import akka.stream.{Materializer, OverflowStrategy, QueueOfferResult, StreamTcpException}
+import akka.stream.{Materializer, OverflowStrategy, QueueOfferResult}
 
 import scala.collection.mutable
 import scala.concurrent.Promise
@@ -31,7 +31,7 @@ class VStreamClient(conf: VStreamConfiguration, begin: Source[VStreamMessage, _]
   private val connection = source
     .via(flow.protocol)
     .map(MessageReceived)
-    .to(Sink.actorRef(self, ConnectionTerminated))
+    .to(Sink.actorRefWithAck(self, Init, Ack, ConnectionTerminated))
     .run()
 
   context.watch(connection)
@@ -57,15 +57,17 @@ class VStreamClient(conf: VStreamConfiguration, begin: Source[VStreamMessage, _]
           case QueueOfferResult.QueueClosed    => promise.failure(new RuntimeException("queue closed"))
         })
         .flatMap(_.future) pipeTo sender()
+
        */
     }
 
     case m: MessageReceived => {
       promises.remove(m.message.id).foreach(_.success(m.message))
+      sender() ! Ack
 //      senders.remove(m.message.id).foreach(_ ! m)
     }
 
-    case _ =>
+    case Init => sender() ! Ack
   }
 }
 
@@ -101,4 +103,6 @@ object VStreamClient {
   case class MessageSend(message: VStreamMessage)
   case class MessageReceived(message: VStreamMessage)
   case object ConnectionTerminated
+  case object Init
+  case object Ack
 }

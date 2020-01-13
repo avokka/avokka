@@ -1,6 +1,9 @@
 package avokka.velocystream
 
 import cats.data.Chain
+import cats.syntax.foldable._
+import cats.instances.vector._
+import scodec.interop.cats.ByteVectorMonoidInstance
 
 /**
   * Stacks received message chunks and checks for completeness
@@ -43,7 +46,7 @@ case class VStreamChunkStack(
   def complete: Option[VStreamMessage] = {
     if (expected.contains(received) && chunks.length == received) {
       // order chunks by position and reduce their data blobs
-      val bytes = chunks.toVector.sortBy(_.x.position).map(_.data).reduce(_ ++ _)
+      val bytes = chunks.toVector.sortBy(_.x.position).foldMap(_.data) //.reduce(_ ++ _)
       Some(VStreamMessage(messageId, bytes))
     } else None
   }

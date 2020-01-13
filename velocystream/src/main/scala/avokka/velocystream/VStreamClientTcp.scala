@@ -14,7 +14,7 @@ import scodec.bits.BitVector
 
 import scala.collection.mutable
 import scala.concurrent.Promise
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 /** Velocystream client actor
   *
@@ -24,24 +24,32 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
     with ActorLogging {
   import VStreamClientTcp._
   import Tcp._
-  //import context.{dispatcher, system}
+  import context.{dispatcher, system}
 
-  val manager = IO(Tcp)(context.system)
+  // message id -> stack of chunks
+  private val messages = mutable.LongMap.empty[VStreamChunkStack]
+  private val promises = mutable.LongMap.empty[Promise[VStreamMessage]]
+
+  val manager = IO(Tcp)
 
   private val address: InetSocketAddress = InetSocketAddress.createUnresolved(conf.host, conf.port)
-  manager ! Connect(address)
+  manager ! Connect(address, timeout = Some(10.seconds))
 
   var buffer = BitVector.empty
+
+  def pushMessage(message: VStreamMessage) = {
+    promises.get(message.id).foreach { promise =>
+      promise.success(message)
+    }
+  }
 
   override def receive: Receive = {
     case CommandFailed(_: Connect) =>
       log.debug("connect failed")
-      // listener ! "connect failed"
       context.stop(self)
 
     case c @ Connected(remote, local) =>
       log.debug("connected")
-      // listener ! c
       val connection = sender()
       connection ! Register(self)
       connection ! Write(VStreamFlow.VST_HANDSHAKE)
@@ -49,16 +57,19 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
 //        self ! MessageSend(m)
         m.chunks() foreach { chk =>
           val bs = ByteString(VStreamChunk.codec.encode(chk).require.toByteBuffer)
-          log.debug("SEND {}", bs)
+          log.debug("CHUNK SEND {}", bs)
           connection ! Write(bs)
         }
       }
 
       context.become {
         case MessageSend(m) =>
+          log.debug("MESSAGE SEND {}", m)
+          val promise = Promise[VStreamMessage]()
+          promises.update(m.id, promise)
+          promise.future pipeTo sender()
           m.chunks() foreach { chk =>
             val bs = ByteString(VStreamChunk.codec.encode(chk).require.toByteBuffer)
-            log.debug("SEND {}", bs)
             connection ! Write(bs)
           }
 
@@ -70,17 +81,39 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
         case Received(data) =>
           log.debug("received data")
           buffer = buffer ++ BitVector(data.asByteBuffer)
-          log.debug("buffer is {}", buffer)
+          log.debug("buffer is {}", buffer.bytes)
 
           Codec.decodeCollect(VStreamChunk.codec, None)(buffer) match {
             case Attempt.Successful(value) => {
               value.value.foreach { chunk =>
                 log.debug(chunk.toString)
+                if (chunk.x.isWhole) {
+                  // solo chunk, bypass stack merge computation
+                  val message = VStreamMessage(chunk.messageId, chunk.data)
+                  pushMessage(message)
+                } else {
+                  // retrieve the stack of chunks
+                  val stack = messages.getOrElseUpdate(chunk.messageId, VStreamChunkStack(chunk.messageId))
+                  // push chunk in stack
+                  val pushed = stack.push(chunk)
+                  // check completeness
+                  pushed.complete match {
+                    case Some(message) => {
+                      // a full message, remove stack from map
+                      messages.remove(message.id)
+                      pushMessage(message)
+                    }
+                    case None => {
+                      // stack is pending more chunks
+                      messages.update(chunk.messageId, pushed)
+                    }
+                  }
+                }
               }
               buffer = value.remainder
             }
             case Attempt.Failure(cause) => cause match {
-              case Err.InsufficientBits(needed, have, context) =>
+              case Err.InsufficientBits(needed, have, _) => log.debug("insufficent bits needed={} have={}", needed, have)
               case e => log.error(e.toString())
             }
           }
@@ -94,48 +127,6 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
       }
   }
 
-  private val promises = mutable.LongMap.empty[Promise[VStreamMessage]]
-//  private val senders = mutable.LongMap.empty[ActorRef]
-
-//  private val flow = new VStreamFlow(conf, begin)
-
-//  private val source = Source.queue[VStreamMessage](conf.queueSize, OverflowStrategy.backpressure)
-//  private val source = Source.actorRef(conf.queueSize, OverflowStrategy.fail)
-
-  /*
-  private val connection = source
-    .via(flow.protocol)
-    .map(MessageReceived)
-    .to(Sink.actorRefWithAck(self, Init, Ack, ConnectionTerminated))
-    .run()
-
-  context.watch(connection)
-*/
-
-/*
-  override def receive: Receive = {
-    case Terminated => context.stop(self)
-    case ConnectionTerminated => context.stop(self)
-
-    case m: MessageSend => {
-      val message = m.message
-      val promise = Promise[VStreamMessage]()
-      promises.update(message.id, promise)
-//      senders.update(message.id, sender())
-      promise.future pipeTo sender()
-      connection ! message
-    }
-
-    case m: MessageReceived => {
-      promises.remove(m.message.id).foreach(_.success(m.message))
-      sender() ! Ack
-//      senders.remove(m.message.id).foreach(_ ! m)
-    }
-
-    case Init => sender() ! Ack
-  }
-
- */
 }
 
 object VStreamClientTcp {

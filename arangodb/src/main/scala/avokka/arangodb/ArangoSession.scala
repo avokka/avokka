@@ -30,9 +30,10 @@ class ArangoSession(conf: ArangoConfiguration)(
 
   val authRequest = ArangoRequest.Authentication(user = conf.username, password = conf.password).toVPackBits
   val authSource = Source.fromIterator(() => authRequest.map(bits => VStreamMessage(bits.bytes)).toOption.iterator)
+  val authSeq = authRequest.map(bits => VStreamMessage(bits.bytes)).toOption.toList
 
   private val client = system.actorOf(
-    VStreamClient(conf, authSource),
+    VStreamClientTcp(conf, authSeq),
     name = s"velocystream-client-${ArangoSession.id.incrementAndGet()}"
   )
 
@@ -40,7 +41,7 @@ class ArangoSession(conf: ArangoConfiguration)(
   import system.dispatcher
 
   def askClient[T](bits: BitVector): FEE[VStreamMessage] =
-    EitherT.liftF(ask(client, VStreamClient.MessageSend(VStreamMessage(bits.bytes))).mapTo[VStreamMessage])
+    EitherT.liftF(ask(client, VStreamClientTcp.MessageSend(VStreamMessage(bits.bytes))).mapTo[VStreamMessage])
 
   private[arangodb] def execute[P: VPackEncoder, O: VPackDecoder](
       request: ArangoRequest[P]): FEE[ArangoResponse[O]] = {

@@ -37,7 +37,7 @@ object VStreamChunk {
       ("chunkX" | VStreamChunkX.codec) ::
         ("messageId" | int64L) ::
         ("messageLength" | int64L) ::
-        ("data" | bytes)
+        ("data" | fixedSizeBits((length - 4 - 4 - 8 - 8) * 8, bytes))
     }
   }.as[VStreamChunk]
 }

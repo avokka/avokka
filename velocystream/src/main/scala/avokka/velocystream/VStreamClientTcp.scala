@@ -23,7 +23,6 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
     extends Actor
     with ActorLogging {
   import VStreamClientTcp._
-  import Tcp._
   import context.{dispatcher, system}
 
   // message id -> stack of chunks
@@ -33,7 +32,7 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
   val manager = IO(Tcp)
 
   private val address: InetSocketAddress = InetSocketAddress.createUnresolved(conf.host, conf.port)
-  manager ! Connect(address, timeout = Some(10.seconds))
+  manager ! Tcp.Connect(address, timeout = Some(10.seconds))
 
   var buffer = BitVector.empty
 
@@ -44,21 +43,21 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
   }
 
   override def receive: Receive = {
-    case CommandFailed(_: Connect) =>
+    case Tcp.CommandFailed(_: Tcp.Connect) =>
       log.debug("connect failed")
       context.stop(self)
 
-    case c @ Connected(remote, local) =>
+    case c @ Tcp.Connected(remote, local) =>
       log.debug("connected")
       val connection = sender()
-      connection ! Register(self)
-      connection ! Write(VStreamFlow.VST_HANDSHAKE)
+      connection ! Tcp.Register(self)
+      connection ! Tcp.Write(VStreamFlow.VST_HANDSHAKE)
       begin.foreach { m =>
 //        self ! MessageSend(m)
         m.chunks() foreach { chk =>
           val bs = ByteString(VStreamChunk.codec.encode(chk).require.toByteBuffer)
           log.debug("CHUNK SEND {}", bs)
-          connection ! Write(bs)
+          connection ! Tcp.Write(bs)
         }
       }
 
@@ -70,15 +69,15 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
           promise.future pipeTo sender()
           m.chunks() foreach { chk =>
             val bs = ByteString(VStreamChunk.codec.encode(chk).require.toByteBuffer)
-            connection ! Write(bs)
+            connection ! Tcp.Write(bs)
           }
 
-        case CommandFailed(w: Write) =>
+        case Tcp.CommandFailed(w: Tcp.Write) =>
           // O/S buffer was full
           log.debug("write failed")
           context.stop(self)
 
-        case Received(data) =>
+        case Tcp.Received(data) =>
           log.debug("received data")
           buffer = buffer ++ BitVector(data.asByteBuffer)
           log.debug("buffer is {}", buffer.bytes)
@@ -119,9 +118,9 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
           }
           //listener ! data
         case "close" =>
-          connection ! Close
+          connection ! Tcp.Close
 
-        case _: ConnectionClosed =>
+        case _: Tcp.ConnectionClosed =>
           log.debug("connection closed")
           context.stop(self)
       }

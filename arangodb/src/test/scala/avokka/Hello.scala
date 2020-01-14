@@ -6,7 +6,7 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import avokka.velocypack._
 import avokka.arangodb._
-import avokka.arangodb.api.{Cursor, CursorDelete, CursorNext}
+import avokka.arangodb.api.{Cursor, CursorDelete, CursorNext, Version}
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._
@@ -49,8 +49,8 @@ object Hello {
     val countries = new ArangoCollection(db, CollectionName("countries"))
 
 //    println(Await.result(auth, 10.seconds))
-//    println(Await.result(session(Version()), 10.seconds))
-//    println(Await.result(session(Version(details = true)), 10.seconds))
+    println(Await.result(session(Version()), 10.seconds))
+    println(Await.result(session(Version(details = true)), 10.seconds))
 //    println(Await.result(session(admin.AdminLog), 10.seconds))
 //    println(Await.result(countries(CollectionChecksum()), 10.seconds))
 //    println(Await.result(countries(CollectionCount), 10.seconds))
@@ -62,7 +62,7 @@ object Hello {
 //    println(Await.result(db(CollectionList()), 10.seconds))
 //    println(Await.result(db.collection("nope"), 10.seconds))
 //    println(Await.result(db(DocumentRead[Country](DocumentHandle("countries/FR"), ifMatch = Some("_ZfKin5f--_"))), 10.seconds))
-    println(Await.result(db(countries.read[Country](DocumentKey("FR"))), 10.seconds))
+//    println(Await.result(db(countries.read[Country](DocumentKey("FR"))), 10.seconds))
 //    println(Await.result(countries.properties(), 10.seconds))
 //    println(Await.result(countries(IndexList), 10.seconds))
 //    println(Await.result(db(IndexRead("countries/0")), 10.seconds))
@@ -73,12 +73,14 @@ object Hello {
     ), 10.seconds)
     println(res)
 */
+    /*
     val res = Await.result(db(Cursor[Map[String, Int], Photo](
       query = "FOR p IN photos LIMIT @limit RETURN p",
       bindVars = Map("limit" -> 10), batchSize = Some(5)
     )), 10.seconds).right.get.body
     println(res)
     println(Await.result(db(CursorNext[Photo](res.id.get)), 10.seconds))
+     */
    //  println(Await.result(db(CursorDelete(res.id.get)), 10.seconds))
 
     /*

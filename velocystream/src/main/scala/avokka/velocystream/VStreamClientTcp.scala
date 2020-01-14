@@ -21,21 +21,18 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
   import VStreamClientTcp._
   import context.system
 
-  val manager = IO(Tcp)
+  val manager: ActorRef = IO(Tcp)
 
   private val address: InetSocketAddress = InetSocketAddress.createUnresolved(conf.host, conf.port)
 
-  override def preStart() = {
+  override def preStart(): Unit = {
     manager ! Tcp.Connect(address, timeout = Some(15.seconds))
   }
 
-  var buffer = BitVector.empty
-
-  var beginQueue: Vector[VStreamChunk] = Vector.empty
-  var sendQueue: Vector[VStreamChunk] = Vector.empty
+  var buffer: BitVector = BitVector.empty
 
   def connecting: Receive = {
-    case Tcp.CommandFailed(_) =>
+    case Tcp.CommandFailed(_: Tcp.Connect) =>
       log.debug("connect failed")
       context.stop(self)
 
@@ -43,33 +40,30 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
       log.debug("connected remote={} local={}", remote, local)
       val connection = sender()
       connection ! Tcp.Register(self, keepOpenOnPeerClosed = true, useResumeWriting = false)
-
-      val hand = VStreamFlow.VST_HANDSHAKE
-
-      val beg = ByteString(begin.flatMap(_.chunks()).map { chunk =>
-        VStreamChunk.codec.encode(chunk).require
-      }.reduce(_ ++ _).toByteBuffer)
-
-      connection ! Tcp.Write(hand ++ beg, WriteAck)
-
       context.become(handshaking(connection))
+      begin.foreach { m =>
+        self ! MessageSend(m)
+      }
       unstashAll()
 
     case _ => stash()
   }
 
   def handshaking(connection: ActorRef): Receive = {
-    case WriteAck => {
-   //   connection ! Tcp.ResumeReading
-      context.become(connected(connection))
-      unstashAll()
-    }
+    connection ! Tcp.Write(VStreamFlow.VST_HANDSHAKE, HandshakeAck)
 
-    case _ => stash()
+    {
+      case HandshakeAck => {
+        context.become(connected(connection))
+        unstashAll()
+      }
+
+      case _ => stash()
+    }
   }
 
   def connected(connection: ActorRef): Receive = {
-    case Tcp.CommandFailed(w: Tcp.Write) =>
+    case Tcp.CommandFailed(_: Tcp.Write) =>
       // O/S buffer was full
       log.debug("write failed")
       context.stop(self)
@@ -86,7 +80,7 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
     case ChunkSend(chunk) =>
       val bs = ByteString(VStreamChunk.codec.encode(chunk).require.toByteBuffer)
       connection ! Tcp.Write(bs, WriteAck)
-      context.become(waitingForAck(connection))
+      context.become(waitingForAck(connection, WriteAck))
 
     case Tcp.Received(data) =>
       log.debug("received data")
@@ -104,21 +98,17 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
           }
           buffer = result.remainder
         }
-        case Attempt.Failure(cause) => cause match {
-          case Err.InsufficientBits(needed, have, _) => {
-            log.debug("insufficent bits needed={} have={}", needed, have)
-          }
-          case e => log.error(e.toString())
-        }
+        case Attempt.Failure(cause: Err.InsufficientBits) =>
+          log.debug("insufficent bits needed={} have={}", cause.needed, cause.have)
+        case Attempt.Failure(cause) =>
+          log.error(cause.toString())
       }
   //    connection ! Tcp.ResumeReading
 
-    case "close" =>
-      connection ! Tcp.Close
   }
 
-  def waitingForAck(connection: ActorRef): Receive = {
-    case WriteAck =>
+  def waitingForAck(connection: ActorRef, ack: Tcp.Event): Receive = {
+    case `ack` =>
       context.become(connected(connection))
       unstashAll()
 
@@ -163,12 +153,7 @@ object VStreamClientTcp {
 
   case class MessageSend(message: VStreamMessage)
   case class ChunkSend(chunk: VStreamChunk)
-  /*
-  case class MessageReceived(message: VStreamMessage)
-  case object ConnectionTerminated
-  case object Init
-   */
-  case object ReadAck extends Tcp.Event
+
+  case object HandshakeAck extends Tcp.Event
   case object WriteAck extends Tcp.Event
-//  case object BeginAck extends Tcp.Event
 }

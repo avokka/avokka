@@ -26,7 +26,7 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
   private val address: InetSocketAddress = InetSocketAddress.createUnresolved(conf.host, conf.port)
 
   override def preStart() = {
-    manager ! Tcp.Connect(address, timeout = Some(15.seconds), pullMode = true)
+    manager ! Tcp.Connect(address, timeout = Some(15.seconds))
   }
 
   var buffer = BitVector.empty
@@ -60,7 +60,7 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
 
   def handshaking(connection: ActorRef): Receive = {
     case WriteAck => {
-      connection ! Tcp.ResumeReading
+   //   connection ! Tcp.ResumeReading
       context.become(connected(connection))
       unstashAll()
     }
@@ -111,7 +111,7 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
           case e => log.error(e.toString())
         }
       }
-      connection ! Tcp.ResumeReading
+  //    connection ! Tcp.ResumeReading
 
     case "close" =>
       connection ! Tcp.Close

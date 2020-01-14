@@ -41,8 +41,9 @@ lazy val velocystream = (project in file("velocystream"))
       akka ++
       testSuite ++
 //      arango ++
-      logback.map(_ % Test)
-  )
+      logback.map(_ % Test) ++
+      Seq("com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Test),
+)
 
 lazy val arangodb = (project in file("arangodb"))
   .dependsOn(velocystream)

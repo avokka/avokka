@@ -57,7 +57,7 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
     beginQueue.clear()
     beginQueue ++= begin.flatMap(_.chunks())
 
-    receiving(connection) orElse {
+    receiving(connection) orElse handleFailure(connection) orElse {
 
       case HandshakeAck =>
         if (beginQueue.isEmpty) {
@@ -82,6 +82,7 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
   var waitingForAck: Boolean = false
 
   private def doSendChunk(connection: ActorRef, chunk: VStreamChunk, ack: Tcp.Event): Unit = {
+    log.debug("send chunk #{}-{} {} bytes", chunk.messageId, chunk.x.position, chunk.length)
     val bs = ByteString(VStreamChunk.codec.encode(chunk).require.toByteBuffer)
     connection ! Tcp.Write(bs, ack)
     waitingForAck = true
@@ -89,7 +90,7 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
 
   def sending(connection: ActorRef): Receive = {
     case MessageSend(m) =>
-      log.debug("MESSAGE SEND {}", m)
+      log.debug("send message #{} {} bytes", m.id, m.data.length)
       context.actorOf(VStreamMessageActor.props(m.id, sender()), s"message-${m.id}")
       m.chunks() foreach { chunk => self ! ChunkSend(chunk) }
 
@@ -130,7 +131,7 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
       connection ! Tcp.ResumeReading
   }
 
-  def connected(connection: ActorRef): Receive = sending(connection) orElse receiving(connection) orElse {
+  def handleFailure(connection: ActorRef): Receive = {
     case Tcp.CommandFailed(_: Tcp.Write) =>
       // O/S buffer was full
       log.debug("write failed")
@@ -140,6 +141,8 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
       log.debug("connection closed")
       context.stop(self)
   }
+
+  def connected(connection: ActorRef): Receive = sending(connection) orElse receiving(connection) orElse handleFailure(connection)
 
   override def receive: Receive = connecting
 
@@ -154,14 +157,14 @@ object VStreamClientTcp {
       decider = decider)
 
   val poolResizer: Resizer = DefaultResizer(
-    lowerBound = 2,
-    upperBound = 10,
+    lowerBound = 1,
+    upperBound = 4,
     pressureThreshold = 1,
-    messagesPerResize = 100
+    messagesPerResize = 1000
   )
 
   val routerConfig: RouterConfig = SmallestMailboxPool(
-    nrOfInstances = 2,
+    nrOfInstances = 1,
     supervisorStrategy = supervisionStrategy,
     resizer = Some(poolResizer)
   )
@@ -171,7 +174,7 @@ object VStreamClientTcp {
   )
 
   def apply(conf: VStreamConfiguration, begin: Iterable[VStreamMessage]): Props =
-    Props(new VStreamClientTcp(conf, begin)) //.withRouter(routerConfig)
+    Props(new VStreamClientTcp(conf, begin)).withRouter(routerConfig)
 
   case class MessageSend(message: VStreamMessage)
   case class ChunkSend(chunk: VStreamChunk)

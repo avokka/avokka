@@ -30,7 +30,7 @@ class ArangoSession(conf: ArangoConfiguration)(
 
   val authRequest = ArangoRequest.Authentication(user = conf.username, password = conf.password).toVPackBits
   val authSource = Source.fromIterator(() => authRequest.map(bits => VStreamMessage(bits.bytes)).toOption.iterator)
-  val authSeq = authRequest.map(bits => VStreamMessage(bits.bytes)).toOption.toList
+  val authSeq = authRequest.map(bits => VStreamMessage(bits.bytes)).toOption
 
   private val client = system.actorOf(
     VStreamClientTcp(conf, authSeq),

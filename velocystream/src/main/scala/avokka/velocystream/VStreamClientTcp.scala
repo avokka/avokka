@@ -43,23 +43,30 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
       val connection = sender()
       connection ! Tcp.Register(self, keepOpenOnPeerClosed = true, useResumeWriting = false)
       context.become(handshaking(connection))
-      begin.foreach { m =>
-        self ! MessageSend(m)
-      }
       unstashAll()
 
     case _ => stash()
   }
 
+  val beginQueue: mutable.Queue[VStreamChunk] = mutable.Queue.empty
+
   def handshaking(connection: ActorRef): Receive = {
     connection ! Tcp.Write(VStreamFlow.VST_HANDSHAKE, HandshakeAck)
+    connection ! Tcp.ResumeReading
 
-    {
-      case HandshakeAck => {
-        connection ! Tcp.ResumeReading
-        context.become(connected(connection))
-        unstashAll()
-      }
+    beginQueue.clear()
+    beginQueue ++= begin.flatMap(_.chunks())
+
+    receiving(connection) orElse {
+
+      case HandshakeAck =>
+        if (beginQueue.isEmpty) {
+          waitingForAck = false
+          context.become(connected(connection))
+          unstashAll()
+        } else {
+          doSendChunk(connection, beginQueue.dequeue(), HandshakeAck)
+        }
 
       case _ => stash()
     }
@@ -74,9 +81,9 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
   val sendQueue: mutable.Queue[VStreamChunk] = mutable.Queue.empty
   var waitingForAck: Boolean = false
 
-  private def doSendChunk(connection: ActorRef, chunk: VStreamChunk): Unit = {
+  private def doSendChunk(connection: ActorRef, chunk: VStreamChunk, ack: Tcp.Event): Unit = {
     val bs = ByteString(VStreamChunk.codec.encode(chunk).require.toByteBuffer)
-    connection ! Tcp.Write(bs, WriteAck)
+    connection ! Tcp.Write(bs, ack)
     waitingForAck = true
   }
 
@@ -87,13 +94,13 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
       m.chunks() foreach { chunk => self ! ChunkSend(chunk) }
 
     case ChunkSend(chunk) if waitingForAck => sendQueue.enqueue(chunk)
-    case ChunkSend(chunk) => doSendChunk(connection, chunk)
+    case ChunkSend(chunk) => doSendChunk(connection, chunk, WriteAck)
 
     case WriteAck =>
       if (sendQueue.isEmpty) {
         waitingForAck = false
       } else {
-        doSendChunk(connection, sendQueue.dequeue())
+        doSendChunk(connection, sendQueue.dequeue(), WriteAck)
       }
   }
 

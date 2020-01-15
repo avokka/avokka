@@ -14,6 +14,10 @@ class VStreamMessageActor(id: Long, replyTo: ActorRef) extends Actor with ActorL
 
   val stack: mutable.ListBuffer[VStreamChunk] = mutable.ListBuffer.empty
 
+  override def postStop(): Unit = {
+    stack.clear()
+  }
+
   override def receive: Actor.Receive = {
 
     case ChunkReceived(chunk) if chunk.x.isWhole =>

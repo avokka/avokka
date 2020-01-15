@@ -10,6 +10,7 @@ import scodec.{Attempt, Codec, Err}
 import scodec.bits.BitVector
 
 import scala.concurrent.duration._
+import scala.collection.mutable
 
 /** Velocystream client actor
   *
@@ -26,17 +27,18 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
   private val address: InetSocketAddress = InetSocketAddress.createUnresolved(conf.host, conf.port)
 
   override def preStart(): Unit = {
-    manager ! Tcp.Connect(address, timeout = Some(15.seconds))
+    manager ! Tcp.Connect(address,
+      timeout = Some(15.seconds),
+      pullMode = true
+    )
   }
-
-  var buffer: BitVector = BitVector.empty
 
   def connecting: Receive = {
     case Tcp.CommandFailed(_: Tcp.Connect) =>
       log.debug("connect failed")
       context.stop(self)
 
-    case c @ Tcp.Connected(remote, local) =>
+    case Tcp.Connected(remote, local) =>
       log.debug("connected remote={} local={}", remote, local)
       val connection = sender()
       connection ! Tcp.Register(self, keepOpenOnPeerClosed = true, useResumeWriting = false)
@@ -54,6 +56,7 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
 
     {
       case HandshakeAck => {
+        connection ! Tcp.ResumeReading
         context.become(connected(connection))
         unstashAll()
       }
@@ -62,7 +65,65 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
     }
   }
 
-  def connected(connection: ActorRef): Receive = {
+  /*
+  implicit val chunkOrdering: Ordering[VStreamChunk] = new Ordering[VStreamChunk] {
+    override def compare(x: VStreamChunk, y: VStreamChunk): Int = x.messageId compare y.messageId
+  }
+  val sendQueue: mutable.PriorityQueue[VStreamChunk] = mutable.PriorityQueue.empty
+  */
+  val sendQueue: mutable.Queue[VStreamChunk] = mutable.Queue.empty
+  var waitingForAck: Boolean = false
+
+  private def doSendChunk(connection: ActorRef, chunk: VStreamChunk): Unit = {
+    val bs = ByteString(VStreamChunk.codec.encode(chunk).require.toByteBuffer)
+    connection ! Tcp.Write(bs, WriteAck)
+    waitingForAck = true
+  }
+
+  def sending(connection: ActorRef): Receive = {
+    case MessageSend(m) =>
+      log.debug("MESSAGE SEND {}", m)
+      context.actorOf(VStreamMessageActor.props(m.id, sender()), s"message-${m.id}")
+      m.chunks() foreach { chunk => self ! ChunkSend(chunk) }
+
+    case ChunkSend(chunk) if waitingForAck => sendQueue.enqueue(chunk)
+    case ChunkSend(chunk) => doSendChunk(connection, chunk)
+
+    case WriteAck =>
+      if (sendQueue.isEmpty) {
+        waitingForAck = false
+      } else {
+        doSendChunk(connection, sendQueue.dequeue())
+      }
+  }
+
+  var recvBuffer: BitVector = BitVector.empty
+
+  def receiving(connection: ActorRef): Receive = {
+    case Tcp.Received(data) =>
+      log.debug("received data")
+      recvBuffer = recvBuffer ++ BitVector(data.asByteBuffer)
+
+      Codec.decodeCollect(VStreamChunk.codec, None)(recvBuffer) match {
+        case Attempt.Successful(result) => {
+          log.debug("successful decode {}", result.map(_.map(_.messageId)))
+          result.value.foreach { chunk =>
+            context.child(s"message-${chunk.messageId}").foreach { child =>
+              log.debug("send chunk to child {}", child)
+              child ! VStreamMessageActor.ChunkReceived(chunk)
+            }
+          }
+          recvBuffer = result.remainder
+        }
+        case Attempt.Failure(cause: Err.InsufficientBits) =>
+          log.debug("insufficent bits needed={} have={}", cause.needed, cause.have)
+        case Attempt.Failure(cause) =>
+          log.error(cause.toString())
+      }
+      connection ! Tcp.ResumeReading
+  }
+
+  def connected(connection: ActorRef): Receive = sending(connection) orElse receiving(connection) orElse {
     case Tcp.CommandFailed(_: Tcp.Write) =>
       // O/S buffer was full
       log.debug("write failed")
@@ -71,52 +132,6 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
     case _: Tcp.ConnectionClosed =>
       log.debug("connection closed")
       context.stop(self)
-
-    case MessageSend(m) =>
-      log.debug("MESSAGE SEND {}", m)
-      val child = context.actorOf(VStreamMessageActor.props(m.id, sender()), s"message-${m.id}")
-      m.chunks() foreach { chunk => self ! ChunkSend(chunk) }
-
-    case ChunkSend(chunk) =>
-      val bs = ByteString(VStreamChunk.codec.encode(chunk).require.toByteBuffer)
-      connection ! Tcp.Write(bs, WriteAck)
-      context.become(waitingForAck(connection, WriteAck))
-
-    case Tcp.Received(data) =>
-      log.debug("received data")
-      buffer = buffer ++ BitVector(data.asByteBuffer)
-      log.debug("buffer is {}", buffer.bytes)
-
-      Codec.decodeCollect(VStreamChunk.codec, None)(buffer) match {
-        case Attempt.Successful(result) => {
-          log.debug("successful decode {}", result)
-          result.value.foreach { chunk =>
-            context.child(s"message-${chunk.messageId}").foreach { child =>
-              log.debug("send chunk to child {}", child)
-              child ! VStreamMessageActor.ChunkReceived(chunk)
-            }
-          }
-          buffer = result.remainder
-        }
-        case Attempt.Failure(cause: Err.InsufficientBits) =>
-          log.debug("insufficent bits needed={} have={}", cause.needed, cause.have)
-        case Attempt.Failure(cause) =>
-          log.error(cause.toString())
-      }
-  //    connection ! Tcp.ResumeReading
-
-  }
-
-  def waitingForAck(connection: ActorRef, ack: Tcp.Event): Receive = {
-    case `ack` =>
-      context.become(connected(connection))
-      unstashAll()
-
-    case _: Tcp.ConnectionClosed =>
-      log.debug("connection closed")
-      context.stop(self)
-
-    case _ => stash()
   }
 
   override def receive: Receive = connecting

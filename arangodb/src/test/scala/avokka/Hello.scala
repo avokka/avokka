@@ -62,7 +62,7 @@ object Hello {
 //    println(Await.result(db(CollectionList()), 10.seconds))
 //    println(Await.result(db.collection("nope"), 10.seconds))
 //    println(Await.result(db(DocumentRead[Country](DocumentHandle("countries/FR"), ifMatch = Some("_ZfKin5f--_"))), 10.seconds))
-//    println(Await.result(db(countries.read[Country](DocumentKey("FR"))), 10.seconds))
+    println(Await.result(db(countries.read[Country](DocumentKey("FR"))), 10.seconds))
 //    println(Await.result(countries.properties(), 10.seconds))
 //    println(Await.result(countries(IndexList), 10.seconds))
 //    println(Await.result(db(IndexRead("countries/0")), 10.seconds))
@@ -73,14 +73,12 @@ object Hello {
     ), 10.seconds)
     println(res)
 */
-    /*
     val res = Await.result(db(Cursor[Map[String, Int], Photo](
       query = "FOR p IN photos LIMIT @limit RETURN p",
       bindVars = Map("limit" -> 10), batchSize = Some(5)
     )), 10.seconds).right.get.body
     println(res)
     println(Await.result(db(CursorNext[Photo](res.id.get)), 10.seconds))
-     */
    //  println(Await.result(db(CursorDelete(res.id.get)), 10.seconds))
 
     /*

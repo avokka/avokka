@@ -67,7 +67,7 @@ object StreamNetFailTest {
   def main(args: Array[String]): Unit = {
 
     Source.tick(1.second, 5.seconds, NotUsed)
-      .map(_ => VStreamMessage(bytes))
+      .map(_ => VStreamMessage.create(bytes))
       .via(protocol)
       .to(Sink.foreach(b => println(b.utf8String)))
       .run()

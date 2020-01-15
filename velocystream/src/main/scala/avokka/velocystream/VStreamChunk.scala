@@ -32,7 +32,7 @@ object VStreamChunk {
     )
   }
 
-  implicit val codec: Codec[VStreamChunk] = {
+  val codec: Codec[VStreamChunk] = {
     ("length" | uint32L) >>:~ { length =>
       ("chunkX" | VStreamChunkX.codec) ::
         ("messageId" | int64L) ::

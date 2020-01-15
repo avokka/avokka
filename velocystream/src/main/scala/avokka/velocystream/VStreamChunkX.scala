@@ -43,7 +43,7 @@ object VStreamChunkX {
     VStreamChunkX(first, if (first) count else index)
   }
 
-  implicit val codec: Codec[VStreamChunkX] = uint32L.xmap(
+  val codec: Codec[VStreamChunkX] = uint32L.xmap(
     i => VStreamChunkX(index = i >> 1, first = (i & 1L) == 1L),
     x => x.index << 1 | (if (x.first) 1L else 0L)
   )

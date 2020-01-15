@@ -33,5 +33,5 @@ case class VStreamMessage(
 
 object VStreamMessage {
   val id = new AtomicLong()
-  def apply(data: ByteVector): VStreamMessage = VStreamMessage(id.incrementAndGet(), data)
+  def create(data: ByteVector): VStreamMessage = VStreamMessage(id.incrementAndGet(), data)
 }

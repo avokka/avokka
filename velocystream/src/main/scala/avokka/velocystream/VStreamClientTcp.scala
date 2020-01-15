@@ -174,7 +174,7 @@ object VStreamClientTcp {
   )
 
   def apply(conf: VStreamConfiguration, begin: Iterable[VStreamMessage]): Props =
-    Props(new VStreamClientTcp(conf, begin)).withRouter(routerConfig)
+    Props(new VStreamClientTcp(conf, begin))//.withRouter(routerConfig)
 
   case class MessageSend(message: VStreamMessage)
   case class ChunkSend(chunk: VStreamChunk)

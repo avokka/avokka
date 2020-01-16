@@ -15,11 +15,11 @@ import scala.collection.mutable
 /** Velocystream client actor
   *
   */
-class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessage])
+class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessage])
     extends Actor
     with Stash
     with ActorLogging {
-  import VStreamClientTcp._
+  import VStreamConnection._
   import context.system
 
   val manager: ActorRef = IO(Tcp)
@@ -28,7 +28,7 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
 
   override def preStart(): Unit = {
     manager ! Tcp.Connect(address,
-      timeout = Some(15.seconds),
+      timeout = Some(10.seconds),
       pullMode = true
     )
   }
@@ -148,7 +148,7 @@ class VStreamClientTcp(conf: VStreamConfiguration, begin: Iterable[VStreamMessag
 
 }
 
-object VStreamClientTcp {
+object VStreamConnection {
 
   final def decider: SupervisorStrategy.Decider = { case t: Throwable ⇒ SupervisorStrategy.Restart }
 
@@ -174,7 +174,7 @@ object VStreamClientTcp {
   )
 
   def apply(conf: VStreamConfiguration, begin: Iterable[VStreamMessage]): Props =
-    Props(new VStreamClientTcp(conf, begin))//.withRouter(routerConfig)
+    Props(new VStreamConnection(conf, begin))//.withRouter(routerConfig)
 
   case class MessageSend(message: VStreamMessage)
   case class ChunkSend(chunk: VStreamChunk)

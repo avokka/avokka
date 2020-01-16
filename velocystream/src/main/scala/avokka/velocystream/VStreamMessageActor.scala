@@ -7,6 +7,8 @@ import cats.syntax.foldable._
 import cats.instances.list._
 import scodec.interop.cats.ByteVectorMonoidInstance
 
+import scala.concurrent.duration._
+
 class VStreamMessageActor(id: Long, replyTo: ActorRef) extends Actor with ActorLogging {
   import VStreamMessageActor._
 
@@ -14,17 +16,26 @@ class VStreamMessageActor(id: Long, replyTo: ActorRef) extends Actor with ActorL
 
   val stack: mutable.ListBuffer[VStreamChunk] = mutable.ListBuffer.empty
 
+  val kill = context.system.scheduler.scheduleOnce(1.minute, self, PoisonPill)(context.dispatcher)
+
   override def postStop(): Unit = {
     stack.clear()
+    if (!kill.isCancelled) {
+      replyTo ! Status.Failure(new IllegalStateException(s"message #$id did not receive a response"))
+    }
+  }
+
+  def sendMessageReply(message: VStreamMessage): Unit = {
+    replyTo ! Status.Success(message)
+    kill.cancel()
+    context.stop(self)
   }
 
   override def receive: Actor.Receive = {
 
     case ChunkReceived(chunk) if chunk.x.isWhole =>
       // solo chunk, bypass stack computation
-      val message = VStreamMessage(id, chunk.data)
-      replyTo ! message
-      context.stop(self)
+      sendMessageReply(VStreamMessage(id, chunk.data))
 
     case ChunkReceived(chunk) =>
       // first chunk index is the total number of expected chunks
@@ -37,9 +48,7 @@ class VStreamMessageActor(id: Long, replyTo: ActorRef) extends Actor with ActorL
       if (expected.contains(stack.length.toLong)) {
         // reorder bytes by chunk position
         val bytes = stack.result.sorted(chunkOrder).foldMap(_.data)
-        val message = VStreamMessage(id, bytes)
-        replyTo ! message
-        context.stop(self)
+        sendMessageReply(VStreamMessage(id, bytes))
       }
 
   }

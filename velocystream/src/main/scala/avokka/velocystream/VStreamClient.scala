@@ -18,7 +18,7 @@ class VStreamClient(conf: VStreamConfiguration, begin: Iterable[VStreamMessage])
     BackoffOpts.onStop(
       VStreamConnection(conf, begin),
       childName = "connection",
-      minBackoff = 100.milliseconds,
+      minBackoff = 1000.milliseconds,
       maxBackoff = 10.seconds,
       randomFactor = 0.1
     )

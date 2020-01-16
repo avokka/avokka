@@ -169,6 +169,7 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
 object VStreamConnection {
   val VST_HANDSHAKE = ByteString("VST/1.1\r\n\r\n")
 
+  /*
   final def decider: SupervisorStrategy.Decider = { case t: Throwable ⇒ SupervisorStrategy.Restart }
 
   val supervisionStrategy: SupervisorStrategy =
@@ -187,10 +188,12 @@ object VStreamConnection {
     supervisorStrategy = supervisionStrategy,
     resizer = Some(poolResizer)
   )
+
   val routerBalanceConfig: RouterConfig = BalancingPool(
     nrOfInstances = 2,
     supervisorStrategy = supervisionStrategy,
   )
+  */
 
   def apply(conf: VStreamConfiguration, begin: Iterable[VStreamMessage]): Props =
     Props(new VStreamConnection(conf, begin))//.withRouter(routerConfig)

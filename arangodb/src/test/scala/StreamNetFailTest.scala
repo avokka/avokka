@@ -21,7 +21,7 @@ object StreamNetFailTest {
   implicit val mat: ActorMaterializer = ActorMaterializer()
 
   def main(args: Array[String]): Unit = {
-    val session = new ArangoSession(ArangoConfiguration(ConfigFactory.load()).copy(port = 80))
+    val session = new ArangoSession(ArangoConfiguration(ConfigFactory.load()))
 
     val version = session(Version())
     val versionDetails = session(Version(details = true))
@@ -32,7 +32,7 @@ object StreamNetFailTest {
       v <- version
       vd <- versionDetails
     } yield (v, vd)
-    println(Await.result(r, 10.seconds))
+    println(Await.result(r, 1.minute))
 
     //println(Await.result(version, 10.seconds))
     //println(Await.result(versionDetails, 10.seconds))

@@ -4,6 +4,7 @@ import java.net.InetSocketAddress
 
 import akka.actor._
 import akka.io.{IO, Tcp}
+import akka.pattern.BackoffSupervisor
 import akka.routing._
 import akka.util.ByteString
 import scodec.{Attempt, Codec, Err}
@@ -41,6 +42,7 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
     case Tcp.Connected(remote, local) =>
       log.debug("connected remote={} local={}", remote, local)
       val connection = sender()
+      context.parent ! BackoffSupervisor.Reset
       connection ! Tcp.Register(self, keepOpenOnPeerClosed = true, useResumeWriting = false)
       context.become(handshaking(connection))
       unstashAll()
@@ -51,7 +53,7 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
   val beginQueue: mutable.Queue[VStreamChunk] = mutable.Queue.empty
 
   def handshaking(connection: ActorRef): Receive = {
-    connection ! Tcp.Write(VStreamFlow.VST_HANDSHAKE, HandshakeAck)
+    connection ! Tcp.Write(VST_HANDSHAKE, HandshakeAck)
     connection ! Tcp.ResumeReading
 
     beginQueue.clear()
@@ -89,15 +91,20 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
   }
 
   def sending(connection: ActorRef): Receive = {
-    case MessageSend(m) =>
+    case VStreamClient.MessageSend(m) =>
       log.debug("send message #{} {} bytes", m.id, m.data.length)
       context.actorOf(VStreamMessageActor.props(m.id, sender()), s"message-${m.id}")
       m.chunks() foreach { chunk => self ! ChunkSend(chunk) }
 
-    case ChunkSend(chunk) if waitingForAck => sendQueue.enqueue(chunk)
+    case ChunkSend(chunk) if waitingForAck => {
+      log.debug("enqueue chunk to buffer while waiting for write ack")
+      sendQueue.enqueue(chunk)
+    }
     case ChunkSend(chunk) => doSendChunk(connection, chunk, WriteAck)
 
     case WriteAck =>
+      log.debug("receive write ack")
+//      connection ! Tcp.ResumeReading
       if (sendQueue.isEmpty) {
         waitingForAck = false
       } else {
@@ -114,11 +121,12 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
 
       Codec.decodeCollect(VStreamChunk.codec, None)(recvBuffer) match {
         case Attempt.Successful(result) => {
-          log.debug("successful decode {}", result.map(_.map(_.messageId)))
-          result.value.foreach { chunk =>
+          val chunks = result.value
+          log.debug("successful decode {}", chunks.map(_.messageId))
+          chunks.foreach { chunk =>
             context.child(s"message-${chunk.messageId}").foreach { child =>
               log.debug("send chunk to child {}", child)
-              child ! VStreamMessageActor.ChunkReceived(chunk)
+              child ! ChunkReceived(chunk)
             }
           }
           recvBuffer = result.remainder
@@ -137,18 +145,28 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
       log.debug("write failed")
       context.stop(self)
 
+    case VStreamClient.Stop =>
+      log.debug("close connection")
+      connection ! Tcp.Close
+
     case _: Tcp.ConnectionClosed =>
       log.debug("connection closed")
       context.stop(self)
   }
 
-  def connected(connection: ActorRef): Receive = sending(connection) orElse receiving(connection) orElse handleFailure(connection)
+  def connected(connection: ActorRef): Receive = {
+    log.debug("connected, send ready to parent")
+    context.parent ! Ready
+
+    sending(connection) orElse receiving(connection) orElse handleFailure(connection)
+  }
 
   override def receive: Receive = connecting
 
 }
 
 object VStreamConnection {
+  val VST_HANDSHAKE = ByteString("VST/1.1\r\n\r\n")
 
   final def decider: SupervisorStrategy.Decider = { case t: Throwable ⇒ SupervisorStrategy.Restart }
 
@@ -176,8 +194,9 @@ object VStreamConnection {
   def apply(conf: VStreamConfiguration, begin: Iterable[VStreamMessage]): Props =
     Props(new VStreamConnection(conf, begin))//.withRouter(routerConfig)
 
-  case class MessageSend(message: VStreamMessage)
+  case object Ready
   case class ChunkSend(chunk: VStreamChunk)
+  case class ChunkReceived(chunk: VStreamChunk)
 
   case object HandshakeAck extends Tcp.Event
   case object WriteAck extends Tcp.Event

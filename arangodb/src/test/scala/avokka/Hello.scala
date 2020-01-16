@@ -49,8 +49,8 @@ object Hello {
     val countries = new ArangoCollection(db, CollectionName("countries"))
 
 //    println(Await.result(auth, 10.seconds))
-    println(Await.result(session(Version()), 10.seconds))
-    println(Await.result(session(Version(details = true)), 10.seconds))
+    println(Await.result(session(Version()), 1.minute))
+    println(Await.result(session(Version(details = true)), 1.minute))
 //    println(Await.result(session(admin.AdminLog), 10.seconds))
 //    println(Await.result(countries(CollectionChecksum()), 10.seconds))
 //    println(Await.result(countries(CollectionCount), 10.seconds))
@@ -62,7 +62,7 @@ object Hello {
 //    println(Await.result(db(CollectionList()), 10.seconds))
 //    println(Await.result(db.collection("nope"), 10.seconds))
 //    println(Await.result(db(DocumentRead[Country](DocumentHandle("countries/FR"), ifMatch = Some("_ZfKin5f--_"))), 10.seconds))
-    println(Await.result(db(countries.read[Country](DocumentKey("FR"))), 10.seconds))
+    println(Await.result(db(countries.read[Country](DocumentKey("FR"))), 1.minute))
 //    println(Await.result(countries.properties(), 10.seconds))
 //    println(Await.result(countries(IndexList), 10.seconds))
 //    println(Await.result(db(IndexRead("countries/0")), 10.seconds))
@@ -78,7 +78,7 @@ object Hello {
       bindVars = Map("limit" -> 10), batchSize = Some(5)
     )), 10.seconds).right.get.body
     println(res)
-    println(Await.result(db(CursorNext[Photo](res.id.get)), 10.seconds))
+    println(Await.result(db(CursorNext[Photo](res.id.get)), 1.minute))
    //  println(Await.result(db(CursorDelete(res.id.get)), 10.seconds))
 
     /*
@@ -117,6 +117,8 @@ object Hello {
     println(Await.result(country(CollectionDrop()), 1.minute))
     println(Await.result(scratch(DatabaseDrop), 1.minute))
 */
+//    session.closeClient()
+
     Await.ready(system.terminate(), 1.minute)
   }
 

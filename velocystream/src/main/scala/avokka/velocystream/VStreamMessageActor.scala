@@ -1,8 +1,8 @@
 package avokka.velocystream
 
 import akka.actor._
+
 import scala.collection.mutable
-// import avokka.velocypack._
 import cats.syntax.foldable._
 import cats.instances.list._
 import scodec.interop.cats.ByteVectorMonoidInstance
@@ -12,11 +12,11 @@ import scala.concurrent.duration._
 class VStreamMessageActor(id: Long, replyTo: ActorRef) extends Actor with ActorLogging {
   import VStreamMessageActor._
 
-  var expected: Option[Long] = None
+  private var expected: Option[Long] = None
 
-  val stack: mutable.ListBuffer[VStreamChunk] = mutable.ListBuffer.empty
+  private val stack: mutable.ListBuffer[VStreamChunk] = mutable.ListBuffer.empty
 
-  val kill = context.system.scheduler.scheduleOnce(1.minute, self, PoisonPill)(context.dispatcher)
+  private val kill = context.system.scheduler.scheduleOnce(1.minute, self, PoisonPill)(context.dispatcher)
 
   override def postStop(): Unit = {
     stack.clear()
@@ -33,11 +33,11 @@ class VStreamMessageActor(id: Long, replyTo: ActorRef) extends Actor with ActorL
 
   override def receive: Actor.Receive = {
 
-    case ChunkReceived(chunk) if chunk.x.isWhole =>
+    case VStreamConnection.ChunkReceived(chunk) if chunk.x.isWhole =>
       // solo chunk, bypass stack computation
       sendMessageReply(VStreamMessage(id, chunk.data))
 
-    case ChunkReceived(chunk) =>
+    case VStreamConnection.ChunkReceived(chunk) =>
       // first chunk index is the total number of expected chunks
       if (chunk.x.first) {
         expected = Some(chunk.x.index)
@@ -56,10 +56,6 @@ class VStreamMessageActor(id: Long, replyTo: ActorRef) extends Actor with ActorL
 
 object VStreamMessageActor {
   val chunkOrder: Ordering[VStreamChunk] = Ordering.by(_.x.position)
-
-  case class ChunkReceived(
-      chunk: VStreamChunk
-  )
 
   def props(id: Long, replyTo: ActorRef): Props = Props(new VStreamMessageActor(id, replyTo))
 }

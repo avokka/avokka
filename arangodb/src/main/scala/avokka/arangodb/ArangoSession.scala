@@ -45,7 +45,7 @@ class ArangoSession(conf: ArangoConfiguration)(
   )
 */
   private val client = system.actorOf(
-    VStreamConnection(conf, authSeq),
+    VStreamClient(conf, authSeq),
     name = s"velocystream-client-${ArangoSession.id.incrementAndGet()}"
   )
 
@@ -53,7 +53,10 @@ class ArangoSession(conf: ArangoConfiguration)(
   import system.dispatcher
 
   def askClient[T](bits: BitVector): FEE[VStreamMessage] =
-    EitherT.liftF(ask(client, VStreamConnection.MessageSend(VStreamMessage.create(bits.bytes))).mapTo[VStreamMessage])
+    EitherT.liftF(ask(client, VStreamClient.MessageSend(VStreamMessage.create(bits.bytes))).mapTo[VStreamMessage])
+
+  def closeClient() =
+    client ! VStreamClient.Stop
 
   private[arangodb] def execute[P: VPackEncoder, O: VPackDecoder](
       request: ArangoRequest[P]): FEE[ArangoResponse[O]] = {

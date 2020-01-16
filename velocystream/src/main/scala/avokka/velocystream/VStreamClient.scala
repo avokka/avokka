@@ -1,108 +1,82 @@
 package avokka.velocystream
 
 import akka.actor._
-import akka.pattern.pipe
-import akka.routing._
-import akka.stream.scaladsl._
-import akka.stream.{Materializer, OverflowStrategy, QueueOfferResult}
+import akka.pattern.{BackoffOpts, BackoffSupervisor}
 
-import scala.collection.mutable
-import scala.concurrent.Promise
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 /** Velocystream client actor
   *
   */
-class VStreamClient(conf: VStreamConfiguration, begin: Source[VStreamMessage, _])(
-    implicit materializer: Materializer)
+class VStreamClient(conf: VStreamConfiguration, begin: Iterable[VStreamMessage])
     extends Actor
+    with Stash
     with ActorLogging {
   import VStreamClient._
-  import context.{dispatcher, system}
 
-  private val promises = mutable.LongMap.empty[Promise[VStreamMessage]]
-//  private val senders = mutable.LongMap.empty[ActorRef]
+  val connection: ActorRef = context.actorOf(BackoffSupervisor.props(
+    BackoffOpts.onStop(
+      VStreamConnection(conf, begin),
+      childName = "connection",
+      minBackoff = 100.milliseconds,
+      maxBackoff = 10.seconds,
+      randomFactor = 0.1
+    )
+    .withFinalStopMessage(_ == Stop)
+    .withManualReset
+    .withDefaultStoppingStrategy
+  ))
 
-  private val flow = new VStreamFlow(conf, begin)
+  /*
+  val connection: ActorRef = context.actorOf(
+      VStreamConnection(conf, begin),
+      name = "connection",
+    )
+*/
 
-//  private val source = Source.queue[VStreamMessage](conf.queueSize, OverflowStrategy.backpressure)
-  private val source = Source.actorRef(conf.queueSize, OverflowStrategy.fail)
+  def idle(): Receive = {
+    log.debug("became idle")
 
-  private val connection = source
-    .via(flow.protocol)
-    .map(MessageReceived)
-    .to(Sink.actorRefWithAck(self, Init, Ack, ConnectionTerminated))
-    .run()
+    {
+      case VStreamConnection.Ready =>
+        val link = sender()
+        log.debug("client received connection ready")
+        context.become(active(link))
+        unstashAll()
 
-  context.watch(connection)
+      case m: MessageSend => {
+        log.debug("stash message in client")
+        stash()
+      }
 
-  override def receive: Receive = {
-    case Terminated => context.stop(self)
-    case ConnectionTerminated => context.stop(self)
-
-    case m: MessageSend => {
-      val message = m.message
-      val promise = Promise[VStreamMessage]()
-      promises.update(message.id, promise)
-//      senders.update(message.id, sender())
-      promise.future pipeTo sender()
-      connection ! message
-      /*
-      connection
-        .offer(message)
-        .map({
-          case QueueOfferResult.Enqueued       => promise
-          case QueueOfferResult.Dropped        => promise.failure(new RuntimeException("queue drop"))
-          case QueueOfferResult.Failure(cause) => promise.failure(cause)
-          case QueueOfferResult.QueueClosed    => promise.failure(new RuntimeException("queue closed"))
-        })
-        .flatMap(_.future) pipeTo sender()
-
-       */
+      case Stop => connection ! Stop
     }
-
-    case m: MessageReceived => {
-      promises.remove(m.message.id).foreach(_.success(m.message))
-      sender() ! Ack
-//      senders.remove(m.message.id).foreach(_ ! m)
-    }
-
-    case Init => sender() ! Ack
   }
+
+  def active(link: ActorRef): Receive = {
+    context.watch(link)
+
+    {
+      case Terminated(ref) if ref == link =>
+        log.debug("client received terminated connection")
+        context.become(idle())
+
+      case m: MessageSend =>
+        log.debug("client forward message to connection")
+        connection forward m
+
+      case Stop => connection ! Stop
+    }
+  }
+
+  override def receive: Receive = idle()
 }
 
 object VStreamClient {
 
-  final def decider: SupervisorStrategy.Decider = { case t: Throwable ⇒ SupervisorStrategy.Restart }
-
-  val supervisionStrategy: SupervisorStrategy =
-    OneForOneStrategy(maxNrOfRetries = -1, withinTimeRange = Duration.Inf, loggingEnabled = true)(
-      decider = decider)
-
-  val poolResizer: Resizer = DefaultResizer(
-    lowerBound = 2,
-    upperBound = 10,
-    pressureThreshold = 1,
-    messagesPerResize = 100
-  )
-
-  val routerConfig: RouterConfig = SmallestMailboxPool(
-    nrOfInstances = 2,
-    supervisorStrategy = supervisionStrategy,
-    resizer = Some(poolResizer)
-  )
-  val routerBalanceConfig: RouterConfig = BalancingPool(
-    nrOfInstances = 2,
-    supervisorStrategy = supervisionStrategy,
-  )
-
-  def apply(conf: VStreamConfiguration, begin: Source[VStreamMessage, _])(
-      implicit materializer: Materializer): Props =
-    Props(new VStreamClient(conf, begin)(materializer)).withRouter(routerConfig)
+  def apply(conf: VStreamConfiguration, begin: Iterable[VStreamMessage]): Props =
+    Props(new VStreamClient(conf, begin))
 
   case class MessageSend(message: VStreamMessage)
-  case class MessageReceived(message: VStreamMessage)
-  case object ConnectionTerminated
-  case object Init
-  case object Ack
+  case object Stop
 }

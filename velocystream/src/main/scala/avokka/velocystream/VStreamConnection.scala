@@ -30,6 +30,7 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
   override def preStart(): Unit = {
     manager ! Tcp.Connect(address,
       timeout = Some(10.seconds),
+      options = List(Tcp.SO.KeepAlive(true)),
       pullMode = true
     )
   }

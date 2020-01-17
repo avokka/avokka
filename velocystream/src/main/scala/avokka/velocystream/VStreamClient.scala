@@ -18,7 +18,7 @@ class VStreamClient(conf: VStreamConfiguration, begin: Iterable[VStreamMessage])
     BackoffOpts.onStop(
       VStreamConnection(conf, begin),
       childName = "connection",
-      minBackoff = 1000.milliseconds,
+      minBackoff = 1.second,
       maxBackoff = 10.seconds,
       randomFactor = 0.1
     )
@@ -38,14 +38,13 @@ class VStreamClient(conf: VStreamConfiguration, begin: Iterable[VStreamMessage])
     log.debug("became idle")
 
     {
-      case VStreamConnection.Ready =>
-        val link = sender()
+      case VStreamConnection.Ready(link) =>
         log.debug("client received connection ready")
         context.become(active(link))
         unstashAll()
 
       case m: MessageSend => {
-        log.debug("stash message in client")
+        log.debug("stash message #{} in client", m.message.id)
         stash()
       }
 
@@ -54,6 +53,7 @@ class VStreamClient(conf: VStreamConfiguration, begin: Iterable[VStreamMessage])
   }
 
   def active(link: ActorRef): Receive = {
+    log.debug("client become active with {}", link)
     context.watch(link)
 
     {
@@ -62,7 +62,7 @@ class VStreamClient(conf: VStreamConfiguration, begin: Iterable[VStreamMessage])
         context.become(idle())
 
       case m: MessageSend =>
-        log.debug("client forward message to connection")
+        log.debug("client forward message #{} to connection", m.message.id)
         connection forward m
 
       case Stop => connection ! Stop

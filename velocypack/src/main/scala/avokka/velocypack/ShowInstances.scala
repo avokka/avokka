@@ -21,9 +21,16 @@ trait ShowInstances {
     case VLong(value)     => value.toString
     case VString(value)   => s""""$value""""
     case VBinary(value)   => s""""${value.toHex}""""
-    case VArray(values)   => values.map(vpackShow.show).toList.mkString("[", ",", "]")
-    case VObject(values) =>
-      values.mapValues(vpackShow.show).map { case (k, v) => s""""$k":$v""" }.mkString("{", ",", "}")
+    case v: VArray        => vpackArrayShow.show(v)
+    case v: VObject       => vpackObjectShow.show(v)
+  }
+
+  implicit val vpackArrayShow: Show[VArray] = Show.show { v =>
+    v.values.map(vpackShow.show).toList.mkString("[", ",", "]")
+  }
+
+  implicit val vpackObjectShow: Show[VObject] = Show.show { v =>
+    v.values.mapValues(vpackShow.show).map { case (key, value) => s""""$key":$value""" }.mkString("{", ",", "}")
   }
 
 //  implicit val vpackStringShow: Show[VString] = vpackShow.narrow

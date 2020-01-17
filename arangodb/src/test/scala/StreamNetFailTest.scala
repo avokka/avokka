@@ -2,10 +2,10 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import avokka.arangodb.api.Version
 import avokka.arangodb._
-import avokka.velocypack.VPack.VObject
 import avokka.velocypack._
 import com.typesafe.config.ConfigFactory
 import cats.syntax.traverse._
+import cats.syntax.show._
 import cats.instances.vector._
 import cats.instances.future._
 
@@ -24,17 +24,17 @@ object StreamNetFailTest {
 
     val version = session(Version())
     val versionDetails = session(Version(details = true))
-    val fr = db(countries.read[VObject](DocumentKey("FR")))
+    val fr = db(countries.read[VPack.VObject](DocumentKey("FR")))
 
     import system.dispatcher
-    val ls = Vector("FR", "DE", "IT", "IS").traverse(k => db(countries.read[VObject](DocumentKey(k))))
+    val ls = Vector("FR", "DE", "IT", "IS").traverse(k => db(countries.read[VPack.VObject](DocumentKey(k))))
 
     val r = for {
       v <- version
       vd <- versionDetails
       f <- fr
       a <- ls
-    } yield (a, v, f, vd)
+    } yield (a.map(_.map(_.body.show)), v, f, vd)
     println(Await.result(r, 1.minute))
 
     //println(Await.result(version, 10.seconds))

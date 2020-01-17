@@ -99,7 +99,7 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
 
   private def flushChunkQueue(connection: ActorRef, ack: Tcp.Event): Unit = {
     val chunks: Vector[VStreamChunk] = sendQueue.toVector
-    log.debug("flush chunk queue #{}-{} {} bytes", chunks.map(c => s"${c.messageId}-${c.x.position}"), chunks.map(_.length))
+    log.debug("flush chunk queue #{} {} bytes", chunks.map(c => s"${c.messageId}-${c.x.position}"), chunks.map(_.length).sum)
     val bits: BitVector = chunks.map { chunk =>
       VStreamChunk.codec.encode(chunk).require
     }.reduce(_ ++ _)
@@ -157,13 +157,15 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
             if (result.remainder.nonEmpty) {
               recvBuffer += result.remainder
             }
+            connection ! Tcp.ResumeReading
           }
           case Attempt.Failure(cause: Err.InsufficientBits) =>
             log.debug("insufficent bits needed={} have={}", cause.needed, cause.have)
+            connection ! Tcp.ResumeReading
           case Attempt.Failure(cause) =>
             log.error(cause.toString())
+            connection ! Tcp.Close
         }
-        connection ! Tcp.ResumeReading
     }
   }
 
@@ -171,7 +173,7 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
     case Tcp.CommandFailed(_: Tcp.Write) =>
       // O/S buffer was full
       log.debug("write failed")
-      connection ! Tcp.Abort
+      connection ! Tcp.Close
       context.stop(self)
 
     case VStreamClient.Stop =>

@@ -1,6 +1,5 @@
 package avokka.velocypack
 
-import cats.Show
 import cats.instances.either._
 import cats.syntax.either._
 import cats.syntax.traverse._

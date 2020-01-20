@@ -9,11 +9,11 @@ trait ShowInstances {
   import VPack._
 
   implicit val vpackShow: Show[VPack] = Show.show {
-    case VNone            => "undefined"
-    case VIllegal         => "undefined"
-    case VNull            => "null"
-    case VBoolean(value)  => if (value) "true" else "false"
-    case VDouble(value)   => value.toString
+    case v @ VNone        => vpackNoneShow.show(v)
+    case v @ VIllegal     => vpackIllegalShow.show(v)
+    case v @ VNull        => vpackNullShow.show(v)
+    case v : VBoolean     => vpackBooleanShow.show(v)
+    case v : VDouble      => vpackDoubleShow.show(v)
     case VDate(value)     => s""""${Instant.ofEpochMilli(value)}""""
     case VMinKey          => "-Infinity"
     case VMaxKey          => "Infinity"
@@ -25,6 +25,14 @@ trait ShowInstances {
     case v: VObject       => vpackObjectShow.show(v)
   }
 
+  implicit val vpackNoneShow: Show[VNone.type] = Show.show { _ => "undefined" }
+  implicit val vpackIllegalShow: Show[VIllegal.type] = Show.show { _ => "undefined" }
+  implicit val vpackNullShow: Show[VNull.type] = Show.show { _ => "null" }
+
+  implicit val vpackBooleanShow: Show[VBoolean] = Show.show { v => if (v.value) "true" else "false" }
+
+  implicit val vpackDoubleShow: Show[VDouble] = Show.show { v => v.value.toString }
+
   implicit val vpackArrayShow: Show[VArray] = Show.show { v =>
     v.values.map(vpackShow.show).toList.mkString("[", ",", "]")
   }
@@ -33,6 +41,5 @@ trait ShowInstances {
     v.values.mapValues(vpackShow.show).map { case (key, value) => s""""$key":$value""" }.mkString("{", ",", "}")
   }
 
-//  implicit val vpackStringShow: Show[VString] = vpackShow.narrow
   implicit val vpackErrorShow: Show[VPackError] = Show.fromToString[VPackError]
 }

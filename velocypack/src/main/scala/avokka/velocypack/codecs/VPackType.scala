@@ -8,7 +8,7 @@ import scodec.{Attempt, Codec, Decoder, Encoder, Err}
 /**
   * velocypack value type
   */
-private trait VPackType {
+private sealed trait VPackType {
 
   /**
     * @return the head byte
@@ -26,7 +26,7 @@ private object VPackType {
   /**
     * velocypack types having a length field after the head
     */
-  private[codecs] trait WithLength { self: VPackType =>
+  private[codecs] sealed trait WithLength { self: VPackType =>
 
     /**
       * @return size in bytes of the length field
@@ -44,7 +44,7 @@ private object VPackType {
     * @param head byte head
     * @param singleton corresponding vpack value
     */
-  abstract class SingleByte(override val head: Int, val singleton: VPack) extends VPackType
+  sealed abstract class SingleByte(override val head: Int, val singleton: VPack) extends VPackType
 
   /** 0x00 : none - this indicates absence of any type and value, this is not allowed in VPack values */
   case object NoneType extends VPackType { override val head: Int = 0x00 }
@@ -80,7 +80,7 @@ private object VPackType {
   case object ObjectEmptyType extends SingleByte(0x0a, VPack.VObject.empty)
 
   /** object with data */
-  private[codecs] trait ObjectType extends VPackType with WithLength
+  private[codecs] sealed trait ObjectType extends VPackType with WithLength
 
   /** 0x0b-0x0e : object with 1-byte index table offsets, sorted by attribute name, [1,2,4,8]-byte bytelen and # subvals */
   case class ObjectSortedType(override val head: Int) extends ObjectType {
@@ -195,7 +195,7 @@ private object VPackType {
   }
 
   // string types
-  private[codecs] trait StringType extends VPackType with WithLength
+  private[codecs] sealed trait StringType extends VPackType with WithLength
 
   /**
     * 0x40-0xbe : UTF-8-string, using V - 0x40 bytes (not Unicode characters!)

@@ -1,12 +1,14 @@
-package avokka.velocypack.codecs
+package avokka.velocypack
+package codecs
 
-import avokka.velocypack.VPack.VLong
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
 import scodec.bits.BitVector
-import scodec.codecs.{longL, uint8L, ulongL}
+import scodec.codecs.{longL, ulongL}
 import scodec.interop.cats._
-import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
+import scodec.{Attempt, Codec, Decoder, Encoder, Err, SizeBound}
+import VPackType.{IntSignedType, IntUnsignedType}
+import VPack.VLong
 
 /**
   * Codec of ints
@@ -15,10 +17,9 @@ import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err, SizeBound}
   *
   * 0x28-0x2f : uint, little endian, 1 to 8 bytes, number is V - 0x27
   */
-object VPackLongCodec {
-  import VPackType.{IntSignedType, IntUnsignedType}
+private object VPackLongCodec {
 
-  val encoder: Encoder[VLong] = new Encoder[VLong] {
+  private[codecs] val encoder: Encoder[VLong] = new Encoder[VLong] {
     override def sizeBound: SizeBound = SizeBound.bounded(8 + 8, 8 + 64)
 
     override def encode(v: VLong): Attempt[BitVector] = {
@@ -53,46 +54,19 @@ object VPackLongCodec {
     } else l
   }
 
-  def decoderSigned(t: IntSignedType): Decoder[VLong] =
+  private[codecs] def decoderSigned(t: IntSignedType): Decoder[VLong] =
     for {
       l <- longL(8 * t.lengthSize).map(longLpatch(8 * t.lengthSize))
     } yield VLong(l)
 
-  def decoderUnsigned(t: IntUnsignedType): Decoder[VLong] =
+  private[codecs] def decoderUnsigned(t: IntUnsignedType): Decoder[VLong] =
     for {
       l <- ulongLA(8 * t.lengthSize)
     } yield VLong(l)
 
-  val codec: Codec[VLong] = Codec(encoder, vpackDecoder.emap({
+  private[codecs] val codec: Codec[VLong] = Codec(encoder, vpackDecoder.emap({
     case v: VLong => v.pure[Attempt]
     case _        => Err("not a vpack long").raiseError
   }))
 
-  /*
-  override def decode(bits: BitVector): Attempt[DecodeResult[VPackLong]] = {
-    for {
-      head  <- uint8L.decode(bits).ensure(Err("not a vpack long"))(h => h.value >= 0x20 && h.value <= 0x2f)
-      value <- (head.value match {
-        // signed
-        case 0x20 => longL(8)
-        case 0x21 => longL(16)
-        case 0x22 => longL(24)
-        case 0x23 => longL(32)
-        case 0x24 => longL(40).map(longLpatch(40))
-        case 0x25 => longL(48).map(longLpatch(48))
-        case 0x26 => longL(56).map(longLpatch(56))
-        case 0x27 => longL(64)
-        // unsigned
-        case 0x28 => ulongL(8)
-        case 0x29 => ulongL(16)
-        case 0x2a => ulongL(24)
-        case 0x2b => ulongL(32)
-        case 0x2c => ulongL(40)
-        case 0x2d => ulongL(48)
-        case 0x2e => ulongL(56)
-        case 0x2f => longL(64)
-      }).decode(head.remainder)
-    } yield value.map(VPackLong.apply)
-  }
- */
 }

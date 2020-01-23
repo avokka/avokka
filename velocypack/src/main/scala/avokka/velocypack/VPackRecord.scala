@@ -1,17 +1,17 @@
 package avokka.velocypack
 
-import avokka.velocypack.VPack.VObject
 import cats.syntax.either._
 import shapeless.labelled.{FieldType, field}
 import shapeless.{::, Default, HList, HNil, LabelledGeneric, Witness}
+import VPack.VObject
 
 object VPackRecord {
 
-  trait Encoder[A <: HList] {
+  private trait Encoder[A <: HList] {
     def encode(t: A): Map[String, VPack]
   }
 
-  object Encoder {
+  private object Encoder {
 
     def apply[A <: HList](compact: Boolean = false)(
         implicit ev: Encoder[A]
@@ -34,11 +34,11 @@ object VPackRecord {
     }
   }
 
-  trait Decoder[A <: HList, D <: HList] {
+  private trait Decoder[A <: HList, D <: HList] {
     def decode(v: Map[String, VPack], defaults: D): Result[A]
   }
 
-  object Decoder {
+  private object Decoder {
     def apply[A <: HList, D <: HList](defaults: D)(implicit ev: Decoder[A, D]): VPackDecoder[A] = {
       case VObject(values) => ev.decode(values, defaults)
       case v               => VPackError.WrongType(v).asLeft

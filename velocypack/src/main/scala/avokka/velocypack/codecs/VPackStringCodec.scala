@@ -1,8 +1,10 @@
-package avokka.velocypack.codecs
+package avokka.velocypack
+package codecs
 
-import avokka.velocypack.VPack.VString
 import scodec.codecs.{fixedSizeBytes, utf8}
 import scodec.{Decoder, Encoder}
+import VPack.VString
+import VPackType.{StringLongType, StringShortType, StringType}
 
 /**
   * Codec of VPackString
@@ -14,10 +16,9 @@ import scodec.{Decoder, Encoder}
   * 0xbf : long UTF-8-string, next 8 bytes are length of string in bytes (not Unicode characters)
   * as little endian unsigned integer, note that long strings are not zero-terminated and may contain zero bytes
   */
-object VPackStringCodec {
-  import VPackType.{StringLongType, StringShortType, StringType}
+private object VPackStringCodec {
 
-  val encoder: Encoder[VString] = Encoder { v =>
+  private[codecs] val encoder: Encoder[VString] = Encoder { v =>
     for {
       bits <- utf8.encode(v.value)
       len = bits.size / 8
@@ -26,7 +27,7 @@ object VPackStringCodec {
     } yield head ++ bits
   }
 
-  def decoder(t: StringType): Decoder[VString] =
+  private[codecs] def decoder(t: StringType): Decoder[VString] =
     for {
       len <- t.lengthDecoder
       str <- fixedSizeBytes(len, utf8)

@@ -1,6 +1,6 @@
-package avokka.velocypack.codecs
+package avokka.velocypack
+package codecs
 
-import avokka.velocypack.VPack.VArray
 import cats.data.Chain
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
@@ -10,19 +10,20 @@ import cats.instances.vector._
 import scodec.bits.BitVector
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
+import VPackType.{ArrayUnindexedType, ArrayIndexedType, ArrayCompactType, ArrayEmptyType}
+import VPack.VArray
 
 import scala.language.higherKinds
 
 /**
   * Codec of velocypack arrays
   */
-object VPackArrayCodec extends VPackCompoundCodec {
-  import VPackType.{ArrayUnindexedType, ArrayIndexedType, ArrayCompactType, ArrayEmptyType}
+private object VPackArrayCodec extends VPackCompoundCodec {
 
   /**
     * compact encoder
     */
-  val encoderCompact: Encoder[VArray] = Encoder(_.values match {
+  private[codecs] val encoderCompact: Encoder[VArray] = Encoder(_.values match {
     // empty array
     case values if values.isEmpty => ArrayEmptyType.bits.pure[Attempt]
     // encode elements
@@ -36,7 +37,7 @@ object VPackArrayCodec extends VPackCompoundCodec {
   /**
     * standard encoder
     */
-  val encoder: Encoder[VArray] = Encoder(_.values match {
+  private[codecs] val encoder: Encoder[VArray] = Encoder(_.values match {
     // empty array
     case values if values.isEmpty => ArrayEmptyType.bits.pure[Attempt]
     // encode elements
@@ -79,7 +80,7 @@ object VPackArrayCodec extends VPackCompoundCodec {
         })
   })
 
-  def decoderLinear(t: ArrayUnindexedType): Decoder[VArray] =
+  private[codecs] def decoderLinear(t: ArrayUnindexedType): Decoder[VArray] =
     Decoder(b =>
       for {
         length <- t.lengthDecoder.decode(b)
@@ -91,7 +92,7 @@ object VPackArrayCodec extends VPackCompoundCodec {
         //result = Seq.range(0, nr).map(n => values.slice(n * valueLen.length, (n + 1) * valueLen.length).bits)
       } yield DecodeResult(VArray(Chain.fromSeq(result.value)), body.remainder))
 
-  def decoderOffsets(t: ArrayIndexedType): Decoder[VArray] =
+  private[codecs] def decoderOffsets(t: ArrayIndexedType): Decoder[VArray] =
     Decoder(b =>
       for {
         length <- t.lengthDecoder.decode(b)
@@ -108,7 +109,7 @@ object VPackArrayCodec extends VPackCompoundCodec {
         a <- result.toVector.traverse(vpackDecoder.decodeValue)
       } yield DecodeResult(VArray(Chain.fromSeq(a)), body.remainder))
 
-  def decoderOffsets64(t: ArrayIndexedType): Decoder[VArray] =
+  private[codecs] def decoderOffsets64(t: ArrayIndexedType): Decoder[VArray] =
     Decoder(b =>
       for {
         length <- t.lengthDecoder.decode(b)
@@ -126,7 +127,7 @@ object VPackArrayCodec extends VPackCompoundCodec {
         a <- result.toVector.traverse(vpackDecoder.decodeValue)
       } yield DecodeResult(VArray(Chain.fromSeq(a)), remainder))
 
-  val decoderCompact: Decoder[VArray] = Decoder(b =>
+  private[codecs] val decoderCompact: Decoder[VArray] = Decoder(b =>
     for {
       length <- VPackVLongCodec.decode(b)
       bodyLen = 8 * (length.value - 1 - vlongLength(length.value))
@@ -135,58 +136,13 @@ object VPackArrayCodec extends VPackCompoundCodec {
       result <- Decoder.decodeCollect(vpackDecoder, Some(nr.value.toInt))(body.value)
     } yield DecodeResult(VArray(Chain.fromSeq(result.value)), body.remainder))
 
-  /*
-  private val emptyProvider: Codec[Seq[BitVector]] = provide(Seq.empty[BitVector])
-
-  override def decode(bits: BitVector): Attempt[DecodeResult[VPackArray]] = {
-    for {
-      head     <- uint8L.decode(bits).ensure(Err("not a vpack array"))(h => (h.value >= emptyByte && h.value <= 0x09) || h.value == compactByte)
-      decs     <- (head.value match {
-        case `emptyByte` => emptyProvider
-        case 0x02 => decoderLinear1
-        case 0x03 => decoderLinear2
-        case 0x04 => decoderLinear4
-        case 0x05 => decoderLinear8
-        case 0x06 => decoderOffsets1
-        case 0x07 => decoderOffsets2
-        case 0x08 => decoderOffsets4
-        case 0x09 => decoderOffsets8
-        case `compactByte` => decoderCompact
-      }).decode(head.remainder)
-    } yield decs.map(VPackArray.apply)
-  }
-   */
-  /*
-  def list[T](codec: Codec[T]): Codec[List[T]] = exmap(
-    _.values.toList.traverse(codec.decodeValue),
-    _.traverse(codec.encode).map(VPackArray.apply)
-  )
-   */
-  /*
-  def traverse[T, A[_]](codec: Codec[T])(implicit tr: Traverse[A], ap: Applicative[A], mk: MonoidK[A]): Codec[A[T]] = exmap(
-    _.values
-      .foldLeft(mk.empty[BitVector])((acc, t) => mk.combineK(acc, ap.pure(t)))
-      .traverse(codec.decodeValue)
-    ,
-    _.traverse(codec.encode).map(bs => VPackArray(bs.toList))
-  )
-
-  def vector[T](codec: Codec[T]): Codec[Vector[T]] = traverse[T, Vector](codec)
-  def list[T](codec: Codec[T]): Codec[List[T]] = traverse[T, List](codec)
-   */
-  val codec: Codec[VArray] = Codec(encoder, vpackDecoder.emap({
+  private[codecs] val codec: Codec[VArray] = Codec(encoder, vpackDecoder.emap({
     case v: VArray => v.pure[Attempt]
     case _         => Err("not a vpack array").raiseError
   }))
 
-  val codecCompact: Codec[VArray] = Codec(encoderCompact, vpackDecoder.emap({
+  private[codecs] val codecCompact: Codec[VArray] = Codec(encoderCompact, vpackDecoder.emap({
     case v: VArray => v.pure[Attempt]
     case _         => Err("not a vpack array").raiseError
   }))
 }
-
-/*
-object VPackArrayCodec extends VPackArrayCodec(false) {
-  object Compact extends VPackArrayCodec(true)
-}
- */

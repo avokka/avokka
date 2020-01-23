@@ -3,10 +3,10 @@ package avokka.velocypack
 import java.time.Instant
 
 import cats.Show
+import VPack._
 // import cats.syntax.contravariant._
 
 trait ShowInstances {
-  import VPack._
 
   implicit val vpackShow: Show[VPack] = Show.show {
     case v @ VNone        => vpackNoneShow.show(v)

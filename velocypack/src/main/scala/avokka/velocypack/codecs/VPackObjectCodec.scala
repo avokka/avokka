@@ -1,6 +1,6 @@
-package avokka.velocypack.codecs
+package avokka.velocypack
+package codecs
 
-import avokka.velocypack.VPack.{VObject, VSmallint, VString}
 import cats.data.Chain
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
@@ -9,13 +9,14 @@ import cats.instances.vector._
 import scodec.bits.BitVector
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
+import VPack.{VObject, VSmallint, VString}
+import VPackType.{ObjectEmptyType, ObjectType, ObjectCompactType}
 
 import scala.collection.SortedMap
 
-object VPackObjectCodec extends VPackCompoundCodec {
-  import VPackType.{ObjectEmptyType, ObjectType, ObjectCompactType}
+private object VPackObjectCodec extends VPackCompoundCodec {
 
-  val keyCodec: Codec[String] = Codec(
+  private val keyCodec: Codec[String] = Codec(
     VPackStringCodec.encoder.contramap(VString.apply),
     vpackDecoder.emap({
       case VString(s)   => s.pure[Attempt]
@@ -30,7 +31,7 @@ object VPackObjectCodec extends VPackCompoundCodec {
 
   private val keyValueCodec = keyCodec >>~ { key => vpackCodec.withContext(key) }
 
-  val encoderCompact: Encoder[VObject] = Encoder(_.values match {
+  private val encoderCompact: Encoder[VObject] = Encoder(_.values match {
     case values if values.isEmpty => ObjectEmptyType.bits.pure[Attempt]
     case values =>
       for {
@@ -68,10 +69,10 @@ object VPackObjectCodec extends VPackCompoundCodec {
       }
     })
 
-  val encoderSorted: Encoder[VObject] = encoder(true)
-  val encoderUnsorted: Encoder[VObject] = encoder(false)
+  private[codecs] val encoderSorted: Encoder[VObject] = encoder(true)
+  private[codecs] val encoderUnsorted: Encoder[VObject] = encoder(false)
 
-  val decoderCompact: Decoder[VObject] = Decoder(bits =>
+  private[codecs] val decoderCompact: Decoder[VObject] = Decoder(bits =>
     for {
       length <- VPackVLongCodec.decode(bits)
       bodyLen = 8 * (length.value - 1 - vlongLength(length.value))
@@ -80,7 +81,7 @@ object VPackObjectCodec extends VPackCompoundCodec {
       result <- Decoder.decodeCollect(keyValueCodec, Some(nr.value.toInt))(body.value)
     } yield DecodeResult(VObject(result.value.toMap), body.remainder))
 
-  def decoderOffsets(t: ObjectType): Decoder[VObject] =
+  private[codecs] def decoderOffsets(t: ObjectType): Decoder[VObject] =
     Decoder(b =>
       for {
         length <- t.lengthDecoder.decode(b)
@@ -97,7 +98,7 @@ object VPackObjectCodec extends VPackCompoundCodec {
         rr <- result.toVector.traverse(keyValueCodec.decodeValue)
       } yield DecodeResult(VObject(rr.toMap), body.remainder))
 
-  def decoderOffsets64(t: ObjectType): Decoder[VObject] =
+  private[codecs] def decoderOffsets64(t: ObjectType): Decoder[VObject] =
     Decoder(b =>
       for {
         length <- t.lengthDecoder.decode(b)
@@ -114,39 +115,12 @@ object VPackObjectCodec extends VPackCompoundCodec {
         rr <- result.toVector.traverse(keyValueCodec.decodeValue)
       } yield DecodeResult(VObject(rr.toMap), remainder))
 
-  /*
-  private val emptyProvider: Codec[Map[String, BitVector]] = provide(Map.empty[String, BitVector])
-
-  override def decode(bits: BitVector): Attempt[DecodeResult[VPackObject]] = {
-    for {
-      head     <- uint8L.decode(bits).ensure(Err("not a vpack object"))(h => (h.value >= emptyByte && h.value <= 0x12) || h.value == compactByte)
-      decs     <- (head.value match {
-        case `emptyByte` => emptyProvider
-        case 0x0b => decoderOffsets1
-        case 0x0c => decoderOffsets2
-        case 0x0d => decoderOffsets4
-        case 0x0e => decoderOffsets8
-        case 0x0f => decoderOffsets1
-        case 0x10 => decoderOffsets2
-        case 0x11 => decoderOffsets4
-        case 0x12 => decoderOffsets8
-        case `compactByte` => decoderCompact
-      }).decode(head.remainder)
-    } yield decs.map(va => VPackObject(va))
-  }
-
-  def mapOf[T](codec: Codec[T]): Codec[Map[String, T]] = exmap(
-    _.values.toList.traverse({ case (k,v) => codec.decodeValue(v).map(r => k -> r).mapErr(_.pushContext(k)) }).map(_.toMap),
-    _.toList.traverse({ case (k,v) => codec.encode(v).map(r => k -> r).mapErr(_.pushContext(k)) }).map(l => VPackObject(l.toMap))
-  )
-   */
-
-  val decoder: Decoder[VObject] = vpackDecoder.emap({
+  private[codecs] val decoder: Decoder[VObject] = vpackDecoder.emap({
     case v: VObject => v.pure[Attempt]
     case _          => Err("not a vpack object").raiseError
   })
 
-  val codecSorted: Codec[VObject] = Codec(encoderSorted, decoder)
-  val codecUnsorted: Codec[VObject] = Codec(encoderUnsorted, decoder)
-  val codecCompact: Codec[VObject] = Codec(encoderCompact, decoder)
+  private[codecs] val codecSorted: Codec[VObject] = Codec(encoderSorted, decoder)
+  private[codecs] val codecUnsorted: Codec[VObject] = Codec(encoderUnsorted, decoder)
+  private[codecs] val codecCompact: Codec[VObject] = Codec(encoderCompact, decoder)
 }

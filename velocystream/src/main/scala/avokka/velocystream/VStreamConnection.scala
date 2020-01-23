@@ -46,7 +46,6 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
 
     case Tcp.Connected(remote, local) =>
       log.debug("connected remote={} local={}", remote, local)
-      context.parent ! BackoffSupervisor.Reset
       val connection = sender()
       connection ! Tcp.Register(self,
         keepOpenOnPeerClosed = false,
@@ -71,6 +70,7 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
       case HandshakeAck =>
         if (beginQueue.isEmpty) {
           waitingForAck = false
+          context.parent ! BackoffSupervisor.Reset
           context.become(connected(connection))
    //       unstashAll()
         } else {
@@ -81,14 +81,10 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
     }
   }
 
-  /*
-  implicit val chunkOrdering: Ordering[VStreamChunk] = new Ordering[VStreamChunk] {
-    override def compare(x: VStreamChunk, y: VStreamChunk): Int = x.messageId compare y.messageId
-  }
-  val sendQueue: mutable.PriorityQueue[VStreamChunk] = mutable.PriorityQueue.empty
-  */
-  val sendQueue: mutable.Queue[VStreamChunk] = mutable.Queue.empty
-  var waitingForAck: Boolean = false
+  //  val sendQueue: mutable.Queue[VStreamChunk] = mutable.Queue.empty
+  private val chunkOrdering: Ordering[VStreamChunk] = Ordering.by[VStreamChunk, Long](chunk => chunk.messageId + chunk.x.position).reverse
+  private val sendQueue: mutable.PriorityQueue[VStreamChunk] = mutable.PriorityQueue.empty(chunkOrdering)
+  private var waitingForAck: Boolean = false
 
   private def doSendChunk(connection: ActorRef, chunk: VStreamChunk, ack: Tcp.Event): Unit = {
     log.debug("send chunk #{}-{} {} bytes", chunk.messageId, chunk.x.position, chunk.length)

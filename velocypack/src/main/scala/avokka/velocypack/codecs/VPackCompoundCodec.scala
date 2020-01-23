@@ -1,4 +1,5 @@
-package avokka.velocypack.codecs
+package avokka.velocypack
+package codecs
 
 import cats.data.Chain
 import cats.syntax.foldable._
@@ -6,7 +7,7 @@ import scodec.Attempt
 import scodec.bits.BitVector
 import scodec.interop.cats._
 
-trait VPackCompoundCodec {
+private trait VPackCompoundCodec {
 
   protected def lengthUtils(l: Long): (Int, Int) = {
     ulongLength(l) match {
@@ -17,7 +18,7 @@ trait VPackCompoundCodec {
     }
   }
 
-  def encodeCompact(head: Int, values: Chain[BitVector]): Attempt[BitVector] = {
+  protected def encodeCompact(head: Int, values: Chain[BitVector]): Attempt[BitVector] = {
     val valuesAll = values.fold //.reduce(_ ++ _)(BitVectorMonoidInstance)
     val valuesBytes = valuesAll.size / 8
     for {
@@ -30,7 +31,7 @@ trait VPackCompoundCodec {
     } yield BitVector(head) ++ len ++ valuesAll ++ nr.reverseByteOrder
   }
 
-  def offsetsToRanges(offests: Seq[Long], size: Long): Seq[(Long, Long)] = {
+  protected def offsetsToRanges(offests: Seq[Long], size: Long): Seq[(Long, Long)] = {
     offests.zipWithIndex
       .sortBy(_._1)
       .foldRight((Vector.empty[(Int, Long, Long)], size))({

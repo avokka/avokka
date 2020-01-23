@@ -1,20 +1,18 @@
 package avokka.velocypack
 
-import avokka.velocypack.VPack.VArray
 import cats.data.Chain
+import cats.data.Chain.==:
 import cats.syntax.either._
-import cats.syntax.contravariant._
-import shapeless.ops.hlist.Length
-import shapeless.{::, Generic, HList, HNil, Nat}
+import shapeless.{::, Generic, HList, HNil}
+import VPack.VArray
 
 object VPackGeneric { c =>
-  import Chain._
 
-  trait Encoder[A <: HList] {
+  private[velocypack] trait Encoder[A <: HList] {
     def encode(t: A): Chain[VPack]
   }
 
-  object Encoder {
+  private[velocypack] object Encoder {
 
     def apply[A <: HList](compact: Boolean = false)(
       implicit ev: Encoder[A]
@@ -32,11 +30,11 @@ object VPackGeneric { c =>
 
   }
 
-  trait Decoder[A <: HList] {
+  private[velocypack] trait Decoder[A <: HList] {
     def decode(v: Chain[VPack]): Result[A]
   }
 
-  object Decoder {
+  private[velocypack] object Decoder {
     def apply[A <: HList](implicit ev: Decoder[A]): VPackDecoder[A] = {
       case VArray(values) => ev.decode(values)
       case v              => VPackError.WrongType(v).asLeft
@@ -60,7 +58,7 @@ object VPackGeneric { c =>
     }
   }
 
-  class DeriveHelper[T] {
+  private[velocypack] class DeriveHelper[T] {
 
     def encoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: Encoder[R]): VPackEncoder[T] =
       Encoder()(vp).contramap(gen.to)

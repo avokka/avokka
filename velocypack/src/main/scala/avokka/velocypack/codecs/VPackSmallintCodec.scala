@@ -1,11 +1,13 @@
-package avokka.velocypack.codecs
+package avokka.velocypack
+package codecs
 
-import avokka.velocypack.VPack.VSmallint
 import cats.syntax.applicative._
 import scodec.bits.BitVector
 import scodec.codecs.provide
 import scodec.interop.cats._
 import scodec.{Attempt, Decoder, Encoder, SizeBound}
+import VPack.VSmallint
+import VPackType.{SmallintNegativeType, SmallintPositiveType}
 
 /**
   * Codec of small ints
@@ -14,10 +16,9 @@ import scodec.{Attempt, Decoder, Encoder, SizeBound}
   *
   * 0x3a-0x3f : small negative integers -6, -5, ..., -1
   */
-object VPackSmallintCodec {
-  import VPackType.{SmallintNegativeType, SmallintPositiveType}
+private object VPackSmallintCodec {
 
-  val encoder: Encoder[VSmallint] = new Encoder[VSmallint] {
+  private[codecs] val encoder: Encoder[VSmallint] = new Encoder[VSmallint] {
     override def sizeBound: SizeBound = SizeBound.exact(8)
 
     override def encode(v: VSmallint): Attempt[BitVector] = {
@@ -28,10 +29,10 @@ object VPackSmallintCodec {
     }
   }
 
-  def decoderPositive(t: SmallintPositiveType): Decoder[VSmallint] = provide(
+  private[codecs] def decoderPositive(t: SmallintPositiveType): Decoder[VSmallint] = provide(
     VSmallint((t.head - SmallintPositiveType.minByte).toByte)
   )
-  def decoderNegative(t: SmallintNegativeType): Decoder[VSmallint] = provide(
+  private[codecs] def decoderNegative(t: SmallintNegativeType): Decoder[VSmallint] = provide(
     VSmallint((t.head - SmallintNegativeType.topByte).toByte)
   )
 

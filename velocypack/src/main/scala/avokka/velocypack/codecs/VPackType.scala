@@ -1,6 +1,6 @@
-package avokka.velocypack.codecs
+package avokka.velocypack
+package codecs
 
-import avokka.velocypack.VPack
 import scodec.bits.BitVector
 import scodec.codecs._
 import scodec.{Attempt, Codec, Decoder, Encoder, Err}
@@ -8,7 +8,7 @@ import scodec.{Attempt, Codec, Decoder, Encoder, Err}
 /**
   * velocypack value type
   */
-trait VPackType {
+private trait VPackType {
 
   /**
     * @return the head byte
@@ -21,13 +21,12 @@ trait VPackType {
   lazy val bits: BitVector = BitVector(head)
 }
 
-object VPackType {
-  import VPack._
+private object VPackType {
 
   /**
     * velocypack types having a length field after the head
     */
-  trait WithLength { self: VPackType =>
+  private[codecs] trait WithLength { self: VPackType =>
 
     /**
       * @return size in bytes of the length field
@@ -51,7 +50,7 @@ object VPackType {
   case object NoneType extends VPackType { override val head: Int = 0x00 }
 
   /** 0x01 : empty array */
-  case object ArrayEmptyType extends SingleByte(0x01, VArray.empty)
+  case object ArrayEmptyType extends SingleByte(0x01, VPack.VArray.empty)
 
   /** 0x02-0x05 : array without index table (all subitems have the same byte length), [1,2,4,8]-byte byte length */
   case class ArrayUnindexedType(override val head: Int) extends VPackType with WithLength {
@@ -78,10 +77,10 @@ object VPackType {
   }
 
   /** 0x0a : empty object */
-  case object ObjectEmptyType extends SingleByte(0x0a, VObject.empty)
+  case object ObjectEmptyType extends SingleByte(0x0a, VPack.VObject.empty)
 
   /** object with data */
-  trait ObjectType extends VPackType with WithLength
+  private[codecs] trait ObjectType extends VPackType with WithLength
 
   /** 0x0b-0x0e : object with 1-byte index table offsets, sorted by attribute name, [1,2,4,8]-byte bytelen and # subvals */
   case class ObjectSortedType(override val head: Int) extends ObjectType {
@@ -120,16 +119,16 @@ object VPackType {
   // 0x15-0x16 : reserved
 
   /** 0x17 : illegal - this type can be used to indicate a value that is illegal in the embedding application */
-  case object IllegalType extends SingleByte(0x17, VIllegal)
+  case object IllegalType extends SingleByte(0x17, VPack.VIllegal)
 
   /** 0x18 : null */
-  case object NullType extends SingleByte(0x18, VNull)
+  case object NullType extends SingleByte(0x18, VPack.VNull)
 
   /** 0x19 : false */
-  case object FalseType extends SingleByte(0x19, VFalse)
+  case object FalseType extends SingleByte(0x19, VPack.VFalse)
 
   /** 0x1a : true */
-  case object TrueType extends SingleByte(0x1a, VTrue)
+  case object TrueType extends SingleByte(0x1a, VPack.VTrue)
 
   /** 0x1b : double IEEE-754, 8 bytes follow, stored as little endian uint64 equivalent */
   case object DoubleType extends VPackType {
@@ -145,10 +144,10 @@ object VPackType {
   // not allowed in VPack values on disk or on the network
 
   /** 0x1e : minKey, nonsensical value that compares < than all other values */
-  case object MinKeyType extends SingleByte(0x1e, VMinKey)
+  case object MinKeyType extends SingleByte(0x1e, VPack.VMinKey)
 
   /** 0x1f : maxKey, nonsensical value that compares > than all other values */
-  case object MaxKeyType extends SingleByte(0x1f, VMaxKey)
+  case object MaxKeyType extends SingleByte(0x1f, VPack.VMaxKey)
 
   /** 0x20-0x27 : signed int, little endian, 1 to 8 bytes, number is V - 0x1f, two's complement */
   case class IntSignedType(override val head: Int) extends VPackType with WithLength {
@@ -196,7 +195,7 @@ object VPackType {
   }
 
   // string types
-  trait StringType extends VPackType with WithLength
+  private[codecs] trait StringType extends VPackType with WithLength
 
   /**
     * 0x40-0xbe : UTF-8-string, using V - 0x40 bytes (not Unicode characters!)
@@ -247,7 +246,7 @@ object VPackType {
   /**
     * decode the head byte to the velocypack type
     */
-  val vpackTypeDecoder: Decoder[VPackType] = uint8L.emap({
+  private[codecs] val vpackTypeDecoder: Decoder[VPackType] = uint8L.emap({
     case NoneType.head => Attempt.failure(Err("absence of type is not allowed in values"))
 
     case ArrayEmptyType.head => Attempt.successful(ArrayEmptyType)
@@ -297,10 +296,10 @@ object VPackType {
   /**
     * encodes the type to the head byte
     */
-  val vpackTypeEncoder: Encoder[VPackType] = Encoder(t => Attempt.successful(t.bits))
+  private[codecs] val vpackTypeEncoder: Encoder[VPackType] = Encoder(t => Attempt.successful(t.bits))
 
   /**
     * type codec
     */
-  val vpackTypeCodec: Codec[VPackType] = Codec(vpackTypeEncoder, vpackTypeDecoder)
+  private[codecs] val vpackTypeCodec: Codec[VPackType] = Codec(vpackTypeEncoder, vpackTypeDecoder)
 }

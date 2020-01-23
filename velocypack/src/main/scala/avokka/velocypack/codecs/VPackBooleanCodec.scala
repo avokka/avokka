@@ -1,11 +1,13 @@
-package avokka.velocypack.codecs
+package avokka.velocypack
+package codecs
 
-import avokka.velocypack.VPack.VBoolean
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
 import scodec.bits.BitVector
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, Encoder, Err, SizeBound}
+import VPackType.{TrueType, FalseType}
+import VPack.VBoolean
 
 /**
   * Codec of bool
@@ -13,10 +15,9 @@ import scodec.{Attempt, Codec, Encoder, Err, SizeBound}
   * 0x19 : false
   * 0x1a : true
   */
-object VPackBooleanCodec {
-  import VPackType.{TrueType, FalseType}
+private object VPackBooleanCodec {
 
-  val encoder: Encoder[VBoolean] = new Encoder[VBoolean] {
+  private[codecs] val encoder: Encoder[VBoolean] = new Encoder[VBoolean] {
     override def sizeBound: SizeBound = SizeBound.exact(8)
 
     override def encode(v: VBoolean): Attempt[BitVector] =
@@ -24,7 +25,7 @@ object VPackBooleanCodec {
 
   }
 
-  val codec: Codec[VBoolean] = Codec(encoder, vpackDecoder.emap({
+  private[codecs] val codec: Codec[VBoolean] = Codec(encoder, vpackDecoder.emap({
     case v: VBoolean => v.pure[Attempt]
     case _           => Err("not a vpack boolean").raiseError
   }))

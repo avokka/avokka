@@ -47,4 +47,5 @@ object Dependencies {
 
   val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.12.2")
 
+  val magnolia = Seq("com.propensive" %% "magnolia" % "0.12.6")
 }

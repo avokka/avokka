@@ -12,7 +12,9 @@ import cats.syntax.either._
 import cats.syntax.traverse._
 import scodec.bits.ByteVector
 import shapeless.HList
+// import magnolia._
 
+// import scala.language.experimental.macros
 import scala.annotation.implicitNotFound
 import scala.util.Try
 
@@ -165,4 +167,27 @@ object VPackDecoder {
     case VString(value) => LocalDate.parse(value).asRight
     case v => VPackError.WrongType(v).asLeft
   }
+
+  /*
+  type Typeclass[A] = VPackDecoder[A]
+
+  def combine[A](cc: CaseClass[Typeclass, A]): Typeclass[A] = {
+    case VObject(values) =>
+      cc.constructMonadic { param =>
+        param.typeclass.decode(values(param.label))
+      }
+
+
+    cc.constructEither()
+    val paramMap: Map[String, VPack] =
+      cc.parameters
+        .map(p => p.label -> p.typeclass.encode(p.dereference(a)))
+        .toMap
+
+    VObject(paramMap)
+  }
+
+  def derive[A]: Typeclass[A] = macro Magnolia.gen[A]
+
+   */
 }

@@ -39,6 +39,12 @@ class VPackRecordSpec extends FlatSpec with Matchers with VPackSpecTrait {
       VersionResponse("arango", "community", "3.5.2"),
       VObject(Map("server" -> VString("arango"), "license" -> VString("community"), "version"-> VString("3.5.2")))
     )
+    /*
+    assertEnc(VersionResponseEncoderM,
+      VersionResponse("arango", "community", "3.5.2"),
+      VObject(Map("server" -> VString("arango"), "license" -> VString("community"), "version"-> VString("3.5.2")))
+    )
+     */
   }
 
   "case class codec with defaults" should "conform specs" in {
@@ -71,6 +77,8 @@ object VPackRecordSpec {
     license: String,
     version: String
   )
+
+//  val VersionResponseEncoderM: VPackEncoder[VersionResponse] = VPackEncoder.derive
 
   val VersionResponseEncoder: VPackEncoder[VersionResponse] = VPackRecord[VersionResponse].encoder
   val VersionResponseDecoder: VPackDecoder[VersionResponse] = VPackRecord[VersionResponse].decoder

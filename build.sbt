@@ -26,6 +26,7 @@ lazy val velocypack = (project in file("velocypack"))
     libraryDependencies ++=
       cats ++
       shapeless ++
+//      magnolia ++
       scodec ++
       testSuite ++
 //      circe ++

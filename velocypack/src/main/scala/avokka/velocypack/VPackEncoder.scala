@@ -8,7 +8,10 @@ import cats.Contravariant
 import cats.data.Chain
 import scodec.bits.ByteVector
 import shapeless.HList
+// import magnolia._
 
+// import scala.language.experimental.macros
+// import scala.language.higherKinds
 import scala.annotation.implicitNotFound
 
 @implicitNotFound("Cannot find a velocypack encoder for ${T}")
@@ -103,4 +106,19 @@ object VPackEncoder {
   implicit val vObjectEncoder: VPackEncoder[VObject] = identity
 
   implicit val localDateEncoder: VPackEncoder[LocalDate] = stringEncoder.contramap(_.toString)
+
+  /*
+  type Typeclass[A] = VPackEncoder[A]
+
+  def combine[A](cc: CaseClass[Typeclass, A]): Typeclass[A] = a => {
+      val paramMap: Map[String, VPack] =
+        cc.parameters
+          .map(p => p.label -> p.typeclass.encode(p.dereference(a)))
+            .toMap
+
+      VObject(paramMap)
+    }
+
+  def derive[A]: Typeclass[A] = macro Magnolia.gen[A]
+   */
 }

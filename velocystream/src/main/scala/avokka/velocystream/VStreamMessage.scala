@@ -19,12 +19,13 @@ case class VStreamMessage(
     * @param length maximum length of data chunk
     * @return stream of chunks
     */
-  def chunks(length: Long = VStreamConfiguration.CHUNK_LENGTH_DEFAULT): Stream[VStreamChunk] = {
+  def chunks(length: Long = VStreamConfiguration.CHUNK_LENGTH_DEFAULT): Iterator[VStreamChunk] = {
     val count = (data.size.toDouble / length).ceil.toLong
 
-    def stream(n: Long, slice: ByteVector): Stream[VStreamChunk] = {
-      if (slice.isEmpty) Stream.Empty
-      else VStreamChunk(this, n, count, slice.take(length)) #:: stream(n + 1, slice.drop(length))
+    def stream(n: Long, slice: ByteVector): Iterator[VStreamChunk] = {
+      if (slice.isEmpty) Iterator.empty
+      else if (slice.length <= length) Iterator.single(VStreamChunk(this, n, count, slice))
+      else Iterator(VStreamChunk(this, n, count, slice.take(length))) ++ stream(n + 1, slice.drop(length))
     }
 
     stream(0, data)

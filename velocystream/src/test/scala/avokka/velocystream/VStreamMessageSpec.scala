@@ -7,13 +7,13 @@ class VStreamMessageSpec extends FlatSpec with Matchers {
 
   it should "split in stream of chunks" in {
     val m = VStreamMessage(10, hex"aabbccddeeff")
-    val chunks = m.chunks(1)
+    val chunks = m.chunks(1).toList
     assertResult(6)(chunks.length)
     assertResult(hex"aa")(chunks.head.data)
     assertResult(true)(chunks.head.x.first)
     assertResult(6)(chunks.head.x.index)
 
-    val chunks2 = m.chunks(4)
+    val chunks2 = m.chunks(4).toList
     assertResult(2)(chunks2.length)
     val first = chunks2.head
     val second = chunks2.tail.head
@@ -30,7 +30,7 @@ class VStreamMessageSpec extends FlatSpec with Matchers {
     assertResult(10)(second.messageId)
     assertResult(6)(second.messageLength)
 
-    val chunk1 = m.chunks(10)
+    val chunk1 = m.chunks(10).toVector
     assertResult(1)(chunk1.length)
     val one = chunk1.head
     assertResult(m.data)(one.data)

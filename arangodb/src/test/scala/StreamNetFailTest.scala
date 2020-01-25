@@ -27,7 +27,7 @@ object StreamNetFailTest {
     val fr = db(countries.read[VPack.VObject](DocumentKey("FR")))
 
     import system.dispatcher
-    val ls = Vector("FR", "DE", "IT", "IS").traverse(k => db(countries.read[VPack.VObject](DocumentKey(k))))
+    val ls = Vector("FR", "DE", "IT", "IS", "GB", "DD").traverse(k => db(countries.read[VPack.VObject](DocumentKey(k))))
 
     val r = for {
       v <- version

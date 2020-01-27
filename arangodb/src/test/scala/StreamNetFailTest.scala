@@ -9,7 +9,7 @@ import cats.syntax.show._
 import cats.instances.vector._
 import cats.instances.future._
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
 object StreamNetFailTest {
@@ -22,12 +22,17 @@ object StreamNetFailTest {
     val db = new ArangoDatabase(session, DatabaseName("v10"))
     val countries = new ArangoCollection(db, CollectionName("countries"))
 
+    def readCountryById(key: String): Future[Either[ArangoError, ArangoResponse[VPack.VObject]]] = {
+      db(countries.read[VPack.VObject](DocumentKey(key)))
+    }
+
     val version = session(Version())
     val versionDetails = session(Version(details = true))
-    val fr = db(countries.read[VPack.VObject](DocumentKey("FR")))
+    val fr = readCountryById("FR")
 
     import system.dispatcher
-    val ls = Vector("FR", "DE", "IT", "IS", "GB", "DD").traverse(k => db(countries.read[VPack.VObject](DocumentKey(k))))
+
+    val ls = Vector("FR", "DE", "IT", "IS", "GB", "DD").traverse(readCountryById)
 
     val r = for {
       v <- version

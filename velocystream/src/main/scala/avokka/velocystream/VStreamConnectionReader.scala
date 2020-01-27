@@ -13,9 +13,11 @@ class VStreamConnectionReader() extends Actor with ActorLogging {
 
   val recvBuffer: mutable.ListBuffer[BitVector] = mutable.ListBuffer.empty
 
+  private def messageName(id: Long) = s"message-$id"
+
   override def receive: Receive = {
     case MessageInit(id) =>
-      context.actorOf(VStreamMessageActor.props(id, sender()), s"message-${id}")
+      context.actorOf(VStreamMessageActor.props(id, sender()), messageName(id))
 
     case Tcp.Received(data) =>
       val connection = sender()
@@ -28,7 +30,7 @@ class VStreamConnectionReader() extends Actor with ActorLogging {
           val chunks = result.value
           log.debug("successful decode {}", chunks.map(_.messageId))
           chunks.foreach { chunk =>
-            context.child(s"message-${chunk.messageId}").foreach { child =>
+            context.child(messageName(chunk.messageId)).foreach { child =>
               log.debug("send chunk to child {}", child)
               child ! ChunkReceived(chunk)
             }

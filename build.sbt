@@ -26,7 +26,13 @@ lazy val velocypack = (project in file("velocypack"))
     libraryDependencies ++=
       cats ++
       shapeless ++
-//      magnolia ++
+      /*
+      magnolia ++
+      Seq(
+        "org.scala-lang"    % "scala-reflect"     % scalaVersion.value,
+        "org.scala-lang"    % "scala-compiler"    % scalaVersion.value,
+      ) ++
+       */
       scodec ++
       testSuite ++
 //      circe ++

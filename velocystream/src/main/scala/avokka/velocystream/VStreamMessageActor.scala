@@ -11,17 +11,19 @@ import scala.concurrent.duration._
 
 class VStreamMessageActor(id: Long, replyTo: ActorRef) extends Actor with ActorLogging {
   import VStreamMessageActor._
+  import context.dispatcher
 
   private var expected: Option[Long] = None
 
   private val stack: mutable.ListBuffer[VStreamChunk] = mutable.ListBuffer.empty
 
-  private val kill = context.system.scheduler.scheduleOnce(1.minute, self, PoisonPill)(context.dispatcher)
+  private val kill = context.system.scheduler.scheduleOnce(1.minute, self, PoisonPill)
+  private val replyFailure = Status.Failure(new IllegalStateException(s"message #$id did not receive a response"))
 
   override def postStop(): Unit = {
     stack.clear()
     if (!kill.isCancelled) {
-      replyTo ! Status.Failure(new IllegalStateException(s"message #$id did not receive a response"))
+      replyTo ! replyFailure
     }
   }
 
@@ -33,11 +35,11 @@ class VStreamMessageActor(id: Long, replyTo: ActorRef) extends Actor with ActorL
 
   override def receive: Actor.Receive = {
 
-    case VStreamConnection.ChunkReceived(chunk) if chunk.x.isWhole =>
+    case VStreamConnectionReader.ChunkReceived(chunk) if chunk.x.isWhole =>
       // solo chunk, bypass stack computation
       sendMessageReply(VStreamMessage(id, chunk.data))
 
-    case VStreamConnection.ChunkReceived(chunk) =>
+    case VStreamConnectionReader.ChunkReceived(chunk) =>
       // first chunk index is the total number of expected chunks
       if (chunk.x.first) {
         expected = Some(chunk.x.index)

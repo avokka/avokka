@@ -2,16 +2,21 @@ package avokka.velocystream
 
 import akka.actor._
 import akka.io.Tcp
-import avokka.velocystream.VStreamConnection.ChunkReceived
 import scodec.{Attempt, Codec, Err}
 import scodec.bits.BitVector
 
 import scala.collection.mutable
 
+/**
+  * velocystream connection reader handles Tcp.Received events,
+  * accumulates bitvector and tries to decodes chunks,
+  * then send those chunks to message actor children
+  */
 class VStreamConnectionReader() extends Actor with ActorLogging {
   import VStreamConnectionReader._
 
-  val recvBuffer: mutable.ListBuffer[BitVector] = mutable.ListBuffer.empty
+  val buffer: mutable.ListBuffer[BitVector] = mutable.ListBuffer.empty
+//  val buffer: ByteStringBuilder = new ByteStringBuilder
 
   private def messageName(id: Long) = s"message-$id"
 
@@ -22,10 +27,12 @@ class VStreamConnectionReader() extends Actor with ActorLogging {
     case Tcp.Received(data) =>
       val connection = sender()
       log.debug("received data {} bytes", data.length)
-      recvBuffer += BitVector(data.asByteBuffer)
+      // buffer.append(data)
+      buffer += BitVector(data.asByteBuffer)
 
-      val theBuffer = recvBuffer.result().reduce(_ ++ _)
-      Codec.decodeCollect(VStreamChunk.codec, None)(theBuffer) match {
+      val bits = BitVector.concat(buffer.result()) //.reduce(_ ++ _)
+      // val bits = BitVector(buffer.result())
+      Codec.decodeCollect(VStreamChunk.codec, None)(bits) match {
         case Attempt.Successful(result) => {
           val chunks = result.value
           log.debug("successful decode {}", chunks.map(_.messageId))
@@ -35,9 +42,10 @@ class VStreamConnectionReader() extends Actor with ActorLogging {
               child ! ChunkReceived(chunk)
             }
           }
-          recvBuffer.clear()
+          buffer.clear()
           if (result.remainder.nonEmpty) {
-            recvBuffer += result.remainder
+            buffer += result.remainder
+           // buffer.append(ByteString(result.remainder.toByteBuffer))
           }
           connection ! Tcp.ResumeReading
         }
@@ -56,4 +64,6 @@ object VStreamConnectionReader {
   def props(): Props = Props(new VStreamConnectionReader())
 
   case class MessageInit(id: Long)
+  case class ChunkReceived(chunk: VStreamChunk)
+
 }

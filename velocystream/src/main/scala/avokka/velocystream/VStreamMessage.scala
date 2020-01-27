@@ -4,6 +4,8 @@ import java.util.concurrent.atomic.AtomicLong
 
 import scodec.bits.ByteVector
 
+import scala.annotation.tailrec
+
 /**
   * velocystream message in or out
   * @param id identifier
@@ -19,9 +21,19 @@ case class VStreamMessage(
     * @param length maximum length of data chunk
     * @return stream of chunks
     */
-  def chunks(length: Long = VStreamConfiguration.CHUNK_LENGTH_DEFAULT): Iterator[VStreamChunk] = {
+  def chunks(length: Long = VStreamConfiguration.CHUNK_LENGTH_DEFAULT): Iterable[VStreamChunk] = {
     val count = (data.size.toDouble / length).ceil.toLong
 
+    @tailrec
+    def loop(n: Long, slice: ByteVector, acc: Vector[VStreamChunk] = Vector.empty): Iterable[VStreamChunk] = {
+      if (slice.isEmpty) acc
+      else if (slice.length <= length) acc :+ VStreamChunk(this, n, count, slice)
+      else loop(n + 1, slice.drop(length), acc :+ VStreamChunk(this, n, count, slice.take(length)))
+    }
+
+    loop(0, data)
+
+    /*
     def stream(n: Long, slice: ByteVector): Iterator[VStreamChunk] = {
       if (slice.isEmpty) Iterator.empty
       else if (slice.length <= length) Iterator.single(VStreamChunk(this, n, count, slice))
@@ -29,6 +41,7 @@ case class VStreamMessage(
     }
 
     stream(0, data)
+     */
   }
 }
 

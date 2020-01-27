@@ -17,7 +17,7 @@ import scodec.interop.cats.BitVectorMonoidInstance
 import scala.concurrent.duration._
 import scala.collection.mutable
 
-/** Velocystream client actor
+/** Velocystream tcp connection
   *
   */
 class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessage])
@@ -42,7 +42,12 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
   override def preStart(): Unit = {
     manager ! Tcp.Connect(address,
       timeout = Some(10.seconds),
-     // options = List(Tcp.SO.KeepAlive(true)),
+      /*
+      options = List(
+        Tcp.SO.KeepAlive(true),
+        Tcp.SO.TcpNoDelay(false)
+      ),
+       */
       pullMode = true
     )
   }
@@ -60,15 +65,14 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
         useResumeWriting = false,
       )
       context.become(handshaking(connection))
-  //    unstashAll()
 
-  //  case _ => stash()
   }
 
   def handshaking(connection: ActorRef): Receive = {
     connection ! Tcp.Write(VST_HANDSHAKE, HandshakeAck)
     connection ! Tcp.ResumeReading
 
+    // initialize send queue with begin messages
     sendQueue.clear()
     sendQueue ++= begin.flatMap(_.chunks())
 
@@ -76,15 +80,13 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
 
       case HandshakeAck =>
         if (sendQueue.isEmpty) {
+          // handshake and begin sequence is finished
           waitingForAck = false
           context.parent ! BackoffSupervisor.Reset
           context.become(connected(connection))
-   //       unstashAll()
         } else {
           doSendChunk(connection, sendQueue.dequeue(), HandshakeAck)
         }
-
-   //   case _ => stash()
     }
   }
 
@@ -95,6 +97,7 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
     waitingForAck = true
   }
 
+  /*
   private def flushChunkQueue(connection: ActorRef, ack: Tcp.Event): Unit = {
     val chunks: Vector[VStreamChunk] = sendQueue.toVector
     log.debug("flush chunk queue #{} {} bytes", chunks.map(c => s"${c.messageId}-${c.x.position}"), chunks.map(_.length).sum)
@@ -106,6 +109,7 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
     waitingForAck = true
     sendQueue.clear()
   }
+*/
 
   def sending(connection: ActorRef): Receive = {
     case VStreamClient.MessageSend(m) =>
@@ -123,19 +127,9 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
           case _ =>
         }
       }
-      // m.chunks() foreach { chunk => self ! ChunkSend(chunk) }
-
-      /*
-    case ChunkSend(chunk) if waitingForAck => {
-      log.debug("enqueue chunk to buffer while waiting for write ack")
-      sendQueue.enqueue(chunk)
-    }
-    case ChunkSend(chunk) => doSendChunk(connection, chunk)
-*/
 
     case WriteAck =>
       log.debug("receive write ack")
-//      connection ! Tcp.ResumeReading
       if (sendQueue.isEmpty) {
         waitingForAck = false
       } else {
@@ -145,11 +139,11 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
   }
 
   def handleFailure(connection: ActorRef): Receive = {
-    case Tcp.CommandFailed(_: Tcp.Write) =>
+    case Tcp.CommandFailed(w: Tcp.Write) =>
       // O/S buffer was full
       log.debug("write failed")
-      connection ! Tcp.Close
-      context.stop(self)
+      connection ! w
+//      context.stop(self)
 
     case VStreamClient.Stop =>
       log.debug("close connection")
@@ -204,8 +198,6 @@ object VStreamConnection {
     Props(new VStreamConnection(conf, begin))//.withRouter(routerConfig)
 
   case class Ready(link: ActorRef)
-  case class ChunkSend(chunk: VStreamChunk)
-  case class ChunkReceived(chunk: VStreamChunk)
 
   case object HandshakeAck extends Tcp.Event
   case object WriteAck extends Tcp.Event

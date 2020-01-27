@@ -18,3 +18,10 @@ VStreamMessage(1, hex"aabbcc").chunks(1).foreach {
 sendQueue.dequeueAll.foreach(println(_))
 
 println(sendQueue)
+
+val vec1 = Vector(1)
+
+vec1 match {
+  case a +: tail => println(a)
+  case o => println("???")
+}

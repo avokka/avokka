@@ -19,8 +19,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class ArangoSession(conf: ArangoConfiguration)(
-    implicit val system: ActorSystem,
-    materializer: Materializer
+    implicit val system: ActorSystem
 ) extends ApiContext[ArangoSession] {
 
   override lazy val session: ArangoSession = this
@@ -29,7 +28,7 @@ class ArangoSession(conf: ArangoConfiguration)(
   lazy val db = new ArangoDatabase(this, DatabaseName(conf.database))
 
   val authRequest = ArangoRequest.Authentication(user = conf.username, password = conf.password).toVPackBits
-  val authSource = Source.fromIterator(() => authRequest.map(bits => VStreamMessage.create(bits.bytes)).toOption.iterator)
+//  val authSource = Source.fromIterator(() => authRequest.map(bits => VStreamMessage.create(bits.bytes)).toOption.iterator)
   val authSeq = authRequest.map(bits => VStreamMessage.create(bits.bytes)).toOption
 
   /*

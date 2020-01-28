@@ -4,6 +4,8 @@ import akka.actor._
 import akka.io.Tcp
 import scodec.{Attempt, Codec, Err}
 import scodec.bits.BitVector
+import avokka.velocypack._
+import cats.Show
 
 import scala.collection.mutable
 
@@ -37,6 +39,9 @@ class VStreamConnectionReader() extends Actor with ActorLogging {
           val chunks = result.value
           log.debug("successful decode {}", chunks.map(_.messageId))
           chunks.foreach { chunk =>
+            log.debug("decoded {}: {}", chunk.messageId, chunk.data.bits.asVPack.map(r => Show[VPack].show(r)))
+          }
+          chunks.foreach { chunk =>
             context.child(messageName(chunk.messageId)).foreach { child =>
               log.debug("send chunk to child {}", child)
               child ! ChunkReceived(chunk)
@@ -44,7 +49,7 @@ class VStreamConnectionReader() extends Actor with ActorLogging {
           }
           buffer.clear()
           if (result.remainder.nonEmpty) {
-            buffer += result.remainder
+            buffer += result.remainder.copy
            // buffer.append(ByteString(result.remainder.toByteBuffer))
           }
           connection ! Tcp.ResumeReading

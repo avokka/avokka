@@ -10,7 +10,6 @@ case class ArangoConfiguration(
     port: Int = 8529,
     username: String,
     password: String,
-    queueSize: Int = VStreamConfiguration.QUEUE_SIZE_DEFAULT,
     chunkLength: Long = VStreamConfiguration.CHUNK_LENGTH_DEFAULT,
     database: String = "_system"
 ) extends VStreamConfiguration

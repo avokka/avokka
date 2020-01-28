@@ -6,7 +6,7 @@ import akka.actor._
 import akka.io.{IO, Tcp}
 import akka.pattern.BackoffSupervisor
 import akka.routing._
-import akka.util.ByteString
+import akka.util.{ByteString, ByteStringBuilder}
 import scodec.{Attempt, Codec, Err}
 import scodec.bits.BitVector
 import cats.syntax.foldable._
@@ -33,14 +33,17 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
 
   var reader: ActorRef = context.actorOf(VStreamConnectionReader.props(), name = "reader")
 
-  //  val sendQueue: mutable.Queue[VStreamChunk] = mutable.Queue.empty
-  private val chunkOrdering: Ordering[VStreamChunk] = Ordering.by[VStreamChunk, Long](chunk => chunk.messageId + chunk.x.position).reverse
-  private val sendQueue: mutable.PriorityQueue[VStreamChunk] = mutable.PriorityQueue.empty(chunkOrdering)
+  //  val queue: mutable.Queue[VStreamChunk] = mutable.Queue.empty
+  private val chunkOrdering: Ordering[VStreamChunk] =
+    Ordering.by[VStreamChunk, Long](chunk => chunk.messageId + chunk.x.position).reverse
+  private val queue: mutable.PriorityQueue[VStreamChunk] =
+    mutable.PriorityQueue.empty(chunkOrdering)
 
   private var waitingForAck: Boolean = false
 
   override def preStart(): Unit = {
-    manager ! Tcp.Connect(address,
+    manager ! Tcp.Connect(
+      address,
       timeout = Some(10.seconds),
       /*
       options = List(
@@ -60,10 +63,8 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
     case Tcp.Connected(remote, local) =>
       log.debug("connected remote={} local={}", remote, local)
       val connection = sender()
-      connection ! Tcp.Register(reader,
-        keepOpenOnPeerClosed = false,
-        useResumeWriting = false,
-      )
+      context.watch(connection)
+      connection ! Tcp.Register(reader, keepOpenOnPeerClosed = false, useResumeWriting = false)
       context.become(handshaking(connection))
 
   }
@@ -73,77 +74,81 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
     connection ! Tcp.ResumeReading
 
     // initialize send queue with begin messages
-    sendQueue.clear()
-    sendQueue ++= begin.flatMap(_.chunks())
+    queue.clear()
+    queue ++= begin.flatMap(_.chunks(conf.chunkLength))
 
     handleFailure(connection) orElse {
 
       case HandshakeAck =>
-        if (sendQueue.isEmpty) {
+        log.debug("received handshake ack")
+        if (queue.isEmpty) {
           // handshake and begin sequence is finished
           waitingForAck = false
           context.parent ! BackoffSupervisor.Reset
           context.become(connected(connection))
         } else {
-          doSendChunk(connection, sendQueue.dequeue(), HandshakeAck)
+          doSendChunk(connection, queue.dequeue(), HandshakeAck)
         }
     }
   }
 
-  private def doSendChunk(connection: ActorRef, chunk: VStreamChunk, ack: Tcp.Event = WriteAck): Unit = {
+  private def chunkToByteString(chunk: VStreamChunk): ByteString = {
+    ByteString(VStreamChunk.codec.encode(chunk).require.toByteBuffer)
+  }
+
+  private def doSendChunk(connection: ActorRef,
+                          chunk: VStreamChunk,
+                          ack: Tcp.Event = WriteAck): Unit = {
     log.debug("send chunk #{}-{} {} bytes", chunk.messageId, chunk.x.position, chunk.length)
-    val bs = ByteString(VStreamChunk.codec.encode(chunk).require.toByteBuffer)
-    connection ! Tcp.Write(bs, ack)
+    connection ! Tcp.Write(chunkToByteString(chunk), ack)
     waitingForAck = true
   }
 
-  /*
   private def flushChunkQueue(connection: ActorRef, ack: Tcp.Event): Unit = {
-    val chunks: Vector[VStreamChunk] = sendQueue.toVector
+    val chunks: Vector[VStreamChunk] = queue.dequeueAll
     log.debug("flush chunk queue #{} {} bytes", chunks.map(c => s"${c.messageId}-${c.x.position}"), chunks.map(_.length).sum)
-    val bits: BitVector = chunks.map { chunk =>
-      VStreamChunk.codec.encode(chunk).require
-    }.reduce(_ ++ _)
-    val bs = ByteString(bits.toByteBuffer)
-    connection ! Tcp.Write(bs, ack)
+    val bs = new ByteStringBuilder()
+    chunks.foreach { chunk =>
+      bs.append(chunkToByteString(chunk))
+    }
+    connection ! Tcp.Write(bs.result(), ack)
     waitingForAck = true
-    sendQueue.clear()
+    bs.clear()
+    queue.clear()
   }
-*/
 
   def sending(connection: ActorRef): Receive = {
     case VStreamClient.MessageSend(m) =>
-      log.debug("send message #{} {} bytes", m.id, m.data.length)
+      log.debug("send message #{} {} bytes, waiting for ack = {}", m.id, m.data.length, waitingForAck)
       reader forward VStreamConnectionReader.MessageInit(m.id)
+      val chunks = m.chunks(conf.chunkLength)
       if (waitingForAck) {
-        sendQueue ++= m.chunks()
-      }
-      else {
-        m.chunks().toVector match {
-          case head +: tail => {
-            doSendChunk(connection, head)
-            sendQueue ++= tail
-          }
-          case _ =>
+        log.debug("append chunks to queue")
+        queue ++= chunks
+      } else {
+        chunks.headOption.foreach { chunk =>
+          doSendChunk(connection, chunk)
+          log.debug("append remaining chunks to queue")
+          queue ++= chunks.tail
         }
       }
 
     case WriteAck =>
       log.debug("receive write ack")
-      if (sendQueue.isEmpty) {
+      if (queue.isEmpty) {
         waitingForAck = false
       } else {
-        // flushChunkQueue(connection, WriteAck)
-        doSendChunk(connection, sendQueue.dequeue(), WriteAck)
+        flushChunkQueue(connection, WriteAck)
+       //  doSendChunk(connection, queue.dequeue(), WriteAck)
       }
   }
 
   def handleFailure(connection: ActorRef): Receive = {
     case Tcp.CommandFailed(w: Tcp.Write) =>
+      log.debug("write failed {}", w)
       // O/S buffer was full
       log.debug("write failed")
       connection ! w
-//      context.stop(self)
 
     case VStreamClient.Stop =>
       log.debug("close connection")
@@ -192,10 +197,10 @@ object VStreamConnection {
     nrOfInstances = 2,
     supervisorStrategy = supervisionStrategy,
   )
-  */
+   */
 
   def apply(conf: VStreamConfiguration, begin: Iterable[VStreamMessage]): Props =
-    Props(new VStreamConnection(conf, begin))//.withRouter(routerConfig)
+    Props(new VStreamConnection(conf, begin)) //.withRouter(routerConfig)
 
   case class Ready(link: ActorRef)
 

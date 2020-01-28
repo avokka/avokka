@@ -6,8 +6,6 @@ import io.estatico.newtype.macros.newtype
 
 import scala.concurrent.Future
 
-import scala.language.{implicitConversions, higherKinds}
-
 package object arangodb {
 
   type FEE[T] = EitherT[Future, ArangoError, T]

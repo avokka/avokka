@@ -12,6 +12,8 @@ ThisBuild / scalacOptions ++= Seq(
   "-unchecked",
   "-deprecation",
   "-feature",
+  "-language:higherKinds",
+  "-language:implicitConversions",
   "-Ypartial-unification"
 )
 
@@ -67,5 +69,5 @@ lazy val arangodb = (project in file("arangodb"))
   )
 
 lazy val root = (project in file("."))
-  .aggregate(arangodb, velocypack, velocystream)
+  .aggregate(velocypack, velocystream, arangodb)
 

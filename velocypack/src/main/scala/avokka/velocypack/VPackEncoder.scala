@@ -11,7 +11,6 @@ import shapeless.HList
 // import magnolia._
 
 // import scala.language.experimental.macros
-// import scala.language.higherKinds
 import scala.annotation.implicitNotFound
 
 @implicitNotFound("Cannot find a velocypack encoder for ${T}")

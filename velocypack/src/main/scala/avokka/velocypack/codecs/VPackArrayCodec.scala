@@ -13,8 +13,6 @@ import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
 import VPackType.{ArrayUnindexedType, ArrayIndexedType, ArrayCompactType, ArrayEmptyType}
 import VPack.VArray
 
-import scala.language.higherKinds
-
 /**
   * Codec of velocypack arrays
   */

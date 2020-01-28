@@ -41,6 +41,12 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
 
   private var waitingForAck: Boolean = false
 
+  /*
+  private val buffer: mutable.Queue[VStreamMessage] = mutable.Queue.empty
+  private var messagesWaitingReply: Long = 0
+  private val maxMessagesInTransit: Long = 2
+*/
+
   override def preStart(): Unit = {
     manager ! Tcp.Connect(
       address,
@@ -117,29 +123,35 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
     queue.clear()
   }
 
-  def sending(connection: ActorRef): Receive = {
-    case VStreamClient.MessageSend(m) =>
-      log.debug("send message #{} {} bytes, waiting for ack = {}", m.id, m.data.length, waitingForAck)
-      reader forward VStreamConnectionReader.MessageInit(m.id)
-      val chunks = m.chunks(conf.chunkLength)
-      if (waitingForAck) {
-        log.debug("append chunks to queue")
-        queue ++= chunks
-      } else {
-        chunks.headOption.foreach { chunk =>
-          doSendChunk(connection, chunk)
-          log.debug("append remaining chunks to queue")
-          queue ++= chunks.tail
-        }
+  def sendMessage(connection: ActorRef, m: VStreamMessage): Unit = {
+    log.debug("send message #{} {} bytes, waiting for ack = {}", m.id, m.data.length, waitingForAck)
+    reader forward VStreamConnectionReader.MessageInit(m.id)
+    val chunks = m.chunks(conf.chunkLength)
+    if (waitingForAck) {
+      log.debug("append chunks to queue")
+      queue ++= chunks
+    } else {
+      chunks.headOption.foreach { chunk =>
+        doSendChunk(connection, chunk)
+        log.debug("append remaining chunks to queue")
+        queue ++= chunks.tail
       }
+    }
+
+  }
+
+  def sending(connection: ActorRef): Receive = {
+
+    case VStreamClient.MessageSend(m) =>
+      sendMessage(connection, m)
 
     case WriteAck =>
       log.debug("receive write ack")
       if (queue.isEmpty) {
         waitingForAck = false
       } else {
-        flushChunkQueue(connection, WriteAck)
-       //  doSendChunk(connection, queue.dequeue(), WriteAck)
+       // flushChunkQueue(connection, WriteAck)
+         doSendChunk(connection, queue.dequeue(), WriteAck)
       }
   }
 

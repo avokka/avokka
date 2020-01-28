@@ -32,7 +32,7 @@ object StreamNetFailTest {
 
     import system.dispatcher
 
-    val ls = Vector("FR", "DE", "IT", "IS", "GB", "DD").traverse(readCountryById)
+    val ls = Vector.fill(10)("FR").traverse(readCountryById)
 
     val r = for {
       v <- version

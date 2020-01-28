@@ -68,6 +68,6 @@ lazy val arangodb = (project in file("arangodb"))
 //      arango
   )
 
-lazy val root = (project in file("."))
+lazy val avokka = (project in file("."))
   .aggregate(velocypack, velocystream, arangodb)
 

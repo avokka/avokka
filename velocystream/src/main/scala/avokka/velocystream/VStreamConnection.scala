@@ -5,17 +5,10 @@ import java.net.InetSocketAddress
 import akka.actor._
 import akka.io.{IO, Tcp}
 import akka.pattern.BackoffSupervisor
-import akka.routing._
 import akka.util.{ByteString, ByteStringBuilder}
-import scodec.{Attempt, Codec, Err}
-import scodec.bits.BitVector
-import cats.syntax.foldable._
-import cats.instances.vector._
-import cats.instances.list._
-import scodec.interop.cats.BitVectorMonoidInstance
 
-import scala.concurrent.duration._
 import scala.collection.mutable
+import scala.concurrent.duration._
 
 /** Velocystream tcp connection
   *
@@ -41,11 +34,9 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
 
   private var waitingForAck: Boolean = false
 
-  /*
   private val buffer: mutable.Queue[VStreamMessage] = mutable.Queue.empty
   private var messagesWaitingReply: Long = 0
   private val maxMessagesInTransit: Long = 2
-*/
 
   override def preStart(): Unit = {
     manager ! Tcp.Connect(
@@ -72,7 +63,6 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
       context.watch(connection)
       connection ! Tcp.Register(reader, keepOpenOnPeerClosed = false, useResumeWriting = false)
       context.become(handshaking(connection))
-
   }
 
   def handshaking(connection: ActorRef): Receive = {
@@ -144,6 +134,28 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
 
     case VStreamClient.MessageSend(m) =>
       sendMessage(connection, m)
+
+      /*
+      if (messagesWaitingReply > maxMessagesInTransit) {
+        log.debug("buffer message waiting={} max={}", messagesWaitingReply, maxMessagesInTransit)
+        buffer.enqueue(m)
+      } else {
+        messagesWaitingReply += 1
+        sendMessage(connection, m)
+        log.debug("sent message waiting={}", messagesWaitingReply)
+      }
+       */
+
+    case VStreamConnectionReader.MessageReplied =>
+      /*
+      messagesWaitingReply -= 1
+      log.debug("replied message waiting={}", messagesWaitingReply)
+      if (buffer.nonEmpty && (messagesWaitingReply < maxMessagesInTransit)) {
+        log.debug("dequeue buffer")
+        messagesWaitingReply += 1
+        sendMessage(connection, buffer.dequeue())
+      }
+       */
 
     case WriteAck =>
       log.debug("receive write ack")

@@ -27,7 +27,7 @@ case class VStreamChunkX(
     * if this chunk contains the whole message (no buffer needed)
     * @return
     */
-  def isWhole: Boolean = first && index == 1
+  def single: Boolean = first && index == 1
 
   /**
     * the order of chunk in message

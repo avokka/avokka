@@ -30,12 +30,6 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
   /** read side of TCP connection */
   var reader: ActorRef = context.actorOf(VStreamReader.props(), name = "reader")
 
-  /** order chunks by message ID + position in order to interleave a little bit
-    * MessageId-Position : 1-0 -> [2-0|1-1] -> 3-0 -> [4-0|3-1] -> [5-0|3-2] -> ...
-    */
-  private val chunkOrdering: Ordering[VStreamChunk] =
-    Ordering.by[VStreamChunk, Long](chunk => chunk.messageId + chunk.x.position).reverse
-
   /** chunks waiting for write ack */
   private val queue: mutable.PriorityQueue[VStreamChunk] =
     mutable.PriorityQueue.empty(chunkOrdering)
@@ -204,7 +198,16 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
 }
 
 object VStreamConnection {
+
+  /** velocystream handshake */
   val VST_HANDSHAKE = ByteString("VST/1.1\r\n\r\n")
+
+  /** order chunks by message ID + position in order to interleave a little bit
+    * MessageId-Position : 1-0 -> [2-0|1-1] -> 3-0 -> [4-0|3-1] -> [5-0|3-2] -> ...
+    */
+  private val chunkOrdering: Ordering[VStreamChunk] =
+    Ordering.by[VStreamChunk, Long](chunk => chunk.messageId + chunk.x.position).reverse
+
 
   /*
   final def decider: SupervisorStrategy.Decider = { case t: Throwable ⇒ SupervisorStrategy.Restart }

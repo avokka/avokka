@@ -9,6 +9,11 @@ import scodec.interop.cats.ByteVectorMonoidInstance
 
 import scala.concurrent.duration._
 
+/** actor waiting for chunks from server and reply with complete message
+  *
+  * @param id message id
+  * @param replyTo actor which sent the request
+  */
 class VStreamMessageActor(id: Long, replyTo: ActorRef) extends Actor with ActorLogging {
   import VStreamMessageActor._
   import context.dispatcher
@@ -45,7 +50,7 @@ class VStreamMessageActor(id: Long, replyTo: ActorRef) extends Actor with ActorL
   override def receive: Actor.Receive = {
 
     // solo chunk, bypass stack computation
-    case VStreamReader.ChunkReceived(chunk) if chunk.x.isWhole =>
+    case VStreamReader.ChunkReceived(chunk) if chunk.x.single =>
       replyMessage(VStreamMessage(id, chunk.data))
 
     case VStreamReader.ChunkReceived(chunk) =>

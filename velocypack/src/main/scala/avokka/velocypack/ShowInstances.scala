@@ -4,7 +4,6 @@ import java.time.Instant
 
 import cats.Show
 import VPack._
-// import cats.syntax.contravariant._
 
 trait ShowInstances {
 
@@ -14,15 +13,15 @@ trait ShowInstances {
     case v @ VNull        => vpackNullShow.show(v)
     case v : VBoolean     => vpackBooleanShow.show(v)
     case v : VDouble      => vpackDoubleShow.show(v)
-    case VDate(value)     => s""""${Instant.ofEpochMilli(value)}""""
-    case VMinKey          => "-Infinity"
-    case VMaxKey          => "Infinity"
-    case VSmallint(value) => value.toString
-    case VLong(value)     => value.toString
-    case VString(value)   => s""""$value""""
-    case VBinary(value)   => s""""${value.toHex}""""
-    case v: VArray        => vpackArrayShow.show(v)
-    case v: VObject       => vpackObjectShow.show(v)
+    case v : VDate        => vpackDateShow.show(v)
+    case v @ VMinKey      => vpackMinKeyShow.show(v)
+    case v @ VMaxKey      => vpackMaxKeyShow.show(v)
+    case v : VSmallint    => vpackSmallIntShow.show(v)
+    case v : VLong        => vpackLongShow.show(v)
+    case v : VString      => vpackStringShow.show(v)
+    case v : VBinary      => vpackBinaryShow.show(v)
+    case v : VArray       => vpackArrayShow.show(v)
+    case v : VObject      => vpackObjectShow.show(v)
   }
 
   implicit val vpackNoneShow: Show[VNone.type] = Show.show { _ => "undefined" }
@@ -32,6 +31,17 @@ trait ShowInstances {
   implicit val vpackBooleanShow: Show[VBoolean] = Show.show { v => if (v.value) "true" else "false" }
 
   implicit val vpackDoubleShow: Show[VDouble] = Show.show { v => v.value.toString }
+
+  implicit val vpackDateShow: Show[VDate] = Show.show { v => s""""${Instant.ofEpochMilli(v.value)}"""" }
+
+  implicit val vpackMinKeyShow: Show[VMinKey.type] = Show.show { _ => "-Infinity" }
+  implicit val vpackMaxKeyShow: Show[VMaxKey.type] = Show.show { _ => "Infinity" }
+
+  implicit val vpackSmallIntShow: Show[VSmallint] = Show.show { v => v.value.toString }
+  implicit val vpackLongShow: Show[VLong] = Show.show { v => v.value.toString }
+
+  implicit val vpackStringShow: Show[VString] = Show.show { v => s""""${v.value}"""" }
+  implicit val vpackBinaryShow: Show[VBinary] = Show.show { v => s""""${v.value.toHex}"""" }
 
   implicit val vpackArrayShow: Show[VArray] = Show.show { v =>
     v.values.map(vpackShow.show).toList.mkString("[", ",", "]")

@@ -13,21 +13,30 @@ class VStreamMessageActor(id: Long, replyTo: ActorRef) extends Actor with ActorL
   import VStreamMessageActor._
   import context.dispatcher
 
+  /** number of chunks expected to complete message */
   private var expected: Option[Long] = None
 
-  private val stack: mutable.ListBuffer[VStreamChunk] = mutable.ListBuffer.empty
+  /** stack of received chunks */
+  private val buffer: mutable.ListBuffer[VStreamChunk] = mutable.ListBuffer.empty
 
+  /** suicide after 1 minute without any complete message */
   private val kill = context.system.scheduler.scheduleOnce(1.minute, self, PoisonPill)
   private val replyFailure = Status.Failure(new IllegalStateException(s"message #$id did not receive a response"))
 
   override def postStop(): Unit = {
-    stack.clear()
+    // cleanup
+    buffer.clear()
+    // no reply sent, send a failure
     if (!kill.isCancelled) {
       replyTo ! replyFailure
     }
   }
 
-  def sendMessageReply(message: VStreamMessage): Unit = {
+  /** replies the complete message to the asker
+    *
+    * @param message complete message
+    */
+  def replyMessage(message: VStreamMessage): Unit = {
     replyTo ! Status.Success(message)
     kill.cancel()
     context.stop(self)
@@ -35,22 +44,22 @@ class VStreamMessageActor(id: Long, replyTo: ActorRef) extends Actor with ActorL
 
   override def receive: Actor.Receive = {
 
-    case VStreamConnectionReader.ChunkReceived(chunk) if chunk.x.isWhole =>
-      // solo chunk, bypass stack computation
-      sendMessageReply(VStreamMessage(id, chunk.data))
+    // solo chunk, bypass stack computation
+    case VStreamReader.ChunkReceived(chunk) if chunk.x.isWhole =>
+      replyMessage(VStreamMessage(id, chunk.data))
 
-    case VStreamConnectionReader.ChunkReceived(chunk) =>
+    case VStreamReader.ChunkReceived(chunk) =>
       // first chunk index is the total number of expected chunks
       if (chunk.x.first) {
         expected = Some(chunk.x.index)
       }
       // push chunk in stack
-      stack += chunk
+      buffer += chunk
       // check completeness
-      if (expected.contains(stack.length.toLong)) {
+      if (expected.contains(buffer.length.toLong)) {
         // reorder bytes by chunk position
-        val bytes = stack.result.sorted(chunkOrder).foldMap(_.data)
-        sendMessageReply(VStreamMessage(id, bytes))
+        val bytes = buffer.result.sorted(chunkOrder).foldMap(_.data)
+        replyMessage(VStreamMessage(id, bytes))
       }
 
   }

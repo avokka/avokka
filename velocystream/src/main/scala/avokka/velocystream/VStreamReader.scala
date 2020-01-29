@@ -14,52 +14,62 @@ import scala.collection.mutable
   * accumulates bitvector and tries to decodes chunks,
   * then send those chunks to message actor children
   */
-class VStreamConnectionReader() extends Actor with ActorLogging {
-  import VStreamConnectionReader._
+class VStreamReader() extends Actor with ActorLogging {
+  import VStreamReader._
 
+  /** buffer of received bytes */
   val buffer: mutable.ListBuffer[BitVector] = mutable.ListBuffer.empty
-//  val buffer: ByteStringBuilder = new ByteStringBuilder
 
+  /** the actor name of message decoder
+    *
+    * @param id message ID
+    * @return actor name
+    */
   private def messageName(id: Long) = s"message-$id"
 
   override def receive: Receive = {
     case MessageInit(id) =>
+      // spawn an actor waiting to decode the response
       context.actorOf(VStreamMessageActor.props(id, sender()), messageName(id))
 
     case Tcp.Received(data) =>
       val connection = sender()
       log.debug("received data {} bytes", data.length)
-      // buffer.append(data)
       buffer += BitVector(data.asByteBuffer)
 
-      val bits = BitVector.concat(buffer.result()) //.reduce(_ ++ _)
-      // val bits = BitVector(buffer.result())
+      // try to decode incoming bytes as chunks
+      val bits = BitVector.concat(buffer.result())
       Codec.decodeCollect(VStreamChunk.codec, None)(bits) match {
+
+        // success decode
         case Attempt.Successful(result) => {
           val chunks = result.value
           log.debug("successful decode {}", chunks.map(_.messageId))
           chunks.foreach { chunk =>
             log.debug("decoded {}: {}", chunk.messageId, chunk.data.bits.asVPack.map(r => Show[VPack].show(r)))
+            // send each chunk to corresponding message decoder actor
             context.child(messageName(chunk.messageId)).foreach { child =>
               log.debug("send chunk to child {}", child)
               child ! ChunkReceived(chunk)
-              /*
-              if (chunk.x.first) {
-                context.parent ! MessageReplied
-              }
-               */
             }
           }
+
+          // reset buffer and put remaining bytes in it
           buffer.clear()
           if (result.remainder.nonEmpty) {
             buffer += result.remainder
-           // buffer.append(ByteString(result.remainder.toByteBuffer))
           }
+
+          // pull more bytes
           connection ! Tcp.ResumeReading
         }
+
+        // failure because of insufficents bits, keep reading
         case Attempt.Failure(cause: Err.InsufficientBits) =>
           log.debug("insufficent bits needed={} have={}", cause.needed, cause.have)
           connection ! Tcp.ResumeReading
+
+        // failure in protocol, stop connection
         case Attempt.Failure(cause) =>
           log.error(cause.toString())
           connection ! Tcp.Close
@@ -68,11 +78,11 @@ class VStreamConnectionReader() extends Actor with ActorLogging {
   }
 }
 
-object VStreamConnectionReader {
-  def props(): Props = Props(new VStreamConnectionReader())
+object VStreamReader {
+  def props(): Props = Props(new VStreamReader())
 
   case class MessageInit(id: Long)
-  case object MessageReplied
+//  case object MessageReplied
   case class ChunkReceived(chunk: VStreamChunk)
 
 }

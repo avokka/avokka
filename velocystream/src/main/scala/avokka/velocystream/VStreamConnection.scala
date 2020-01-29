@@ -5,43 +5,54 @@ import java.net.InetSocketAddress
 import akka.actor._
 import akka.io.{IO, Tcp}
 import akka.pattern.BackoffSupervisor
-import akka.util.{ByteString, ByteStringBuilder}
+import akka.util.ByteString
 
 import scala.collection.mutable
 import scala.concurrent.duration._
 
-/** Velocystream tcp connection
+/** Velocystream TCP connection
   *
+  * @param conf configuration
+  * @param begin first messages to send (authorization for example)
   */
 class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessage])
     extends Actor
-//    with Stash
     with ActorLogging {
   import VStreamConnection._
   import context.system
 
+  /** TCP manager actor */
   val manager: ActorRef = IO(Tcp)
 
+  /** server remote address */
   private val address: InetSocketAddress = InetSocketAddress.createUnresolved(conf.host, conf.port)
 
-  var reader: ActorRef = context.actorOf(VStreamConnectionReader.props(), name = "reader")
+  /** read side of TCP connection */
+  var reader: ActorRef = context.actorOf(VStreamReader.props(), name = "reader")
 
-  //  val queue: mutable.Queue[VStreamChunk] = mutable.Queue.empty
+  /** order chunks by message ID + position in order to interleave a little bit
+    * MessageId-Position : 1-0 -> [2-0|1-1] -> 3-0 -> [4-0|3-1] -> [5-0|3-2] -> ...
+    */
   private val chunkOrdering: Ordering[VStreamChunk] =
     Ordering.by[VStreamChunk, Long](chunk => chunk.messageId + chunk.x.position).reverse
+
+  /** chunks waiting for write ack */
   private val queue: mutable.PriorityQueue[VStreamChunk] =
     mutable.PriorityQueue.empty(chunkOrdering)
 
+  /** flag to stop sending chunks */
   private var waitingForAck: Boolean = false
 
+  /*
   private val buffer: mutable.Queue[VStreamMessage] = mutable.Queue.empty
   private var messagesWaitingReply: Long = 0
   private val maxMessagesInTransit: Long = 2
+*/
 
   override def preStart(): Unit = {
     manager ! Tcp.Connect(
       address,
-      timeout = Some(10.seconds),
+      timeout = Some(conf.connectTimeout),
       /*
       options = List(
         Tcp.SO.KeepAlive(true),
@@ -103,7 +114,7 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
   private def flushChunkQueue(connection: ActorRef, ack: Tcp.Event): Unit = {
     val chunks: Vector[VStreamChunk] = queue.dequeueAll
     log.debug("flush chunk queue #{} {} bytes", chunks.map(c => s"${c.messageId}-${c.x.position}"), chunks.map(_.length).sum)
-    val bs = new ByteStringBuilder()
+    val bs = ByteString.newBuilder
     chunks.foreach { chunk =>
       bs.append(chunkToByteString(chunk))
     }
@@ -115,7 +126,7 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
 
   def sendMessage(connection: ActorRef, m: VStreamMessage): Unit = {
     log.debug("send message #{} {} bytes, waiting for ack = {}", m.id, m.data.length, waitingForAck)
-    reader forward VStreamConnectionReader.MessageInit(m.id)
+    reader forward VStreamReader.MessageInit(m.id)
     val chunks = m.chunks(conf.chunkLength)
     if (waitingForAck) {
       log.debug("append chunks to queue")
@@ -144,10 +155,8 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
         sendMessage(connection, m)
         log.debug("sent message waiting={}", messagesWaitingReply)
       }
-       */
 
-    case VStreamConnectionReader.MessageReplied =>
-      /*
+    case VStreamReader.MessageReplied =>
       messagesWaitingReply -= 1
       log.debug("replied message waiting={}", messagesWaitingReply)
       if (buffer.nonEmpty && (messagesWaitingReply < maxMessagesInTransit)) {

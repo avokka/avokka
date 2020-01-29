@@ -3,21 +3,25 @@ package avokka.velocypack
 import java.time.Instant
 
 import VPack._
-import cats.Show
-// import cats.syntax.show._
+import cats.syntax.show._
 import org.scalatest.{FlatSpec, Matchers}
 import scodec.bits.ByteVector
 
 class VPackShowSpec extends FlatSpec with Matchers {
-  val s: Show[VPack] = implicitly
 
   "show" should "produce json" in {
-    println(s.show(VDate(Instant.now().toEpochMilli)))
-    println(s.show(VBinary(ByteVector(50, 10))))
-    println(s.show(VString("a")))
-    // println(VString("a").show)
-    println(s.show(VArray(VString("a"), VTrue, VSmallint(1))))
-    println(s.show(VObject(Map("b" -> VTrue, "a" -> VArray(VSmallint(0), VSmallint(1))))))
-    println(s.show(VDouble(12.34)))
+    assertResult("\"a\"")(VString("a").show)
+    assertResult("12.34")(VDouble(12.34).show)
+
+    val dt = "2020-01-29T15:45:10Z"
+    assertResult(s""""$dt"""")(VDate(Instant.parse(dt).toEpochMilli).show)
+
+    assertResult("\"5010\"")(VBinary(ByteVector(0x50, 0x10)).show)
+
+    assertResult("[\"a\",true,1]")(VArray(VString("a"), VTrue, VSmallint(1)).show)
+    assertResult("{\"b\":true,\"a\":[0,1]}")(VObject(Map("b" -> VTrue, "a" -> VArray(VSmallint(0), VSmallint(1)))).show)
+
+    assertResult("null")((VNull: VPack).show)
+    assertResult("{}")((VObject.empty: VPack).show)
   }
 }

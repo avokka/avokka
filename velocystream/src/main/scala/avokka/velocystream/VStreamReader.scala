@@ -2,6 +2,7 @@ package avokka.velocystream
 
 import akka.actor._
 import akka.io.Tcp
+import akka.util.ByteString
 import scodec.{Attempt, Codec, Err}
 import scodec.bits.BitVector
 import avokka.velocypack._
@@ -18,7 +19,7 @@ class VStreamReader() extends Actor with ActorLogging {
   import VStreamReader._
 
   /** buffer of received bytes */
-  val buffer: mutable.ListBuffer[BitVector] = mutable.ListBuffer.empty
+  var buffer: ByteString = ByteString.empty
 
   /** the actor name of message decoder
     *
@@ -35,10 +36,10 @@ class VStreamReader() extends Actor with ActorLogging {
     case Tcp.Received(data) =>
       val connection = sender()
       log.debug("received data {} bytes", data.length)
-      buffer += BitVector(data.asByteBuffer)
+      buffer ++= data
 
       // try to decode incoming bytes as chunks
-      val bits = BitVector.concat(buffer.result())
+      val bits = BitVector.view(buffer.asByteBuffer)
       Codec.decodeCollect(VStreamChunk.codec, None)(bits) match {
 
         // success decode
@@ -54,11 +55,13 @@ class VStreamReader() extends Actor with ActorLogging {
             }
           }
 
-          // reset buffer and put remaining bytes in it
-          buffer.clear()
+          // reset buffer to remaining bytes of decoder
+          buffer = ByteString(result.remainder.toByteBuffer) // ByteString.empty //.clear()
+          /*
           if (result.remainder.nonEmpty) {
-            buffer += result.remainder
+            buffer ++= result.remainder.toByteArray
           }
+           */
 
           // pull more bytes
           connection ! Tcp.ResumeReading

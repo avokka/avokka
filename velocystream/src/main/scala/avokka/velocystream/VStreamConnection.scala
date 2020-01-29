@@ -171,8 +171,8 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
       if (queue.isEmpty) {
         waitingForAck = false
       } else {
-       // flushChunkQueue(connection, WriteAck)
-         doSendChunk(connection, queue.dequeue(), WriteAck)
+        flushChunkQueue(connection, WriteAck)
+       //  doSendChunk(connection, queue.dequeue(), WriteAck)
       }
   }
 

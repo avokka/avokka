@@ -11,6 +11,7 @@ import cats.instances.future._
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object StreamNetFailTest {
 
@@ -29,8 +30,6 @@ object StreamNetFailTest {
     val version = session(Version())
     val versionDetails = session(Version(details = true))
     val fr = readCountryById("FR")
-
-    import system.dispatcher
 
     val ls = Vector.fill(10)("FR").traverse(readCountryById)
 

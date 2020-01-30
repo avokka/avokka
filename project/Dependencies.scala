@@ -20,11 +20,6 @@ object Dependencies {
     "ch.qos.logback" % "logback-classic" % "1.2.3"
   )
 
-  /*
-  val log = Seq(
-    "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
-  )
-*/
   val scodec = Seq(
     "org.scodec" %% "scodec-bits" % "1.1.12",
     "org.scodec" %% "scodec-core" % "1.11.4",

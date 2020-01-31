@@ -61,24 +61,24 @@ class ArangoSession(conf: ArangoConfiguration)(
       request: ArangoRequest[P]): FEE[ArangoResponse[O]] = {
     for {
       hBits <- EitherT.fromEither[Future](request.header.toVPackBits.leftMap(ArangoError.VPack))
-      _ = println("arango REQ head", hBits.asVPack.show)
+      _ = println("arango REQ head", hBits.asVPackValue.show)
       pBits <- EitherT.fromEither[Future](request.body.toVPackBits.leftMap(ArangoError.VPack))
-      _ = if (pBits.nonEmpty) println("arango REQ body", pBits.asVPack.show)
+      _ = if (pBits.nonEmpty) println("arango REQ body", pBits.asVPackValue.show)
       message <- askClient(hBits ++ pBits)
 //      _ = system.log.debug("arango response message {}", message.data.bits.asVPack.show)
-      _ = println("arango RES head", message.data.bits.asVPack.show)
-      head <- EitherT.fromEither[Future](message.data.bits.as[Header].leftMap(ArangoError.VPack))
-      _ = if (head.remainder.nonEmpty) println("arango RES body", head.remainder.asVPack.show)
+      _ = println("arango RES head", message.data.bits.asVPackValue.show)
+      head <- EitherT.fromEither[Future](message.data.bits.asVPack[Header].leftMap(ArangoError.VPack))
+      _ = if (head.remainder.nonEmpty) println("arango RES body", head.remainder.asVPackValue.show)
       response <- EitherT.fromEither[Future](if (head.remainder.isEmpty) {
         (ArangoError.Head(head.value): ArangoError).asLeft
       } else if (head.value.responseCode >= 400) {
         head.remainder
-          .as[ResponseError]
+          .asVPack[ResponseError]
           .leftMap(ArangoError.VPack)
           .flatMap(body => ArangoError.Resp(head.value, body.value).asLeft)
       } else {
         head.remainder
-          .as[O]
+          .asVPack[O]
           .leftMap(ArangoError.VPack)
           .flatMap(body => ArangoResponse(head.value, body.value).asRight)
       })

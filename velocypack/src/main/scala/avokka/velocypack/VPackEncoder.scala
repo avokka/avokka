@@ -6,7 +6,8 @@ import java.util.UUID
 import avokka.velocypack.VPack._
 import cats.Contravariant
 import cats.data.Chain
-import scodec.bits.ByteVector
+import cats.syntax.either._
+import scodec.bits.{BitVector, ByteVector}
 import shapeless.HList
 // import magnolia._
 
@@ -24,6 +25,15 @@ trait VPackEncoder[T] { self =>
   def mapObject(f: VObject => VObject): VPackEncoder[T] = map {
     case v: VObject => f(v)
     case v => v
+  }
+
+  /** encode value to bitvector
+    *
+    * @param t value
+    * @return either codec error or bitvector
+    */
+  def bits(t: T): Result[BitVector] = {
+    codecs.vpackEncoder.encode(encode(t)).toEither.leftMap(VPackError.Codec)
   }
 }
 

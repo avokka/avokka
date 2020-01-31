@@ -10,7 +10,9 @@ import cats.instances.either._
 import cats.instances.list._
 import cats.syntax.either._
 import cats.syntax.traverse._
-import scodec.bits.ByteVector
+import scodec.DecodeResult
+import scodec.bits.{BitVector, ByteVector}
+import scodec.interop.cats._
 import shapeless.HList
 // import magnolia._
 
@@ -26,6 +28,14 @@ trait VPackDecoder[T] { self =>
 
   def emap[U](f: T => Result[U]): VPackDecoder[U] = (v: VPack) => decode(v).flatMap(f)
 
+  /** decodes vpack bitvector to T
+    * @return either error or (T value and remainder)
+    */
+  def decode(bits: BitVector): Result[DecodeResult[T]] = codecs.vpackDecoder
+      .decode(bits)
+      .toEither
+      .leftMap(VPackError.Codec)
+      .flatMap(_.traverse(decode))
 }
 
 object VPackDecoder {

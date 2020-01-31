@@ -1,11 +1,8 @@
 package avokka.velocypack
 
-import cats.instances.either._
 import cats.syntax.either._
-import cats.syntax.traverse._
 import scodec.DecodeResult
 import scodec.bits.BitVector
-import scodec.interop.cats._
 
 trait SyntaxImplicits {
 
@@ -23,15 +20,16 @@ trait SyntaxImplicits {
       * @param encoder implicit encoder
       * @return
       */
-    def toVPackBits(implicit encoder: VPackEncoder[T]): Result[BitVector] = {
-      val vpack = encoder.encode(value)
-      codecs.vpackEncoder.encode(vpack).toEither.leftMap(VPackError.Codec)
-    }
+    def toVPackBits(implicit encoder: VPackEncoder[T]): Result[BitVector] = encoder.bits(value)
   }
 
   implicit class SyntaxFromVPackBits(bits: BitVector) {
 
-    def asVPack: Result[VPack] = codecs.vpackDecoder.decodeValue(bits).toEither.leftMap(VPackError.Codec)
+    /** decodes to vpack value (internal use only because this looses remainder) */
+    private[avokka] def asVPackValue: Result[VPack] = codecs.vpackDecoder
+      .decodeValue(bits)
+      .toEither
+      .leftMap(VPackError.Codec)
 
     /**
       * decodes vpack bitvector to T
@@ -39,13 +37,7 @@ trait SyntaxImplicits {
       * @tparam T decoded type
       * @return either error or (T value and remainder)
       */
-    def as[T](implicit decoder: VPackDecoder[T]): Result[DecodeResult[T]] = {
-      codecs.vpackDecoder
-        .decode(bits)
-        .toEither
-        .leftMap(VPackError.Codec)
-        .flatMap(_.traverse(decoder.decode))
-    }
+    def asVPack[T](implicit decoder: VPackDecoder[T]): Result[DecodeResult[T]] = decoder.decode(bits)
   }
 
 }

@@ -2,7 +2,7 @@ import Dependencies._
 
 val scala212Version = "2.12.10"
 
-ThisBuild / organization := "com.bicou"
+ThisBuild / organization := "avokka"
 ThisBuild / version := "1.0-SNAPSHOT"
 ThisBuild / scalaVersion := scala212Version
 

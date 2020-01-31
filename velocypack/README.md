@@ -37,19 +37,19 @@ bits.asVPack[Vector[Long]].right.get.value   // res4: Vector[Long] = Vector(3, 4
 
 ## Supported types
 
-| Scala / Java                                                     | avokka VPack              | Velocypack                                  |
-|:-----------------------------------------------------------------|:--------------------------|:--------------------------------------------|
-| Boolean                                                          | VBoolean                  | true or false                               |
-| Long Short, Int                                                  | VLong, VSmallInt          | signed int, unsigned int, small int         |
-| Double                                                           | VDouble, VLong, VSmallInt | double, signed int, unsigned int, small int |
-| String                                                           | VString                   | small string, long string                   |
-| Instant                                                          | VDate, VLong, VString     | utc date, int(millis), string(iso)          |
-| Array[Byte], ByteVector                                          | VBinary, VString          | binary blob, string(hex)                    |
-| UUID                                                             | VBinary, VString          | binary blob, string                         |
-| Option[T]                                                        | VNull, VPack              | null, vpack                                 |
-| Vector[T], List[T], Seq[T], Set[T], Iterable[T], Chain[T], HList | VArray                    | array                                       |
-| Map[String, T], case classes                                     | VObject                   | object                                      |
-| Unit                                                             | VNone                     | _empty_                                     |
+| Scala / Java                                                                 | avokka VPack              | Velocypack                                  |
+|:-----------------------------------------------------------------------------|:--------------------------|:--------------------------------------------|
+| Boolean                                                                      | VBoolean                  | true or false                               |
+| Long Short, Int                                                              | VLong, VSmallInt          | signed int, unsigned int, small int         |
+| Double                                                                       | VDouble, VLong, VSmallInt | double, signed int, unsigned int, small int |
+| String                                                                       | VString                   | small string, long string                   |
+| Instant                                                                      | VDate, VLong, VString     | utc date, int(millis), string(iso)          |
+| Array\[Byte\], ByteVector                                                    | VBinary, VString          | binary blob, string(hex)                    |
+| UUID                                                                         | VBinary, VString          | binary blob, string                         |
+| Option\[T\]                                                                  | VNull, VPack              | null, vpack                                 |
+| Vector\[T\], List\[T\], Seq\[T\], Set\[T\], Iterable\[T\], Chain\[T\], HList | VArray                    | array                                       |
+| Map\[String, T\], case classes                                               | VObject                   | object                                      |
+| Unit                                                                         | VNone                     | _empty_                                     |
 
 ## Case class derivation
 

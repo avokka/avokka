@@ -1,2 +1,17 @@
 # avokka
-ArangoDB client in scala with help from scodec for velocypack and akka for velocystream
+
+ArangoDB client written in pure scala
+
+## Packages
+
+### avokka-velocypack
+
+[Velocypack](https://github.com/arangodb/velocypack) codec for scala built with scodec
+
+### avokka-velocystream
+
+[Velocystream](https://github.com/arangodb/velocystream) client (VST only) built with akka IO
+
+### avokka-arangodb
+
+[ArangoDB](https://github.com/arangodb/arangodb) client

@@ -1,4 +1,4 @@
-# avokka
+# avokka [![Build Status](https://travis-ci.org/avokka/avokka.svg?branch=master)](https://travis-ci.org/avokka/avokka)
 
 ArangoDB client written in pure scala
 

@@ -3,7 +3,6 @@ import Dependencies._
 val scala212Version = "2.12.10"
 
 ThisBuild / organization := "avokka"
-ThisBuild / version := "1.0-SNAPSHOT"
 ThisBuild / scalaVersion := scala212Version
 
 ThisBuild / scalacOptions ++= Seq(
@@ -21,6 +20,8 @@ ThisBuild / javacOptions ++= Seq(
   "-source", "1.8",
   "-target", "1.8",
 )
+
+ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 
 lazy val velocypack = (project in file("velocypack"))
   .settings(
@@ -74,3 +75,4 @@ lazy val avokka = (project in file("."))
     publishArtifact := false
   )
 
+bintrayOrganization := Some("avokka")

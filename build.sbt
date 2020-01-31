@@ -70,4 +70,7 @@ lazy val arangodb = (project in file("arangodb"))
 
 lazy val avokka = (project in file("."))
   .aggregate(velocypack, velocystream, arangodb)
+  .settings(
+    publishArtifact := false
+  )
 

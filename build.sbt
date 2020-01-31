@@ -3,6 +3,7 @@ import Dependencies._
 val scala212Version = "2.12.10"
 
 ThisBuild / organization := "avokka"
+ThisBuild / bintrayOrganization := Some("avokka")
 ThisBuild / scalaVersion := scala212Version
 
 ThisBuild / scalacOptions ++= Seq(
@@ -26,6 +27,7 @@ ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 lazy val velocypack = (project in file("velocypack"))
   .settings(
     name := "avokka-velocypack",
+    description := "velocypack codec (scodec, shapeless, cats)",
     libraryDependencies ++=
       cats ++
       shapeless ++
@@ -47,6 +49,7 @@ lazy val velocystream = (project in file("velocystream"))
   .dependsOn(velocypack)
   .settings(
     name := "avokka-velocystream",
+    description := "velocystream client (akka IO)",
     libraryDependencies ++=
       akka ++
       testSuite ++
@@ -60,6 +63,7 @@ lazy val arangodb = (project in file("arangodb"))
   .aggregate(velocypack, velocystream)
   .settings(
     name := "avokka-arangodb",
+    description := "ArangoDB client",
     addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full),
     libraryDependencies ++=
 //      enumeratum ++
@@ -75,5 +79,3 @@ lazy val avokka = (project in file("."))
     publishArtifact := false,
     skip in publish := true
   )
-
-bintrayOrganization := Some("avokka")

@@ -42,7 +42,7 @@ object Hello {
 
   def main(args: Array[String]): Unit = {
 
-    val session = new ArangoSession(ArangoConfiguration(ConfigFactory.load()))
+    val session = new ArangoSession(ArangoConfiguration.load())
 //    val auth = session(ArangoRequest.Authentication())
 
     val db = new ArangoDatabase(session, DatabaseName("v10"))

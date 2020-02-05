@@ -19,7 +19,7 @@ object StreamNetFailTest {
   implicit val mat: ActorMaterializer = ActorMaterializer()
 
   def main(args: Array[String]): Unit = {
-    val session = new ArangoSession(ArangoConfiguration(ConfigFactory.load()))
+    val session = new ArangoSession(ArangoConfiguration.load())
     val db = new ArangoDatabase(session, DatabaseName("v10"))
     val countries = new ArangoCollection(db, CollectionName("countries"))
 

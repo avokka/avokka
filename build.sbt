@@ -31,18 +31,9 @@ lazy val velocypack = (project in file("velocypack"))
     libraryDependencies ++=
       cats ++
       shapeless ++
-      /*
-      magnolia ++
-      Seq(
-        "org.scala-lang"    % "scala-reflect"     % scalaVersion.value,
-        "org.scala-lang"    % "scala-compiler"    % scalaVersion.value,
-      ) ++
-       */
       scodec ++
       testSuite ++
-//      circe ++
-      arango.map(_ % Test) ++
-      logback.map(_ % Test)
+      arango.map(_ % Test)
   )
 
 lazy val velocystream = (project in file("velocystream"))
@@ -52,10 +43,7 @@ lazy val velocystream = (project in file("velocystream"))
     description := "velocystream client (akka IO)",
     libraryDependencies ++=
       akka ++
-      testSuite ++
-//      arango ++
-      logback.map(_ % Test) ++
-      Seq("com.typesafe.akka" %% "akka-slf4j" % akkaVersion % Test),
+      testSuite
 )
 
 lazy val arangodb = (project in file("arangodb"))
@@ -69,8 +57,7 @@ lazy val arangodb = (project in file("arangodb"))
 //      enumeratum ++
       newtype ++
       pureconfig ++
-      Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value) 
-//      arango
+      logging
   )
 
 lazy val avokka = (project in file("."))

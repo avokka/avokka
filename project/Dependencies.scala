@@ -16,9 +16,8 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % Test
   )
 
-  val logback = Seq(
-    "ch.qos.logback" % "logback-classic" % "1.2.3"
-  )
+  val logging = Seq("com.typesafe.scala-logging" %% "scala-logging" % "3.9.2")
+  val logback = Seq("ch.qos.logback" % "logback-classic" % "1.2.3")
 
   val scodec = Seq(
     "org.scodec" %% "scodec-bits" % "1.1.12",
@@ -28,13 +27,6 @@ object Dependencies {
 
   val arango = Seq("com.arangodb" % "arangodb-java-driver" % "6.4.1")
 
-  val circeVersion = "0.12.3"
-  val circe = Seq(
-    "io.circe" %% "circe-core",
-    "io.circe" %% "circe-generic",
-    "io.circe" %% "circe-parser"
-  ).map(_ % circeVersion)
-
   val enumeratumVersion = "1.5.13"
   val enumeratum = Seq("com.beachape" %% "enumeratum" % enumeratumVersion)
 
@@ -42,5 +34,4 @@ object Dependencies {
 
   val pureconfig = Seq("com.github.pureconfig" %% "pureconfig" % "0.12.2")
 
-  val magnolia = Seq("com.propensive" %% "magnolia" % "0.12.6")
 }

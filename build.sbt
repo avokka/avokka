@@ -28,12 +28,12 @@ lazy val velocypack = (project in file("velocypack"))
   .settings(
     name := "avokka-velocypack",
     description := "velocypack codec (scodec, shapeless, cats)",
-    libraryDependencies ++=
-      cats ++
-      shapeless ++
+    libraryDependencies ++= Seq(
+      cats,
+      shapeless,
+    ) ++
       scodec ++
-      testSuite ++
-      arango.map(_ % Test)
+      testSuite :+ arango % Test
   )
 
 lazy val velocystream = (project in file("velocystream"))
@@ -53,11 +53,12 @@ lazy val arangodb = (project in file("arangodb"))
     name := "avokka-arangodb",
     description := "ArangoDB client",
     addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full),
-    libraryDependencies ++=
-//      enumeratum ++
-      newtype ++
-      pureconfig ++
-      logging
+    libraryDependencies ++= Seq(
+//      enumeratum,
+      newtype,
+      pureconfig,
+      logging,
+    )
   )
 
 lazy val avokka = (project in file("."))

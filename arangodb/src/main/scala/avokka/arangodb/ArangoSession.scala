@@ -3,9 +3,7 @@ package avokka.arangodb
 import java.util.concurrent.atomic.AtomicLong
 
 import akka.actor.ActorSystem
-import akka.pattern.{BackoffOpts, BackoffSupervisor, ask}
-import akka.stream.Materializer
-import akka.stream.scaladsl.Source
+import akka.pattern.ask
 import akka.util.Timeout
 import avokka.arangodb.ArangoResponse.Header
 import avokka.velocypack._
@@ -13,6 +11,7 @@ import avokka.velocystream._
 import cats.data.EitherT
 import cats.instances.future._
 import cats.syntax.either._
+import com.typesafe.scalalogging.StrictLogging
 import scodec.bits.BitVector
 
 import scala.concurrent.Future
@@ -20,7 +19,7 @@ import scala.concurrent.duration._
 
 class ArangoSession(conf: ArangoConfiguration)(
     implicit val system: ActorSystem
-) extends ApiContext[ArangoSession] {
+) extends ApiContext[ArangoSession] with StrictLogging {
 
   override lazy val session: ArangoSession = this
 
@@ -61,14 +60,13 @@ class ArangoSession(conf: ArangoConfiguration)(
       request: ArangoRequest[P]): FEE[ArangoResponse[O]] = {
     for {
       hBits <- EitherT.fromEither[Future](request.header.toVPackBits.leftMap(ArangoError.VPack))
-      _ = println("arango REQ head", hBits.asVPackValue.show)
+      _ = logger.debug("REQ head {}", hBits.asVPackValue.show)
       pBits <- EitherT.fromEither[Future](request.body.toVPackBits.leftMap(ArangoError.VPack))
-      _ = if (pBits.nonEmpty) println("arango REQ body", pBits.asVPackValue.show)
+      _ = if (pBits.nonEmpty) logger.debug("REQ body {}", pBits.asVPackValue.show)
       message <- askClient(hBits ++ pBits)
-//      _ = system.log.debug("arango response message {}", message.data.bits.asVPack.show)
-      _ = println("arango RES head", message.data.bits.asVPackValue.show)
+      _ = logger.debug("RES head {}", message.data.bits.asVPackValue.show)
       head <- EitherT.fromEither[Future](message.data.bits.asVPack[Header].leftMap(ArangoError.VPack))
-      _ = if (head.remainder.nonEmpty) println("arango RES body", head.remainder.asVPackValue.show)
+      _ = if (head.remainder.nonEmpty) logger.debug("RES body {}", head.remainder.asVPackValue.show)
       response <- EitherT.fromEither[Future](if (head.remainder.isEmpty) {
         (ArangoError.Head(head.value): ArangoError).asLeft
       } else if (head.value.responseCode >= 400) {

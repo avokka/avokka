@@ -3,6 +3,10 @@ package api
 
 import avokka.velocypack._
 
+case class CollectionProperties(
+    name: CollectionName
+)
+
 object CollectionProperties { self =>
 
   /**
@@ -45,17 +49,17 @@ object CollectionProperties { self =>
     * @param waitForSync If *true* then creating, changing or removing documents will wait until the data has been synchronized to disk.
     */
   case class Response(
-      doCompact: Option[Boolean],
+      doCompact: Option[Boolean] = None,
       globallyUniqueId: Option[String],
       id: Option[String],
-      indexBuckets: Option[Int],
+      indexBuckets: Option[Int] = None,
       isSystem: Boolean,
-      isVolatile: Option[Boolean],
-      journalSize: Option[Int],
+      isVolatile: Option[Boolean] = None,
+      journalSize: Option[Int] = None,
       keyOptions: KeyOptions,
       name: CollectionName,
-      status: Option[CollectionStatus],
-      statusString: Option[String],
+      status: Option[CollectionStatus] = None,
+      statusString: Option[String] = None,
       `type`: Option[CollectionType],
       waitForSync: Boolean,
       minReplicationFactor: Option[Int] = None,
@@ -70,15 +74,16 @@ object CollectionProperties { self =>
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoderWithDefaults
   }
 
-  implicit val api: Api.EmptyBody.Aux[ArangoCollection, CollectionProperties.type, Response] =
-    new Api.EmptyBody[ArangoCollection, CollectionProperties.type] {
+  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionProperties, Response] =
+    new Api.EmptyBody[ArangoDatabase, CollectionProperties] {
       override type Response = self.Response
-      override def header(collection: ArangoCollection,
-                          command: CollectionProperties.type): ArangoRequest.HeaderTrait = ArangoRequest.Header(
-        database = collection.database.name,
-        requestType = RequestType.GET,
-        request = s"/_api/collection/${collection.name}/properties",
-      )
+      override def header(database: ArangoDatabase,
+                          command: CollectionProperties): ArangoRequest.HeaderTrait =
+        ArangoRequest.Header(
+          database = database.name,
+          requestType = RequestType.GET,
+          request = s"/_api/collection/${command.name}/properties",
+        )
     }
 
 }

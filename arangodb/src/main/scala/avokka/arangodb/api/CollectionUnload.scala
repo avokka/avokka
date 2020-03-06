@@ -1,16 +1,22 @@
 package avokka.arangodb
 package api
 
+case class CollectionUnload(
+    name: CollectionName
+)
+
 object CollectionUnload {
 
-  implicit val api: Api.EmptyBody.Aux[ArangoCollection, CollectionUnload.type, CollectionInfo.Response] =
-    new Api.EmptyBody[ArangoCollection, CollectionUnload.type] {
+  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionUnload, CollectionInfo.Response] =
+    new Api.EmptyBody[ArangoDatabase, CollectionUnload] {
       override type Response = CollectionInfo.Response
-      override def header(collection: ArangoCollection, command: CollectionUnload.type): ArangoRequest.HeaderTrait = ArangoRequest.Header(
-        database = collection.database.name,
-        requestType = RequestType.PUT,
-        request = s"/_api/collection/${collection.name}/unload",
-      )
+      override def header(database: ArangoDatabase,
+                          command: CollectionUnload): ArangoRequest.HeaderTrait =
+        ArangoRequest.Header(
+          database = database.name,
+          requestType = RequestType.PUT,
+          request = s"/_api/collection/${command.name}/unload",
+        )
     }
 
 }

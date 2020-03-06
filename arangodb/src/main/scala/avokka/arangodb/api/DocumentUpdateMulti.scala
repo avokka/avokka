@@ -36,6 +36,7 @@ import avokka.velocypack._
   * @tparam P patch type
   */
 case class DocumentUpdateMulti[T, P](
+    collection: CollectionName,
     patch: List[P],
     keepNull: Boolean = false,
     mergeObjects: Boolean = true,
@@ -57,17 +58,19 @@ case class DocumentUpdateMulti[T, P](
 object DocumentUpdateMulti {
 
   implicit def api[P: VPackEncoder, T: VPackDecoder]
-    : Api.Aux[ArangoCollection, DocumentUpdateMulti[T, P], List[P], List[Document.Response[T]]] =
-    new Api[ArangoCollection, DocumentUpdateMulti[T, P], List[P]] {
+    : Api.Aux[ArangoDatabase, DocumentUpdateMulti[T, P], List[P], List[Document.Response[T]]] =
+    new Api[ArangoDatabase, DocumentUpdateMulti[T, P], List[P]] {
       override type Response = List[Document.Response[T]]
-      override def header(collection: ArangoCollection,
-                          command: DocumentUpdateMulti[T, P]): ArangoRequest.HeaderTrait = ArangoRequest.Header(
-        database = collection.database.name,
-        requestType = RequestType.PATCH,
-        request = s"/_api/document/${collection.name}",
-        parameters = command.parameters,
-      )
-      override def body(collection: ArangoCollection, command: DocumentUpdateMulti[T, P]): List[P] = command.patch
+      override def header(database: ArangoDatabase,
+                          command: DocumentUpdateMulti[T, P]): ArangoRequest.HeaderTrait =
+        ArangoRequest.Header(
+          database = database.name,
+          requestType = RequestType.PATCH,
+          request = s"/_api/document/${command.collection}",
+          parameters = command.parameters,
+        )
+      override def body(database: ArangoDatabase, command: DocumentUpdateMulti[T, P]): List[P] =
+        command.patch
       override val encoder: VPackEncoder[List[P]] = implicitly
     }
 

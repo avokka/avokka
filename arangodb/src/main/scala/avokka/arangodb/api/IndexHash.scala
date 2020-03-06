@@ -27,6 +27,7 @@ import avokka.velocypack._
   * @param deduplicate if false, the deduplication of array values is turned off
   */
 case class IndexHash(
+    collection: CollectionName,
     fields: List[String],
     unique: Boolean = false,
     sparse: Boolean = false,
@@ -37,18 +38,19 @@ object IndexHash { self =>
 
   implicit val encoder: VPackEncoder[IndexHash] = VPackRecord[IndexHash].encoder
 
-  implicit val api: Api.Command.Aux[ArangoCollection, IndexHash, Index.Response] =
-    new Api.Command[ArangoCollection, IndexHash] {
+  implicit val api: Api.Command.Aux[ArangoDatabase, IndexHash, Index.Response] =
+    new Api.Command[ArangoDatabase, IndexHash] {
       override type Response = Index.Response
 
-      override def header(collection: ArangoCollection, command: IndexHash): ArangoRequest.HeaderTrait =
+      override def header(database: ArangoDatabase, command: IndexHash): ArangoRequest.HeaderTrait =
         ArangoRequest.Header(
-          database = collection.database.name,
+          database = database.name,
           requestType = RequestType.POST,
           request = s"/_api/index",
-          parameters = Map("collection" -> collection.name.repr)
+          parameters = Map("collection" -> command.collection.repr)
         )
 
-      override def encoder: VPackEncoder[IndexHash] = self.encoder.mapObject(_.updated("type", "hash"))
+      override def encoder: VPackEncoder[IndexHash] =
+        self.encoder.mapObject(_.updated("type", "hash"))
     }
 }

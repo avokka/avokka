@@ -3,6 +3,10 @@ package api
 
 import avokka.velocypack._
 
+case class IndexList(
+    collection: CollectionName
+)
+
 object IndexList { self =>
 
   case class Response(
@@ -13,15 +17,15 @@ object IndexList { self =>
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoderWithDefaults
   }
 
-  implicit val api: Api.EmptyBody.Aux[ArangoCollection, IndexList.type, Response] =
-    new Api.EmptyBody[ArangoCollection, IndexList.type] {
+  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, IndexList, Response] =
+    new Api.EmptyBody[ArangoDatabase, IndexList] {
       override type Response = self.Response
-      override def header(collection: ArangoCollection, command: IndexList.type): ArangoRequest.HeaderTrait =
+      override def header(database: ArangoDatabase, command: IndexList): ArangoRequest.HeaderTrait =
         ArangoRequest.Header(
-          database = collection.database.name,
+          database = database.name,
           requestType = RequestType.GET,
           request = "/_api/index",
-          parameters = Map("collection" -> collection.name.repr)
+          parameters = Map("collection" -> command.collection.repr)
         )
     }
 }

@@ -16,10 +16,12 @@ import avokka.velocypack._
   * of the documents contained in the collection. For edge collections, the system
   * attributes _from and _to will also be included in the calculation.
   *
+  * @param name          collection name
   * @param withRevisions include document revision ids in the checksum calculation
   * @param withData      include document body data in the checksum calculation
   */
 case class CollectionChecksum(
+    name: CollectionName,
     withRevisions: Boolean = false,
     withData: Boolean = false,
 ) {
@@ -40,13 +42,13 @@ object CollectionChecksum { self =>
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
   }
 
-  implicit val api: Api.EmptyBody.Aux[ArangoCollection, CollectionChecksum, Response] =
-    new Api.EmptyBody[ArangoCollection, CollectionChecksum] {
+  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionChecksum, Response] =
+    new Api.EmptyBody[ArangoDatabase, CollectionChecksum] {
       override type Response = self.Response
-      override def header(collection: ArangoCollection, command: CollectionChecksum): ArangoRequest.HeaderTrait = ArangoRequest.Header(
-        database = collection.database.name,
+      override def header(database: ArangoDatabase, command: CollectionChecksum): ArangoRequest.HeaderTrait = ArangoRequest.Header(
+        database = database.name,
         requestType = RequestType.GET,
-        request = s"/_api/collection/${collection.name}/checksum",
+        request = s"/_api/collection/${command.name}/checksum",
         parameters = command.parameters
       )
     }

@@ -3,6 +3,11 @@ package api
 
 import avokka.velocypack._
 
+case class CollectionCount
+(
+  name: CollectionName,
+)
+
 object CollectionCount { self =>
 
   case class Response(
@@ -13,14 +18,14 @@ object CollectionCount { self =>
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
   }
 
-  implicit val api: Api.EmptyBody.Aux[ArangoCollection, CollectionCount.type, Response] =
-    new Api.EmptyBody[ArangoCollection, CollectionCount.type] {
+  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionCount, Response] =
+    new Api.EmptyBody[ArangoDatabase, CollectionCount] {
       override type Response = self.Response
 
-      override def header(collection: ArangoCollection, command: CollectionCount.type): ArangoRequest.HeaderTrait = ArangoRequest.Header(
-        database = collection.database.name,
+      override def header(database: ArangoDatabase, command: CollectionCount): ArangoRequest.HeaderTrait = ArangoRequest.Header(
+        database = database.name,
         requestType = RequestType.GET,
-        request = s"/_api/collection/${collection.name}/count",
+        request = s"/_api/collection/${command.name}/count",
       )
     }
 }

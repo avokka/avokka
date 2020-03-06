@@ -21,6 +21,7 @@ import avokka.velocypack._
   * @tparam T          Response body type
   */
 case class DocumentRemoveMulti[T, K](
+    collection: CollectionName,
     keys: List[K],
     waitForSync: Boolean = false,
     returnOld: Boolean = false,
@@ -36,17 +37,17 @@ case class DocumentRemoveMulti[T, K](
 object DocumentRemoveMulti {
 
   implicit def api[T: VPackDecoder, K: VPackEncoder]
-    : Api.Aux[ArangoCollection, DocumentRemoveMulti[T, K], List[K], List[Document.Response[T]]] =
-    new Api[ArangoCollection, DocumentRemoveMulti[T, K], List[K]] {
+    : Api.Aux[ArangoDatabase, DocumentRemoveMulti[T, K], List[K], List[Document.Response[T]]] =
+    new Api[ArangoDatabase, DocumentRemoveMulti[T, K], List[K]] {
       override type Response = List[Document.Response[T]]
-      override def header(collection: ArangoCollection,
+      override def header(database: ArangoDatabase,
                           command: DocumentRemoveMulti[T, K]): ArangoRequest.HeaderTrait = ArangoRequest.Header(
-        database = collection.database.name,
+        database = database.name,
         requestType = RequestType.DELETE,
-        request = s"/_api/document/${collection.name}",
+        request = s"/_api/document/${command.collection}",
         parameters = command.parameters,
       )
-      override def body(collection: ArangoCollection, command: DocumentRemoveMulti[T, K]): List[K] =
+      override def body(database: ArangoDatabase, command: DocumentRemoveMulti[T, K]): List[K] =
         command.keys
       override val encoder: VPackEncoder[List[K]] = implicitly
     }

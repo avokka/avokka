@@ -6,9 +6,7 @@ import avokka.arangodb.api.{Cursor, DocumentRead, DocumentRemove, DocumentUpdate
 import avokka.velocypack.VPack.VObject
 import avokka.velocypack._
 
-class ArangoCollection(val database: ArangoDatabase, val name: CollectionName) extends ApiContext[ArangoCollection] {
-
-  override lazy val session: ArangoSession = database.session
+class ArangoCollection(val database: ArangoDatabase, val name: CollectionName) {
 
   def handle(key: DocumentKey): DocumentHandle = DocumentHandle(name, key)
 

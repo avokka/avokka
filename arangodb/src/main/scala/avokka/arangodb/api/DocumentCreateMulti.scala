@@ -14,6 +14,7 @@ import avokka.velocypack._
   * @tparam T document type
   */
 case class DocumentCreateMulti[T](
+    collection: CollectionName,
     documents: List[T],
     waitForSync: Boolean = false,
     returnNew: Boolean = false,
@@ -33,19 +34,19 @@ case class DocumentCreateMulti[T](
 object DocumentCreateMulti { self =>
 
   implicit def api[T: VPackDecoder: VPackEncoder]
-    : Api.Aux[ArangoCollection, DocumentCreateMulti[T], List[T], List[Document.Response[T]]] =
-    new Api[ArangoCollection, DocumentCreateMulti[T], List[T]] {
+    : Api.Aux[ArangoDatabase, DocumentCreateMulti[T], List[T], List[Document.Response[T]]] =
+    new Api[ArangoDatabase, DocumentCreateMulti[T], List[T]] {
       override type Response = List[Document.Response[T]]
-      override def header(collection: ArangoCollection,
+      override def header(database: ArangoDatabase,
                           command: DocumentCreateMulti[T]): ArangoRequest.HeaderTrait =
         ArangoRequest.Header(
-          database = collection.database.name,
+          database = database.name,
           requestType = RequestType.POST,
-          request = s"/_api/document/${collection.name}",
+          request = s"/_api/document/${command.collection}",
           parameters = command.parameters
         )
 
-      override def body(collection: ArangoCollection, command: DocumentCreateMulti[T]): List[T] =
+      override def body(database: ArangoDatabase, command: DocumentCreateMulti[T]): List[T] =
         command.documents
       override val encoder: VPackEncoder[List[T]] = VPackEncoder.listEncoder(
         implicitly[VPackEncoder[T]].mapObject(_.filter(Document.filterEmptyInternalAttributes)))

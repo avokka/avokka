@@ -22,6 +22,7 @@ import avokka.velocypack._
   * @tparam T document type
   */
 case class DocumentReplaceMulti[T](
+    collection: CollectionName,
     documents: List[T],
     waitForSync: Boolean = false,
     ignoreRevs: Boolean = true,
@@ -39,17 +40,18 @@ case class DocumentReplaceMulti[T](
 object DocumentReplaceMulti {
 
   implicit def api[T: VPackEncoder: VPackDecoder]
-    : Api.Aux[ArangoCollection, DocumentReplaceMulti[T], List[T], List[Document.Response[T]]] =
-    new Api[ArangoCollection, DocumentReplaceMulti[T], List[T]] {
+    : Api.Aux[ArangoDatabase, DocumentReplaceMulti[T], List[T], List[Document.Response[T]]] =
+    new Api[ArangoDatabase, DocumentReplaceMulti[T], List[T]] {
       override type Response = List[Document.Response[T]]
-      override def header(collection: ArangoCollection,
-                          command: DocumentReplaceMulti[T]): ArangoRequest.HeaderTrait = ArangoRequest.Header(
-        database = collection.database.name,
-        requestType = RequestType.PUT,
-        request = s"/_api/document/${collection.name}",
-        parameters = command.parameters,
-      )
-      override def body(collection: ArangoCollection, command: DocumentReplaceMulti[T]): List[T] =
+      override def header(database: ArangoDatabase,
+                          command: DocumentReplaceMulti[T]): ArangoRequest.HeaderTrait =
+        ArangoRequest.Header(
+          database = database.name,
+          requestType = RequestType.PUT,
+          request = s"/_api/document/${command.collection}",
+          parameters = command.parameters,
+        )
+      override def body(database: ArangoDatabase, command: DocumentReplaceMulti[T]): List[T] =
         command.documents
       override val encoder: VPackEncoder[List[T]] = VPackEncoder.listEncoder(
         implicitly[VPackEncoder[T]].mapObject(_.filter(Document.filterEmptyInternalAttributes)))

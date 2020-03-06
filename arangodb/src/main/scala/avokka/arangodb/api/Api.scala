@@ -6,7 +6,7 @@ import avokka.velocypack.VPackEncoder
 /**
   * arangodb api call
   *
-  * @tparam Ctx context (session, database, collection)
+  * @tparam Ctx context (session, database)
   * @tparam C   command
   * @tparam B   body
   */

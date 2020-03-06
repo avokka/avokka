@@ -4,6 +4,7 @@ package api
 import avokka.velocypack._
 
 case class CollectionDrop(
+    name: CollectionName,
     isSystem: Boolean = false
 ) {
   def parameters = Map(
@@ -21,14 +22,15 @@ object CollectionDrop { self =>
     implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
   }
 
-  implicit val api: Api.EmptyBody.Aux[ArangoCollection, CollectionDrop, Response] =
-    new Api.EmptyBody[ArangoCollection, CollectionDrop] {
+  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionDrop, Response] =
+    new Api.EmptyBody[ArangoDatabase, CollectionDrop] {
       override type Response = self.Response
-      override def header(collection: ArangoCollection, command: CollectionDrop): ArangoRequest.HeaderTrait =
+      override def header(database: ArangoDatabase,
+                          command: CollectionDrop): ArangoRequest.HeaderTrait =
         ArangoRequest.Header(
-          database = collection.database.name,
+          database = database.name,
           requestType = RequestType.DELETE,
-          request = s"/_api/collection/${collection.name}",
+          request = s"/_api/collection/${command.name}",
           parameters = command.parameters
         )
     }

@@ -6,8 +6,8 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import avokka.velocypack._
 import avokka.arangodb._
-import avokka.arangodb.api.{Cursor, CursorDelete, CursorNext, Version}
-import com.typesafe.config.ConfigFactory
+import avokka.arangodb.api._
+import avokka.velocypack.VPack.VObject
 
 import scala.concurrent.duration._
 import scala.concurrent.Await
@@ -52,19 +52,17 @@ object Hello {
     println(Await.result(session(Version()), 1.minute))
     println(Await.result(session(Version(details = true)), 1.minute))
 //    println(Await.result(session(admin.AdminLog), 10.seconds))
-//    println(Await.result(countries(CollectionChecksum()), 10.seconds))
-//    println(Await.result(countries(CollectionCount), 10.seconds))
-//      println(Await.result(countries(CollectionProperties), 10.seconds))
+//    println(Await.result(db(CollectionChecksum(countries.name)), 10.seconds))
+//    println(Await.result(db(CollectionCount(countries.name)), 10.seconds))
+//    println(Await.result(db(CollectionProperties(countries.name)), 10.seconds))
 //    println(Await.result(db(DatabaseInfo), 10.seconds))
 //    println(Await.result(db(Engine), 10.seconds))
-//    println(Await.result(db.engine(), 10.seconds))
 //    println(Await.result(session(DatabaseList()), 10.seconds))
 //    println(Await.result(db(CollectionList()), 10.seconds))
 //    println(Await.result(db.collection("nope"), 10.seconds))
 //    println(Await.result(db(DocumentRead[Country](DocumentHandle("countries/FR"), ifMatch = Some("_ZfKin5f--_"))), 10.seconds))
     println(Await.result(db(countries.read[Country](DocumentKey("FR"))), 1.minute))
-//    println(Await.result(countries.properties(), 10.seconds))
-//    println(Await.result(countries(IndexList), 10.seconds))
+//    println(Await.result(db(IndexList(countries.name)), 10.seconds))
 //    println(Await.result(db(IndexRead("countries/0")), 10.seconds))
 
     /*
@@ -90,34 +88,33 @@ object Hello {
     val scratch = new ArangoDatabase(session, DatabaseName("scratch"))
     val country = new ArangoCollection(scratch, CollectionName("country"))
 
-    /*
     println(Await.result(session(DatabaseCreate(scratch.name)), 1.minute))
     println(Await.result(scratch(CollectionCreate(name = country.name)), 1.minute))
 
     if (false) {
-      println(Await.result(country(DocumentCreateMulti(List(Country(name = "a", flag = "a"), Country(name = "b", flag = "b")), returnNew = true)), 1.minute))
-      val doc = Await.result(country(DocumentCreate(Country(name = "Moi", flag = "[X]"), returnNew = true)), 1.minute)
+      println(Await.result(scratch(DocumentCreateMulti(country.name, List(Country(name = "a", flag = "a"), Country(name = "b", flag = "b")), returnNew = true)), 1.minute))
+      val doc = Await.result(scratch(DocumentCreate(country.name, Country(name = "Moi", flag = "[X]"), returnNew = true)), 1.minute)
       println(doc)
       val res = doc.right.get.body.`new`.get
-      println(Await.result(scratch(DocumentUpdate[Country, VObject](res._id, VObject("test" :> true))), 1.minute))
+      println(Await.result(scratch(DocumentUpdate[Country, VObject](res._id, VObject("test" -> true.toVPack))), 1.minute))
       println(Await.result(scratch(DocumentReplace[Country](res._id, res.copy(name = "Vous"))), 1.minute))
-      println(Await.result(country(DocumentUpdateMulti[Country, VObject](List(VObject("_key" :> res._key, "test" :> true)), returnNew = true)), 1.minute))
+      println(Await.result(scratch(DocumentUpdateMulti[Country, VObject](country.name, List(VObject("_key" -> res._key.toVPack, "test" -> true.toVPack)), returnNew = true)), 1.minute))
       //    println(Await.result(scratch(DocumentRemove[Country](res._id)), 1.minute))
-      println(Await.result(country(DocumentRemoveMulti[Country, DocumentKey](List(res._key), returnOld = true)), 1.minute))
-      println(Await.result(country(CollectionTruncate), 1.minute))
-      println(Await.result(country(CollectionUnload), 1.minute))
+      println(Await.result(scratch(DocumentRemoveMulti[Country, DocumentKey](country.name, List(res._key), returnOld = true)), 1.minute))
+      println(Await.result(scratch(CollectionTruncate(country.name)), 1.minute))
+      println(Await.result(scratch(CollectionUnload(country.name)), 1.minute))
     }
 
-    val idx = Await.result(country(IndexHash(fields = List("title"))), 1.minute)
+    val idx = Await.result(scratch(IndexHash(country.name, fields = List("title"))), 1.minute)
     println(idx)
-    println(Await.result(country(IndexList), 10.seconds))
+    println(Await.result(scratch(IndexList(country.name)), 10.seconds))
     println(Await.result(scratch(IndexDelete(idx.right.get.body.id)), 1.minute))
-    println(Await.result(country(IndexList), 10.seconds))
+    println(Await.result(scratch(IndexList(country.name)), 10.seconds))
 
-    println(Await.result(country(CollectionDrop()), 1.minute))
+    println(Await.result(scratch(CollectionDrop(country.name)), 1.minute))
     println(Await.result(scratch(DatabaseDrop), 1.minute))
-*/
-//    session.closeClient()
+
+    //    session.closeClient()
 
     Await.ready(system.terminate(), 1.minute)
   }

@@ -8,7 +8,7 @@ import scala.concurrent.Future
 
 package object arangodb {
 
-  type FEE[T] = EitherT[Future, ArangoError, T]
+  private[arangodb] type FEE[T] = EitherT[Future, ArangoError, T]
 
   @newtype case class DatabaseName(repr: String)
   object DatabaseName {

@@ -1,10 +1,10 @@
 package avokka.velocypack.codecs
 
 import avokka.velocypack.VPack.VNull
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
 import scodec.bits._
 
-class VPackNullCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
+class VPackNullCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
 
   it should "encode to 0x18" in {
     assertCodec(vpackCodec, VNull, hex"18")

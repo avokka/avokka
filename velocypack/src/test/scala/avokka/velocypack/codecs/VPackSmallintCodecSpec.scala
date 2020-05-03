@@ -1,10 +1,10 @@
 package avokka.velocypack.codecs
 
 import avokka.velocypack.VPack.VSmallint
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
 import scodec.bits._
 
-class VPackSmallintCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
+class VPackSmallintCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
 
   it should "encode small integers 0, 1, ... 9 to 0x30-0x39" in {
     assertCodec(vpackCodec, VSmallint(0), hex"30")

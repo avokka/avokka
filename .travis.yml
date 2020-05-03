@@ -1,7 +1,10 @@
 language: scala
 
 scala:
-  - 2.12.10
+  - 2.12.11
+
+services:
+  - docker
 
 cache:
   directories:

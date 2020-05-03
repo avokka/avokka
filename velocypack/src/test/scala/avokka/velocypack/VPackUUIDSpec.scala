@@ -3,10 +3,10 @@ package avokka.velocypack
 import java.util.UUID
 
 import avokka.velocypack.VPack.{VBinary, VString}
-import org.scalatest.{FlatSpec, Matchers}
-import scodec.bits.{BitVector, ByteVector}
+import org.scalatest.flatspec.AnyFlatSpec
+import scodec.bits.ByteVector
 
-class VPackUUIDSpec extends FlatSpec with Matchers with VPackSpecTrait {
+class VPackUUIDSpec extends AnyFlatSpec with VPackSpecTrait {
 
   "uuid" should "encode to bin" in {
     val uuid = UUID.randomUUID()

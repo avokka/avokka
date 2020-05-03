@@ -1,9 +1,9 @@
 package avokka.velocystream
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
 import scodec.bits._
 
-class VStreamMessageSpec extends FlatSpec with Matchers {
+class VStreamMessageSpec extends AnyFlatSpec {
 
   it should "split in stream of chunks" in {
     val m = VStreamMessage(10, hex"aabbccddeeff")

@@ -1,10 +1,10 @@
 package avokka.velocypack.codecs
 
 import avokka.velocypack.VPack._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
 import scodec.bits._
 
-class VPackBinaryCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
+class VPackBinaryCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
 
   "data of length of 1 byte" should "encode to 0xc0" in {
     assertCodec(vpackCodec, VBinary(hex"aa"), hex"c0 01 aa")

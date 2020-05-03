@@ -2,10 +2,10 @@ package avokka.velocypack.codecs
 
 import avokka.velocypack.VPack._
 import cats.data.Chain
-import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
 import scodec.bits._
 
-class VPackArrayCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
+class VPackArrayCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
 
   val a1false = VArray(VSmallint(1), VFalse)
   val a10false = VArray(VLong(10),  VFalse)

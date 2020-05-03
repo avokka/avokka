@@ -1,10 +1,10 @@
 package avokka.velocypack.codecs
 
 import avokka.velocypack.VPack._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
 import scodec.bits._
 
-class VPackLongCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
+class VPackLongCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
 
   "negative longs" should "encode to 0x20-0x27 as signed int, little endian, 1 to 8 bytes (V - 0x1f), two's complement" in {
 

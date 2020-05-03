@@ -1,11 +1,16 @@
 import sbt._
 
 object Dependencies {
-  val scalaTest = "org.scalatest" %% "scalatest" % "3.0.8"
-  val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.14.1"
+  val scalaTest = "org.scalatest" %% "scalatest" % "3.1.1"
+  val scalaTestPlus = "org.scalatestplus" %% "scalacheck-1-14" % "3.1.1.1"
+//  val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.14.3"
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  val testSuite = Seq(scalaTest, scalaCheck, logback).map(_ % Test)
+  val testSuite = Seq(scalaTest, scalaTestPlus, logback).map(_ % Test)
+
+  val dockerTest = Seq(
+    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.36.1"
+  ).map(_ % Test)
 
   val cats = "org.typelevel" %% "cats-core" % "2.0.0"
   val shapeless = "com.chuusai" %% "shapeless" % "2.3.3"
@@ -14,14 +19,17 @@ object Dependencies {
   val akka = Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
-    "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % Test
   )
+
+  val akkaTestKit = Seq(
+    "com.typesafe.akka" %% "akka-testkit" % akkaVersion
+  ).map(_ % Test)
 
   val logging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
 
   val scodec = Seq(
-    "org.scodec" %% "scodec-bits" % "1.1.12",
-    "org.scodec" %% "scodec-core" % "1.11.4",
+    "org.scodec" %% "scodec-bits" % "1.1.14",
+    "org.scodec" %% "scodec-core" % "1.11.7",
     "org.scodec" %% "scodec-cats" % "1.0.0",
   )
 
@@ -32,6 +40,6 @@ object Dependencies {
 
   val newtype = "io.estatico" %% "newtype" % "0.4.3"
 
-  val pureconfig = "com.github.pureconfig" %% "pureconfig" % "0.12.2"
+  val pureconfig = "com.github.pureconfig" %% "pureconfig" % "0.12.3"
 
 }

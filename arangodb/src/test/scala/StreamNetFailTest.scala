@@ -3,7 +3,6 @@ import akka.stream.ActorMaterializer
 import avokka.arangodb.api.Version
 import avokka.arangodb._
 import avokka.velocypack._
-import com.typesafe.config.ConfigFactory
 import cats.syntax.traverse._
 import cats.syntax.show._
 import cats.instances.vector._

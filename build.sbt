@@ -1,6 +1,6 @@
 import Dependencies._
 
-val scala212Version = "2.12.10"
+val scala212Version = "2.12.11"
 
 ThisBuild / organization := "avokka"
 ThisBuild / bintrayOrganization := Some("avokka")
@@ -58,7 +58,7 @@ lazy val arangodb = (project in file("arangodb"))
       newtype,
       pureconfig,
       logging,
-    )
+    ) ++ testSuite ++ akkaTestKit ++ dockerTest
   )
 
 lazy val avokka = (project in file("."))

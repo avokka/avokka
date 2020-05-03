@@ -1,9 +1,9 @@
 package avokka.velocypack
 
-import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
 import shapeless.{::, HNil}
 
-class VPackGenericSpec extends FlatSpec with Matchers with VPackSpecTrait {
+class VPackGenericSpec extends AnyFlatSpec with VPackSpecTrait {
   import VPack._
   import VPackGenericSpec._
 

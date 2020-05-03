@@ -4,10 +4,11 @@ import java.time.Instant
 
 import VPack._
 import cats.syntax.show._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import scodec.bits.ByteVector
 
-class VPackShowSpec extends FlatSpec with Matchers {
+class VPackShowSpec extends AnyFlatSpec with Matchers {
 
   "show" should "produce json" in {
     assertResult("\"a\"")(VString("a").show)

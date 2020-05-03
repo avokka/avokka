@@ -2,10 +2,10 @@ package avokka.velocypack.codecs
 
 import avokka.velocypack.VPack.VString
 import avokka.velocypack.codecs
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
 import scodec.bits._
 
-class VPackStringCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
+class VPackStringCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
 
   "empty string" should "encode to 0x40" in {
     assertCodec(vpackCodec, VString(""), hex"40")

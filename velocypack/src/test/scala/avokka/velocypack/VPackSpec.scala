@@ -1,10 +1,11 @@
 package avokka.velocypack
 
 import avokka.velocypack.VPack._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import scodec.bits.ByteVector
 
-class VPackSpec extends FlatSpec with Matchers with VPackSpecTrait {
+class VPackSpec extends AnyFlatSpec with Matchers with VPackSpecTrait {
 
   "codec from vector" should "encode vectors" in {
     val venc = VPackEncoder[Vector[Int]]

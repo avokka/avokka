@@ -1,10 +1,10 @@
 package avokka.velocypack.codecs
 
 import avokka.velocypack.VPack._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
 import scodec.bits._
 
-class VPackObjectCodecSpec extends FlatSpec with Matchers with VPackCodecSpecTrait {
+class VPackObjectCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
 
   "object codec" should "conform specs" in {
 

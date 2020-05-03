@@ -1,9 +1,8 @@
 package avokka.velocypack
 
-import avokka.velocypack.VPackRecordSpec.VersionResponse
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
 
-class VPackRecordSpec extends FlatSpec with Matchers with VPackSpecTrait {
+class VPackRecordSpec extends AnyFlatSpec with VPackSpecTrait {
   import VPack._
   import VPackRecordSpec._
 

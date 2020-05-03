@@ -40,6 +40,12 @@ class VPackBinaryCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
     assertDecode(vpackCodec, hex"c7 01 00 00 00 00 00 00 00 ff", VBinary(hex"ff"))
   }
 
+  "roundtrip" should "not fail" in {
+    forAll(genVBinary) { v: VBinary =>
+      assertEncodeDecode(vpackCodec, v)
+    }
+  }
+
   "codec" should "fail if head is not a binary" in {
     assert(VPackBinaryCodec.codec.decode(hex"00".bits).isFailure)
   }

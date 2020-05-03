@@ -24,6 +24,8 @@ private object VPackLongCodec {
 
     override def encode(v: VLong): Attempt[BitVector] = {
       v.value match {
+        // zero
+        case s if s == 0 => longL(8).encode(s).map { BitVector(0x20) ++ _ }
         // negative as signed
         case s if s < 0 && s >= -(1L << 7)  => longL(8).encode(s).map { BitVector(0x20) ++ _ }
         case s if s < 0 && s >= -(1L << 15) => longL(16).encode(s).map { BitVector(0x21) ++ _ }

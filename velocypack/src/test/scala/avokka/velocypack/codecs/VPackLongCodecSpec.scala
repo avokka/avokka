@@ -31,6 +31,12 @@ class VPackLongCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
     assertCodec(vpackCodec, VLong(0x0e11223344556677L), hex"2f 776655443322110e")
   }
 
+  "roundtrip" should "not fail" in {
+    forAll(genVLong) { v: VLong =>
+      assertEncodeDecode(vpackCodec, v)
+    }
+  }
+
   "codec" should "fail if head is not a long" in {
     assert(VPackLongCodec.codec.decode(hex"00".bits).isFailure)
   }

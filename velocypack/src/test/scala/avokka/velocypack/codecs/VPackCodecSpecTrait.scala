@@ -1,11 +1,13 @@
 package avokka.velocypack.codecs
 
+import avokka.velocypack.VPackArbitrary
 import com.arangodb.velocypack.VPackSlice
 import org.scalatest.{Assertion, Assertions}
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import scodec.bits.{BitVector, ByteVector}
 import scodec.{Codec, Decoder, Encoder}
 
-trait VPackCodecSpecTrait { self: Assertions =>
+trait VPackCodecSpecTrait extends ScalaCheckPropertyChecks with VPackArbitrary { self: Assertions =>
 
   val vpack = new com.arangodb.velocypack.VPack.Builder().build()
 

@@ -56,6 +56,12 @@ class VPackArrayCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
     assertDecode(vpackCodec, hex"09 2c 00 00 00 00 00 00 00 31 32 33 09 00 00 00 00 00 00 00 0a 00 00 00 00 00 00 00 0b 00 00 00 00 00 00 00 03 00 00 00 00 00 00 00", a123)
   }
 
+  "roundtrip" should "not fail" in {
+    forAll(genVArray()) { v: VArray =>
+      assertEncodeDecode(vpackCodec, v)
+    }
+  }
+
   "codec" should "fail if head is not a array" in {
     assert(VPackArrayCodec.codec.decode(hex"00".bits).isFailure)
   }

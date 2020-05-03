@@ -28,6 +28,12 @@ class VPackStringCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
     )
   }
 
+  "roundtrip" should "not fail" in {
+    forAll(genVString) { v: VString =>
+      assertEncodeDecode(vpackCodec, v)
+    }
+  }
+
   "codec" should "fail if head is not a string" in {
     assert(vpackCodec.decode(hex"00".bits).isFailure)
   }

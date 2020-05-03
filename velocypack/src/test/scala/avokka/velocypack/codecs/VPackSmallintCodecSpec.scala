@@ -1,6 +1,6 @@
 package avokka.velocypack.codecs
 
-import avokka.velocypack.VPack.VSmallint
+import avokka.velocypack.VPack.{VSmallint, VString}
 import org.scalatest.flatspec.AnyFlatSpec
 import scodec.bits._
 
@@ -26,6 +26,12 @@ class VPackSmallintCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
     assertCodec(vpackCodec, VSmallint(-3), hex"3d")
     assertCodec(vpackCodec, VSmallint(-2), hex"3e")
     assertCodec(vpackCodec, VSmallint(-1), hex"3f")
+  }
+
+  it should "roundtrip" in {
+    forAll(genVSmallint) { v: VSmallint =>
+      assertEncodeDecode(vpackCodec, v)
+    }
   }
 
   it should "fail if head is not a smallint" in {

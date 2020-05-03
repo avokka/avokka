@@ -23,6 +23,12 @@ class VPackDoubleCodecSpec extends AnyFlatSpec with ScalaCheckPropertyChecks wit
 
   }
 
+  it should "roundtrip" in {
+    forAll(genVDouble) { v: VDouble =>
+      assertEncodeDecode(vpackCodec, v)
+    }
+  }
+
   it should "fail if head is not a double" in {
     assert(VPackDoubleCodec.codec.decode(hex"00".bits).isFailure)
   }

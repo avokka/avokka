@@ -11,8 +11,9 @@ trait VPackArbitrary {
   import Arbitrary._
   import VPack._
 
-  val maxDepth = 5
+  val maxDepth = 4
   val maxArray = 10
+  val maxObject = 10
 
   val genVNull: Gen[VNull.type] = Gen.const(VNull)
   val genVBoolean: Gen[VBoolean] = arbitrary[Boolean].map(VBoolean)
@@ -26,18 +27,27 @@ trait VPackArbitrary {
   val genVString: Gen[VString] = arbitrary[String].map(VString)
   val genVBinary: Gen[VBinary] = Gen.listOf(arbitrary[Byte]).map { b => VBinary(ByteVector(b)) }
 
-  private val scalar: Gen[VPack] = Gen.oneOf(
-    genVNull, genVBoolean, genVDouble, genVDate, genVString, genVSmallint, genVLong, genVString, genVBinary
+  val genVScalar: Gen[VPack] = Gen.oneOf(
+    genVNull, genVBoolean, genVDouble, genVDate, genVSmallint, genVLong, genVString, genVBinary
   )
 
   private[this] def genAtDepth(depth: Int): Gen[VPack] = {
-    if (depth < maxDepth) Gen.frequency((1, genVArray(depth + 1)), (maxDepth - depth, scalar))
-    else scalar
+    if (depth > 0) Gen.frequency(
+      (depth, genVScalar),
+      (1, genVArray(depth)),
+      (1, genVObject(depth)),
+    ) else genVScalar
   }
 
-  def genVArray(depth: Int = 1): Gen[VArray] = {
-    Gen.listOfN(maxArray, genAtDepth(depth)).flatMap { vals =>
+  def genVArray(depth: Int = maxDepth): Gen[VArray] = {
+    Gen.listOfN(maxArray, genAtDepth(depth - 1)).flatMap { vals =>
       VArray(Chain.fromSeq(vals.toVector))
+    }
+  }
+
+  def genVObject(depth: Int = maxDepth): Gen[VObject] = {
+    Gen.mapOfN(maxObject, Gen.zip(Gen.identifier, genAtDepth(depth - 1))).flatMap { vals =>
+      VObject(vals)
     }
   }
 

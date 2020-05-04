@@ -33,6 +33,12 @@ class VPackObjectCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
     )
   }
 
+  "roundtrip" should "not fail" in {
+    forAll(genVObject()) { v: VObject =>
+      assertEncodeDecode(vpackCodec, v)
+    }
+  }
+
   "object codec" should "deal with integer keys" in {
     assertDecode(vpackCodec,
       hex"0b41033359636f756e7472792f313431333737343930363530303239393431513134313337373439303635303032393934324b5f5a7650777a57572d2d5f031e31",

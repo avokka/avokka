@@ -7,10 +7,10 @@ import avokka.velocypack.VPackEncoder
   * arangodb api call
   *
   * @tparam Ctx context (session, database)
-  * @tparam C   command
-  * @tparam B   body
+  * @tparam Cmd command
+  * @tparam Req body
   */
-trait Api[Ctx, C, B] {
+trait Api[Ctx, Cmd, Req] {
 
   /**
     * response type
@@ -24,7 +24,7 @@ trait Api[Ctx, C, B] {
     * @param context context
     * @return header value
     */
-  def header(context: Ctx, command: C): HeaderTrait
+  def header(context: Ctx, command: Cmd): HeaderTrait
 
   /**
     * build the request body
@@ -33,34 +33,34 @@ trait Api[Ctx, C, B] {
     * @param command command value
     * @return body value
     */
-  def body(context: Ctx, command: C): B
+  def body(context: Ctx, command: Cmd): Req
 
   /**
     * @return body vpack encoder
     */
-  def encoder: VPackEncoder[B]
+  def encoder: VPackEncoder[Req]
 }
 
 object Api {
 
   // no body to send
-  trait EmptyBody[Ctx, C] extends Api[Ctx, C, Unit] {
-    override def body(context: Ctx, command: C): Unit = ()
+  trait EmptyBody[Ctx, Cmd] extends Api[Ctx, Cmd, Unit] {
+    override def body(context: Ctx, command: Cmd): Unit = ()
     override val encoder: VPackEncoder[Unit] = implicitly
   }
   object EmptyBody {
-    type Aux[Ctx, C, R] = Api.EmptyBody[Ctx, C] { type Response = R }
+    type Aux[Ctx, Cmd, Res] = Api.EmptyBody[Ctx, Cmd] { type Response = Res }
   }
 
   // body is command
-  trait Command[Ctx, C] extends Api[Ctx, C, C] {
-    override def body(context: Ctx, command: C): C = command
+  trait Command[Ctx, Cmd] extends Api[Ctx, Cmd, Cmd] {
+    override def body(context: Ctx, command: Cmd): Cmd = command
   }
   object Command {
-    type Aux[Ctx, C, R] = Api.Command[Ctx, C] { type Response = R }
+    type Aux[Ctx, Cmd, Res] = Api.Command[Ctx, Cmd] { type Response = Res }
   }
 
   // aux pattern for implicits
-  type Aux[Ctx, C, B, R] = Api[Ctx, C, B] { type Response = R }
+  type Aux[Ctx, Cmd, Req, Res] = Api[Ctx, Cmd, Req] { type Response = Res }
 
 }

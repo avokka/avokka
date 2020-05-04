@@ -2,7 +2,7 @@ package avokka.arangodb
 
 import avokka.velocypack.VPackError
 
-trait ArangoError {
+trait ArangoError extends Throwable {
   def message: String
 }
 

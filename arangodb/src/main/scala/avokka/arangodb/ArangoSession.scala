@@ -24,7 +24,7 @@ class ArangoSession(conf: ArangoConfiguration)(
   override lazy val session: ArangoSession = this
 
   lazy val _system = new ArangoDatabase(this, DatabaseName.system)
-  lazy val db = new ArangoDatabase(this, DatabaseName(conf.database))
+  lazy val db = new ArangoDatabase(this, conf.database)
 
   val authRequest = ArangoRequest.Authentication(user = conf.username, password = conf.password).toVPackBits
 //  val authSource = Source.fromIterator(() => authRequest.map(bits => VStreamMessage.create(bits.bytes)).toOption.iterator)

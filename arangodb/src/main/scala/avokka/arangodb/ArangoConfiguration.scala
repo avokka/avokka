@@ -14,10 +14,12 @@ case class ArangoConfiguration(
     password: String,
     chunkLength: Long = VStreamConfiguration.CHUNK_LENGTH_DEFAULT,
     connectTimeout: FiniteDuration = VStreamConfiguration.CONNECT_TIMEOUT_DEFAULT,
-    database: String = "_system"
+    database: DatabaseName = DatabaseName.system
 ) extends VStreamConfiguration
 
 object ArangoConfiguration {
+
+  implicit val arangoDatabaseNameReader: ConfigReader[DatabaseName] = ConfigReader[String].map(DatabaseName.apply)
 
   implicit val arangoConfigurationReader: ConfigReader[ArangoConfiguration] = deriveReader
 

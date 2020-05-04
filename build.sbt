@@ -33,7 +33,8 @@ lazy val velocypack = (project in file("velocypack"))
       shapeless,
     ) ++
       scodec ++
-      testSuite :+ arango % Test
+      testSuite :+ arango % Test,
+    logBuffered in Test := false
   )
 
 lazy val velocystream = (project in file("velocystream"))
@@ -43,8 +44,9 @@ lazy val velocystream = (project in file("velocystream"))
     description := "velocystream client (akka IO)",
     libraryDependencies ++=
       akka ++
-      testSuite
-)
+      testSuite,
+    logBuffered in Test := false
+  )
 
 lazy val arangodb = (project in file("arangodb"))
   .dependsOn(velocystream)
@@ -58,7 +60,9 @@ lazy val arangodb = (project in file("arangodb"))
       newtype,
       pureconfig,
       logging,
-    ) ++ testSuite ++ akkaTestKit ++ dockerTest
+    ) ++ testSuite ++ akkaTestKit ++ dockerTest,
+    logBuffered in Test := false,
+    parallelExecution in Test := false
   )
 
 lazy val avokka = (project in file("."))

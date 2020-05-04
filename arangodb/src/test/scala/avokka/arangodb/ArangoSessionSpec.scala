@@ -1,23 +1,24 @@
 package avokka.arangodb
 
-import api._
 import akka.actor.ActorSystem
-import akka.testkit.TestKit
+import akka.testkit.{TestKit, TestKitBase}
+import avokka.arangodb.api._
 import cats.data.EitherT
 import cats.instances.future._
 import com.dimafeng.testcontainers.ForAllTestContainer
-import org.scalatest.{Assertion, BeforeAndAfterAll}
-import org.scalatest.flatspec.AsyncFlatSpecLike
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import scala.concurrent.Future
-
-class ArangoSessionTest
-    extends TestKit(ActorSystem("arangodb-test"))
-    with AsyncFlatSpecLike
+class ArangoSessionSpec
+    extends AsyncFlatSpec
+    with TestKitBase
     with Matchers
     with BeforeAndAfterAll
     with ForAllTestContainer {
+
+  override implicit lazy val system: ActorSystem = ActorSystem("arangodb-session")
+
   override val container = ArangodbContainer.Def().start()
 
   val session: ArangoSession = new ArangoSession(container.configuration)

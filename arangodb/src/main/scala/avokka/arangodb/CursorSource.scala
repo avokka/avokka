@@ -1,18 +1,17 @@
 package avokka.arangodb
 
-import akka.stream.{Attributes, Outlet, SourceShape}
 import akka.stream.stage.{GraphStage, GraphStageLogic, OutHandler}
-import avokka.velocypack.{VPackDecoder, VPackEncoder}
+import akka.stream.{Attributes, Outlet, SourceShape}
+import avokka.arangodb.api._
+import avokka.velocypack.VPackDecoder
 import cats.data.EitherT
 import cats.instances.future._
-import api._
 
 final class CursorSource[C, T](
     c: C,
     db: ArangoDatabase
 )(implicit api: Api.Command.Aux[ArangoDatabase, C, Cursor.Response[T]],
-  ce: VPackEncoder[C],
-  td: VPackDecoder[T],
+  decoder: VPackDecoder[T],
 )
     extends GraphStage[SourceShape[T]] {
 

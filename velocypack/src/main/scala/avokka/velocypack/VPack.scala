@@ -6,7 +6,7 @@ import scodec.bits.ByteVector
 /**
   * Velocypack value
   */
-sealed trait VPack {
+sealed trait VPack extends Any {
 
   /**
    * decodes vpack value to T
@@ -52,8 +52,8 @@ object VPack {
    * boolean
    * @param value value
    */
-  case class VBoolean(value: Boolean) extends VPack {
-    override val isEmpty: Boolean = false
+  case class VBoolean(value: Boolean) extends AnyVal with VPack {
+    override def isEmpty: Boolean = false
   }
 
   val VFalse: VBoolean = VBoolean(false)
@@ -63,16 +63,16 @@ object VPack {
    * double
    * @param value value
    */
-  case class VDouble(value: Double) extends VPack {
-    override val isEmpty: Boolean = false
+  case class VDouble(value: Double) extends AnyVal with VPack {
+    override def isEmpty: Boolean = false
   }
 
   /**
    * universal UTC-time measured in milliseconds since the epoch
    * @param value milliseconds
    */
-  case class VDate(value: Long) extends VPack {
-    override val isEmpty: Boolean = false
+  case class VDate(value: Long) extends AnyVal with VPack {
+    override def isEmpty: Boolean = false
   }
 
   /**
@@ -93,9 +93,8 @@ object VPack {
    * small values -6 to 9
    * @param value value
    */
-  case class VSmallint(value: Byte) extends VPack {
-    require(-7 < value && value < 10)
-    override val isEmpty: Boolean = false
+  case class VSmallint(value: Byte) extends AnyVal with VPack {
+    override def isEmpty: Boolean = false
   }
 
   object VSmallint {
@@ -118,8 +117,8 @@ object VPack {
    * integer
    * @param value value
    */
-  case class VLong(value: Long) extends VPack {
-    override val isEmpty: Boolean = false
+  case class VLong(value: Long) extends AnyVal with VPack {
+    override def isEmpty: Boolean = false
   }
 
   object VLong {
@@ -134,7 +133,7 @@ object VPack {
    * string
    * @param value value
    */
-  case class VString(value: String) extends VPack {
+  case class VString(value: String) extends AnyVal with VPack {
     override def isEmpty: Boolean = value.isEmpty
   }
 
@@ -142,7 +141,7 @@ object VPack {
    * binary data
    * @param value value
    */
-  case class VBinary(value: ByteVector) extends VPack {
+  case class VBinary(value: ByteVector) extends AnyVal with VPack {
     override def isEmpty: Boolean = value.isEmpty
   }
 
@@ -150,7 +149,7 @@ object VPack {
    * array
    * @param values values
    */
-  case class VArray(values: Chain[VPack]) extends VPack {
+  case class VArray(values: Chain[VPack]) extends AnyVal with VPack {
     override def isEmpty: Boolean = values.isEmpty
   }
   object VArray {
@@ -162,7 +161,7 @@ object VPack {
    * object
    * @param values values
    */
-  case class VObject(values: Map[String, VPack]) extends VPack {
+  case class VObject(values: Map[String, VPack]) extends AnyVal with VPack {
     override def isEmpty: Boolean = values.isEmpty
     def updated[T: VPackEncoder](key: String, value: T): VObject = copy(values = values.updated(key, value.toVPack))
     def filter(p: ((String, VPack)) => Boolean): VObject = copy(values = values.filter(p))

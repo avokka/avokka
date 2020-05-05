@@ -15,7 +15,7 @@ import VPack.VDouble
   *
   * 0x1b : double IEEE-754, 8 bytes follow, stored as little endian uint64 equivalent
   */
-private object VPackDoubleCodec {
+private[codecs] object VPackDoubleCodec {
 
   private[codecs] val encoder: Encoder[VDouble] = new Encoder[VDouble] {
     override def sizeBound: SizeBound = SizeBound.exact(8 + 64)

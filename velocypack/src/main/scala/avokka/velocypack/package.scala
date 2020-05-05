@@ -9,7 +9,7 @@ package object velocypack extends ShowInstances {
   /** return type of decoding a VPack to a T */
   private[velocypack] type Result[T] = Either[VPackError, T]
 
-  implicit class SyntaxToVPack[T](val value: T) extends AnyVal {
+  implicit final class SyntaxToVPack[T](val value: T) extends AnyVal {
 
     /**
       * transforms value to vpack value
@@ -26,7 +26,7 @@ package object velocypack extends ShowInstances {
     def toVPackBits(implicit encoder: VPackEncoder[T]): Result[BitVector] = encoder.bits(value)
   }
 
-  implicit class SyntaxFromVPackBits(val bits: BitVector) extends AnyVal {
+  implicit final class SyntaxFromVPackBits(val bits: BitVector) extends AnyVal {
 
     /** decodes to vpack value (internal use only because this looses remainder) */
     private[avokka] def asVPackValue: Result[VPack] = codecs.vpackDecoder

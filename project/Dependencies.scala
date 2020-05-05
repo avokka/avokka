@@ -12,6 +12,10 @@ object Dependencies {
     "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.36.1"
   ).map(_ % Test)
 
+  val compatDeps = Seq(
+    "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.4"
+  )
+
   val cats = "org.typelevel" %% "cats-core" % "2.0.0"
   val shapeless = "com.chuusai" %% "shapeless" % "2.3.3"
 

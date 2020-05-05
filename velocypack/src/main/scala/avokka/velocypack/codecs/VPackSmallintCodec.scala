@@ -16,7 +16,7 @@ import VPackType.{SmallintNegativeType, SmallintPositiveType}
   *
   * 0x3a-0x3f : small negative integers -6, -5, ..., -1
   */
-private object VPackSmallintCodec {
+private[codecs] object VPackSmallintCodec {
 
   private[codecs] val encoder: Encoder[VSmallint] = new Encoder[VSmallint] {
     override def sizeBound: SizeBound = SizeBound.exact(8)

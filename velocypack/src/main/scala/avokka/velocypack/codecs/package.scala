@@ -91,7 +91,7 @@ package object codecs {
     case t: SmallintPositiveType                                       => VPackSmallintCodec.decoderPositive(t)
     case t: SmallintNegativeType                                       => VPackSmallintCodec.decoderNegative(t)
     case t: StringShortType                                            => VPackStringCodec.decoder(t)
-    case t @ StringLongType                                            => VPackStringCodec.decoder(t)
+    case t: StringLongType.type                                        => VPackStringCodec.decoder(t)
     case t: BinaryType                                                 => VPackBinaryCodec.decoder(t)
     case t: SingleByte                                                 => provide(t.singleton)
   }

@@ -109,7 +109,7 @@ object VPack {
       def unapply(i: Int): Option[VSmallint] = fromNumeric(i)
       def unapply(s: Short): Option[VSmallint] = fromNumeric(s)
       def unapply(l: Long): Option[VSmallint] = fromNumeric(l)
-      def unapply(d: Double): Option[VSmallint] = if (d.isWhole()) fromNumeric(d) else None
+      def unapply(d: Double): Option[VSmallint] = if (d.isWhole) fromNumeric(d) else None
     }
   }
 
@@ -125,7 +125,7 @@ object VPack {
     object From {
       def unapply(i: Int): Option[VLong] = Some(VLong(i.toLong))
       def unapply(s: Short): Option[VLong] = Some(VLong(s.toLong))
-      def unapply(d: Double): Option[VLong] = if (d.isWhole()) Some(VLong(d.toLong)) else None
+      def unapply(d: Double): Option[VLong] = if (d.isWhole) Some(VLong(d.toLong)) else None
     }
   }
 

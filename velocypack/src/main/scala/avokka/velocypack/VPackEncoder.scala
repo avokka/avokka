@@ -9,11 +9,11 @@ import cats.data.Chain
 import cats.syntax.either._
 import scodec.bits.{BitVector, ByteVector}
 import shapeless.HList
-// import magnolia._
 
-// import scala.language.experimental.macros
 import scala.annotation.implicitNotFound
+import scala.collection.compat._
 
+@FunctionalInterface
 @implicitNotFound("Cannot find a velocypack encoder for ${T}")
 trait VPackEncoder[T] { self =>
   def encode(t: T): VPack
@@ -106,7 +106,7 @@ object VPackEncoder {
     a => VArray(Chain(e1.encode(a._1), e2.encode(a._2)))
 
   implicit def mapEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Map[String, T]] =
-    a => VObject(a.mapValues(e.encode))
+    a => VObject(a.view.mapValues(e.encode).toMap)
 
   implicit val unitEncoder: VPackEncoder[Unit] = _ => VNone
 
@@ -116,18 +116,4 @@ object VPackEncoder {
 
   implicit val localDateEncoder: VPackEncoder[LocalDate] = stringEncoder.contramap(_.toString)
 
-  /*
-  type Typeclass[A] = VPackEncoder[A]
-
-  def combine[A](cc: CaseClass[Typeclass, A]): Typeclass[A] = a => {
-      val paramMap: Map[String, VPack] =
-        cc.parameters
-          .map(p => p.label -> p.typeclass.encode(p.dereference(a)))
-            .toMap
-
-      VObject(paramMap)
-    }
-
-  def derive[A]: Typeclass[A] = macro Magnolia.gen[A]
-   */
 }

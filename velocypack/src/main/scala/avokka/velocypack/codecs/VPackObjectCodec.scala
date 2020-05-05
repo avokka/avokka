@@ -13,8 +13,9 @@ import VPack.{VObject, VSmallint, VString}
 import VPackType.{ObjectEmptyType, ObjectType, ObjectCompactType}
 
 import scala.collection.SortedMap
+import scala.collection.compat._
 
-private object VPackObjectCodec extends VPackCompoundCodec {
+private[codecs] object VPackObjectCodec extends VPackCompoundCodec {
 
   private val keyCodec: Codec[String] = Codec(
     VPackStringCodec.encoder.contramap(VString.apply),
@@ -54,7 +55,7 @@ private object VPackObjectCodec extends VPackCompoundCodec {
           lengthMax = 1 + 8 + 8 + valuesBytes + 8 * offsets.size
           (lengthBytes, head) = lengthUtils(lengthMax)
           headBytes = 1 + lengthBytes + lengthBytes
-          indexTable = offsets.mapValues(_ + headBytes)
+          indexTable = offsets.view.mapValues(_ + headBytes)
 
           len = ulongBytes(headBytes + valuesBytes + lengthBytes * offsets.size, lengthBytes)
           nr = ulongBytes(offsets.size, lengthBytes)
@@ -78,7 +79,7 @@ private object VPackObjectCodec extends VPackCompoundCodec {
       bodyLen = 8 * (length.value - 1 - vlongLength(length.value))
       body <- scodec.codecs.bits(bodyLen).decode(length.remainder)
       nr <- VPackVLongCodec.decode(body.value.reverseByteOrder)
-      result <- Decoder.decodeCollect(keyValueCodec, Some(nr.value.toInt))(body.value)
+      result <- Decoder.decodeCollect[Vector, (String, VPack)](keyValueCodec, Some(nr.value.toInt))(body.value)
     } yield DecodeResult(VObject(result.value.toMap), body.remainder))
 
   private[codecs] def decoderOffsets(t: ObjectType): Decoder[VObject] =
@@ -95,7 +96,7 @@ private object VPackObjectCodec extends VPackCompoundCodec {
         result = offsetsToRanges(offsets.value.map(_ - bodyOffset), values.value.size / 8).map {
           case (from, until) => values.value.slice(8 * from, 8 * until)
         }
-        rr <- result.toVector.traverse(keyValueCodec.decodeValue)
+        rr <- result.traverse(keyValueCodec.decodeValue)
       } yield DecodeResult(VObject(rr.toMap), body.remainder))
 
   private[codecs] def decoderOffsets64(t: ObjectType): Decoder[VObject] =
@@ -108,11 +109,11 @@ private object VPackObjectCodec extends VPackCompoundCodec {
         (valuesIndex, number) = body.splitAt(8 * (bodyLen - t.lengthSize))
         nr <- ulongLA(8 * t.lengthSize).decode(number)
         (values, index) = valuesIndex.splitAt(8 * (bodyLen - nr.value * t.lengthSize - t.lengthSize))
-        offsets <- Decoder.decodeCollect(ulongLA(8 * t.lengthSize), Some(nr.value.toInt))(index)
+        offsets <- Decoder.decodeCollect[Vector, Long](ulongLA(8 * t.lengthSize), Some(nr.value.toInt))(index)
         result = offsetsToRanges(offsets.value.map(_ - bodyOffset), values.size / 8).map {
           case (from, until) => values.slice(8 * from, 8 * until)
         }
-        rr <- result.toVector.traverse(keyValueCodec.decodeValue)
+        rr <- result.traverse(keyValueCodec.decodeValue)
       } yield DecodeResult(VObject(rr.toMap), remainder))
 
   private[codecs] val decoder: Decoder[VObject] = vpackDecoder.emap({

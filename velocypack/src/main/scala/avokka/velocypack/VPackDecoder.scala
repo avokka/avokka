@@ -51,7 +51,7 @@ object VPackDecoder {
   implicit val longDecoder: VPackDecoder[Long] = {
     case VSmallint(s) => s.toLong.asRight
     case VLong(l)     => l.asRight
-    case VDouble(d) if d.isWhole() => d.toLong.asRight
+    case VDouble(d) if d.isWhole => d.toLong.asRight
     case v            => VPackError.WrongType(v).asLeft
   }
 

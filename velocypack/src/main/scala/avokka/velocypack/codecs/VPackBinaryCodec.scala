@@ -16,7 +16,7 @@ import VPack.VBinary
   * 0xc0-0xc7 : binary blob, next V - 0xbf bytes are the length of blob in bytes
   * note that binary blobs are not zero-terminated
   */
-private object VPackBinaryCodec {
+private[codecs] object VPackBinaryCodec {
 
   private[codecs] val encoder: Encoder[VBinary] = new Encoder[VBinary] {
     override def sizeBound: SizeBound = SizeBound.atLeast(16)

@@ -17,7 +17,7 @@ import VPack.VLong
   *
   * 0x28-0x2f : uint, little endian, 1 to 8 bytes, number is V - 0x27
   */
-private object VPackLongCodec {
+private[codecs] object VPackLongCodec {
 
   private[codecs] val encoder: Encoder[VLong] = new Encoder[VLong] {
     override def sizeBound: SizeBound = SizeBound.bounded(8 + 8, 8 + 64)

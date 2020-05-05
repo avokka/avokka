@@ -15,7 +15,7 @@ import VPack.VBoolean
   * 0x19 : false
   * 0x1a : true
   */
-private object VPackBooleanCodec {
+private[codecs] object VPackBooleanCodec {
 
   private[codecs] val encoder: Encoder[VBoolean] = new Encoder[VBoolean] {
     override def sizeBound: SizeBound = SizeBound.exact(8)

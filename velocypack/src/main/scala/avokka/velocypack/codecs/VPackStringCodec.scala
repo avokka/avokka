@@ -16,7 +16,7 @@ import VPackType.{StringLongType, StringShortType, StringType}
   * 0xbf : long UTF-8-string, next 8 bytes are length of string in bytes (not Unicode characters)
   * as little endian unsigned integer, note that long strings are not zero-terminated and may contain zero bytes
   */
-private object VPackStringCodec {
+private[codecs] object VPackStringCodec {
 
   private[codecs] val encoder: Encoder[VString] = Encoder { v =>
     for {

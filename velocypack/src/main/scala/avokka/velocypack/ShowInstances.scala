@@ -8,20 +8,20 @@ import VPack._
 trait ShowInstances {
 
   implicit val vpackShow: Show[VPack] = Show.show {
-    case v @ VNone        => vpackNoneShow.show(v)
-    case v @ VIllegal     => vpackIllegalShow.show(v)
-    case v @ VNull        => vpackNullShow.show(v)
-    case v : VBoolean     => vpackBooleanShow.show(v)
-    case v : VDouble      => vpackDoubleShow.show(v)
-    case v : VDate        => vpackDateShow.show(v)
-    case v @ VMinKey      => vpackMinKeyShow.show(v)
-    case v @ VMaxKey      => vpackMaxKeyShow.show(v)
-    case v : VSmallint    => vpackSmallIntShow.show(v)
-    case v : VLong        => vpackLongShow.show(v)
-    case v : VString      => vpackStringShow.show(v)
-    case v : VBinary      => vpackBinaryShow.show(v)
-    case v : VArray       => vpackArrayShow.show(v)
-    case v : VObject      => vpackObjectShow.show(v)
+    case v : VNone.type    => vpackNoneShow.show(v)
+    case v : VIllegal.type => vpackIllegalShow.show(v)
+    case v : VNull.type    => vpackNullShow.show(v)
+    case v : VBoolean      => vpackBooleanShow.show(v)
+    case v : VDouble       => vpackDoubleShow.show(v)
+    case v : VDate         => vpackDateShow.show(v)
+    case v : VMinKey.type  => vpackMinKeyShow.show(v)
+    case v : VMaxKey.type  => vpackMaxKeyShow.show(v)
+    case v : VSmallint     => vpackSmallIntShow.show(v)
+    case v : VLong         => vpackLongShow.show(v)
+    case v : VString       => vpackStringShow.show(v)
+    case v : VBinary       => vpackBinaryShow.show(v)
+    case v : VArray        => vpackArrayShow.show(v)
+    case v : VObject       => vpackObjectShow.show(v)
   }
 
   implicit val vpackNoneShow: Show[VNone.type] = Show.show { _ => "undefined" }
@@ -48,7 +48,9 @@ trait ShowInstances {
   }
 
   implicit val vpackObjectShow: Show[VObject] = Show.show { v =>
-    v.values.mapValues(vpackShow.show).map { case (key, value) => s""""$key":$value""" }.mkString("{", ",", "}")
+    v.values.map { case (key, value) =>
+      """"%s":%s""".format(key, vpackShow.show(value))
+    }.mkString("{", ",", "}")
   }
 
   implicit val vpackErrorShow: Show[VPackError] = Show.fromToString[VPackError]

@@ -7,11 +7,11 @@ import VPack.VObject
 
 object VPackRecord {
 
-  private trait Encoder[A <: HList] {
+  private[velocypack] trait Encoder[A <: HList] {
     def encode(t: A): Map[String, VPack]
   }
 
-  private object Encoder {
+  private[velocypack] object Encoder {
 
     def apply[A <: HList](compact: Boolean = false)(
         implicit ev: Encoder[A]
@@ -34,11 +34,11 @@ object VPackRecord {
     }
   }
 
-  private trait Decoder[A <: HList, D <: HList] {
+  private[velocypack] trait Decoder[A <: HList, D <: HList] {
     def decode(v: Map[String, VPack], defaults: D): Result[A]
   }
 
-  private object Decoder {
+  private[velocypack] object Decoder {
     def apply[A <: HList, D <: HList](defaults: D)(implicit ev: Decoder[A, D]): VPackDecoder[A] = {
       case VObject(values) => ev.decode(values, defaults)
       case v               => VPackError.WrongType(v).asLeft
@@ -97,7 +97,7 @@ object VPackRecord {
       }
   }
 
-  class DeriveHelper[T] {
+  private[velocypack] class DeriveHelper[T] {
     
     def encoder[R <: HList](
         implicit lgen: LabelledGeneric.Aux[T, R],

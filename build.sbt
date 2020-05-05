@@ -17,11 +17,11 @@ ThisBuild / scalacOptions ++= Seq(
   "-language:implicitConversions",
   "-Xlint"
 ) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
-  case Some((2, 12)) => Seq(
-    "-Ypartial-unification",
+  case Some((2, 13)) => Seq(
+    "-Ymacro-annotations"
   )
   case _ => Seq(
-    "-Ymacro-annotations"
+    "-Ypartial-unification",
   )
 })
 
@@ -68,16 +68,12 @@ lazy val arangodb = (project in file("arangodb"))
       newtype,
       pureconfig,
       logging,
-    ) ++ testSuite ++ akkaTestKit ++ dockerTest ++ (CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, v)) if v <= 12 =>
-        Seq(
-          compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
-        )
-      case _ =>
-        // if scala 2.13.0-M4 or later, macro annotations merged into scala-reflect
-        // https://github.com/scala/scala/pull/6606
-        Nil
-    }),
+    ) ++ testSuite ++ akkaTestKit ++ dockerTest ++
+      (CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, v)) if v <= 12 =>
+          Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full))
+        case _ => Nil
+      }),
     logBuffered in Test := false,
     parallelExecution in Test := false
   )

@@ -7,16 +7,14 @@ import avokka.velocypack.VPack._
 import cats.data.Chain
 import cats.data.Chain._
 import cats.instances.either._
-import cats.instances.list._
+import cats.instances.vector._
 import cats.syntax.either._
 import cats.syntax.traverse._
 import scodec.DecodeResult
 import scodec.bits.{BitVector, ByteVector}
 import scodec.interop.cats._
 import shapeless.HList
-// import magnolia._
 
-// import scala.language.experimental.macros
 import scala.annotation.implicitNotFound
 import scala.util.Try
 
@@ -153,7 +151,7 @@ object VPackDecoder {
 
   implicit def mapDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Map[String, T]] = {
     case VObject(o) => {
-      o.toList
+      o.toVector
         .traverse[Result, (String, T)]({
           case (key, v) => d.decode(v).leftMap(_.historyAdd(key)).map(r => key -> r)
         })
@@ -181,26 +179,4 @@ object VPackDecoder {
     case v => VPackError.WrongType(v).asLeft
   }
 
-  /*
-  type Typeclass[A] = VPackDecoder[A]
-
-  def combine[A](cc: CaseClass[Typeclass, A]): Typeclass[A] = {
-    case VObject(values) =>
-      cc.constructMonadic { param =>
-        param.typeclass.decode(values(param.label))
-      }
-
-
-    cc.constructEither()
-    val paramMap: Map[String, VPack] =
-      cc.parameters
-        .map(p => p.label -> p.typeclass.encode(p.dereference(a)))
-        .toMap
-
-    VObject(paramMap)
-  }
-
-  def derive[A]: Typeclass[A] = macro Magnolia.gen[A]
-
-   */
 }

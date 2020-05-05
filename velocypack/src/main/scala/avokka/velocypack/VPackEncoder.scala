@@ -13,7 +13,6 @@ import shapeless.HList
 import scala.annotation.implicitNotFound
 import scala.collection.compat._
 
-@FunctionalInterface
 @implicitNotFound("Cannot find a velocypack encoder for ${T}")
 trait VPackEncoder[T] { self =>
   def encode(t: T): VPack
@@ -40,15 +39,13 @@ trait VPackEncoder[T] { self =>
 object VPackEncoder {
   def apply[T](implicit encoder: VPackEncoder[T]): VPackEncoder[T] = encoder
 
-//  def apply[T](f: T => VPack): VPackEncoder[T] = (t: T) => f(t)
-
   implicit val contravariance: Contravariant[VPackEncoder] = new Contravariant[VPackEncoder] {
     override def contramap[A, B](fa: VPackEncoder[A])(f: B => A): VPackEncoder[B] = fa.contramap(f)
   }
 
   // scala types encoders
 
-  implicit val booleanEncoder: VPackEncoder[Boolean] = VBoolean.apply
+  implicit val booleanEncoder: VPackEncoder[Boolean] = VBoolean(_)
 
   implicit val longEncoder: VPackEncoder[Long] = {
     case VSmallint.From(s) => s
@@ -71,11 +68,11 @@ object VPackEncoder {
     case d                 => VDouble(d)
   }
 
-  implicit val stringEncoder: VPackEncoder[String] = VString.apply
+  implicit val stringEncoder: VPackEncoder[String] = VString(_)
 
   implicit val instantEncoder: VPackEncoder[Instant] = i => VDate(i.toEpochMilli)
 
-  implicit val byteVectorEncoder: VPackEncoder[ByteVector] = VBinary.apply
+  implicit val byteVectorEncoder: VPackEncoder[ByteVector] = VBinary(_)
 
   implicit val arrayByteEncoder: VPackEncoder[Array[Byte]] = byteVectorEncoder.contramap(ByteVector.apply)
 
@@ -110,9 +107,9 @@ object VPackEncoder {
 
   implicit val unitEncoder: VPackEncoder[Unit] = _ => VNone
 
-  implicit val vPackEncoder: VPackEncoder[VPack] = identity
-  implicit val vArrayEncoder: VPackEncoder[VArray] = identity
-  implicit val vObjectEncoder: VPackEncoder[VObject] = identity
+  implicit val vPackEncoder: VPackEncoder[VPack] = identity(_)
+  implicit val vArrayEncoder: VPackEncoder[VArray] = identity(_)
+  implicit val vObjectEncoder: VPackEncoder[VObject] = identity(_)
 
   implicit val localDateEncoder: VPackEncoder[LocalDate] = stringEncoder.contramap(_.toString)
 

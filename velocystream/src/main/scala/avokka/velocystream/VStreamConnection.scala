@@ -8,7 +8,6 @@ import akka.pattern.BackoffSupervisor
 import akka.util.ByteString
 
 import scala.collection.mutable
-import scala.concurrent.duration._
 
 /** Velocystream TCP connection
   *
@@ -106,7 +105,7 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
   }
 
   private def flushChunkQueue(connection: ActorRef, ack: Tcp.Event): Unit = {
-    val chunks: Vector[VStreamChunk] = queue.dequeueAll
+    val chunks: Seq[VStreamChunk] = queue.dequeueAll
     log.debug("flush chunk queue #{} {} bytes", chunks.map(c => s"${c.messageId}-${c.x.position}"), chunks.map(_.length).sum)
     val bs = ByteString.newBuilder
     chunks.foreach { chunk =>

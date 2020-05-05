@@ -12,7 +12,6 @@ trait ApiContext[Ctx] { self: Ctx =>
    * executes an api command in this context
    * @param c command value
    * @param command implicit api
-   * @param encoder request body encoder
    * @param decoder response body decoder
    * @tparam C command type
    * @tparam T request body type
@@ -21,7 +20,6 @@ trait ApiContext[Ctx] { self: Ctx =>
    */
   def apply[C, T, O](c: C)(
     implicit command: api.Api.Aux[Ctx, C, T, O],
-    encoder: VPackEncoder[T],
     decoder: VPackDecoder[O]
   ): Future[Either[ArangoError, ArangoResponse[O]]] = {
     val header = command.header(self, c)

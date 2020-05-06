@@ -44,27 +44,42 @@ object VPackDecoder {
     case v           => VPackError.WrongType(v).asLeft
   }
 
-  implicit val longDecoder: VPackDecoder[Long] = {
-    case VSmallint(s) => s.toLong.asRight
-    case VLong(l)     => l.asRight
-    case VDouble(d) if d.isWhole => d.toLong.asRight
-    case v            => VPackError.WrongType(v).asLeft
+  implicit val byteDecoder: VPackDecoder[Byte] = {
+    case VSmallint(s)                => s.asRight
+    case VLong(l) if l.isValidByte   => l.toByte.asRight
+    case VLong(l)                    => VPackError.Overflow(l).asLeft
+    case VDouble(d) if d.isValidByte => d.toByte.asRight
+    case v                           => VPackError.WrongType(v).asLeft
   }
 
   implicit val shortDecoder: VPackDecoder[Short] = {
-    case VSmallint(s)               => s.toShort.asRight
-    case VLong(l) if l.isValidShort => l.toShort.asRight
-    case VLong(l)                   => VPackError.Overflow(l).asLeft
+    case VSmallint(s)                 => s.toShort.asRight
+    case VLong(l) if l.isValidShort   => l.toShort.asRight
+    case VLong(l)                     => VPackError.Overflow(l).asLeft
     case VDouble(d) if d.isValidShort => d.toShort.asRight
-    case v                          => VPackError.WrongType(v).asLeft
+    case v                            => VPackError.WrongType(v).asLeft
   }
 
   implicit val intDecoder: VPackDecoder[Int] = {
-    case VSmallint(s)             => s.toInt.asRight
-    case VLong(l) if l.isValidInt => l.toInt.asRight
-    case VLong(l)                 => VPackError.Overflow(l).asLeft
+    case VSmallint(s)               => s.toInt.asRight
+    case VLong(l) if l.isValidInt   => l.toInt.asRight
+    case VLong(l)                   => VPackError.Overflow(l).asLeft
     case VDouble(d) if d.isValidInt => d.toInt.asRight
-    case v                        => VPackError.WrongType(v).asLeft
+    case v                          => VPackError.WrongType(v).asLeft
+  }
+
+  implicit val longDecoder: VPackDecoder[Long] = {
+    case VSmallint(s)            => s.toLong.asRight
+    case VLong(l)                => l.asRight
+    case VDouble(d) if d.isWhole => d.toLong.asRight
+    case v                       => VPackError.WrongType(v).asLeft
+  }
+
+  implicit val floatDecoder: VPackDecoder[Float] = {
+    case VSmallint(s) => s.toFloat.asRight
+    case VLong(l)     => l.toFloat.asRight
+    case VDouble(d)   => d.toFloat.asRight
+    case v            => VPackError.WrongType(v).asLeft
   }
 
   implicit val doubleDecoder: VPackDecoder[Double] = {

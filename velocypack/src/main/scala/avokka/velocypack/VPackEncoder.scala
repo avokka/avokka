@@ -46,9 +46,9 @@ object VPackEncoder {
 
   implicit val booleanEncoder: VPackEncoder[Boolean] = VBoolean(_)
 
-  implicit val longEncoder: VPackEncoder[Long] = {
+  implicit val byteEncoder: VPackEncoder[Byte] = {
     case VSmallint.From(s) => s
-    case l                 => VLong(l)
+    case b                 => VLong(b)
   }
 
   implicit val shortEncoder: VPackEncoder[Short] = {
@@ -59,6 +59,17 @@ object VPackEncoder {
   implicit val intEncoder: VPackEncoder[Int] = {
     case VSmallint.From(s) => s
     case i                 => VLong(i)
+  }
+
+  implicit val longEncoder: VPackEncoder[Long] = {
+    case VSmallint.From(s) => s
+    case l                 => VLong(l)
+  }
+
+  implicit val floatEncoder: VPackEncoder[Float] = {
+    case VSmallint.From(s) => s
+    case VLong.From(l)     => l
+    case f                 => VDouble(f.toDouble)
   }
 
   implicit val doubleEncoder: VPackEncoder[Double] = {

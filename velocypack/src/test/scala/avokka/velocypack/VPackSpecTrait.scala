@@ -20,6 +20,9 @@ trait VPackSpecTrait extends Matchers { self: Assertions =>
   }
 
   def assertRoundtrip[T](t: T)(implicit e: VPackEncoder[T], d: VPackDecoder[T]): Assertion = {
+    // vpack value roundtrip
     d.decode(e.encode(t)).right.value should be (t)
+    // bits roundtrip
+    d.decode(e.bits(t).right.value).right.value.value should be (t)
   }
 }

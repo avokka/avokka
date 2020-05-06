@@ -9,14 +9,14 @@ object Dependencies {
   val testSuite = Seq(scalaTest, scalaTestPlus, logback).map(_ % Test)
 
   val dockerTest = Seq(
-    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.36.1"
+    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.37.0"
   ).map(_ % Test)
 
   val compatDeps = Seq(
-    "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.4"
+    "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.6"
   )
 
-  val cats = "org.typelevel" %% "cats-core" % "2.0.0"
+  val cats = "org.typelevel" %% "cats-core" % "2.1.1"
   val shapeless = "com.chuusai" %% "shapeless" % "2.3.3"
 
   val akkaVersion = "2.5.28"

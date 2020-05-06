@@ -6,6 +6,7 @@ val scala213Version = "2.13.2"
 ThisBuild / organization := "avokka"
 ThisBuild / bintrayOrganization := Some("avokka")
 ThisBuild / crossScalaVersions := Seq(scala212Version, scala213Version)
+ThisBuild / scalaVersion := scala213Version
 
 ThisBuild / scalacOptions ++= Seq(
   "-target:jvm-1.8",

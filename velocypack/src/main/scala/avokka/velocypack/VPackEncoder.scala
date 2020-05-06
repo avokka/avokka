@@ -1,7 +1,7 @@
 package avokka.velocypack
 
 import java.time.{Instant, LocalDate}
-import java.util.UUID
+import java.util.{Date, UUID}
 
 import avokka.velocypack.VPack._
 import cats.Contravariant
@@ -81,6 +81,8 @@ object VPackEncoder {
   implicit val stringEncoder: VPackEncoder[String] = VString(_)
 
   implicit val instantEncoder: VPackEncoder[Instant] = i => VDate(i.toEpochMilli)
+
+  implicit val dateEncoder: VPackEncoder[Date] = d => VDate(d.getTime)
 
   implicit val byteVectorEncoder: VPackEncoder[ByteVector] = VBinary(_)
 

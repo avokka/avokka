@@ -1,7 +1,7 @@
 package avokka.velocypack
 
 import java.time.{Instant, LocalDate}
-import java.util.UUID
+import java.util.{Date, UUID}
 
 import avokka.velocypack.VPack._
 import cats.instances.either._
@@ -98,6 +98,13 @@ object VPackDecoder {
     case VDate(d) => Instant.ofEpochMilli(d).asRight
     case VLong(l) => Instant.ofEpochMilli(l).asRight
     case VString(s) => Either.fromTry(Try(Instant.parse(s))).leftMap(ex => VPackError.Conversion(ex))
+    case v => VPackError.WrongType(v).asLeft
+  }
+
+  implicit val dateDecoder: VPackDecoder[Date] = {
+    case VDate(d) => Right(new Date(d))
+    case VLong(l) => Right(new Date(l))
+    case VString(s) => Either.fromTry(Try(Instant.parse(s))).bimap(ex => VPackError.Conversion(ex), i => new Date(i.toEpochMilli))
     case v => VPackError.WrongType(v).asLeft
   }
 

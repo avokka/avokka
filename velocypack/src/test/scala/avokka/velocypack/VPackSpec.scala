@@ -1,5 +1,8 @@
 package avokka.velocypack
 
+import java.time.Instant
+import java.util.Date
+
 import VPack._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.EitherValues._
@@ -72,5 +75,21 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
     forAll { l: Long =>
       assertRoundtrip(l)
     }
+  }
+
+  "date" should "encode and decode" in {
+    val now = new Date
+    val ins = now.toInstant
+    assertCodec(now, VDate(now.getTime))
+
+    // ISO-8601 vpack strings should decode to date
+    assertDec(VPackDecoder[Date], VString(ins.toString), now)
+    assertDec(VPackDecoder[Instant], VString(ins.toString), ins)
+
+    forAll { d: Date =>
+      assertRoundtrip(d)
+      assertRoundtrip(d.toInstant)
+    }
+
   }
 }

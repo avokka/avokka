@@ -105,10 +105,12 @@ object VPack {
     }
 
     object From {
-      def unapply(i: Int): Option[VSmallint] = fromNumeric(i)
-      def unapply(s: Short): Option[VSmallint] = fromNumeric(s)
-      def unapply(l: Long): Option[VSmallint] = fromNumeric(l)
-      def unapply(d: Double): Option[VSmallint] = if (d.isWhole) fromNumeric(d) else None
+      final def unapply(b: Byte): Option[VSmallint] = fromNumeric(b)
+      final def unapply(s: Short): Option[VSmallint] = fromNumeric(s)
+      final def unapply(i: Int): Option[VSmallint] = fromNumeric(i)
+      final def unapply(l: Long): Option[VSmallint] = fromNumeric(l)
+      final def unapply(f: Float): Option[VSmallint] = if (f.toByte.toFloat == f) fromNumeric(f) else None
+      final def unapply(d: Double): Option[VSmallint] = if (d.toByte.toDouble == d) fromNumeric(d) else None
     }
   }
 
@@ -122,9 +124,17 @@ object VPack {
 
   object VLong {
     object From {
-      def unapply(i: Int): Option[VLong] = Some(VLong(i.toLong))
-      def unapply(s: Short): Option[VLong] = Some(VLong(s.toLong))
-      def unapply(d: Double): Option[VLong] = if (d.isWhole) Some(VLong(d.toLong)) else None
+      final def unapply(b: Byte): Option[VLong] = Some(VLong(b.toLong))
+      final def unapply(s: Short): Option[VLong] = Some(VLong(s.toLong))
+      final def unapply(i: Int): Option[VLong] = Some(VLong(i.toLong))
+      final def unapply(f: Float): Option[VLong] = {
+        val l = f.toLong
+        if (l.toFloat == f) Some(VLong(l)) else None
+      }
+      final def unapply(d: Double): Option[VLong] = {
+        val l = d.toLong
+        if (l.toDouble == d) Some(VLong(l)) else None
+      }
     }
   }
 

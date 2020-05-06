@@ -92,4 +92,10 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
     }
 
   }
+
+  "boolean" should "roundtrip" in {
+    forAll { b: Boolean =>
+      assertRoundtrip(b)
+    }
+  }
 }

@@ -2,7 +2,6 @@ package avokka.velocypack
 
 import java.util.Date
 
-import cats.data.Chain
 import org.scalacheck._
 import scodec.bits.ByteVector
 

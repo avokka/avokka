@@ -1,13 +1,13 @@
 package avokka.velocypack
 package codecs
 
+import avokka.velocypack.VPack.VBoolean
+import avokka.velocypack.codecs.VPackType.{FalseType, TrueType}
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
 import scodec.bits.BitVector
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, Encoder, Err, SizeBound}
-import VPackType.{TrueType, FalseType}
-import VPack.VBoolean
 
 /**
   * Codec of bool

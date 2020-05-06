@@ -44,7 +44,7 @@ object VPackEncoder {
 
   // scala types encoders
 
-  implicit val booleanEncoder: VPackEncoder[Boolean] = VBoolean(_)
+  implicit val booleanEncoder: VPackEncoder[Boolean] = if(_) VTrue else VFalse
 
   implicit val byteEncoder: VPackEncoder[Byte] = {
     case VSmallint.From(s) => s

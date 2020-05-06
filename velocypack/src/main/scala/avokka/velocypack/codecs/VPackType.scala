@@ -44,7 +44,7 @@ private object VPackType {
     * @param head byte head
     * @param singleton corresponding vpack value
     */
-  sealed abstract class SingleByte(override val head: Int, val singleton: VPack) extends VPackType
+  sealed class SingleByte(override val head: Int, val singleton: VPack) extends VPackType
 
   /** 0x00 : none - this indicates absence of any type and value, this is not allowed in VPack values */
   case object NoneType extends VPackType { override val head: Int = 0x00 }

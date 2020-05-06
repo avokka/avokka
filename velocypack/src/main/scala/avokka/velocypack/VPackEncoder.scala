@@ -5,7 +5,6 @@ import java.util.UUID
 
 import avokka.velocypack.VPack._
 import cats.Contravariant
-import cats.data.Chain
 import cats.syntax.either._
 import scodec.bits.{BitVector, ByteVector}
 import shapeless.HList
@@ -82,25 +81,23 @@ object VPackEncoder {
     _.fold[VPack](VNull)(e.encode)
 
   implicit def vectorEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Vector[T]] =
-    a => VArray(Chain.fromSeq(a.map(e.encode)))
-  implicit def listEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[List[T]] =
-    a => VArray(Chain.fromSeq(a.map(e.encode)))
-  implicit def seqEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Seq[T]] =
-    a => VArray(Chain.fromSeq(a.map(e.encode)))
-  implicit def setEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Set[T]] =
-    a => VArray(Chain.fromSeq(a.map(e.encode).toSeq))
-  implicit def chainEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Chain[T]] =
     a => VArray(a.map(e.encode))
+  implicit def listEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[List[T]] =
+    a => VArray(a.map(e.encode).toVector)
+  implicit def seqEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Seq[T]] =
+    a => VArray(a.map(e.encode).toVector)
+  implicit def setEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Set[T]] =
+    a => VArray(a.map(e.encode).toVector)
   implicit def iterableEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Iterable[T]] =
-    a => VArray(Chain.fromSeq(a.map(e.encode).toSeq))
+    a => VArray(a.map(e.encode).toVector)
 
   implicit def genericEncoder[T <: HList](implicit a: VPackGeneric.Encoder[T]): VPackEncoder[T] =
     VPackGeneric.Encoder()(a)
 
   implicit def tuple1Encoder[T1](implicit e1: VPackEncoder[T1]): VPackEncoder[Tuple1[T1]] =
-    a => VArray(Chain.one(e1.encode(a._1)))
+    a => VArray(Vector(e1.encode(a._1)))
   implicit def tuple2Encoder[T1, T2](implicit e1: VPackEncoder[T1], e2: VPackEncoder[T2]): VPackEncoder[Tuple2[T1, T2]] =
-    a => VArray(Chain(e1.encode(a._1), e2.encode(a._2)))
+    a => VArray(Vector(e1.encode(a._1), e2.encode(a._2)))
 
   implicit def mapEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Map[String, T]] =
     a => VObject(a.view.mapValues(e.encode).toMap)

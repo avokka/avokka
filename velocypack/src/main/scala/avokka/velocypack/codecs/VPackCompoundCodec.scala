@@ -1,11 +1,8 @@
 package avokka.velocypack
 package codecs
 
-import cats.data.Chain
-import cats.syntax.foldable._
 import scodec.Attempt
 import scodec.bits.BitVector
-import scodec.interop.cats._
 
 private trait VPackCompoundCodec {
 
@@ -18,8 +15,8 @@ private trait VPackCompoundCodec {
     }
   }
 
-  protected def encodeCompact(head: Int, values: Chain[BitVector]): Attempt[BitVector] = {
-    val valuesAll = values.fold //.reduce(_ ++ _)(BitVectorMonoidInstance)
+  protected def encodeCompact(head: Int, values: Vector[BitVector]): Attempt[BitVector] = {
+    val valuesAll = values.fold(BitVector.empty)(_ ++ _)
     val valuesBytes = valuesAll.size / 8
     for {
       nr <- VPackVLongCodec.encode(values.length)

@@ -41,7 +41,7 @@ trait VPackArbitrary {
 
   def genVArray(depth: Int = maxDepth): Gen[VArray] = {
     Gen.listOfN(maxArray, genAtDepth(depth - 1)).flatMap { vals =>
-      VArray(Chain.fromSeq(vals.toVector))
+      VArray(vals.toVector)
     }
   }
 

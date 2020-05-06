@@ -1,7 +1,6 @@
 package avokka.velocypack
 package codecs
 
-import cats.data.Chain
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
 import cats.syntax.traverse._
@@ -37,7 +36,7 @@ private[codecs] object VPackObjectCodec extends VPackCompoundCodec {
     case values =>
       for {
         valuesAll <- values.toVector.traverse(keyValueCodec.encode)
-        result <- encodeCompact(ObjectCompactType.head, Chain.fromSeq(valuesAll))
+        result <- encodeCompact(ObjectCompactType.head, valuesAll)
       } yield result
   })
 

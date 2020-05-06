@@ -1,7 +1,5 @@
 package avokka.velocypack
 
-import cats.data.Chain
-import cats.data.Chain.==:
 import cats.syntax.either._
 import shapeless.{::, Generic, HList, HNil}
 import VPack.VArray
@@ -9,7 +7,7 @@ import VPack.VArray
 object VPackGeneric { c =>
 
   private[velocypack] trait Encoder[A <: HList] {
-    def encode(t: A): Chain[VPack]
+    def encode(t: A): Vector[VPack]
   }
 
   private[velocypack] object Encoder {
@@ -20,7 +18,7 @@ object VPackGeneric { c =>
 
 
     implicit object hnilEncoder extends Encoder[HNil] {
-      override def encode(t: HNil): Chain[VPack] = Chain.empty
+      override def encode(t: HNil): Vector[VPack] = Vector.empty
     }
 
     implicit def hconsEncoder[T, A <: HList](
@@ -31,7 +29,7 @@ object VPackGeneric { c =>
   }
 
   private[velocypack] trait Decoder[A <: HList] {
-    def decode(v: Chain[VPack]): Result[A]
+    def decode(v: Vector[VPack]): Result[A]
   }
 
   private[velocypack] object Decoder {
@@ -41,14 +39,14 @@ object VPackGeneric { c =>
     }
 
     implicit object hnilDecoder extends Decoder[HNil] {
-      override def decode(v: Chain[VPack]): Result[HNil] = HNil.asRight
+      override def decode(v: Vector[VPack]): Result[HNil] = HNil.asRight
     }
 
     implicit def hconsDecoder[T, A <: HList](
         implicit decoder: VPackDecoder[T],
         ev: Decoder[A],
     ): Decoder[T :: A] = {
-      case value ==: tail =>
+      case value +: tail =>
         for {
           rl <- decoder.decode(value)
           rr <- ev.decode(tail)

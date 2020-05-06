@@ -4,8 +4,6 @@ import java.time.{Instant, LocalDate}
 import java.util.UUID
 
 import avokka.velocypack.VPack._
-import cats.data.Chain
-import cats.data.Chain._
 import cats.instances.either._
 import cats.instances.vector._
 import cats.syntax.either._
@@ -108,7 +106,7 @@ object VPackDecoder {
   }
 
   implicit def vectorDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Vector[T]] = {
-    case VArray(a) => a.traverse(d.decode).map(_.toVector)
+    case VArray(a) => a.traverse(d.decode) //.map(_.toVector)
     case v         => VPackError.WrongType(v).asLeft
   }
 
@@ -118,17 +116,12 @@ object VPackDecoder {
   }
 
   implicit def seqDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Seq[T]] = {
-    case VArray(a) => a.traverse(d.decode).map(_.toVector)
+    case VArray(a) => a.traverse(d.decode) //.map(_.toVector)
     case v         => VPackError.WrongType(v).asLeft
   }
 
   implicit def setDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Set[T]] = {
-    case VArray(a) => a.traverse(d.decode).map(_.toVector.toSet)
-    case v         => VPackError.WrongType(v).asLeft
-  }
-
-  implicit def chainDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Chain[T]] = {
-    case VArray(a) => a.traverse(d.decode)
+    case VArray(a) => a.traverse(d.decode).map(_.toSet)
     case v         => VPackError.WrongType(v).asLeft
   }
 
@@ -136,12 +129,12 @@ object VPackDecoder {
     VPackGeneric.Decoder(a)
 
   implicit def tuple1Decoder[T1](implicit d1: VPackDecoder[T1]): VPackDecoder[Tuple1[T1]] = {
-    case VArray(a1 ==: nil) => d1.decode(a1).map(Tuple1.apply)
+    case VArray(Vector(a1)) => d1.decode(a1).map(Tuple1.apply)
     case v                  => VPackError.WrongType(v).asLeft
   }
   implicit def tuple2Decoder[T1, T2](implicit d1: VPackDecoder[T1],
                                      d2: VPackDecoder[T2]): VPackDecoder[Tuple2[T1, T2]] = {
-    case VArray(a1 ==: a2 ==: nil) =>
+    case VArray(Vector(a1, a2)) =>
       for {
         r1 <- d1.decode(a1)
         r2 <- d2.decode(a2)

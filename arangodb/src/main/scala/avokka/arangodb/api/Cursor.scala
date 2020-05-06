@@ -3,7 +3,6 @@ package api
 
 import avokka.velocypack.VPack.VObject
 import avokka.velocypack._
-import cats.data.Chain
 
 /**
   * @param query contains the query string to be executed
@@ -110,7 +109,7 @@ object Cursor { self =>
       extra: Option[Extra] = None,
       hasMore: Boolean,
       id: Option[String] = None,
-      result: Chain[T]
+      result: Vector[T]
   )
 
   object Response {

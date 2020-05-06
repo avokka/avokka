@@ -1,11 +1,9 @@
 package avokka.velocypack
 package codecs
 
-import cats.data.Chain
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
 import cats.syntax.traverse._
-import cats.syntax.foldable._
 import cats.instances.vector._
 import scodec.bits.BitVector
 import scodec.interop.cats._
@@ -51,13 +49,13 @@ private[codecs] object VPackArrayCodec extends VPackCompoundCodec {
             val arrayBytes = 1 + lengthBytes + valuesBytes
             val len = ulongBytes(arrayBytes, lengthBytes)
 
-            BitVector(0x02 + head) ++ len ++ values.fold // reduce(_ ++ _)
+            BitVector(0x02 + head) ++ len ++ values.fold(BitVector.empty)(_ ++ _)
           }
 
           // build index table offsets
           case values => {
             val (valuesAll, valuesBytes, offsets) =
-              values.foldLeft((BitVector.empty, 0L, Chain.empty[Long])) {
+              values.foldLeft((BitVector.empty, 0L, Vector.empty[Long])) {
                 case ((bytes, offset, offsets), element) =>
                   (bytes ++ element, offset + element.size / 8, offsets :+ offset)
               }
@@ -78,15 +76,13 @@ private[codecs] object VPackArrayCodec extends VPackCompoundCodec {
         })
   })
 
-  private val vpackChainDecoder = new ChainDecoder(vpackDecoder)
-
   private[codecs] def decoderLinear(t: ArrayUnindexedType): Decoder[VArray] =
     Decoder(b =>
       for {
         length <- t.lengthDecoder.decode(b)
         body <- scodec.codecs.bits(8 * length.value).decode(length.remainder)
         values = body.value.bytes.dropWhile(_ == 0)
-        result <- vpackChainDecoder.decode(values.bits)
+        result <- Decoder.decodeCollect[Vector, VPack](vpackDecoder, None)(values.bits)
       } yield DecodeResult(VArray(result.value), body.remainder))
 
   private[codecs] def decoderOffsets(t: ArrayIndexedType): Decoder[VArray] =
@@ -98,13 +94,12 @@ private[codecs] object VPackArrayCodec extends VPackCompoundCodec {
         bodyLen = length.value - t.lengthSize
         body <- scodec.codecs.bits(8 * bodyLen).decode(nr.remainder)
         values <- scodec.codecs.bits(8 * (bodyLen - nr.value * t.lengthSize)).decode(body.value)
-        offsetsDecoder = new ChainDecoder(ulongLA(8 * t.lengthSize), Some(nr.value))
-        offsets <- offsetsDecoder.decode(values.remainder)
-        result = offsetsToRanges(offsets.value.map(_ - bodyOffset).toVector, values.value.size / 8).map {
+        offsets <- Decoder.decodeCollect[Vector, Long](ulongLA(8 * t.lengthSize), Some(nr.value.toInt))(values.remainder)
+        result = offsetsToRanges(offsets.value.map(_ - bodyOffset), values.value.size / 8).map {
           case (from, until) => values.value.slice(8 * from, 8 * until)
         }
         a <- result.traverse(vpackDecoder.decodeValue)
-      } yield DecodeResult(VArray(Chain.fromSeq(a)), body.remainder))
+      } yield DecodeResult(VArray(a), body.remainder))
 
   private[codecs] def decoderOffsets64(t: ArrayIndexedType): Decoder[VArray] =
     Decoder(b =>
@@ -116,13 +111,12 @@ private[codecs] object VPackArrayCodec extends VPackCompoundCodec {
         (valuesIndex, number) = body.splitAt(8 * (bodyLen - t.lengthSize))
         nr <- ulongLA(8 * t.lengthSize).decode(number)
         (values, index) = valuesIndex.splitAt(8 * (bodyLen - nr.value * t.lengthSize - t.lengthSize))
-        offsetsDecoder = new ChainDecoder(ulongLA(8 * t.lengthSize), Some(nr.value))
-        offsets <- offsetsDecoder.decode(index)
-        result = offsetsToRanges(offsets.value.map(_ - bodyOffset).toVector, values.size / 8).map {
+        offsets <- Decoder.decodeCollect[Vector, Long](ulongLA(8 * t.lengthSize), Some(nr.value.toInt))(index)
+        result = offsetsToRanges(offsets.value.map(_ - bodyOffset), values.size / 8).map {
           case (from, until) => values.slice(8 * from, 8 * until)
         }
         a <- result.traverse(vpackDecoder.decodeValue)
-      } yield DecodeResult(VArray(Chain.fromSeq(a)), remainder))
+      } yield DecodeResult(VArray(a), remainder))
 
   private[codecs] val decoderCompact: Decoder[VArray] = Decoder(b =>
     for {
@@ -130,8 +124,7 @@ private[codecs] object VPackArrayCodec extends VPackCompoundCodec {
       bodyLen = 8 * (length.value - 1 - vlongLength(length.value))
       body <- scodec.codecs.bits(bodyLen).decode(length.remainder)
       nr <- VPackVLongCodec.decode(body.value.reverseByteOrder)
-      resultDecoder = new ChainDecoder(vpackDecoder, Some(nr.value))
-      result <- resultDecoder.decode(body.value)
+      result <- Decoder.decodeCollect[Vector, VPack](vpackDecoder, Some(nr.value.toInt))(body.value)
     } yield DecodeResult(VArray(result.value), body.remainder))
 
   private[codecs] val codec: Codec[VArray] = Codec(encoder, vpackDecoder.emap({

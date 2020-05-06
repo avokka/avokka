@@ -1,6 +1,5 @@
 package avokka.velocypack
 
-import cats.data.Chain
 import scodec.bits.ByteVector
 
 /**
@@ -149,11 +148,11 @@ object VPack {
    * array
    * @param values values
    */
-  case class VArray(values: Chain[VPack]) extends AnyVal with VPack {
+  case class VArray(values: Vector[VPack]) extends AnyVal with VPack {
     override def isEmpty: Boolean = values.isEmpty
   }
   object VArray {
-    def apply(values: VPack*): VArray = VArray(Chain.fromSeq(values))
+    def apply(values: VPack*): VArray = VArray(values.toVector)
     val empty: VArray = VArray()
   }
 

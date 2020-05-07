@@ -24,6 +24,8 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
     assertCodec(0d, VSmallint(0))
     assertCodec(10d, VLong(10))
     assertCodec(0.0001d, VDouble(0.0001d))
+    assertRoundtrip(Double.MinValue)
+    assertRoundtrip(Double.MaxValue)
 
     forAll { d: Double =>
       assertRoundtrip(d)
@@ -32,6 +34,8 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
     assertCodec(0f, VSmallint(0))
     assertCodec(10f, VLong(10))
     assertCodec(0.0001f, VDouble(0.0001f))
+    assertRoundtrip(Float.MinValue)
+    assertRoundtrip(Float.MaxValue)
 
     forAll { f: Float =>
       assertRoundtrip(f)
@@ -54,6 +58,8 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
   "byte" should "encode to smallint or long" in {
     assertCodec(0.toByte, VSmallint(0))
     assertCodec(100.toByte, VLong(100))
+    assertRoundtrip(Byte.MinValue)
+    assertRoundtrip(Byte.MaxValue)
 
     VPackDecoder[Byte].decode(VLong(1000)).left.value should be (a [VPackError.Overflow])
 
@@ -66,6 +72,8 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
     assertCodec(0, VSmallint(0))
     assertCodec(100, VLong(100))
     assertCodec(1000, VLong(1000))
+    assertRoundtrip(Int.MinValue)
+    assertRoundtrip(Int.MaxValue)
 
     forAll { i: Int =>
       assertRoundtrip(i)
@@ -76,6 +84,8 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
     assertCodec(0L, VSmallint(0))
     assertCodec(100L, VLong(100))
     assertCodec(1000L, VLong(1000))
+    assertRoundtrip(Long.MinValue)
+    assertRoundtrip(Long.MaxValue)
 
     forAll { l: Long =>
       assertRoundtrip(l)

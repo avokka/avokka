@@ -46,17 +46,9 @@ private[codecs] object VPackLongCodec {
     }
   }
 
-  /** patch scodec-bits toLong not sign shifting for large negative longs */
-  private def longLpatch(bits: Int)(l: Long): Long = {
-    if (((1L << (bits - 1)) & l) != 0) {
-      val shift = 64 - bits
-      (l << shift) >> shift
-    } else l
-  }
-
   private[codecs] def decoderSigned(t: IntSignedType): Decoder[VLong] =
     for {
-      l <- longL(8 * t.lengthSize).map(longLpatch(8 * t.lengthSize))
+      l <- longL(8 * t.lengthSize)
     } yield VLong(l)
 
   private[codecs] def decoderUnsigned(t: IntUnsignedType): Decoder[VLong] =

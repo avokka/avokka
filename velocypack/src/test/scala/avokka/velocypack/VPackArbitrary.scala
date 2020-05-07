@@ -18,10 +18,10 @@ trait VPackArbitrary {
   val genVBoolean: Gen[VBoolean] = arbitrary[Boolean].map(VBoolean)
 
   val genVDouble: Gen[VDouble] = arbitrary[Double].map(VDouble)
-  val genVDate: Gen[VDate] = arbitrary[Date].map { d => VDate(d.toInstant.toEpochMilli) }
+  val genVDate: Gen[VDate] = arbitrary[Date].map { d => VDate(d.getTime) }
 
   val genVSmallint: Gen[VSmallint] = Gen.choose[Byte](-6, 9).map(VSmallint.apply)
-  val genVLong: Gen[VLong] = arbitrary[Long].map(VLong.apply)
+  val genVLong: Gen[VLong] = arbitrary[Long].map(VLong)
 
   val genVString: Gen[VString] = arbitrary[String].map(VString)
   val genVBinary: Gen[VBinary] = Gen.listOf(arbitrary[Byte]).map { b => VBinary(ByteVector(b)) }

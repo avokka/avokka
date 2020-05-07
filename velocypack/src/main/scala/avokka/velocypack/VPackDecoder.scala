@@ -75,6 +75,14 @@ object VPackDecoder {
     case v                       => VPackError.WrongType(v).asLeft
   }
 
+  implicit val bigintDecoder: VPackDecoder[BigInt] = {
+    case VSmallint(s)            => BigInt(s).asRight
+    case VLong(l)                => BigInt(l).asRight
+    case VDouble(d) if d.isWhole => BigInt(d.toLong).asRight
+    case VBinary(b)              => BigInt(b.toArray).asRight
+    case v                       => VPackError.WrongType(v).asLeft
+  }
+
   implicit val floatDecoder: VPackDecoder[Float] = {
     case VSmallint(s) => s.toFloat.asRight
     case VLong(l)     => l.toFloat.asRight
@@ -87,6 +95,17 @@ object VPackDecoder {
     case VLong(l)     => l.toDouble.asRight
     case VDouble(d)   => d.asRight
     case v            => VPackError.WrongType(v).asLeft
+  }
+
+  implicit val bigdecimalDecoder: VPackDecoder[BigDecimal] = {
+    case VSmallint(s)            => BigDecimal(s).asRight
+    case VLong(l)                => BigDecimal(l).asRight
+    case VDouble(d)              => BigDecimal(d).asRight
+    case VBinary(b)              => {
+      val (scale, bigint) = b.splitAt(4)
+      BigDecimal(BigInt(bigint.toArray), scale.toInt()).asRight
+    }
+    case v                       => VPackError.WrongType(v).asLeft
   }
 
   implicit val stringDecoder: VPackDecoder[String] = {

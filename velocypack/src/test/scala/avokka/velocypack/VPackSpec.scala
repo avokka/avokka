@@ -14,6 +14,10 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
 
   "codec from vector" should "encode vectors" in {
     assertCodec(Vector(1,2,3), VArray(VSmallint(1), VSmallint(2), VSmallint(3)))
+
+    forAll { v: Vector[Long] =>
+      assertRoundtrip(v)
+    }
   }
 
   "double / floats" should "encode to most compact form" in {
@@ -21,15 +25,16 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
     assertCodec(10d, VLong(10))
     assertCodec(0.0001d, VDouble(0.0001d))
 
+    forAll { d: Double =>
+      assertRoundtrip(d)
+    }
+
     assertCodec(0f, VSmallint(0))
     assertCodec(10f, VLong(10))
     assertCodec(0.0001f, VDouble(0.0001f))
 
     forAll { f: Float =>
       assertRoundtrip(f)
-    }
-    forAll { d: Double =>
-      assertRoundtrip(d)
     }
   }
 
@@ -96,6 +101,23 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
   "boolean" should "roundtrip" in {
     forAll { b: Boolean =>
       assertRoundtrip(b)
+    }
+  }
+
+  "bignumber" should "roundtrip" in {
+    assertCodec(BigInt(1), VSmallint(1))
+    assertCodec(BigInt(100L), VLong(100))
+
+    forAll { i: BigInt =>
+      assertRoundtrip(i)
+    }
+
+    assertCodec(BigDecimal(1), VSmallint(1))
+    assertCodec(BigDecimal(100L), VLong(100))
+    assertCodec(BigDecimal(0.01d), VDouble(0.01d))
+
+    forAll { i: BigDecimal =>
+      assertRoundtrip(i)
     }
   }
 }

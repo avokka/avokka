@@ -47,35 +47,48 @@ object VPackEncoder {
   implicit val booleanEncoder: VPackEncoder[Boolean] = if(_) VTrue else VFalse
 
   implicit val byteEncoder: VPackEncoder[Byte] = {
-    case VSmallint.From(s) => s
-    case b                 => VLong(b)
+    case b if VSmallint.isValid(b) => VSmallint(b)
+    case b => VLong(b)
   }
 
   implicit val shortEncoder: VPackEncoder[Short] = {
-    case VSmallint.From(s) => s
-    case i                 => VLong(i)
+    case i if VSmallint.isValid(i) => VSmallint(i.toByte)
+    case i => VLong(i)
   }
 
   implicit val intEncoder: VPackEncoder[Int] = {
-    case VSmallint.From(s) => s
-    case i                 => VLong(i)
+    case i if VSmallint.isValid(i) => VSmallint(i.toByte)
+    case i => VLong(i)
   }
 
   implicit val longEncoder: VPackEncoder[Long] = {
-    case VSmallint.From(s) => s
-    case l                 => VLong(l)
+    case l if VSmallint.isValid(l) => VSmallint(l.toByte)
+    case l => VLong(l)
+  }
+
+  implicit val bigintEncoder: VPackEncoder[BigInt] = {
+    case i if VSmallint.isValidByte(i) => VSmallint(i.toByte)
+    case i if i.isValidLong            => VLong(i.toLong)
+    case i => VBinary(ByteVector(i.toByteArray))
   }
 
   implicit val floatEncoder: VPackEncoder[Float] = {
-    case VSmallint.From(s) => s
-    case VLong.From(l)     => l
-    case f                 => VDouble(f.toDouble)
+    case f if VSmallint.isValidByte(f) => VSmallint(f.toByte)
+    case f if f.toLong.toFloat == f    => VLong(f.toLong)
+    case f => VDouble(f.toDouble)
   }
 
   implicit val doubleEncoder: VPackEncoder[Double] = {
-    case VSmallint.From(s) => s
-    case VLong.From(l)     => l
-    case d                 => VDouble(d)
+    case d if VSmallint.isValidByte(d) => VSmallint(d.toByte)
+    case d if d.toLong.toDouble == d   => VLong(d.toLong)
+    case d => VDouble(d)
+  }
+
+  implicit val bigdecimalEncoder: VPackEncoder[BigDecimal] = {
+    case d if VSmallint.isValidByte(d) => VSmallint(d.toByte)
+    case d if d.isValidLong            => VLong(d.toLongExact)
+    case d if d.isDecimalDouble        => VDouble(d.toDouble)
+    case d => VBinary(ByteVector.fromInt(d.scale) ++ ByteVector(d.underlying().unscaledValue().toByteArray))
   }
 
   implicit val stringEncoder: VPackEncoder[String] = VString(_)

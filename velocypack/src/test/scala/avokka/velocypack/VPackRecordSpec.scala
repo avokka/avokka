@@ -1,8 +1,10 @@
 package avokka.velocypack
 
+import org.scalacheck._
 import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class VPackRecordSpec extends AnyFlatSpec with VPackSpecTrait {
+class VPackRecordSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPackSpecTrait {
   import VPack._
   import VPackRecordSpec._
 
@@ -38,12 +40,10 @@ class VPackRecordSpec extends AnyFlatSpec with VPackSpecTrait {
       VersionResponse("arango", "community", "3.5.2"),
       VObject(Map("server" -> VString("arango"), "license" -> VString("community"), "version"-> VString("3.5.2")))
     )
-    /*
-    assertEnc(VersionResponseEncoderM,
-      VersionResponse("arango", "community", "3.5.2"),
-      VObject(Map("server" -> VString("arango"), "license" -> VString("community"), "version"-> VString("3.5.2")))
-    )
-     */
+
+    forAll { v: VersionResponse =>
+      assertRoundtrip(v)(VersionResponseEncoder, VersionResponseDecoder)
+    }
   }
 
   "case class codec with defaults" should "conform specs" in {
@@ -70,12 +70,17 @@ class VPackRecordSpec extends AnyFlatSpec with VPackSpecTrait {
 
 object VPackRecordSpec {
 
+  import Arbitrary._
+
   case class VersionResponse
   (
     server: String,
     license: String,
     version: String
   )
+
+  implicit val arbitrayVR: Arbitrary[VersionResponse] = Arbitrary(Gen.resultOf(VersionResponse.tupled))
+
 
 //  val VersionResponseEncoderM: VPackEncoder[VersionResponse] = VPackEncoder.derive
 

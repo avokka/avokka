@@ -22,4 +22,10 @@ class VPackUUIDSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPack
       assertDec(VPackDecoder[UUID], VString(uuid.toString), uuid)
     }
   }
+
+  "uuid" should "roundtrip" in {
+    forAll { uuid: UUID =>
+      assertRoundtrip(uuid)
+    }
+  }
 }

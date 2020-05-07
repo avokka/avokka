@@ -2,6 +2,8 @@ package avokka.velocypack
 
 import scodec.bits.ByteVector
 
+import scala.math.ScalaNumericAnyConversions
+
 /**
   * Velocypack value
   */
@@ -97,21 +99,11 @@ object VPack {
   }
 
   object VSmallint {
-
-    def fromNumeric[T](arg: T)(implicit num: Numeric[T]): Option[VSmallint] = {
-      if (num.lt(arg, num.fromInt(10)) && num.gt(arg, num.fromInt(-7)))
-        Some(VSmallint(num.toInt(arg).toByte))
-      else None
+    def isValid[T](arg: T)(implicit num: Numeric[T]): Boolean = {
+      num.lt(arg, num.fromInt(10)) && num.gt(arg, num.fromInt(-7))
     }
 
-    object From {
-      final def unapply(b: Byte): Option[VSmallint] = fromNumeric(b)
-      final def unapply(s: Short): Option[VSmallint] = fromNumeric(s)
-      final def unapply(i: Int): Option[VSmallint] = fromNumeric(i)
-      final def unapply(l: Long): Option[VSmallint] = fromNumeric(l)
-      final def unapply(f: Float): Option[VSmallint] = if (f.toByte.toFloat == f) fromNumeric(f) else None
-      final def unapply(d: Double): Option[VSmallint] = if (d.toByte.toDouble == d) fromNumeric(d) else None
-    }
+    def isValidByte(n: ScalaNumericAnyConversions): Boolean = n.isValidByte && isValid(n.toByte)
   }
 
   /**
@@ -120,22 +112,6 @@ object VPack {
    */
   case class VLong(value: Long) extends AnyVal with VPack {
     override def isEmpty: Boolean = false
-  }
-
-  object VLong {
-    object From {
-      final def unapply(b: Byte): Option[VLong] = Some(VLong(b.toLong))
-      final def unapply(s: Short): Option[VLong] = Some(VLong(s.toLong))
-      final def unapply(i: Int): Option[VLong] = Some(VLong(i.toLong))
-      final def unapply(f: Float): Option[VLong] = {
-        val l = f.toLong
-        if (l.toFloat == f) Some(VLong(l)) else None
-      }
-      final def unapply(d: Double): Option[VLong] = {
-        val l = d.toLong
-        if (l.toDouble == d) Some(VLong(l)) else None
-      }
-    }
   }
 
   /**

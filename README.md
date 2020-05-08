@@ -33,5 +33,5 @@ libraryDependencies += "avokka" %% "avokka-arangodb" % "0.0.3"
 libraryDependencies += "avokka" %% "avokka-velocystream" % "0.0.3"
 
 // or just the velocypack codec library
-libraryDependencies += "avokka" %% "avokka-velocystream" % "0.0.3"
+libraryDependencies += "avokka" %% "avokka-velocypack" % "0.0.3"
 ```

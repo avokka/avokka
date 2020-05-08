@@ -53,12 +53,12 @@ class ArangoSession(conf: ArangoConfiguration)(
   def askClient[T](bits: BitVector): FEE[VStreamMessage] =
     EitherT.liftF(ask(client, VStreamClient.MessageSend(VStreamMessage.create(bits.bytes))).mapTo[VStreamMessage])
 
-  def closeClient() =
+  def closeClient(): Unit =
     client ! VStreamClient.Stop
 
   private[arangodb] def execute[P: VPackEncoder, O: VPackDecoder](
       request: ArangoRequest[P]): FEE[ArangoResponse[O]] = {
-    for {
+    (for {
       hBits <- EitherT.fromEither[Future](request.header.toVPackBits.leftMap(ArangoError.VPack))
       _ = logger.debug("REQ head {}", hBits.asVPackValue.show)
       pBits <- EitherT.fromEither[Future](request.body.toVPackBits.leftMap(ArangoError.VPack))
@@ -80,7 +80,10 @@ class ArangoSession(conf: ArangoConfiguration)(
           .leftMap(ArangoError.VPack)
           .flatMap(body => ArangoResponse(head.value, body.value).asRight)
       })
-    } yield response
+    } yield response).leftMap { e =>
+      logger.error("arangodb error from request head=%s body=%s".format(request.header.toString, request.body.toString), e)
+      e
+    }
   }
 }
 

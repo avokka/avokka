@@ -26,7 +26,7 @@ class ArangoSessionSpec
   it should "get version" in {
     EitherT(session(Version())).map { res =>
       res.header.responseCode should be (200)
-      res.body.version should be (container.version)
+      res.body.version should startWith (container.version)
     }.rethrowT
   }
 

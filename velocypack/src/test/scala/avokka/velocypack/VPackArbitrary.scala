@@ -15,7 +15,7 @@ trait VPackArbitrary {
   val maxObject = 10
 
   val genVNull: Gen[VNull.type] = Gen.const(VNull)
-  val genVBoolean: Gen[VBoolean] = arbitrary[Boolean].map(VBoolean)
+  val genVBoolean: Gen[VBoolean] = Gen.oneOf(VFalse, VTrue)
 
   val genVDouble: Gen[VDouble] = arbitrary[Double].map(VDouble)
   val genVDate: Gen[VDate] = arbitrary[Date].map { d => VDate(d.getTime) }

@@ -3,7 +3,6 @@ package avokka.velocypack
 import java.time.Instant
 
 import cats.Show
-import cats.instances.boolean._
 import cats.instances.double._
 import cats.syntax.contravariant._
 import VPack._
@@ -31,7 +30,10 @@ trait ShowInstances {
   implicit val vpackIllegalShow: Show[VIllegal.type] = Show.show { _ => "undefined" }
   implicit val vpackNullShow: Show[VNull.type] = Show.show { _ => "null" }
 
-  implicit val vpackBooleanShow: Show[VBoolean] = Show[Boolean].contramap(_.value)
+  implicit val vpackBooleanShow: Show[VBoolean] = Show.show {
+    case VFalse => "false"
+    case VTrue  => "true"
+  }
 
   implicit val vpackDoubleShow: Show[VDouble] = Show[Double].contramap(_.value)
 

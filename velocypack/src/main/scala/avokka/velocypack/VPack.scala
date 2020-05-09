@@ -51,14 +51,18 @@ object VPack {
 
   /**
    * boolean
-   * @param value value
    */
-  case class VBoolean(value: Boolean) extends AnyVal with VPack {
-    override def isEmpty: Boolean = false
+  sealed trait VBoolean extends VPack {
+    override val isEmpty: Boolean = false
+    def value: Boolean
   }
 
-  val VFalse: VBoolean = VBoolean(false)
-  val VTrue: VBoolean = VBoolean(true)
+  case object VFalse extends VBoolean {
+    override val value = false
+  }
+  case object VTrue extends VBoolean {
+    override val value = true
+  }
 
   /**
    * double

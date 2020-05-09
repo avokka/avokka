@@ -40,7 +40,7 @@ object VPackDecoder {
   // scala types instances
 
   implicit val booleanDecoder: VPackDecoder[Boolean] = {
-    case VBoolean(b) => b.asRight
+    case b: VBoolean => b.value.asRight
     case v           => VPackError.WrongType(v).asLeft
   }
 

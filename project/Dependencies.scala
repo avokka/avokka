@@ -19,7 +19,7 @@ object Dependencies {
   val cats = "org.typelevel" %% "cats-core" % "2.1.1"
   val shapeless = "com.chuusai" %% "shapeless" % "2.3.3"
 
-  val akkaVersion = "2.5.28"
+  val akkaVersion = "2.6.5"
   val akka = Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,

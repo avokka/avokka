@@ -34,7 +34,7 @@ final class CursorSource[C, T](
         EitherT(req).fold(failureHandler.invoke, responseHandler.invoke)
       }
 
-      def handleFailure(ex: ArangoError): Unit = failStage(new IllegalStateException(ex.message))
+      def handleFailure(ex: ArangoError): Unit = failStage(new IllegalStateException(ex))
 
       def handleResponse(response: ArangoResponse[Cursor.Response[T]]): Unit = {
         cursorId = response.body.id

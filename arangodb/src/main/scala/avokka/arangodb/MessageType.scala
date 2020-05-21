@@ -3,7 +3,7 @@ package avokka.arangodb
 import avokka.velocypack.{VPackDecoder, VPackEncoder, VPackError}
 import cats.syntax.either._
 
-sealed abstract class MessageType(val i: Int)
+sealed abstract class MessageType(val i: Int) extends Product
 
 object MessageType {
 

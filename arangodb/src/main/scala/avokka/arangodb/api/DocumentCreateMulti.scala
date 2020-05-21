@@ -13,7 +13,7 @@ import avokka.velocypack._
   * @param overwrite If set to *true*, the insert becomes a replace-insert. If a document with the same *_key* already exists the new document is not rejected with unique constraint violated but will replace the old document.   (optional)
   * @tparam T document type
   */
-case class DocumentCreateMulti[T](
+final case class DocumentCreateMulti[T](
     collection: CollectionName,
     documents: List[T],
     waitForSync: Boolean = false,

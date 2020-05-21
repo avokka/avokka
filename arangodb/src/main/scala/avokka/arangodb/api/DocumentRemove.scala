@@ -16,7 +16,7 @@ import avokka.velocypack._
   *                    using the if-match HTTP header.
   * @tparam T          Response body type
   */
-case class DocumentRemove[T](
+final case class DocumentRemove[T](
     handle: DocumentHandle,
     waitForSync: Boolean = false,
     returnOld: Boolean = false,

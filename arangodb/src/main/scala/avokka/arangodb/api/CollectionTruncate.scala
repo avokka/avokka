@@ -1,7 +1,7 @@
 package avokka.arangodb
 package api
 
-case class CollectionTruncate(
+final case class CollectionTruncate(
     name: CollectionName
 )
 

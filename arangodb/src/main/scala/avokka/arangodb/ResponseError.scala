@@ -2,7 +2,7 @@ package avokka.arangodb
 
 import avokka.velocypack._
 
-case class ResponseError(
+final case class ResponseError(
     code: Long,
     error: Boolean,
     errorMessage: String,

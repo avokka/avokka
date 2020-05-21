@@ -3,13 +3,13 @@ package api
 
 import avokka.velocypack._
 
-case class CursorDelete(
+final case class CursorDelete(
     id: String
 )
 
 object CursorDelete { self =>
 
-  case class Response(
+  final case class Response(
       id: String
   )
 

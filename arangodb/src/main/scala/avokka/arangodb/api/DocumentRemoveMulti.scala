@@ -20,7 +20,7 @@ import avokka.velocypack._
   *                    revision check is performed
   * @tparam T          Response body type
   */
-case class DocumentRemoveMulti[T, K](
+final case class DocumentRemoveMulti[T, K](
     collection: CollectionName,
     keys: List[K],
     waitForSync: Boolean = false,

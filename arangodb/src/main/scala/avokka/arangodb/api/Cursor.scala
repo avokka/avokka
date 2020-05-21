@@ -14,7 +14,7 @@ import avokka.velocypack._
   * @param options
   * @param ttl The time-to-live for the cursor (in seconds). The cursor will be removed on the server automatically after the specified amount of time. This is useful to ensure garbage collection of cursors that are not fully fetched by clients. If not set, a server-defined value will be used (default: 30 seconds).
   */
-case class Cursor[V, T](
+final case class Cursor[V, T](
     query: String,
     bindVars: V,
     batchSize: Option[Long] = None,
@@ -51,7 +51,7 @@ object Cursor { self =>
     * @param skipInaccessibleCollections AQL queries (especially graph traversals) will treat collection to which a user has no access rights as if these collections were empty. Instead of returning a forbidden access error, your queries will execute normally. This is intended to help with certain use-cases: A graph contains several collections and different users execute AQL queries on that graph. You can now naturally limit the accessible results by changing the access rights of users on collections. This feature is only available in the Enterprise Edition.
     * @param stream Specify *true* and the query will be executed in a **streaming** fashion. The query result is not stored on the server, but calculated on the fly. *Beware*: long-running queries will need to hold the collection locks for as long as the query cursor exists.  When set to *false* a query will be executed right away in its entirety.  In that case query results are either returned right away (if the result set is small enough), or stored on the arangod instance and accessible via the cursor API (with respect to the `ttl`).  It is advisable to *only* use this option on short-running queries or without exclusive locks  (write-locks on MMFiles). Please note that the query options `cache`, `count` and `fullCount` will not work on streaming queries. Additionally query statistics, warnings and profiling data will only be available after the query is finished. The default value is *false*
     */
-  case class Options(
+  final case class Options(
       failOnWarning: Option[Boolean],
       fullCount: Option[Boolean],
       intermediateCommitCount: Option[Long],
@@ -73,7 +73,7 @@ object Cursor { self =>
   implicit def encoder[V: VPackEncoder, T]: VPackEncoder[Cursor[V, T]] =
     VPackRecord[Cursor[V, T]].encoder
 
-  case class ExtraStats(
+  final case class ExtraStats(
       writesExecuted: Option[Long] = None,
       writesIgnored: Option[Long] = None,
       scannedFull: Option[Long] = None,
@@ -88,7 +88,7 @@ object Cursor { self =>
     implicit val decoder: VPackDecoder[ExtraStats] = VPackRecord[ExtraStats].decoderWithDefaults
   }
 
-  case class Extra(
+  final case class Extra(
       stats: ExtraStats
   )
   object Extra {
@@ -103,7 +103,7 @@ object Cursor { self =>
     * @param id id of temporary cursor created on the server (optional, see above)
     * @param result an array of result documents (might be empty if query has no results)
     */
-  case class Response[T](
+  final case class Response[T](
       cached: Boolean,
       count: Option[Long] = None,
       extra: Option[Extra] = None,

@@ -11,12 +11,12 @@ object Engine { self =>
     * @param name will be mmfiles or rocksdb
     * @param supports what the engine supports
     */
-  case class Response(
+  final case class Response(
       name: String,
       supports: Supports
   )
 
-  case class Supports(
+  final case class Supports(
       dfdb: Boolean,
       indexes: List[String],
   )

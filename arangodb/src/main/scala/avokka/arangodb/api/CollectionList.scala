@@ -3,7 +3,7 @@ package api
 
 import avokka.velocypack._
 
-case class CollectionList(
+final case class CollectionList(
     excludeSystem: Boolean = false
 ) {
   def parameters = Map(
@@ -13,7 +13,7 @@ case class CollectionList(
 
 object CollectionList { self =>
 
-  case class Response(
+  final case class Response(
       result: Vector[CollectionInfo.Response]
   )
   object Response {

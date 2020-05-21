@@ -3,14 +3,14 @@ package api
 
 import avokka.velocypack._
 
-case class GraphList()
+final case class GraphList()
 
 object GraphList { self =>
 
   /**
     * @param graphs list of graph representations
     */
-  case class Response(
+  final case class Response(
       graphs: Vector[GraphInfo.GraphRepresentation]
   )
   object Response {

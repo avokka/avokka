@@ -2,14 +2,14 @@ package avokka.arangodb
 
 import avokka.velocypack._
 
-case class ArangoResponse[T](
+final case class ArangoResponse[T](
     header: ArangoResponse.Header,
     body: T
 )
 
 object ArangoResponse {
 
-  case class Header(
+  final case class Header(
       version: Int,
       `type`: MessageType,
       responseCode: Int,

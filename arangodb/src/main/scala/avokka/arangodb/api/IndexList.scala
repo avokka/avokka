@@ -3,13 +3,13 @@ package api
 
 import avokka.velocypack._
 
-case class IndexList(
+final case class IndexList(
     collection: CollectionName
 )
 
 object IndexList { self =>
 
-  case class Response(
+  final case class Response(
       indexes: List[Index.Response],
       identifiers: Map[String, Index.Response]
   )

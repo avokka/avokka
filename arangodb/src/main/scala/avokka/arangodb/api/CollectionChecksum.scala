@@ -20,7 +20,7 @@ import avokka.velocypack._
   * @param withRevisions include document revision ids in the checksum calculation
   * @param withData      include document body data in the checksum calculation
   */
-case class CollectionChecksum(
+final case class CollectionChecksum(
     name: CollectionName,
     withRevisions: Boolean = false,
     withData: Boolean = false,
@@ -33,7 +33,7 @@ case class CollectionChecksum(
 
 object CollectionChecksum { self =>
 
-  case class Response(
+  final case class Response(
       checksum: String,
       revision: String,
   )

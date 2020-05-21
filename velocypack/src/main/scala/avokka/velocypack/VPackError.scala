@@ -2,7 +2,7 @@ package avokka.velocypack
 
 import scodec.Err
 
-trait VPackError extends Product {
+sealed trait VPackError extends Product {
   def message: String
   def history: List[String]
   def historyAdd(e: String): VPackError

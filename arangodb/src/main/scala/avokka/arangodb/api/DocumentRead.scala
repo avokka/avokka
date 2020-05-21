@@ -14,7 +14,7 @@ package api
   *                    Etag. The document is returned, if it has the same revision as the
   *                    given Etag. Otherwise a HTTP 412 is returned.
   */
-case class DocumentRead[T](
+final case class DocumentRead[T](
     handle: DocumentHandle,
     ifNoneMatch: Option[String] = None,
     ifMatch: Option[String] = None,

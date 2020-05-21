@@ -3,7 +3,7 @@ package api
 
 import avokka.velocypack._
 
-case class CollectionDrop(
+final case class CollectionDrop(
     name: CollectionName,
     isSystem: Boolean = false
 ) {
@@ -14,7 +14,7 @@ case class CollectionDrop(
 
 object CollectionDrop { self =>
 
-  case class Response(
+  final case class Response(
       id: String
   )
 

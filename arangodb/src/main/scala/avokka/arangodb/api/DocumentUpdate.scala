@@ -17,7 +17,7 @@ import avokka.velocypack._
   * @tparam T document type
   * @tparam P patch type
   */
-case class DocumentUpdate[T, P](
+final case class DocumentUpdate[T, P](
     handle: DocumentHandle,
     patch: P,
     keepNull: Boolean = false,

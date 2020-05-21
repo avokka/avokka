@@ -3,7 +3,7 @@ package api
 
 import avokka.velocypack._
 
-case class GraphInfo(
+final case class GraphInfo(
     name: String
 )
 
@@ -15,7 +15,7 @@ object GraphInfo { self =>
     * @param from List of vertex collection names. Edges in collection can only be inserted if their _from is in any of the collections here.
     * @param to List of vertex collection names. Edges in collection can only be inserted if their _to is in any of the collections here.
     */
-  case class GraphEdgeDefinition(
+  final case class GraphEdgeDefinition(
       collection: String,
       from: List[String],
       to: List[String]
@@ -38,7 +38,7 @@ object GraphInfo { self =>
     * @param isSmart Flag if the graph is a SmartGraph (Enterprise Edition only) or not.
     * @param smartGraphAttribute The name of the sharding attribute in smart graph case (Enterprise Edition only)
     */
-  case class GraphRepresentation(
+  final case class GraphRepresentation(
       _id: String,
       _rev: String,
       name: String,
@@ -56,7 +56,7 @@ object GraphInfo { self =>
       VPackRecord[GraphRepresentation].decoderWithDefaults
   }
 
-  case class Response(
+  final case class Response(
       graph: GraphRepresentation
   )
   object Response {

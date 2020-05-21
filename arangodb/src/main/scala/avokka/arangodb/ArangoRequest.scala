@@ -3,16 +3,16 @@ package avokka.arangodb
 import avokka.arangodb.api.Api
 import avokka.velocypack._
 
-case class ArangoRequest[T](
+final case class ArangoRequest[T](
                              header: ArangoRequest.HeaderTrait,
                              body: T
 )
 
 object ArangoRequest {
 
-  sealed trait HeaderTrait
+  sealed trait HeaderTrait extends Product
 
-  case class Header(
+  final case class Header(
       version: Int = 1,
       `type`: MessageType = MessageType.Request,
       database: DatabaseName,
@@ -26,7 +26,7 @@ object ArangoRequest {
     implicit val encoder: VPackEncoder[Header] = VPackGeneric[Header].encoder
   }
 
-  case class Authentication(
+  final case class Authentication(
       version: Int = 1,
       `type`: MessageType = MessageType.Authentication,
       encryption: String = "plain",

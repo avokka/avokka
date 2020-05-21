@@ -3,7 +3,7 @@ package api
 
 import avokka.velocypack._
 
-case class CollectionProperties(
+final case class CollectionProperties(
     name: CollectionName
 )
 
@@ -16,7 +16,7 @@ object CollectionProperties { self =>
     * @param lastValue
     * @param `type` specifies the type of the key generator. The currently available generators are *traditional*, *autoincrement*, *uuid* and *padded*.
     */
-  case class KeyOptions(
+  final case class KeyOptions(
       allowUserKeys: Boolean,
       lastValue: Option[Int],
       `type`: String
@@ -48,7 +48,7 @@ object CollectionProperties { self =>
     * @param `type` The type of the collection:   - 0: \"unknown\"   - 2: regular document collection   - 3: edge collection
     * @param waitForSync If *true* then creating, changing or removing documents will wait until the data has been synchronized to disk.
     */
-  case class Response(
+  final case class Response(
       doCompact: Option[Boolean] = None,
       globallyUniqueId: Option[String],
       id: Option[String],

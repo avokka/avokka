@@ -3,7 +3,7 @@ package api
 
 import avokka.velocypack._
 
-case class Version(
+final case class Version(
     details: Boolean = false
 ) {
   def parameters = Map(
@@ -21,7 +21,7 @@ object Version { self =>
     *                may contain a number or a textual version
     * @param details additional information about included components and their versions
     */
-  case class Response(
+  final case class Response(
       server: String,
       license: String,
       version: String,

@@ -5,7 +5,7 @@ import avokka.velocypack._
 
 object DatabaseDrop { self =>
 
-  case class Response(
+  final case class Response(
       result: Boolean
   )
 

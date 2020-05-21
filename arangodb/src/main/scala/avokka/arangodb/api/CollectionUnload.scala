@@ -1,7 +1,7 @@
 package avokka.arangodb
 package api
 
-case class CollectionUnload(
+final case class CollectionUnload(
     name: CollectionName
 )
 

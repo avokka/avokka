@@ -6,7 +6,7 @@ import avokka.velocypack._
 
 object AdminEcho { self =>
 
-  case class Server(
+  final case class Server(
       address: String,
       port: Long,
       endpoint: String,
@@ -16,7 +16,7 @@ object AdminEcho { self =>
     implicit val decoder: VPackDecoder[Server] = VPackRecord[Server].decoderWithDefaults
   }
 
-  case class Client(
+  final case class Client(
       address: String,
       port: Long,
       id: String,
@@ -45,7 +45,7 @@ object AdminEcho { self =>
     * @param url the raw request URL
     * @param user the currently user that sent this request
     */
-  case class Response(
+  final case class Response(
       authorized: Boolean,
       client: Client,
       //  cookies: Map[String, String],

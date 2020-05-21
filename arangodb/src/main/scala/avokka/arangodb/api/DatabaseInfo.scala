@@ -5,11 +5,11 @@ import avokka.velocypack._
 
 object DatabaseInfo { self =>
 
-  case class Response(
+  final case class Response(
       result: Result,
   )
 
-  case class Result(
+  final case class Result(
       name: DatabaseName,
       id: String,
       path: String,

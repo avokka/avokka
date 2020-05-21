@@ -25,7 +25,7 @@ import avokka.velocypack._
   * @param sparse if true, then create a sparse index
   * @param deduplicate if false, the deduplication of array values is turned off
   */
-case class IndexHash(
+final case class IndexHash(
     collection: CollectionName,
     fields: List[String],
     unique: Boolean = false,

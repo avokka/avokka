@@ -5,7 +5,7 @@ import avokka.velocypack._
 
 object Index {
 
-  case class Response(
+  final case class Response(
       fields: List[String],
       id: String,
       name: String,

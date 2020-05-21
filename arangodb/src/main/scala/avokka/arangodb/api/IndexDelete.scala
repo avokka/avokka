@@ -3,13 +3,13 @@ package api
 
 import avokka.velocypack._
 
-case class IndexDelete(
+final case class IndexDelete(
     handle: String
 )
 
 object IndexDelete { self =>
 
-  case class Response(
+  final case class Response(
       id: String
   )
 

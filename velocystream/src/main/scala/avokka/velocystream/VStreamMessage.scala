@@ -11,7 +11,7 @@ import scala.annotation.tailrec
   * @param id identifier
   * @param data data bytes
   */
-case class VStreamMessage(
+final case class VStreamMessage(
     id: Long,
     data: ByteVector
 ) {

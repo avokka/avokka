@@ -5,7 +5,7 @@ import avokka.velocypack._
 
 object Document {
 
-  case class Response[T](
+  final case class Response[T](
       _id: DocumentHandle,
       _key: DocumentKey,
       _rev: DocumentRevision,

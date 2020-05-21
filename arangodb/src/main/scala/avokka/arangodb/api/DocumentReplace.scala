@@ -14,7 +14,7 @@ import avokka.velocypack._
   * @param ifMatch You can conditionally update a document based on a target revision id by using the *if-match* HTTP header.   (optional)
   * @tparam T document type
   */
-case class DocumentReplace[T](
+final case class DocumentReplace[T](
     handle: DocumentHandle,
     document: T,
     waitForSync: Boolean = false,

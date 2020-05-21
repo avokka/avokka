@@ -3,14 +3,14 @@ package api
 
 import avokka.velocypack._
 
-case class CollectionCount
+final case class CollectionCount
 (
   name: CollectionName,
 )
 
 object CollectionCount { self =>
 
-  case class Response(
+  final case class Response(
       count: Long,
   )
 

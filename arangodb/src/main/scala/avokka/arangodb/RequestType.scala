@@ -3,7 +3,7 @@ package avokka.arangodb
 import avokka.velocypack.{VPackDecoder, VPackEncoder, VPackError}
 import cats.syntax.either._
 
-sealed abstract class RequestType(val i: Int)
+sealed abstract class RequestType(val i: Int) extends Product
 
 object RequestType {
 

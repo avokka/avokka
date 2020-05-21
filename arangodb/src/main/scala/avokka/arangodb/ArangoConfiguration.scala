@@ -7,7 +7,7 @@ import pureconfig.generic.semiauto._
 
 import scala.concurrent.duration.FiniteDuration
 
-case class ArangoConfiguration(
+final case class ArangoConfiguration(
     host: String,
     port: Int = 8529,
     username: String,

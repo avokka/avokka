@@ -7,7 +7,7 @@ import avokka.velocypack._
   * @param name Has to contain a valid database name.
   * @param users Has to be an array of user objects to initially create for the new database. User information will not be changed for users that already exist. If *users* is not specified or does not contain any users, a default user *root* will be created with an empty string password. This ensures that the new database will be accessible after it is created. Each user object can contain the following attributes:
   */
-case class DatabaseCreate(
+final case class DatabaseCreate(
     name: DatabaseName,
     users: List[DatabaseCreate.Users] = List.empty,
 )
@@ -20,7 +20,7 @@ object DatabaseCreate { self =>
     * @param passwd The user password as a string. If not specified, it will default to an empty string.
     * @param username Login name of the user to be created
     */
-  case class Users(
+  final case class Users(
       username: String,
       passwd: Option[String] = None,
       active: Boolean = true,
@@ -33,7 +33,7 @@ object DatabaseCreate { self =>
 
   implicit val encoder: VPackEncoder[DatabaseCreate] = VPackRecord[DatabaseCreate].encoder
 
-  case class Response(
+  final case class Response(
       result: Boolean
   )
   object Response {

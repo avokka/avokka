@@ -3,13 +3,13 @@ package api
 
 import avokka.velocypack._
 
-case class CollectionRevision(
+final case class CollectionRevision(
     name: CollectionName
 )
 
 object CollectionRevision { self =>
 
-  case class Response(
+  final case class Response(
       revision: String,
   )
   object Response {

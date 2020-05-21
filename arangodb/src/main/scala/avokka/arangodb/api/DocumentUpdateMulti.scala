@@ -35,7 +35,7 @@ import avokka.velocypack._
   * @tparam T document type
   * @tparam P patch type
   */
-case class DocumentUpdateMulti[T, P](
+final case class DocumentUpdateMulti[T, P](
     collection: CollectionName,
     patch: List[P],
     keepNull: Boolean = false,

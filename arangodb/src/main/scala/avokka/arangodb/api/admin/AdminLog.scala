@@ -14,7 +14,7 @@ object AdminLog { self =>
     * @param topic a list of the topics of all log entries
     * @param totalAmount the total amount of log entries before pagination.
     */
-  case class Response(
+  final case class Response(
       level: List[Long],
       lid: List[Long],
       text: List[String],

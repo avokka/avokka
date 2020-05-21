@@ -3,7 +3,7 @@ package api
 
 import avokka.velocypack._
 
-case class CursorNext[T](
+final case class CursorNext[T](
     id: String
 )
 

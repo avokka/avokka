@@ -1,7 +1,7 @@
 package avokka.arangodb
 package api
 
-case class IndexRead(
+final case class IndexRead(
     handle: String
 )
 

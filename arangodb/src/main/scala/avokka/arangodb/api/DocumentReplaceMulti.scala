@@ -21,7 +21,7 @@ import avokka.velocypack._
   *                    in the result
   * @tparam T document type
   */
-case class DocumentReplaceMulti[T](
+final case class DocumentReplaceMulti[T](
     collection: CollectionName,
     documents: List[T],
     waitForSync: Boolean = false,

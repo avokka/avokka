@@ -137,7 +137,7 @@ object VPackDecoder {
 
   implicit val uuidDecoder: VPackDecoder[UUID] = {
     case VBinary(b) => b.toUUID.asRight
-    case VString(s) => UUID.fromString(s).asRight
+    case VString(s) => Try(UUID.fromString(s)).toEither.leftMap(ex => VPackError.Conversion(ex))
     case v          => VPackError.WrongType(v).asLeft
   }
 

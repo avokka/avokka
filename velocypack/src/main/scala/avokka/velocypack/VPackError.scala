@@ -2,7 +2,7 @@ package avokka.velocypack
 
 import scodec.Err
 
-sealed trait VPackError extends Product {
+sealed trait VPackError extends Product with Serializable {
   def message: String
   def history: List[String]
   def historyAdd(e: String): VPackError

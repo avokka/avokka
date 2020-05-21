@@ -8,7 +8,7 @@ import scodec.{Attempt, Codec, Decoder, Encoder, Err}
 /**
   * velocypack value type
   */
-private sealed trait VPackType extends Product {
+private sealed trait VPackType extends Product with Serializable {
 
   /**
     * @return the head byte

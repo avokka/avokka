@@ -7,7 +7,7 @@ import scala.math.ScalaNumericAnyConversions
 /**
   * Velocypack value
   */
-sealed trait VPack extends Any with Product {
+sealed trait VPack extends Any with Product with Serializable {
 
   /**
    * decodes vpack value to T

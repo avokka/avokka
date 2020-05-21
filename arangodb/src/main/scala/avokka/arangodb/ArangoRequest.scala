@@ -10,7 +10,7 @@ final case class ArangoRequest[T](
 
 object ArangoRequest {
 
-  sealed trait HeaderTrait extends Product
+  sealed trait HeaderTrait extends Product with Serializable
 
   final case class Header(
       version: Int = 1,

@@ -13,7 +13,7 @@ import scodec.codecs._
   * @param messageLength the total size of the message
   * @param data blob of chunk
   */
-case class VStreamChunk(
+final case class VStreamChunk(
     length: Long,
     x: VStreamChunkX,
     messageId: Long,

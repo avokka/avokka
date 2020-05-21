@@ -7,7 +7,7 @@ import scala.math.ScalaNumericAnyConversions
 /**
   * Velocypack value
   */
-sealed trait VPack extends Any {
+sealed trait VPack extends Any with Product {
 
   /**
    * decodes vpack value to T
@@ -68,7 +68,7 @@ object VPack {
    * double
    * @param value value
    */
-  case class VDouble(value: Double) extends AnyVal with VPack {
+  final case class VDouble(value: Double) extends AnyVal with VPack {
     override def isEmpty: Boolean = false
   }
 
@@ -76,7 +76,7 @@ object VPack {
    * universal UTC-time measured in milliseconds since the epoch
    * @param value milliseconds
    */
-  case class VDate(value: Long) extends AnyVal with VPack {
+  final case class VDate(value: Long) extends AnyVal with VPack {
     override def isEmpty: Boolean = false
   }
 
@@ -98,7 +98,7 @@ object VPack {
    * small values -6 to 9
    * @param value value
    */
-  case class VSmallint(value: Byte) extends AnyVal with VPack {
+  final case class VSmallint(value: Byte) extends AnyVal with VPack {
     override def isEmpty: Boolean = false
   }
 
@@ -114,7 +114,7 @@ object VPack {
    * integer
    * @param value value
    */
-  case class VLong(value: Long) extends AnyVal with VPack {
+  final case class VLong(value: Long) extends AnyVal with VPack {
     override def isEmpty: Boolean = false
   }
 
@@ -122,7 +122,7 @@ object VPack {
    * string
    * @param value value
    */
-  case class VString(value: String) extends AnyVal with VPack {
+  final case class VString(value: String) extends AnyVal with VPack {
     override def isEmpty: Boolean = value.isEmpty
   }
 
@@ -130,7 +130,7 @@ object VPack {
    * binary data
    * @param value value
    */
-  case class VBinary(value: ByteVector) extends AnyVal with VPack {
+  final case class VBinary(value: ByteVector) extends AnyVal with VPack {
     override def isEmpty: Boolean = value.isEmpty
   }
 
@@ -138,7 +138,7 @@ object VPack {
    * array
    * @param values values
    */
-  case class VArray(values: Vector[VPack]) extends AnyVal with VPack {
+  final case class VArray(values: Vector[VPack]) extends AnyVal with VPack {
     override def isEmpty: Boolean = values.isEmpty
   }
   object VArray {
@@ -150,7 +150,7 @@ object VPack {
    * object
    * @param values values
    */
-  case class VObject(values: Map[String, VPack]) extends AnyVal with VPack {
+  final case class VObject(values: Map[String, VPack]) extends AnyVal with VPack {
     override def isEmpty: Boolean = values.isEmpty
     def updated[T: VPackEncoder](key: String, value: T): VObject = copy(values = values.updated(key, value.toVPack))
     def filter(p: ((String, VPack)) => Boolean): VObject = copy(values = values.filter(p))

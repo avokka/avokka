@@ -80,8 +80,8 @@ class VStreamReader() extends Actor with ActorLogging {
 object VStreamReader {
   def props(): Props = Props(new VStreamReader())
 
-  case class MessageInit(id: Long)
+  final case class MessageInit(id: Long)
 //  case object MessageReplied
-  case class ChunkReceived(chunk: VStreamChunk)
+  final case class ChunkReceived(chunk: VStreamChunk)
 
 }

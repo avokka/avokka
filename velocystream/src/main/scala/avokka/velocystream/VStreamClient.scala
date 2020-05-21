@@ -77,6 +77,6 @@ object VStreamClient {
   def apply(conf: VStreamConfiguration, begin: Iterable[VStreamMessage]): Props =
     Props(new VStreamClient(conf, begin))
 
-  case class MessageSend(message: VStreamMessage)
+  final case class MessageSend(message: VStreamMessage)
   case object Stop
 }

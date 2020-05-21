@@ -18,7 +18,7 @@ import scodec.codecs.uint32L
   * @param first first chunk of message
   * @param index number of chunk or total if first
   */
-case class VStreamChunkX(
+final case class VStreamChunkX(
     first: Boolean,
     index: Long,
 ) {

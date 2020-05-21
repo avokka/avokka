@@ -8,7 +8,7 @@ import scodec.{Attempt, Codec, Decoder, Encoder, Err}
 /**
   * velocypack value type
   */
-private sealed trait VPackType {
+private sealed trait VPackType extends Product {
 
   /**
     * @return the head byte
@@ -44,7 +44,7 @@ private object VPackType {
     * @param head byte head
     * @param singleton corresponding vpack value
     */
-  sealed class SingleByte(override val head: Int, val singleton: VPack) extends VPackType
+  sealed abstract class SingleByte(override val head: Int, val singleton: VPack) extends VPackType
 
   /** 0x00 : none - this indicates absence of any type and value, this is not allowed in VPack values */
   case object NoneType extends VPackType { override val head: Int = 0x00 }
@@ -53,7 +53,7 @@ private object VPackType {
   case object ArrayEmptyType extends SingleByte(0x01, VPack.VArray.empty)
 
   /** 0x02-0x05 : array without index table (all subitems have the same byte length), [1,2,4,8]-byte byte length */
-  case class ArrayUnindexedType(override val head: Int) extends VPackType with WithLength {
+  final case class ArrayUnindexedType(override val head: Int) extends VPackType with WithLength {
     import ArrayUnindexedType._
     require(head >= minByte && head <= maxByte)
     override val lengthSize: Int = 1 << (head - minByte)
@@ -65,7 +65,7 @@ private object VPackType {
   }
 
   /** 0x06-0x09 : array with [1,2,4,8]-byte index table offsets, bytelen and # subvals */
-  case class ArrayIndexedType(override val head: Int) extends VPackType with WithLength {
+  final case class ArrayIndexedType(override val head: Int) extends VPackType with WithLength {
     import ArrayIndexedType._
     require(head >= minByte && head <= maxByte)
     override val lengthSize: Int = 1 << (head - minByte)
@@ -83,7 +83,7 @@ private object VPackType {
   private[codecs] sealed trait ObjectType extends VPackType with WithLength
 
   /** 0x0b-0x0e : object with 1-byte index table offsets, sorted by attribute name, [1,2,4,8]-byte bytelen and # subvals */
-  case class ObjectSortedType(override val head: Int) extends ObjectType {
+  final case class ObjectSortedType(override val head: Int) extends ObjectType {
     import ObjectSortedType._
     require(head >= minByte && head <= maxByte)
     override val lengthSize: Int = 1 << (head - minByte)
@@ -95,7 +95,7 @@ private object VPackType {
   }
 
   /** 0x0f-0x12 : object with 1-byte index table offsets, not sorted by attribute name, [1,2,4,8]-byte bytelen and # subvals */
-  case class ObjectUnsortedType(override val head: Int) extends ObjectType {
+  final case class ObjectUnsortedType(override val head: Int) extends ObjectType {
     import ObjectUnsortedType._
     require(head >= minByte && head <= maxByte)
     override val lengthSize: Int = 1 << (head - minByte)
@@ -150,7 +150,7 @@ private object VPackType {
   case object MaxKeyType extends SingleByte(0x1f, VPack.VMaxKey)
 
   /** 0x20-0x27 : signed int, little endian, 1 to 8 bytes, number is V - 0x1f, two's complement */
-  case class IntSignedType(override val head: Int) extends VPackType with WithLength {
+  final case class IntSignedType(override val head: Int) extends VPackType with WithLength {
     import IntSignedType._
     require(head >= minByte && head <= maxByte)
     override val lengthSize: Int = head - minByte + 1
@@ -162,7 +162,7 @@ private object VPackType {
   }
 
   /** 0x28-0x2f : uint, little endian, 1 to 8 bytes, number is V - 0x27 */
-  case class IntUnsignedType(override val head: Int) extends VPackType with WithLength {
+  final case class IntUnsignedType(override val head: Int) extends VPackType with WithLength {
     import IntUnsignedType._
     require(head >= minByte && head <= maxByte)
     override val lengthSize: Int = head - minByte + 1
@@ -174,7 +174,7 @@ private object VPackType {
   }
 
   /** 0x30-0x39 : small integers 0, 1, ... 9 */
-  case class SmallintPositiveType(override val head: Int) extends VPackType {
+  final case class SmallintPositiveType(override val head: Int) extends VPackType {
     import SmallintPositiveType._
     require(head >= minByte && head <= maxByte)
   }
@@ -184,7 +184,7 @@ private object VPackType {
   }
 
   /** 0x3a-0x3f : small negative integers -6, -5, ..., -1 */
-  case class SmallintNegativeType(override val head: Int) extends VPackType {
+  final case class SmallintNegativeType(override val head: Int) extends VPackType {
     import SmallintNegativeType._
     require(head >= minByte && head <= maxByte)
   }
@@ -202,7 +202,7 @@ private object VPackType {
     * length 0 is possible, so 0x40 is the empty string
     * maximal length is 126, note that strings here are not zero-terminated
     */
-  case class StringShortType(override val head: Int) extends StringType {
+  final case class StringShortType(override val head: Int) extends StringType {
     import StringShortType._
     require(head >= minByte && head <= maxByte)
     override val lengthSize: Int = 0
@@ -231,7 +231,7 @@ private object VPackType {
   }
 
   /** 0xc0-0xc7 : binary blob, next V - 0xbf bytes are the length of blob in bytes note that binary blobs are not zero-terminated */
-  case class BinaryType(override val head: Int) extends VPackType with WithLength {
+  final case class BinaryType(override val head: Int) extends VPackType with WithLength {
     import BinaryType._
     require(head >= minByte && head <= maxByte)
     override val lengthSize: Int = head - minByte + 1

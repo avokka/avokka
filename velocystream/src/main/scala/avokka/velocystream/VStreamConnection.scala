@@ -237,7 +237,7 @@ object VStreamConnection {
   def apply(conf: VStreamConfiguration, begin: Iterable[VStreamMessage]): Props =
     Props(new VStreamConnection(conf, begin)) //.withRouter(routerConfig)
 
-  case class Ready(link: ActorRef)
+  final case class Ready(link: ActorRef)
 
   case object HandshakeAck extends Tcp.Event
   case object WriteAck extends Tcp.Event

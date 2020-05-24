@@ -39,6 +39,12 @@ private object VPackType {
     def lengthDecoder: Decoder[Long]
   }
 
+  /** array or object with data */
+  private[codecs] sealed abstract class CompoundType(minByte: Int) extends VPackType with WithLength {
+    override val lengthSize: Int = 1 << (head - minByte)
+    override val lengthDecoder: Decoder[Long] = ulongLA(8 * lengthSize).map(_ - 1 - lengthSize)
+  }
+
   /**
     * types which don't have value body and map to a single value
     * @param head byte head
@@ -53,11 +59,9 @@ private object VPackType {
   case object ArrayEmptyType extends SingleByte(0x01, VPack.VArray.empty)
 
   /** 0x02-0x05 : array without index table (all subitems have the same byte length), [1,2,4,8]-byte byte length */
-  final case class ArrayUnindexedType(override val head: Int) extends VPackType with WithLength {
+  final case class ArrayUnindexedType(override val head: Int) extends CompoundType(ArrayUnindexedType.minByte) {
     import ArrayUnindexedType._
     require(head >= minByte && head <= maxByte)
-    override val lengthSize: Int = 1 << (head - minByte)
-    override val lengthDecoder: Decoder[Long] = ulongLA(8 * lengthSize).map(_ - 1 - lengthSize)
   }
   object ArrayUnindexedType {
     val minByte = 0x02
@@ -65,11 +69,9 @@ private object VPackType {
   }
 
   /** 0x06-0x09 : array with [1,2,4,8]-byte index table offsets, bytelen and # subvals */
-  final case class ArrayIndexedType(override val head: Int) extends VPackType with WithLength {
+  final case class ArrayIndexedType(override val head: Int) extends CompoundType(ArrayIndexedType.minByte) {
     import ArrayIndexedType._
     require(head >= minByte && head <= maxByte)
-    override val lengthSize: Int = 1 << (head - minByte)
-    override val lengthDecoder: Decoder[Long] = ulongLA(8 * lengthSize).map(_ - 1 - lengthSize)
   }
   object ArrayIndexedType {
     val minByte = 0x06
@@ -83,11 +85,9 @@ private object VPackType {
   private[codecs] sealed trait ObjectType extends VPackType with WithLength
 
   /** 0x0b-0x0e : object with 1-byte index table offsets, sorted by attribute name, [1,2,4,8]-byte bytelen and # subvals */
-  final case class ObjectSortedType(override val head: Int) extends ObjectType {
+  final case class ObjectSortedType(override val head: Int) extends CompoundType(ObjectSortedType.minByte) with ObjectType {
     import ObjectSortedType._
     require(head >= minByte && head <= maxByte)
-    override val lengthSize: Int = 1 << (head - minByte)
-    override val lengthDecoder: Decoder[Long] = ulongLA(8 * lengthSize).map(_ - 1 - lengthSize)
   }
   object ObjectSortedType {
     val minByte = 0x0b
@@ -95,11 +95,9 @@ private object VPackType {
   }
 
   /** 0x0f-0x12 : object with 1-byte index table offsets, not sorted by attribute name, [1,2,4,8]-byte bytelen and # subvals */
-  final case class ObjectUnsortedType(override val head: Int) extends ObjectType {
+  final case class ObjectUnsortedType(override val head: Int) extends CompoundType(ObjectUnsortedType.minByte) with ObjectType {
     import ObjectUnsortedType._
     require(head >= minByte && head <= maxByte)
-    override val lengthSize: Int = 1 << (head - minByte)
-    override val lengthDecoder: Decoder[Long] = ulongLA(8 * lengthSize).map(_ - 1 - lengthSize)
   }
   object ObjectUnsortedType {
     val minByte = 0x0f
@@ -149,12 +147,15 @@ private object VPackType {
   /** 0x1f : maxKey, nonsensical value that compares > than all other values */
   case object MaxKeyType extends SingleByte(0x1f, VPack.VMaxKey)
 
-  /** 0x20-0x27 : signed int, little endian, 1 to 8 bytes, number is V - 0x1f, two's complement */
-  final case class IntSignedType(override val head: Int) extends VPackType with WithLength {
-    import IntSignedType._
-    require(head >= minByte && head <= maxByte)
+  private[codecs] sealed abstract class IntType(minByte: Int) extends VPackType with WithLength {
     override val lengthSize: Int = head - minByte + 1
     override val lengthDecoder: Decoder[Long] = provide(0)
+  }
+
+  /** 0x20-0x27 : signed int, little endian, 1 to 8 bytes, number is V - 0x1f, two's complement */
+  final case class IntSignedType(override val head: Int) extends IntType(IntSignedType.minByte) {
+    import IntSignedType._
+    require(head >= minByte && head <= maxByte)
   }
   object IntSignedType {
     val minByte = 0x20
@@ -162,11 +163,9 @@ private object VPackType {
   }
 
   /** 0x28-0x2f : uint, little endian, 1 to 8 bytes, number is V - 0x27 */
-  final case class IntUnsignedType(override val head: Int) extends VPackType with WithLength {
+  final case class IntUnsignedType(override val head: Int) extends IntType(IntUnsignedType.minByte) {
     import IntUnsignedType._
     require(head >= minByte && head <= maxByte)
-    override val lengthSize: Int = head - minByte + 1
-    override val lengthDecoder: Decoder[Long] = provide(0)
   }
   object IntUnsignedType {
     val minByte = 0x28

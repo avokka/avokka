@@ -36,7 +36,7 @@ private[codecs] object VPackObjectCodec extends VPackCompoundCodec {
     case values =>
       for {
         valuesAll <- values.toVector.traverse(keyValueCodec.encode)
-        result <- encodeCompact(ObjectCompactType.head, valuesAll)
+        result <- encodeCompact(ObjectCompactType.header, valuesAll)
       } yield result
   })
 

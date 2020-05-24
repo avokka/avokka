@@ -30,10 +30,10 @@ private[codecs] object VPackSmallintCodec {
   }
 
   private[codecs] def decoderPositive(t: SmallintPositiveType): Decoder[VSmallint] = provide(
-    VSmallint((t.head - SmallintPositiveType.minByte).toByte)
+    VSmallint((t.header - SmallintPositiveType.minByte).toByte)
   )
   private[codecs] def decoderNegative(t: SmallintNegativeType): Decoder[VSmallint] = provide(
-    VSmallint((t.head - SmallintNegativeType.topByte).toByte)
+    VSmallint((t.header - SmallintNegativeType.topByte).toByte)
   )
 
 }

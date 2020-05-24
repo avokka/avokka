@@ -26,7 +26,7 @@ private[codecs] object VPackArrayCodec extends VPackCompoundCodec {
     case values =>
       for {
         valuesBits <- values.traverse(vpackEncoder.encode)
-        result <- encodeCompact(ArrayCompactType.head, valuesBits)
+        result <- encodeCompact(ArrayCompactType.header, valuesBits)
       } yield result
   })
 

@@ -15,7 +15,7 @@ private trait VPackCompoundCodec {
     }
   }
 
-  protected def encodeCompact(head: Int, values: Vector[BitVector]): Attempt[BitVector] = {
+  protected def encodeCompact(header: Int, values: Vector[BitVector]): Attempt[BitVector] = {
     val valuesAll = values.fold(BitVector.empty)(_ ++ _)
     val valuesBytes = valuesAll.size / 8
     for {
@@ -25,7 +25,7 @@ private trait VPackCompoundCodec {
       lengthT = lengthBase + lengthBaseL
       lenL = vlongLength(lengthT)
       len <- VPackVLongCodec.encode(if (lenL == lengthBaseL) lengthT else lengthT + 1)
-    } yield BitVector(head) ++ len ++ valuesAll ++ nr.reverseByteOrder
+    } yield BitVector(header) ++ len ++ valuesAll ++ nr.reverseByteOrder
   }
 
   protected def offsetsToRanges(offests: Seq[Long], size: Long): Vector[(Long, Long)] = {

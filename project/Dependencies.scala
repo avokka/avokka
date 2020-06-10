@@ -17,6 +17,12 @@ object Dependencies {
   )
 
   val cats = "org.typelevel" %% "cats-core" % "2.1.1"
+  val catsEffect = "org.typelevel" %% "cats-effect" % "2.1.3"
+  val catsRetry = "com.github.cb372" %% "cats-retry" % "1.1.0"
+  val fs2 = "co.fs2" %% "fs2-core" % "2.4.1"
+  val fs2IO = "co.fs2" %% "fs2-io" % "2.4.1"
+  val log4cats = "io.chrisdavenport" %% "log4cats-slf4j" % "1.1.1"
+
   val shapeless = "com.chuusai" %% "shapeless" % "2.3.3"
 
   val akkaVersion = "2.6.5"
@@ -32,10 +38,11 @@ object Dependencies {
   val logging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
 
   val scodec = Seq(
-    "org.scodec" %% "scodec-bits" % "1.1.14",
+    "org.scodec" %% "scodec-bits" % "1.1.16",
     "org.scodec" %% "scodec-core" % "1.11.7",
     "org.scodec" %% "scodec-cats" % "1.0.0",
   )
+  val scodecStream = "org.scodec" %% "scodec-stream" % "2.0.0"
 
   val arango = "com.arangodb" % "arangodb-java-driver" % "6.4.1"
 

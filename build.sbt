@@ -92,8 +92,24 @@ lazy val arangodb = (project in file("arangodb"))
     parallelExecution in Test := false
   )
 
+lazy val avokkafs2 = (project in file("fs2"))
+  .dependsOn(velocypack)
+  .settings(
+    name := "avokka-fs2",
+    description := "ArangoDB with fs2",
+    libraryDependencies ++=
+      compatDeps ++ Seq(
+        log4cats,
+        scodecStream,
+        catsRetry,
+        catsEffect,
+        fs2,
+        fs2IO,
+      )
+  )
+
 lazy val avokka = (project in file("."))
-  .aggregate(velocypack, velocystream, arangodb)
+  .aggregate(velocypack, velocystream, arangodb, avokkafs2)
   .settings(
     publishArtifact := false,
     skip in publish := true

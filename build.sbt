@@ -1,4 +1,5 @@
 import Dependencies._
+import sbt.addCompilerPlugin
 
 val scala212Version = "2.12.11"
 val scala213Version = "2.13.2"
@@ -105,7 +106,10 @@ lazy val avokkafs2 = (project in file("fs2"))
         catsEffect,
         fs2,
         fs2IO,
-      )
+        pureconfigF
+      ),
+    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
+    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
   )
 
 lazy val avokka = (project in file("."))

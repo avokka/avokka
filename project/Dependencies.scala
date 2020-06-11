@@ -52,5 +52,5 @@ object Dependencies {
   val newtype = "io.estatico" %% "newtype" % "0.4.3"
 
   val pureconfig = "com.github.pureconfig" %% "pureconfig" % "0.12.3"
-
+  val pureconfigF = "com.github.pureconfig" %% "pureconfig-cats-effect" % "0.12.3"
 }

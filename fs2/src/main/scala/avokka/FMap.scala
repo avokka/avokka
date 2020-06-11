@@ -18,7 +18,7 @@ object FMap {
       mm <- Ref.of[F, Map[K, V]](TreeMap.empty[K, V])
     } yield new FMap[F, K, V] {
       override def update(key: K, result: V): F[Unit] = mm.update(m => m.updated(key, result))
-      override def remove(key: K): F[Option[V]] = mm.modify(m => (m.removed(key), m.get(key)))
+      override def remove(key: K): F[Option[V]] = mm.modify(m => (m - key, m.get(key)))
     }
 
 }

@@ -106,7 +106,9 @@ lazy val avokkafs2 = (project in file("fs2"))
         catsEffect,
         fs2,
         fs2IO,
-        pureconfigF
+        pureconfig,
+        pureconfigF % Test,
+        logback % Test,
       ),
     addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")

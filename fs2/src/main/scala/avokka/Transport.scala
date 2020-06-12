@@ -21,13 +21,14 @@ import scala.concurrent.duration.FiniteDuration
 
 trait Transport[F[_]] {
   def execute(data: ByteVector): F[ByteVector]
+  def terminate: F[Unit]
 }
 
 object Transport {
 
-  def apply[F[_] : ContextShift: Timer](
+  def apply[F[_]: ContextShift: Timer](
       config: Configuration,
-  )(implicit C: Concurrent[F], L: Logger[F]) = {
+  )(implicit C: Concurrent[F], L: Logger[F]): F[Resource[F, Transport[F]]] = {
     for {
       counter <- Ref.of(0L)
       responses <- FMap[F, Long, Deferred[F, ByteVector]]
@@ -35,15 +36,13 @@ object Transport {
       closeSignal <- SignallingRef[F, Boolean](false)
     } yield {
 
-      val in: Pipe[F, (ChunkHeader, ByteVector), Unit] = _
-        .debug()
-        .evalMapChunk {
-          case (header, vector) => responses.remove(header.message).flatMap {
+      val in: Pipe[F, (ChunkHeader, ByteVector), Unit] = _.debug().evalMapChunk {
+        case (header, vector) =>
+          responses.remove(header.message).flatMap {
             case Some(value) => value.complete(vector)
-            case None => C.raiseError[Unit](new Exception("unknown message id"))
+            case None        => C.raiseError[Unit](new Exception("unknown message id"))
           }
-        }
-        .void
+      }.void
 
       val mkSocket: Resource[F, ChunkSocket[F]] = for {
         blocker <- Blocker[F]
@@ -75,21 +74,24 @@ object Transport {
     }
        */
 
-      mkSocket.flatMap { socket =>
+      mkSocket.evalMap { socket =>
+        socket.pump.start.map { fib =>
+          new Transport[F] {
+            override def execute(data: ByteVector): F[ByteVector] =
+              for {
+                id <- counter.updateAndGet(_ + 1)
+                _ <- L.debug(s"prepare message id = $id")
+                dfr <- Deferred[F, ByteVector]
+                _ <- responses.update(id, dfr)
+                _ <- socket.send(id, data)
+                r <- dfr.get
+              } yield r
 
-        val transport: Transport[F] = new Transport[F] {
-          override def execute(data: ByteVector): F[ByteVector] = for {
-            id <- counter.updateAndGet(_ + 1)
-            _ <- L.debug(s"prepare message id = $id")
-            dfr <- Deferred[F, ByteVector]
-            _ <- responses.update(id, dfr)
-            _ <- L.debug(s"queuing message id = $id")
-            _ <- socket.send(id, data)
-            r <- dfr.get
-          } yield r
+            override def terminate: F[Unit] = fib.cancel *> closeSignal.set(true)
+          }
         }
 
-        socket.pump.background.as(transport)
+      // socket.pump.background.as(transport)
       }
     }
   }

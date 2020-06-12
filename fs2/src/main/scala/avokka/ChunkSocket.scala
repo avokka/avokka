@@ -8,6 +8,7 @@ import cats.syntax.functor._
 import fs2.concurrent.{Queue, SignallingRef}
 import fs2.io.tcp.Socket
 import fs2.{Chunk, Pipe}
+import io.chrisdavenport.log4cats.Logger
 import scodec.Codec
 import scodec.bits.ByteVector
 import scodec.codecs.{bytes, fixedSizeBytes, uint32L}
@@ -38,7 +39,7 @@ object ChunkSocket {
       stateSignal: SignallingRef[F, ConnectionState],
       closeSignal: SignallingRef[F, Boolean],
       in: Pipe[F, (ChunkHeader, ByteVector), Unit],
-    )(implicit C: Concurrent[F]) = {
+    )(implicit C: Concurrent[F], L: Logger[F]): F[ChunkSocket[F]] = {
 
     for {
       requests <- Queue.unbounded[F, (ChunkHeader, ByteVector)]
@@ -51,6 +52,7 @@ object ChunkSocket {
         }
 
       val outgoing: F[Unit] = chunks
+        .evalTap(msg => L.debug(s"SEND: ${msg._1} / ${msg._2}"))
         .through(chunkStreamEncoder.toPipeByte)
         .cons(handshake)
         .through(socket.writes())
@@ -61,6 +63,7 @@ object ChunkSocket {
       val incoming: F[Unit] = socket
         .reads(config.readBufferSize)
         .through(chunkStreamDecoder.toPipeByte)
+        .evalTap(msg => L.debug(s"RECV: ${msg._1} / ${msg._2}"))
         .through(in)
         .onFinalize(stateSignal.set(ConnectionState.Disconnected))
         .compile

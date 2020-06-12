@@ -53,10 +53,12 @@ object ChunkX {
     new ChunkX(x)
   }
 
+  /*
   def apply(index: Long, count: Long): ChunkX = {
     val first = index == 0
     apply(first, if (first) count else index)
   }
+*/
 
   val codec: Codec[ChunkX] = uint32L.xmap(new ChunkX(_), _.x)
 }

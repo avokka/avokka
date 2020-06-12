@@ -17,7 +17,10 @@ object connect extends IOApp {
       client.execute(ByteVector(0x19))
     }
     _ <- transport.use { client =>
-      client.execute(ByteVector(0x19))
+      for {
+        _ <- client.execute(ByteVector(0x19))
+        _ <- client.execute(ByteVector(0x20))
+      } yield ()
     }
   } yield ExitCode.Success
 }

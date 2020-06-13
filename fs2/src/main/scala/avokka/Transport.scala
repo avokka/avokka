@@ -28,8 +28,7 @@ object Transport {
 
   def apply[F[_]: ContextShift: Timer](
       config: Configuration,
-  )(implicit C: Concurrent[F], L: Logger[F]): F[Resource[F, Transport[F]]] = {
-    for {
+  )(implicit C: Concurrent[F], L: Logger[F]): F[Resource[F, Transport[F]]] = for {
       counter <- Ref.of(0L)
       responses <- FMap[F, Long, Deferred[F, ByteVector]]
       stateSignal <- SignallingRef[F, ConnectionState](ConnectionState.Disconnected)
@@ -45,11 +44,13 @@ object Transport {
       }
 
       val mkSocket: Resource[F, ChunkSocket[F]] = for {
-        blocker <- Blocker[F]
-        group <- SocketGroup(blocker)
-        client <- group.client(new InetSocketAddress(config.host, config.port))
-        socket <- Resource.liftF(ChunkSocket(config, client, stateSignal, closeSignal, in))
-      } yield socket
+          blocker <- Blocker[F]
+          group <- SocketGroup(blocker)
+          to = new InetSocketAddress(config.host, config.port)
+          _ <- Resource.liftF(L.debug(s"open connection to $to"))
+          client <- group.client(to)
+          socket <- Resource.liftF(ChunkSocket(config, client, stateSignal, closeSignal, in))
+        } yield socket
 
       /*
     val loop: F[Unit] = {
@@ -94,6 +95,5 @@ object Transport {
       // socket.pump.background.as(transport)
       }
     }
-  }
 
 }

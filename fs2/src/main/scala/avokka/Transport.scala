@@ -36,13 +36,13 @@ object Transport {
       closeSignal <- SignallingRef[F, Boolean](false)
     } yield {
 
-      val in: Pipe[F, (ChunkHeader, ByteVector), Unit] = _.debug().evalMapChunk {
+      val in: Pipe[F, (ChunkHeader, ByteVector), Unit] = _.evalMapChunk {
         case (header, vector) =>
           responses.remove(header.message).flatMap {
             case Some(value) => value.complete(vector)
             case None        => C.raiseError[Unit](new Exception("unknown message id"))
           }
-      }.void
+      }
 
       val mkSocket: Resource[F, ChunkSocket[F]] = for {
         blocker <- Blocker[F]

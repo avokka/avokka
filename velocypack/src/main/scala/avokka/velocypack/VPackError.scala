@@ -16,7 +16,7 @@ object VPackError {
   }
 
   final case class WrongType(v: VPack, history: List[String] = List.empty)
-      extends Exception(s"wrong type $v")
+      extends Exception(s"wrong type ${v.name}")
       with VPackError {
     override def historyAdd(e: String): VPackError = copy(history = history :+ e)
   }

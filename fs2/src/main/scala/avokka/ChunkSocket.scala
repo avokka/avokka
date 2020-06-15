@@ -7,7 +7,7 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import fs2.concurrent.{Queue, SignallingRef}
 import fs2.io.tcp.Socket
-import fs2.{Chunk, Pipe}
+import fs2.{Chunk, Pipe, Stream}
 import io.chrisdavenport.log4cats.Logger
 import scodec.Codec
 import scodec.bits.ByteVector
@@ -24,7 +24,7 @@ object ChunkSocket {
   val handshake: Chunk[Byte] = Chunk.bytes("VST/1.1\r\n\r\n".getBytes)
 
   // 4 chunk length + 4 chunkx + 8 message id + 8 message length
-  val chunkHeaderOffset = 24
+  val chunkHeaderOffset: Long = 24
 
   val chunkCodec: Codec[(ChunkHeader, ByteVector)] = uint32L.consume { l =>
     ChunkHeader.codec ~ fixedSizeBytes(l - chunkHeaderOffset, bytes)
@@ -45,7 +45,7 @@ object ChunkSocket {
       requests <- Queue.unbounded[F, (ChunkHeader, ByteVector)]
     } yield {
 
-      val chunks = requests.dequeue.evalMapChunk {
+      val chunks: Stream[F, (ChunkHeader, ByteVector)] = requests.dequeue.evalMapChunk {
           case (header, data) =>
             val (chunk, tail) = data.splitAt(config.chunkLength)
             requests.enqueue1(header.next -> tail).whenA(tail.nonEmpty).as(header -> chunk)
@@ -69,7 +69,7 @@ object ChunkSocket {
         .compile
         .drain
 
-      val close = closeSignal.discrete
+      val close: F[Unit] = closeSignal.discrete
         .evalMap(if (_) socket.close else C.unit)
         .compile
         .drain

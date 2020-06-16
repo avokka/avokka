@@ -35,21 +35,20 @@ object Transport {
       closeSignal <- SignallingRef[F, Boolean](false)
     } yield {
 
-      val in: Pipe[F, (ChunkHeader, ByteVector), Unit] = _.evalMapChunk {
-        case (header, vector) =>
-          responses.remove(header.message).flatMap {
-            case Some(value) => value.complete(vector)
+      val in: Pipe[F, VChunk, Unit] = _.evalMapChunk { vc =>
+          responses.remove(vc.header.message).flatMap {
+            case Some(value) => value.complete(vc.data)
             case None        => C.raiseError[Unit](new Exception("unknown message id"))
           }
       }
 
-      val mkSocket: Resource[F, ChunkSocket[F]] = for {
+      val mkSocket: Resource[F, VChunkSocket[F]] = for {
           blocker <- Blocker[F]
           group <- SocketGroup(blocker)
           to = new InetSocketAddress(config.host, config.port)
           _ <- Resource.liftF(L.debug(s"open connection to $to"))
           client <- group.client(to)
-          socket <- Resource.liftF(ChunkSocket(config, client, stateSignal, closeSignal, in))
+          socket <- Resource.liftF(VChunkSocket(config, client, stateSignal, closeSignal, in))
         } yield socket
 
       /*

@@ -5,6 +5,7 @@ import cats.effect.syntax.concurrent._
 import cats.syntax.applicative._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
+import cats.syntax.apply._
 import fs2.concurrent.{Queue, SignallingRef}
 import fs2.io.tcp.Socket
 import fs2.{Chunk, Pipe, Stream}
@@ -13,59 +14,52 @@ import scodec.Codec
 import scodec.bits.ByteVector
 import scodec.codecs.{bytes, fixedSizeBytes, uint32L}
 import scodec.stream.{StreamDecoder, StreamEncoder}
+import shapeless.{HNil, ::}
 
-trait ChunkSocket[F[_]] {
+trait VChunkSocket[F[_]] {
   def send(message: Long, data: ByteVector): F[Unit]
   def pump: F[Unit]
 }
 
-object ChunkSocket {
+object VChunkSocket {
 
   val handshake: Chunk[Byte] = Chunk.bytes("VST/1.1\r\n\r\n".getBytes)
 
-  // 4 chunk length + 4 chunkx + 8 message id + 8 message length
-  val chunkHeaderOffset: Long = 24
-
-  val chunkCodec: Codec[(ChunkHeader, ByteVector)] = uint32L.consume { l =>
-    ChunkHeader.codec ~ fixedSizeBytes(l - chunkHeaderOffset, bytes)
-  } { _._2.size + chunkHeaderOffset }
-
-  val chunkStreamDecoder: StreamDecoder[(ChunkHeader, ByteVector)] = StreamDecoder.many(chunkCodec)
-  val chunkStreamEncoder: StreamEncoder[(ChunkHeader, ByteVector)] = StreamEncoder.many(chunkCodec)
+  val requestsQueueSize: Int = 128
 
   def apply[F[_]](
       config: Configuration,
       socket: Socket[F],
       stateSignal: SignallingRef[F, ConnectionState],
       closeSignal: SignallingRef[F, Boolean],
-      in: Pipe[F, (ChunkHeader, ByteVector), Unit],
-    )(implicit C: Concurrent[F], L: Logger[F]): F[ChunkSocket[F]] = {
+      in: Pipe[F, VChunk, Unit],
+    )(implicit C: Concurrent[F], L: Logger[F]): F[VChunkSocket[F]] = {
 
     for {
-      requests <- Queue.unbounded[F, (ChunkHeader, ByteVector)]
+      requests <- Queue.bounded[F, VChunk](requestsQueueSize)
     } yield {
 
-      val chunks: Stream[F, (ChunkHeader, ByteVector)] = requests.dequeue.evalMapChunk {
-          case (header, data) =>
-            val (chunk, tail) = data.splitAt(config.chunkLength)
-            requests.enqueue1(header.next -> tail).whenA(tail.nonEmpty).as(header -> chunk)
-        }
+      val chunks: Stream[F, VChunk] = requests.dequeue.evalMapChunk { vc =>
+        // take a chunk of length and re-enqueue the remainder
+        vc.take(config.chunkLength, requests.enqueue1)
+      }
 
-      val outgoing: F[Unit] = chunks
-        .evalTap(msg => L.debug(s"SEND: ${msg._1} / ${msg._2}"))
-        .through(chunkStreamEncoder.toPipeByte)
+      val outgoing: Stream[F, Unit] = chunks
+        .evalTap(msg => L.debug(s"${Console.BLUE}SEND${Console.RESET}: ${msg}"))
+        .through(VChunk.streamEncoder.toPipeByte)
         .cons(handshake)
         .through(socket.writes())
-        .onFinalize(stateSignal.set(ConnectionState.Disconnected))
-        .compile
-        .drain
 
-      val incoming: F[Unit] = socket
+      val incoming: Stream[F, Unit] = socket
         .reads(config.readBufferSize)
-        .through(chunkStreamDecoder.toPipeByte)
-        .evalTap(msg => L.debug(s"RECV: ${msg._1} / ${msg._2}"))
+        .through(VChunk.streamDecoder.toPipeByte)
+        .evalTap(msg => L.debug(s"${Console.BLUE_B}${Console.WHITE}RECV${Console.RESET}: ${msg}"))
         .through(in)
-        .onFinalize(stateSignal.set(ConnectionState.Disconnected))
+
+      val data = incoming.merge(outgoing)
+        .onFinalize(
+          L.debug("CLOSE") *> stateSignal.set(ConnectionState.Disconnected)
+        )
         .compile
         .drain
 
@@ -74,17 +68,15 @@ object ChunkSocket {
         .compile
         .drain
 
-      new ChunkSocket[F] {
+      new VChunkSocket[F] {
         override def send(message: Long, data: ByteVector): F[Unit] = {
-          val chunksCount = (data.size.toDouble / config.chunkLength).ceil.toLong
-          val header = ChunkHeader(ChunkX(first = true, chunksCount), message, data.size)
-          requests.enqueue1(header -> data)
+          requests.enqueue1(VChunk.message(message, data, config.chunkLength))
         }
 
         override val pump: F[Unit] =
           for {
             _ <- stateSignal.set(ConnectionState.Connected)
-            _ <- outgoing.race(incoming).race(close)
+            _ <- data.race(close)
           } yield ()
       }
     }

@@ -5,7 +5,7 @@ import io.chrisdavenport.log4cats.Logger
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import pureconfig.ConfigSource
 import pureconfig.module.catseffect.syntax._
-import scodec.bits.ByteVector
+import scodec.bits.{BitVector, ByteVector}
 import avokka.velocypack._
 
 object connect extends IOApp {
@@ -17,7 +17,10 @@ object connect extends IOApp {
     _ <- transport.use { client =>
       for {
         e <- IO.fromEither(VArray.empty.toVPackBits)
-        _ <- client.execute(e.bytes)
+        f1 <- client.execute(ByteVector(1,2,3,4)).start
+        f2 <- client.execute(ByteVector(10,20,30,40)).start
+        _ <- f1.join
+        _ <- f2.join
       } yield ()
     }
     _ <- transport.use { client =>

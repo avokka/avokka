@@ -15,7 +15,7 @@ import scodec.codecs.uint32L
   * In the first chunk of a message, the number "chunk" is the total number of chunks in the message,
   * in all subsequent chunks, the number "chunk" is the current number of this chunk.
   */
-final class ChunkX(val x: Long) extends AnyVal {
+final class VChunkX(val x: Long) extends AnyVal {
 
   /**
     * first chunk of message
@@ -30,10 +30,10 @@ final class ChunkX(val x: Long) extends AnyVal {
   def index: Long = x >> 1
 
   /**
-    * if this chunk contains the whole message (no buffer needed)
+    * if this chunk contains the whole message (no split/buffer needed)
     * @return
     */
-  def single: Boolean = first && index == 1
+  def single: Boolean = x == 3L // = first && index == 1
 
   /**
     * the order of chunk in message
@@ -44,13 +44,13 @@ final class ChunkX(val x: Long) extends AnyVal {
   /**
     * next chunkx for a message
     */
-  def next: ChunkX = ChunkX(first = false, position + 1)
+  def next: VChunkX = VChunkX(first = false, position + 1)
 }
 
-object ChunkX {
-  def apply(first: Boolean, index: Long): ChunkX = {
+object VChunkX {
+  def apply(first: Boolean, index: Long): VChunkX = {
     val x = index << 1 | (if (first) 1L else 0L)
-    new ChunkX(x)
+    new VChunkX(x)
   }
 
   /*
@@ -60,5 +60,5 @@ object ChunkX {
   }
 */
 
-  val codec: Codec[ChunkX] = uint32L.xmap(new ChunkX(_), _.x)
+  val codec: Codec[VChunkX] = uint32L.xmap(new VChunkX(_), _.x)
 }

@@ -45,6 +45,8 @@ final class VChunkX(val x: Long) extends AnyVal {
     * next chunkx for a message
     */
   def next: VChunkX = VChunkX(first = false, position + 1)
+
+  override def toString: String = s"X(first=$first,index=$index)"
 }
 
 object VChunkX {

@@ -35,9 +35,9 @@ object Transport {
       closeSignal <- SignallingRef[F, Boolean](false)
     } yield {
 
-      val in: Pipe[F, VChunk, Unit] = _.evalMapChunk { vc =>
-          responses.remove(vc.header.message).flatMap {
-            case Some(value) => value.complete(vc.data)
+      val in: Pipe[F, (Long, ByteVector), Unit] = _.evalMapChunk { vc =>
+          responses.remove(vc._1).flatMap {
+            case Some(value) => value.complete(vc._2)
             case None        => C.raiseError[Unit](new Exception("unknown message id"))
           }
       }

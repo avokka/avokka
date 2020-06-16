@@ -2,19 +2,14 @@ package avokka
 
 import cats.effect.Concurrent
 import cats.effect.syntax.concurrent._
-import cats.syntax.applicative._
+import cats.syntax.apply._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import cats.syntax.apply._
 import fs2.concurrent.{Queue, SignallingRef}
 import fs2.io.tcp.Socket
 import fs2.{Chunk, Pipe, Stream}
 import io.chrisdavenport.log4cats.Logger
-import scodec.Codec
 import scodec.bits.ByteVector
-import scodec.codecs.{bytes, fixedSizeBytes, uint32L}
-import scodec.stream.{StreamDecoder, StreamEncoder}
-import shapeless.{HNil, ::}
 
 trait VChunkSocket[F[_]] {
   def send(message: Long, data: ByteVector): F[Unit]
@@ -32,11 +27,12 @@ object VChunkSocket {
       socket: Socket[F],
       stateSignal: SignallingRef[F, ConnectionState],
       closeSignal: SignallingRef[F, Boolean],
-      in: Pipe[F, VChunk, Unit],
+      in: Pipe[F, (Long, ByteVector), Unit],
     )(implicit C: Concurrent[F], L: Logger[F]): F[VChunkSocket[F]] = {
 
     for {
       requests <- Queue.bounded[F, VChunk](requestsQueueSize)
+      history  <- VChunkHistory[F]
     } yield {
 
       val chunks: Stream[F, VChunk] = requests.dequeue.evalMapChunk { vc =>
@@ -45,7 +41,7 @@ object VChunkSocket {
       }
 
       val outgoing: Stream[F, Unit] = chunks
-        .evalTap(msg => L.debug(s"${Console.BLUE}SEND${Console.RESET}: ${msg}"))
+        .evalTap(msg => L.debug(s"${Console.BLUE}SEND${Console.RESET}: $msg"))
         .through(VChunk.streamEncoder.toPipeByte)
         .cons(handshake)
         .through(socket.writes())
@@ -53,7 +49,8 @@ object VChunkSocket {
       val incoming: Stream[F, Unit] = socket
         .reads(config.readBufferSize)
         .through(VChunk.streamDecoder.toPipeByte)
-        .evalTap(msg => L.debug(s"${Console.BLUE_B}${Console.WHITE}RECV${Console.RESET}: ${msg}"))
+        .evalTap(msg => L.debug(s"${Console.BLUE_B}${Console.WHITE}RECV${Console.RESET}: $msg"))
+        .evalMap(ch => history.push(ch)).unNone
         .through(in)
 
       val data = incoming.merge(outgoing)
@@ -82,32 +79,4 @@ object VChunkSocket {
     }
   }
 
-  /*
-  val chunkSplitter: Pipe[F, (ChunkHeader, ByteVector), (ChunkHeader, ByteVector)] =
-    _.evalMapChunk {
-      case (header, data) =>
-        val (chunk, tail) = data.splitAt(config.chunkLength)
-        requests.enqueue1(header.next -> tail).whenA(tail.nonEmpty).as(header -> chunk)
-    }
-
-  val dequeueChunk: F[(ChunkHeader, ByteVector)] =
-    for {
-      (header, data) <- requests.dequeue1
-      (chunk, tail) = data.splitAt(config.chunkLength)
-      _ <- requests.enqueue1(header.next -> tail).whenA(tail.nonEmpty)
-    } yield header -> chunk
-*/
-  /*
-val chunkDecoder: Decoder[(ChunkHeader, ByteVector)] = for {
-len  <- uint32L
-header <- ChunkHeader.codec
-data <- fixedSizeBytes(len - 4 - 4 - 8 - 8, bytes)
-} yield header -> data
-
-val chunkEncoder: Encoder[(ChunkHeader, ByteVector)] = Encoder {
-case (h: ChunkHeader, b: ByteVector) => for {
-  hb <- ChunkHeader.codec.encode(h)
-} yield hb ++ b.bits
-}
-*/
 }

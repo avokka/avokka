@@ -30,8 +30,8 @@ object VChunkSocket {
     )(implicit C: Concurrent[F], L: Logger[F]): F[VChunkSocket[F]] = {
 
     for {
-      chunks  <- Queue.bounded[F, VChunk](requestsQueueSize)
-      history <- VChunkHistory[F]
+      chunks    <- Queue.bounded[F, VChunk](requestsQueueSize)
+      assembler <- VChunkAssembler[F]
     } yield {
 
       val outgoing: Stream[F, Unit] = chunks.dequeue
@@ -48,7 +48,7 @@ object VChunkSocket {
         .reads(config.readBufferSize)
         .through(VChunk.streamDecoder.toPipeByte)
         .evalTap(msg => L.debug(s"${Console.BLUE_B}${Console.WHITE}RECV${Console.RESET}: $msg"))
-        .evalMap(ch => history.push(ch).value).unNone
+        .evalMap(ch => assembler.push(ch).value).unNone
         .through(in)
 
       val data = incoming.merge(outgoing)

@@ -9,13 +9,18 @@ import shapeless.{::, HNil}
 import cats.syntax.applicative._
 import cats.syntax.functor._
 
+/** chunk of message
+  *
+  * @param header header to reassemble message
+  * @param data chunk payload
+  */
 final case class VChunk
 (
   header: VChunkHeader,
   data: ByteVector
 ) {
 
-  /** split chunk data at length bytes, returns the chunk
+  /** split chunk data at length bytes, do something with remainder and returns the chunk
     *
     * @param length max number of bytes of data
     * @param withRemainder what to do with data tail
@@ -31,12 +36,12 @@ final case class VChunk
 object VChunk {
 
   // 4 chunk length + 4 chunkx + 8 message id + 8 message length
-  val headerOffset: Long = 24
+  val dataOffset: Long = 24
 
   val codec: Codec[VChunk] = uint32L.consume { l =>
-    VChunkHeader.codec :: fixedSizeBytes(l - headerOffset, bytes)
+    VChunkHeader.codec :: fixedSizeBytes(l - dataOffset, bytes)
   } {
-    case _ :: bv :: HNil => bv.size + headerOffset
+    case _ :: bv :: HNil => bv.size + dataOffset
   }.as
 
   val streamDecoder: StreamDecoder[VChunk] = StreamDecoder.many(codec)

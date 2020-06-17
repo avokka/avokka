@@ -2,8 +2,12 @@ package avokka
 
 import scodec.bits.ByteVector
 
-final case class VMessage
-(
+/** complete velocystream payload
+  *
+  * @param id unique identifier
+  * @param data payload
+  */
+final case class VMessage(
     id: Long,
     data: ByteVector
 ) {

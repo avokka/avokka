@@ -41,10 +41,4 @@ object VChunk {
 
   val streamDecoder: StreamDecoder[VChunk] = StreamDecoder.many(codec)
   val streamEncoder: StreamEncoder[VChunk] = StreamEncoder.many(codec)
-
-  def message(id: Long, data: ByteVector, length: Long): VChunk = {
-    val chunksCount = (data.size.toDouble / length).ceil.toLong
-    val header = VChunkHeader(VChunkX(first = true, chunksCount), id, data.size)
-    VChunk(header, data)
-  }
 }

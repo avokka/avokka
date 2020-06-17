@@ -35,10 +35,10 @@ object Transport {
       closeSignal <- SignallingRef[F, Boolean](false)
     } yield {
 
-      val in: Pipe[F, (Long, ByteVector), Unit] = _.evalMapChunk { vc =>
-          responses.remove(vc._1).flatMap {
-            case Some(value) => value.complete(vc._2)
-            case None        => C.raiseError[Unit](new Exception("unknown message id"))
+      val in: Pipe[F, VMessage, Unit] = _.evalMapChunk { msg =>
+          responses.remove(msg.id).flatMap {
+            case Some(deferred) => deferred.complete(msg.data)
+            case None           => C.raiseError[Unit](new Exception(s"unknown message id ${msg.id}"))
           }
       }
 
@@ -83,7 +83,7 @@ object Transport {
                 _ <- L.debug(s"prepare message id = $id")
                 dfr <- Deferred[F, ByteVector]
                 _ <- responses.update(id, dfr)
-                _ <- socket.send(id, data)
+                _ <- socket.send(VMessage(id, data))
                 r <- dfr.get
               } yield r
 

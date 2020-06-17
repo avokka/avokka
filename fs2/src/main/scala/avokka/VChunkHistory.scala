@@ -6,17 +6,16 @@ import cats.effect.concurrent.Ref
 import cats.instances.vector._
 import cats.syntax.foldable._
 import cats.syntax.functor._
-import scodec.bits.ByteVector
 import scodec.interop.cats.ByteVectorMonoidInstance
 
 trait VChunkHistory[F[_]] {
 
   /** push a chunk in stack and get back full message if complete
     *
-    * @param c chunk received
-    * @return some message id -> data if complete, else none
+    * @param chunk chunk received
+    * @return some message if complete, else none
     */
-  def push(c: VChunk): OptionT[F, (Long, ByteVector)]
+  def push(chunk: VChunk): OptionT[F, VMessage]
 }
 
 object VChunkHistory {
@@ -24,9 +23,10 @@ object VChunkHistory {
     for {
       stack <- Ref.of(Chain.empty[VChunk])
     } yield new VChunkHistory[F] {
-      override def push(c: VChunk): OptionT[F, (Long, ByteVector)] =
+      override def push(c: VChunk): OptionT[F, VMessage] =
         if (c.header.x.single) {
-          OptionT.pure[F](c.header.message -> c.data)
+          // message is not splitted, bypass stack
+          OptionT.pure[F](VMessage(c.header.message, c.data))
         } else for {
           // push chunk in history
           st <- OptionT.liftF(stack.updateAndGet(_ :+ c))
@@ -34,11 +34,11 @@ object VChunkHistory {
           same = st.filter(_.header.message == c.header.message)
           // check if first message index equals number of chunks collected
           _ <- OptionT.fromOption[F](same.map(_.header.x).find(x => x.first && (x.index == same.size)))
-          // clean complete chunks
+          // remove chunks when message is complete
           _ <- OptionT.liftF(stack.update(_.filterNot(_.header.message == c.header.message)))
-          // reconstruct data message
+          // reconstruct message payload
           data = same.toVector.sortBy(_.header.x.position).foldMap(_.data)
-        } yield c.header.message -> data
+        } yield VMessage(c.header.message, data)
       }
 
 }

@@ -9,10 +9,9 @@ import fs2.concurrent.{Queue, SignallingRef}
 import fs2.io.tcp.Socket
 import fs2.{Chunk, Pipe, Stream}
 import io.chrisdavenport.log4cats.Logger
-import scodec.bits.ByteVector
 
 trait VChunkSocket[F[_]] {
-  def send(message: Long, data: ByteVector): F[Unit]
+  def send(message: VMessage): F[Unit]
   def pump: F[Unit]
 }
 
@@ -27,20 +26,19 @@ object VChunkSocket {
       socket: Socket[F],
       stateSignal: SignallingRef[F, ConnectionState],
       closeSignal: SignallingRef[F, Boolean],
-      in: Pipe[F, (Long, ByteVector), Unit],
+      in: Pipe[F, VMessage, Unit],
     )(implicit C: Concurrent[F], L: Logger[F]): F[VChunkSocket[F]] = {
 
     for {
-      requests <- Queue.bounded[F, VChunk](requestsQueueSize)
-      history  <- VChunkHistory[F]
+      chunks  <- Queue.bounded[F, VChunk](requestsQueueSize)
+      history <- VChunkHistory[F]
     } yield {
 
-      val chunks: Stream[F, VChunk] = requests.dequeue.evalMapChunk { vc =>
-        // take a chunk of length and re-enqueue the remainder
-        vc.take(config.chunkLength, requests.enqueue1)
-      }
-
-      val outgoing: Stream[F, Unit] = chunks
+      val outgoing: Stream[F, Unit] = chunks.dequeue
+        .evalMapChunk { chunk =>
+          // take a chunk of length and re-enqueue the remainder
+          chunk.take(config.chunkLength, chunks.enqueue1)
+        }
         .evalTap(msg => L.debug(s"${Console.BLUE}SEND${Console.RESET}: $msg"))
         .through(VChunk.streamEncoder.toPipeByte)
         .cons(handshake)
@@ -66,8 +64,8 @@ object VChunkSocket {
         .drain
 
       new VChunkSocket[F] {
-        override def send(message: Long, data: ByteVector): F[Unit] = {
-          requests.enqueue1(VChunk.message(message, data, config.chunkLength))
+        override def send(message: VMessage): F[Unit] = {
+          chunks.enqueue1(message.firstChunk(config.chunkLength))
         }
 
         override val pump: F[Unit] =

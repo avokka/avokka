@@ -97,7 +97,7 @@ object VPackRecord {
       }
   }
 
-  private[velocypack] class DeriveHelper[T] {
+  private[velocypack] final class DeriveHelper[T](private val dummy: Boolean = false) extends AnyVal {
     
     def encoder[R <: HList](
         implicit lgen: LabelledGeneric.Aux[T, R],

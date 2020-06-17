@@ -56,7 +56,7 @@ object VPackGeneric { c =>
     }
   }
 
-  private[velocypack] class DeriveHelper[T] {
+  private[velocypack] final class DeriveHelper[T](private val dummy: Boolean = false) extends AnyVal {
 
     def encoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: Encoder[R]): VPackEncoder[T] =
       Encoder()(vp).contramap(gen.to)

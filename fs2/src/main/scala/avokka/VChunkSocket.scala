@@ -50,7 +50,7 @@ object VChunkSocket {
         .reads(config.readBufferSize)
         .through(VChunk.streamDecoder.toPipeByte)
         .evalTap(msg => L.debug(s"${Console.BLUE_B}${Console.WHITE}RECV${Console.RESET}: $msg"))
-        .evalMap(ch => history.push(ch)).unNone
+        .evalMap(ch => history.push(ch).value).unNone
         .through(in)
 
       val data = incoming.merge(outgoing)

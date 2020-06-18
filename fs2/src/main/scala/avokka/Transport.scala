@@ -4,6 +4,7 @@ import java.net.InetSocketAddress
 
 import cats.effect.concurrent.{Deferred, Ref}
 import cats.effect.syntax.concurrent._
+import cats.effect.syntax.bracket._
 import cats.effect.{Blocker, Concurrent, ContextShift, IO, Resource, Timer}
 import cats.syntax.apply._
 import cats.syntax.flatMap._
@@ -80,11 +81,11 @@ object Transport {
             override def execute(data: ByteVector): F[ByteVector] =
               for {
                 id <- counter.updateAndGet(_ + 1)
-                _ <- L.debug(s"prepare message id = $id")
+                _ <- L.debug(s"prepare message #$id")
                 dfr <- Deferred[F, ByteVector]
                 _ <- responses.update(id, dfr)
                 _ <- socket.send(VMessage(id, data))
-                r <- dfr.get
+                r <- dfr.get.timeout(config.replyTimeout).guarantee(responses.remove(id).void)
               } yield r
 
             override def terminate: F[Unit] = fib.cancel *> closeSignal.set(true)

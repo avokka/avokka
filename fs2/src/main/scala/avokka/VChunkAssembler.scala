@@ -16,6 +16,9 @@ trait VChunkAssembler[F[_]] {
     * @return some message if complete, else none
     */
   def push(chunk: VChunk): OptionT[F, VMessage]
+
+  // for testing purposes
+  private[avokka] def size: F[Long]
 }
 
 object VChunkAssembler {
@@ -40,6 +43,8 @@ object VChunkAssembler {
           // reconstruct message payload
           data = same.toVector.sortBy(_.header.x.position).foldMap(_.data)
         } yield VMessage(c.header.id, data)
-      }
+
+      override private[avokka] def size: F[Long] = stack.get.map(_.size)
+    }
 
 }

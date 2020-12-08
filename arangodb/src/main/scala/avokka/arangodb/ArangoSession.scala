@@ -13,7 +13,6 @@ import cats.instances.future._
 import cats.syntax.either._
 import com.typesafe.scalalogging.StrictLogging
 import scodec.bits.BitVector
-import types._
 
 import scala.concurrent.Future
 import scala.concurrent.duration._

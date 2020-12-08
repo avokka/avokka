@@ -141,7 +141,7 @@ lazy val bench = (project in file("bench"))
   ).enablePlugins(JmhPlugin)
 
 lazy val avokka = (project in file("."))
-  .aggregate(velocypack, velocystream, arangodb, avokkafs2)
+  .aggregate(velocypack, velocystream, arangodbTypes, arangodb, avokkafs2)
   .settings(
     publishArtifact := false,
     skip in publish := true

@@ -4,7 +4,6 @@ import avokka.velocystream.VStreamConfiguration
 import com.typesafe.config.{Config, ConfigFactory}
 import pureconfig._
 import pureconfig.generic.semiauto._
-import types._
 
 import scala.concurrent.duration.FiniteDuration
 

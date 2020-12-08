@@ -5,7 +5,6 @@ import akka.stream.scaladsl.Source
 import avokka.arangodb.api.{Cursor, DocumentCreate, DocumentRead, DocumentRemove, DocumentUpdate}
 import avokka.velocypack.VPack.VObject
 import avokka.velocypack._
-import types._
 
 class ArangoCollection(val database: ArangoDatabase, val name: CollectionName) {
 

@@ -8,4 +8,19 @@ package object arangodb {
 
   private[arangodb] type FEE[T] = EitherT[Future, ArangoError, T]
 
+  type DatabaseName = types.DatabaseName
+  val DatabaseName: types.DatabaseName.type = types.DatabaseName
+
+  type CollectionName = types.CollectionName
+  val CollectionName: types.CollectionName.type = types.CollectionName
+
+  type DocumentKey = types.DocumentKey
+  val DocumentKey: types.DocumentKey.type = types.DocumentKey
+
+  type DocumentHandle = types.DocumentHandle
+  val DocumentHandle: types.DocumentHandle.type = types.DocumentHandle
+
+  type DocumentRevision = types.DocumentRevision
+  val DocumentRevision: types.DocumentRevision.type = types.DocumentRevision
+
 }

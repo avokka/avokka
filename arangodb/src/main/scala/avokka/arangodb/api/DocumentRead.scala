@@ -1,6 +1,8 @@
 package avokka.arangodb
 package api
 
+import types._
+
 /**
   * Returns the document identified by *document-handle*. The returned document contains three special attributes:
   * *_id* containing the document handle, *_key* containing key which uniquely identifies a document

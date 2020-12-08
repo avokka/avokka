@@ -2,6 +2,7 @@ package avokka.arangodb
 package api
 
 import avokka.velocypack._
+import types._
 
 /**
   * The body of the request is an array consisting of selectors for

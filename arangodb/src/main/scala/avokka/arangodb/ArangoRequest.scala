@@ -2,6 +2,7 @@ package avokka.arangodb
 
 import avokka.arangodb.api.Api
 import avokka.velocypack._
+import types._
 
 final case class ArangoRequest[T](
                              header: ArangoRequest.HeaderTrait,

@@ -3,6 +3,7 @@ package api
 package admin
 
 import avokka.velocypack._
+import types._
 
 object AdminLog { self =>
 

@@ -2,6 +2,7 @@ package avokka.arangodb
 package api
 
 import avokka.velocypack._
+import types._
 
 final case class CollectionInfo(
     name: CollectionName

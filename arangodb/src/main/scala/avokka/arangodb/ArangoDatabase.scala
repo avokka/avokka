@@ -4,6 +4,7 @@ import akka.NotUsed
 import akka.stream.scaladsl.Source
 import avokka.arangodb.api.{Api, Cursor}
 import avokka.velocypack.VPackDecoder
+import types._
 
 class ArangoDatabase(val session: ArangoSession, val name: DatabaseName) extends ApiContext[ArangoDatabase] {
 

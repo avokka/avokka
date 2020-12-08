@@ -1,6 +1,8 @@
 package avokka.arangodb
 package api
 
+import types._
+
 final case class CollectionTruncate(
     name: CollectionName
 )

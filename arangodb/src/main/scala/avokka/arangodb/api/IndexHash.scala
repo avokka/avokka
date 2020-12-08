@@ -2,6 +2,7 @@ package avokka.arangodb
 package api
 
 import avokka.velocypack._
+import types._
 
 /**
   * Creates a hash index for the collection collection-name if it

@@ -2,6 +2,7 @@ package avokka.arangodb
 package api
 
 import avokka.velocypack._
+import types._
 
 /**
   * Will calculate a checksum of the meta-data (keys and optionally revision ids) and

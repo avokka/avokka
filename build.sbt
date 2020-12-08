@@ -72,15 +72,29 @@ lazy val velocystream = (project in file("velocystream"))
     logBuffered in Test := false
   )
 
+lazy val arangodbTypes = (project in file("arangodb-types"))
+  .dependsOn(velocypack)
+  .settings(
+    name := "avokka-arangodb-types",
+    description := "ArangoDB model types",
+    libraryDependencies ++= Seq(
+      newtype,
+    ) ++
+      (CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, v)) if v <= 12 =>
+          Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full))
+        case _ => Nil
+      }),
+  )
+
 lazy val arangodb = (project in file("arangodb"))
-  .dependsOn(velocystream)
+  .dependsOn(velocystream, arangodbTypes)
   .aggregate(velocypack, velocystream)
   .settings(
     name := "avokka-arangodb",
     description := "ArangoDB client",
     libraryDependencies ++= compatDeps ++ Seq(
 //      enumeratum,
-      newtype,
       pureconfig,
       logging,
     ) ++ testSuite ++ akkaTestKit ++ dockerTest ++

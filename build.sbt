@@ -116,6 +116,16 @@ lazy val avokkafs2 = (project in file("fs2"))
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
   )
 
+lazy val bench = (project in file("bench"))
+  .dependsOn(velocypack)
+  .settings(
+    name := "avokka-bench",
+    libraryDependencies ++= Seq(
+      arango,
+      logback
+    )
+  ).enablePlugins(JmhPlugin)
+
 lazy val avokka = (project in file("."))
   .aggregate(velocypack, velocystream, arangodb, avokkafs2)
   .settings(

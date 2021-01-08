@@ -1,5 +1,6 @@
 package avokka.arangodb
 
+import avokka.arangodb.types.DatabaseName
 import avokka.velocystream.VStreamConfiguration
 import com.typesafe.config.{Config, ConfigFactory}
 import pureconfig._

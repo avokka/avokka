@@ -1,11 +1,11 @@
 package avokka.arangodb
 
 import java.util.concurrent.atomic.AtomicLong
-
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
 import avokka.arangodb.ArangoResponse.Header
+import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
 import avokka.velocystream._
 import cats.data.EitherT

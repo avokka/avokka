@@ -129,11 +129,11 @@ private[codecs] object VPackArrayCodec extends VPackCompoundCodec {
 
   private[codecs] val codec: Codec[VArray] = Codec(encoder, vpackDecoder.emap({
     case v: VArray => v.pure[Attempt]
-    case _         => Err("not a vpack array").raiseError
+    case _         => Err("not a vpack array").raiseError[Attempt, VArray]
   }))
 
   private[codecs] val codecCompact: Codec[VArray] = Codec(encoderCompact, vpackDecoder.emap({
     case v: VArray => v.pure[Attempt]
-    case _         => Err("not a vpack array").raiseError
+    case _         => Err("not a vpack array").raiseError[Attempt, VArray]
   }))
 }

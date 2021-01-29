@@ -1,11 +1,9 @@
 package avokka
 
-import java.net.InetSocketAddress
-
 import cats.effect.concurrent.{Deferred, Ref}
-import cats.effect.syntax.concurrent._
 import cats.effect.syntax.bracket._
-import cats.effect.{Blocker, Concurrent, ContextShift, IO, Resource, Timer}
+import cats.effect.syntax.concurrent._
+import cats.effect.{Blocker, Concurrent, ContextShift, Resource, Timer}
 import cats.syntax.apply._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
@@ -13,12 +11,9 @@ import fs2.Pipe
 import fs2.concurrent.SignallingRef
 import fs2.io.tcp.SocketGroup
 import io.chrisdavenport.log4cats.Logger
-import pureconfig.ConfigSource
-import retry.RetryDetails.{GivingUp, WillDelayAndRetry}
-import retry.{RetryDetails, RetryPolicies, retryingOnAllErrors}
 import scodec.bits.ByteVector
 
-import scala.concurrent.duration.FiniteDuration
+import java.net.InetSocketAddress
 
 trait Transport[F[_]] {
   def execute(data: ByteVector): F[ByteVector]

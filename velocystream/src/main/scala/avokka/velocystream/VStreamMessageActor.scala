@@ -63,7 +63,7 @@ class VStreamMessageActor(id: Long, replyTo: ActorRef) extends Actor with ActorL
       // check completeness
       if (expected.contains(buffer.length.toLong)) {
         // reorder bytes by chunk position
-        val bytes = buffer.result.sorted(chunkOrder).foldMap(_.data)
+        val bytes = buffer.result().sorted(chunkOrder).foldMap(_.data)
         replyMessage(VStreamMessage(id, bytes))
       }
 

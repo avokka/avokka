@@ -1,8 +1,8 @@
 import Dependencies._
 import sbt.addCompilerPlugin
 
-val scala212Version = "2.12.11"
-val scala213Version = "2.13.2"
+val scala212Version = "2.12.13"
+val scala213Version = "2.13.4"
 
 ThisBuild / organization := "avokka"
 ThisBuild / bintrayOrganization := Some("avokka")
@@ -126,7 +126,7 @@ lazy val avokkafs2 = (project in file("fs2"))
         scalaTest % Test,
         "com.codecommit" %% "cats-effect-testing-scalatest" % "0.4.0" % Test,
       ),
-    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
+    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
   )
 

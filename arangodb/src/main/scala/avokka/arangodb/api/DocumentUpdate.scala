@@ -42,7 +42,7 @@ final case class DocumentUpdate[T, P](
   def meta: Map[String, String] = {
     val m = Map.newBuilder[String, String]
     ifMatch.foreach(m += "If-Match" -> _)
-    m.result
+    m.result()
   }
 }
 

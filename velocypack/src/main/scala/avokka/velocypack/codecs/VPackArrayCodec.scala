@@ -4,7 +4,6 @@ package codecs
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
 import cats.syntax.traverse._
-import cats.instances.vector._
 import scodec.bits.BitVector
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}

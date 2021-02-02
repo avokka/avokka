@@ -2,11 +2,11 @@ package avokka.velocypack
 
 import java.time.{Instant, LocalDate}
 import java.util.{Date, UUID}
-
 import avokka.velocypack.VPack._
-import cats.syntax.either._
-import cats.syntax.traverse._
-import scodec.DecodeResult
+import cats.MonadThrow
+import cats.data.StateT
+import cats.syntax.all._
+import scodec.{Attempt, DecodeResult}
 import scodec.bits.{BitVector, ByteVector}
 import scodec.interop.cats._
 import shapeless.HList
@@ -30,6 +30,13 @@ trait VPackDecoder[T] { self =>
       .toEither
       .leftMap(VPackError.Codec)
       .flatMap(_.traverse(decode))
+
+  def state[F[_]](implicit F: MonadThrow[F]): StateT[F, BitVector, T] = StateT { bits =>
+    codecs.vpackDecoder.decode(bits) match {
+      case Attempt.Successful(result) => decode(result.value).liftTo.map(result.remainder -> _)
+      case Attempt.Failure(cause) => F.raiseError(VPackError.Codec(cause))
+    }
+  }
 }
 
 object VPackDecoder {
@@ -207,7 +214,7 @@ object VPackDecoder {
   }
 
   implicit val localDateDecoder: VPackDecoder[LocalDate] = {
-    case VString(value) => LocalDate.parse(value).asRight
+    case VString(value) => Try { LocalDate.parse(value) }.toEither.leftMap(VPackError.Conversion(_))
     case v => VPackError.WrongType(v).asLeft
   }
 

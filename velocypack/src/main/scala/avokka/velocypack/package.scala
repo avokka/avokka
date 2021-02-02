@@ -1,7 +1,9 @@
 package avokka
 
+import cats.ApplicativeThrow
+import cats.data.StateT
 import cats.syntax.either._
-import scodec.DecodeResult
+import scodec.{Attempt, DecodeResult, Decoder}
 import scodec.bits.BitVector
 
 package object velocypack extends ShowInstances {
@@ -41,5 +43,14 @@ package object velocypack extends ShowInstances {
       * @return either error or (T value and remainder)
       */
     def asVPack[T](implicit decoder: VPackDecoder[T]): Result[DecodeResult[T]] = decoder.decode(bits)
+  }
+
+  implicit final class DecoderStateOps[T](private val decoder: Decoder[T]) extends AnyVal {
+    def asState[F[_]](implicit F: ApplicativeThrow[F]): StateT[F, BitVector, T] = StateT { bits: BitVector =>
+      decoder.decode(bits) match {
+        case Attempt.Successful(result) => F.pure(result.remainder -> result.value)
+        case Attempt.Failure(cause) => F.raiseError(VPackError.Codec(cause))
+      }
+    }
   }
 }

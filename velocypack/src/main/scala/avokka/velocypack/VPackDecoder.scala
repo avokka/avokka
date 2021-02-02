@@ -3,9 +3,11 @@ package avokka.velocypack
 import java.time.{Instant, LocalDate}
 import java.util.{Date, UUID}
 import avokka.velocypack.VPack._
-import cats.MonadThrow
+import cats.ApplicativeThrow
 import cats.data.StateT
-import cats.syntax.all._
+import cats.syntax.either._
+import cats.syntax.functor._
+import cats.syntax.traverse._
 import scodec.{Attempt, DecodeResult}
 import scodec.bits.{BitVector, ByteVector}
 import scodec.interop.cats._
@@ -31,9 +33,9 @@ trait VPackDecoder[T] { self =>
       .leftMap(VPackError.Codec)
       .flatMap(_.traverse(decode))
 
-  def state[F[_]](implicit F: MonadThrow[F]): StateT[F, BitVector, T] = StateT { bits =>
+  def state[F[_]](implicit F: ApplicativeThrow[F]): StateT[F, BitVector, T] = StateT { bits =>
     codecs.vpackDecoder.decode(bits) match {
-      case Attempt.Successful(result) => decode(result.value).liftTo.map(result.remainder -> _)
+      case Attempt.Successful(result) => F.fromEither(decode(result.value)).map(result.remainder -> _)
       case Attempt.Failure(cause) => F.raiseError(VPackError.Codec(cause))
     }
   }

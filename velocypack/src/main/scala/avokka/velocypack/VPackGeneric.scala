@@ -1,8 +1,10 @@
 package avokka.velocypack
 
-import cats.syntax.either._
+import cats.syntax.all._
 import shapeless.{::, Generic, HList, HNil}
 import VPack.VArray
+import cats.MonadThrow
+import cats.data.Kleisli
 
 object VPackGeneric { c =>
 
@@ -28,44 +30,45 @@ object VPackGeneric { c =>
 
   }
 
-  private[velocypack] trait Decoder[A <: HList] {
-    def decode(v: Vector[VPack]): Result[A]
+  private[velocypack] trait Decoder[F[_], A <: HList] {
+    def decode(v: Vector[VPack]): F[A]
   }
 
   private[velocypack] object Decoder {
-    def apply[A <: HList](implicit ev: Decoder[A]): VPackDecoder[A] = {
+    def apply[F[_], A <: HList](implicit ev: Decoder[F, A], F: MonadThrow[F]): VPackDecoder[F, A] = Kleisli {
       case VArray(values) => ev.decode(values)
-      case v              => VPackError.WrongType(v).asLeft
+      case v              => VPackError.WrongType(v).raiseError
     }
 
-    implicit object hnilDecoder extends Decoder[HNil] {
-      override def decode(v: Vector[VPack]): Result[HNil] = HNil.asRight
+    implicit def hnilDecoder[F[_]](implicit F: MonadThrow[F]): Decoder[F, HNil] = new Decoder[F, HNil] {
+      override def decode(v: Vector[VPack]): F[HNil] = F.pure(HNil)
     }
 
-    implicit def hconsDecoder[T, A <: HList](
-        implicit decoder: VPackDecoder[T],
-        ev: Decoder[A],
-    ): Decoder[T :: A] = {
+    implicit def hconsDecoder[F[_], T, A <: HList](
+        implicit decoder: VPackDecoder[F, T],
+        ev: Decoder[F, A],
+        F: MonadThrow[F]
+    ): Decoder[F, T :: A] = {
       case value +: tail =>
         for {
-          rl <- decoder.decode(value)
+          rl <- decoder(value)
           rr <- ev.decode(tail)
         } yield rl :: rr
 
-      case _ => VPackError.NotEnoughElements().asLeft
+      case _ => VPackError.NotEnoughElements().raiseError
     }
   }
 
-  private[velocypack] final class DeriveHelper[T](private val dummy: Boolean = false) extends AnyVal {
+  private[velocypack] final class DeriveHelper[F[_], T](private val dummy: Boolean = false) extends AnyVal {
 
     def encoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: Encoder[R]): VPackEncoder[T] =
       Encoder()(vp).contramap(gen.to)
 
-    def decoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: Decoder[R]): VPackDecoder[T] =
-      Decoder(vp).map(gen.from)
+    def decoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: Decoder[F, R], F: MonadThrow[F]): VPackDecoder[F, T] =
+      Decoder(vp, F).map(gen.from)
 
   }
 
-  def apply[T] = new DeriveHelper[T]
+  def apply[F[_], T] = new DeriveHelper[F, T]
 
 }

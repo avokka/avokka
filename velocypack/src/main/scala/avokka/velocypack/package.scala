@@ -1,15 +1,21 @@
 package avokka
 
-import cats.ApplicativeThrow
-import cats.data.StateT
-import cats.syntax.either._
+import cats.{ApplicativeThrow, MonadThrow}
+import cats.data.{Kleisli, StateT}
+import cats.syntax.all._
 import scodec.{Attempt, DecodeResult, Decoder}
 import scodec.bits.BitVector
+import scodec.interop.cats._
 
-package object velocypack extends ShowInstances {
+import scala.annotation.implicitNotFound
+
+package object velocypack extends ShowInstances with VPackDecoderInstances {
+
+  @implicitNotFound("Cannot find an velocypack decoder for ${F}[${T}]")
+  type VPackDecoder[F[_], T] = Kleisli[F, VPack, T]
 
   /** return type of decoding a VPack to a T */
-  private[velocypack] type Result[T] = Either[VPackError, T]
+  private[velocypack] type Result[T] = Either[Throwable, T]
 
   implicit final class SyntaxToVPack[T](private val value: T) extends AnyVal {
 
@@ -42,7 +48,7 @@ package object velocypack extends ShowInstances {
       * @tparam T decoded type
       * @return either error or (T value and remainder)
       */
-    def asVPack[T](implicit decoder: VPackDecoder[T]): Result[DecodeResult[T]] = decoder.decode(bits)
+    def asVPack[F[_], T](implicit decoder: VPackDecoder[F, T], F: MonadThrow[F]): F[DecodeResult[T]] = decoder.decodeBits(bits)
   }
 
   implicit final class DecoderStateOps[T](private val decoder: Decoder[T]) extends AnyVal {
@@ -51,6 +57,19 @@ package object velocypack extends ShowInstances {
         case Attempt.Successful(result) => F.pure(result.remainder -> result.value)
         case Attempt.Failure(cause) => F.raiseError(VPackError.Codec(cause))
       }
+    }
+  }
+
+  implicit final class VPackDecoderOps[F[_], T](private val decoder: VPackDecoder[F, T]) extends AnyVal {
+    def decodeBits(bits: BitVector)(implicit F: MonadThrow[F]): F[DecodeResult[T]] = codecs.vpackDecoder
+      .decode(bits)
+      .toEither
+      .leftMap(VPackError.Codec)
+      .liftTo[F]
+      .flatMap(_.traverse(decoder.run))
+
+    def state(implicit F: MonadThrow[F]): StateT[F, BitVector, T] = {
+      codecs.vpackDecoder.asState.flatMapF(decoder.run)
     }
   }
 }

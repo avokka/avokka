@@ -1,9 +1,11 @@
 package avokka.velocypack
 
-import cats.syntax.either._
+import cats.syntax.all._
 import shapeless.labelled.{FieldType, field}
 import shapeless.{::, Default, HList, HNil, LabelledGeneric, Witness}
 import VPack.VObject
+import cats.MonadThrow
+import cats.data.Kleisli
 
 object VPackRecord {
 
@@ -34,55 +36,59 @@ object VPackRecord {
     }
   }
 
-  private[velocypack] trait Decoder[A <: HList, D <: HList] {
-    def decode(v: Map[String, VPack], defaults: D): Result[A]
+  private[velocypack] trait Decoder[F[_], A <: HList, D <: HList] {
+    def decode(v: Map[String, VPack], defaults: D): F[A]
   }
 
   private[velocypack] object Decoder {
-    def apply[A <: HList, D <: HList](defaults: D)(implicit ev: Decoder[A, D]): VPackDecoder[A] = {
+    def apply[F[_], A <: HList, D <: HList](defaults: D)(implicit ev: Decoder[F, A, D], F: MonadThrow[F]): VPackDecoder[F, A] = Kleisli {
       case VObject(values) => ev.decode(values, defaults)
-      case v               => VPackError.WrongType(v).asLeft
+      case v               => VPackError.WrongType(v).raiseError
     }
 
-    implicit object hnilDecoder extends Decoder[HNil, HNil] {
-      override def decode(v: Map[String, VPack], defaults: HNil): Result[HNil] = HNil.asRight
+    implicit def hnilDecoder[F[_]](implicit F: MonadThrow[F]): Decoder[F, HNil, HNil] = new Decoder[F, HNil, HNil] {
+      override def decode(v: Map[String, VPack], defaults: HNil): F[HNil] = F.pure(HNil)
     }
 
-    implicit def hconsDecoder[K <: Symbol, H, T <: HList](
-        implicit ev: Decoder[T, HNil],
+    implicit def hconsDecoder[F[_], K <: Symbol, H, T <: HList](
+        implicit ev: Decoder[F, T, HNil],
         key: Witness.Aux[K],
-        decoder: VPackDecoder[H]
-    ): Decoder[FieldType[K, H] :: T, HNil] = new Decoder[FieldType[K, H] :: T, HNil] {
+        decoder: VPackDecoder[F, H],
+        F: MonadThrow[F]
+    ): Decoder[F, FieldType[K, H] :: T, HNil] = new Decoder[F, FieldType[K, H] :: T, HNil] {
       private val keyName: String = key.value.name
 
-      override def decode(v: Map[String, VPack], defaults: HNil): Result[FieldType[K, H] :: T] = {
+      override def decode(v: Map[String, VPack], defaults: HNil): F[FieldType[K, H] :: T] = {
         v.get(keyName) match {
           case Some(value) =>
             for {
-              rl <- decoder.decode(value).leftMap(_.historyAdd(keyName))
+              rl <- decoder(value).adaptErr {
+                case e: VPackError => e.historyAdd(keyName)
+              }
               rr <- ev.decode(v, HNil)
             } yield field[K](rl) :: rr
 
-          case _ => VPackError.ObjectFieldAbsent(keyName).asLeft
+          case _ => VPackError.ObjectFieldAbsent(keyName).raiseError
         }
       }
     }
 
-    implicit def hconsDefaultsDecoder[K <: Symbol, H, T <: HList, D <: HList](
-        implicit ev: Decoder[T, D],
+    implicit def hconsDefaultsDecoder[F[_], K <: Symbol, H, T <: HList, D <: HList](
+        implicit ev: Decoder[F, T, D],
         key: Witness.Aux[K],
-        decoder: VPackDecoder[H]
-    ): Decoder[FieldType[K, H] :: T, Option[H] :: D] =
-      new Decoder[FieldType[K, H] :: T, Option[H] :: D] {
+        decoder: VPackDecoder[F, H],
+        F: MonadThrow[F]
+    ): Decoder[F, FieldType[K, H] :: T, Option[H] :: D] =
+      new Decoder[F, FieldType[K, H] :: T, Option[H] :: D] {
         private val keyName: String = key.value.name
 
         override def decode(v: Map[String, VPack],
-                            defaults: Option[H] :: D): Result[FieldType[K, H] :: T] = {
+                            defaults: Option[H] :: D): F[FieldType[K, H] :: T] = {
           val default = defaults.head
           v.get(keyName) match {
             case Some(value) =>
               for {
-                rl <- decoder.decode(value).leftMap(_.historyAdd(keyName))
+                rl <- decoder(value).adaptErr { case e: VPackError => e.historyAdd(keyName) }
                 rr <- ev.decode(v, defaults.tail)
               } yield field[K](rl) :: rr
 
@@ -91,13 +97,13 @@ object VPackRecord {
                 rr <- ev.decode(v, defaults.tail)
               } yield field[K](default.get) :: rr
 
-            case _ => VPackError.ObjectFieldAbsent(keyName).asLeft
+            case _ => VPackError.ObjectFieldAbsent(keyName).raiseError
           }
         }
       }
   }
 
-  private[velocypack] final class DeriveHelper[T](private val dummy: Boolean = false) extends AnyVal {
+  private[velocypack] final class DeriveHelper[F[_], T](private val dummy: Boolean = false) extends AnyVal {
     
     def encoder[R <: HList](
         implicit lgen: LabelledGeneric.Aux[T, R],
@@ -106,16 +112,18 @@ object VPackRecord {
 
     def decoder[R <: HList](
         implicit lgen: LabelledGeneric.Aux[T, R],
-        d: Decoder[R, HNil]
-    ): VPackDecoder[T] = Decoder[R, HNil](HNil)(d).map(lgen.from)
+        d: Decoder[F, R, HNil],
+        F: MonadThrow[F]
+    ): VPackDecoder[F, T] = Decoder[F, R, HNil](HNil)(d, F).map(lgen.from)
 
     def decoderWithDefaults[R <: HList, D <: HList](
         implicit lgen: LabelledGeneric.Aux[T, R],
         defaults: Default.AsOptions.Aux[T, D],
-        d: Decoder[R, D],
-    ): VPackDecoder[T] = Decoder(defaults())(d).map(lgen.from)
+        d: Decoder[F, R, D],
+        F: MonadThrow[F]
+    ): VPackDecoder[F, T] = Decoder(defaults())(d, F).map(lgen.from)
 
   }
 
-  def apply[T] = new DeriveHelper[T]
+  def apply[F[_], T] = new DeriveHelper[F, T]
 }

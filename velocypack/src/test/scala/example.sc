@@ -1,5 +1,7 @@
 import avokka.velocypack._
 
+import scala.util.Try
+
 val b: Boolean = true
 
 b.toVPack
@@ -13,22 +15,22 @@ a.toVPackBits.right.get
 import scodec.bits._
 
 val bits = hex"02043334".bits
-bits.asVPack[Vector[Long]].right.get.value
+bits.asVPack[Try, Vector[Long]].get.value
 
 case class Test(b: Boolean)
-implicit val testEncoder: VPackEncoder[Test] = VPackRecord[Test].encoder
-implicit val testDecoder: VPackDecoder[Test] = VPackRecord[Test].decoder
+implicit val testEncoder: VPackEncoder[Test] = VPackRecord[Try, Test].encoder
+implicit val testDecoder: VPackDecoder[Try, Test] = VPackRecord[Try, Test].decoder
 
 val t = Test(true)
 
 t.toVPack
 t.toVPackBits.right.get
 
-hex"0b070141621903".bits.asVPack[Test].right.get.value
-hex"0a".bits.asVPack[Test].left.get
+hex"0b070141621903".bits.asVPack[Try, Test].get.value
+hex"0a".bits.asVPack[Try, Test]
 
 case class TestTrue(b: Boolean = true)
-implicit val testTrueDecoder: VPackDecoder[TestTrue] = VPackRecord[TestTrue].decoderWithDefaults
+implicit val testTrueDecoder: VPackDecoder[Try, TestTrue] = VPackRecord[Try, TestTrue].decoderWithDefaults
 
-hex"0b070141621903".bits.asVPack[TestTrue].right.get.value
-hex"0a".bits.asVPack[TestTrue].right.get.value
+hex"0b070141621903".bits.asVPack[Try, TestTrue].get.value
+hex"0a".bits.asVPack[Try, TestTrue].get.value

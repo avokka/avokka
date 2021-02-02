@@ -61,7 +61,7 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
     assertRoundtrip(Byte.MinValue)
     assertRoundtrip(Byte.MaxValue)
 
-    VPackDecoder[Byte].decode(VLong(1000)).left.value should be (a [VPackError.Overflow])
+    VPackDecoder[Byte].run(VLong(1000)).left.value should be (a [VPackError.Overflow])
 
     forAll { b: Byte =>
       assertRoundtrip(b)

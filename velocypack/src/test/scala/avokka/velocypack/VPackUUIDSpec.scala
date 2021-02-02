@@ -6,6 +6,7 @@ import avokka.velocypack.VPack.{VBinary, VString}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import scodec.bits.ByteVector
+import cats.instances.either._
 import org.scalatest.EitherValues._
 
 class VPackUUIDSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPackSpecTrait {
@@ -23,7 +24,7 @@ class VPackUUIDSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPack
       assertDec(VPackDecoder[UUID], VString(uuid.toString), uuid)
     }
 
-    VPackDecoder[UUID].decode(VString("000")).left.value should be (a [VPackError.Conversion])
+    VPackDecoder[UUID].run(VString("000")).left.value should be (a [VPackError.Conversion])
   }
 
   "uuid" should "roundtrip" in {

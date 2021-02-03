@@ -1,11 +1,11 @@
 package avokka
 
-import cats.{ApplicativeError, ApplicativeThrow, Monad, MonadError, MonadThrow}
 import cats.data.{Kleisli, StateT}
 import cats.syntax.all._
-import scodec.{Attempt, DecodeResult, Decoder}
+import cats.{ApplicativeThrow, MonadThrow}
 import scodec.bits.BitVector
 import scodec.interop.cats._
+import scodec.{Attempt, DecodeResult, Decoder}
 
 import scala.annotation.implicitNotFound
 

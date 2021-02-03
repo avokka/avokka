@@ -1,18 +1,17 @@
 package avokka.velocypack
 
-import java.time.{Instant, LocalDate}
-import java.util.{Date, UUID}
 import avokka.velocypack.VPack._
-import cats.{Applicative, ApplicativeThrow, Bifunctor, Monad, MonadThrow}
-import cats.data.{Kleisli, StateT}
-import cats.syntax.functor._
+import cats.data.Kleisli
 import cats.syntax.applicativeError._
 import cats.syntax.bifunctor._
-// import cats.syntax.applicative._
+import cats.syntax.functor._
 import cats.syntax.traverse._
-import scodec.bits.{BitVector, ByteVector}
-// import scodec.interop.cats._
+import cats.{ApplicativeThrow, MonadThrow}
+import scodec.bits.ByteVector
 import shapeless.HList
+
+import java.time.{Instant, LocalDate}
+import java.util.{Date, UUID}
 
 /*
 @implicitNotFound("Cannot find an velocypack decoder for ${F}[${T}]")
@@ -124,14 +123,14 @@ trait VPackDecoderInstances {
   implicit def instantDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, Instant] = Kleisli({
     case VDate(d) => F.pure(Instant.ofEpochMilli(d))
     case VLong(l) => F.pure(Instant.ofEpochMilli(l))
-    case VString(s) => F.catchNonFatal(Instant.parse(s)).adaptErr(VPackError.Conversion(_))
+    case VString(s) => F.catchNonFatal(Instant.parse(s)).adaptErr { case e => VPackError.Conversion(e) }
     case v => F.raiseError(VPackError.WrongType(v))
   })
 
   implicit def dateDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, Date] = Kleisli({
     case VDate(d) => F.pure(new Date(d))
     case VLong(l) => F.pure(new Date(l))
-    case VString(s) => F.catchNonFatal(Instant.parse(s)).adaptErr(VPackError.Conversion(_)).map(i => new Date(i.toEpochMilli))
+    case VString(s) => F.catchNonFatal(Instant.parse(s)).adaptErr { case e => VPackError.Conversion(e) }.map(i => new Date(i.toEpochMilli))
     case v => F.raiseError(VPackError.WrongType(v))
   })
 
@@ -145,7 +144,7 @@ trait VPackDecoderInstances {
 
   implicit def uuidDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, UUID] = Kleisli({
     case VBinary(b) => F.pure(b.toUUID)
-    case VString(s) => F.catchNonFatal(UUID.fromString(s)).adaptErr(VPackError.Conversion(_))
+    case VString(s) => F.catchNonFatal(UUID.fromString(s)).adaptErr { case e => VPackError.Conversion(e) }
     case v          => F.raiseError(VPackError.WrongType(v))
   })
 
@@ -221,7 +220,7 @@ trait VPackDecoderInstances {
   })
 
   implicit def localDateDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, LocalDate] = Kleisli({
-    case VString(value) => F.catchNonFatal(LocalDate.parse(value)).adaptErr(VPackError.Conversion(_))
+    case VString(value) => F.catchNonFatal(LocalDate.parse(value)).adaptErr { case e => VPackError.Conversion(e) }
     case v => F.raiseError(VPackError.WrongType(v))
   })
 

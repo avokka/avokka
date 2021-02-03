@@ -1,7 +1,6 @@
 package avokka.arangodb
 
 import avokka.velocypack._
-import cats.data.Kleisli
 import io.estatico.newtype.macros.newtype
 import cats.syntax.all._
 

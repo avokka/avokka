@@ -12,7 +12,7 @@ object CollectionType {
   case object Edge extends CollectionType(3)
 
   implicit val encoder: VPackEncoder[CollectionType] = VPackEncoder[Int].contramap(_.i)
-  implicit val decoder: VPackDecoder[CollectionType] = VPackDecoder[Int].emap {
+  implicit val decoder: VPackDecoder[CollectionType] = VPackDecoder[Int].flatMapF {
     case Unknown.i  => Unknown.asRight
     case Document.i => Document.asRight
     case Edge.i     => Edge.asRight

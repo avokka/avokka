@@ -10,16 +10,16 @@ trait VPackSpecTrait extends Matchers { self: Assertions =>
     e.encode(t) should be (v)
   }
 
-  def assertDec[T](d: VPackDecoder[Result, T], v: VPack, t: T): Assertion = {
+  def assertDec[T](d: VPackDecoder[T], v: VPack, t: T): Assertion = {
     d(v).right.value should be (t)
   }
 
-  def assertCodec[T](t: T, v: VPack)(implicit e: VPackEncoder[T], d: VPackDecoder[Result, T]): Assertion = {
+  def assertCodec[T](t: T, v: VPack)(implicit e: VPackEncoder[T], d: VPackDecoder[T]): Assertion = {
     assertEnc(e, t, v)
     assertDec(d, v, t)
   }
 
-  def assertRoundtrip[T](t: T, echo: Boolean = false)(implicit e: VPackEncoder[T], d: VPackDecoder[Result, T]): Assertion = {
+  def assertRoundtrip[T](t: T, echo: Boolean = false)(implicit e: VPackEncoder[T], d: VPackDecoder[T]): Assertion = {
     // vpack value roundtrip
     if (echo) {
       println(t)

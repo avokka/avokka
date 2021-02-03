@@ -9,7 +9,7 @@ class VPackGenericSpec extends AnyFlatSpec with VPackSpecTrait {
 
   type R = String :: Boolean :: HNil
   val requestE: VPackEncoder[R] = VPackGeneric.Encoder[R]()
-  val requestD: VPackDecoder[Result, R] = VPackGeneric.Decoder[Result, R]
+  val requestD: VPackDecoder[R] = VPackGeneric.Decoder[Result, R]
   val requestsE = VPackGeneric.Encoder[R :: R :: HNil]()
   val requestsD = VPackGeneric.Decoder[Result, R :: R :: HNil]
   val compactE = VPackGeneric.Encoder[Int :: Boolean :: HNil](true)
@@ -68,7 +68,7 @@ object VPackGenericSpec {
     bool: Boolean
   )
 
-  implicit val rccEncoder: VPackEncoder[Rcc] = VPackGeneric[Result, Rcc].encoder
-  implicit val rccDecoder: VPackDecoder[Result, Rcc] = VPackGeneric[Result, Rcc].decoder
+  implicit val rccEncoder: VPackEncoder[Rcc] = VPackGeneric[Rcc].encoder
+  implicit val rccDecoder: VPackDecoder[Rcc] = VPackGeneric[Rcc].decoder
 
 }

@@ -16,7 +16,7 @@ object RequestType {
   case object OPTIONS extends RequestType(6)
 
   implicit val encoder: VPackEncoder[RequestType] = VPackEncoder[Int].contramap(_.i)
-  implicit val decoder: VPackDecoder[RequestType] = VPackDecoder[Int].emap {
+  implicit val decoder: VPackDecoder[RequestType] = VPackDecoder[Int].flatMapF {
     case DELETE.i  => DELETE.asRight
     case GET.i     => GET.asRight
     case POST.i    => POST.asRight

@@ -84,8 +84,8 @@ object VPackRecordSpec {
 
 //  val VersionResponseEncoderM: VPackEncoder[VersionResponse] = VPackEncoder.derive
 
-  val VersionResponseEncoder: VPackEncoder[VersionResponse] = VPackRecord[Result, VersionResponse].encoder
-  val VersionResponseDecoder: VPackDecoder[Result, VersionResponse] = VPackRecord[Result, VersionResponse].decoder
+  val VersionResponseEncoder: VPackEncoder[VersionResponse] = VPackRecord[VersionResponse].encoder
+  val VersionResponseDecoder: VPackDecoder[VersionResponse] = VPackRecord[VersionResponse].decoder
 
   case class TestDefault
   (
@@ -93,6 +93,6 @@ object VPackRecordSpec {
     i: Int = 10
   )
 
-  val TestDefaultEncoder: VPackEncoder[TestDefault] = VPackRecord[Result, TestDefault].encoder
-  val TestDefaultDecoder: VPackDecoder[Result, TestDefault] = VPackRecord[Result, TestDefault].decoderWithDefaults
+  val TestDefaultEncoder: VPackEncoder[TestDefault] = VPackRecord[TestDefault].encoder
+  val TestDefaultDecoder: VPackDecoder[TestDefault] = VPackRecord[TestDefault].decoderWithDefaults
 }

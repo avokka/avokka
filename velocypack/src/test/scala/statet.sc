@@ -3,8 +3,8 @@ import avokka.velocypack._
 import scala.util.Try
 
 case class Test(b: Boolean)
-implicit val testEncoder: VPackEncoder[Test] = VPackRecord[Try, Test].encoder
-implicit val testDecoder: VPackDecoder[Try, Test] = VPackRecord[Try, Test].decoder
+implicit val testEncoder: VPackEncoder[Test] = VPackRecord[Test].encoder
+implicit val testDecoder: VPackDecoderF[Try, Test] = VPackRecord.F[Try, Test].decoder
 
 val ok = Test(true)
 

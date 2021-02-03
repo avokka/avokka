@@ -26,7 +26,8 @@ object connect extends IOApp {
     _ <- transport.use { client =>
       for {
         r <- client.execute(ByteVector(0x19))
-        _ <- IO(println(r.bits.asVPack[VPack]))
+        d <- r.bits.asVPackF[IO, VPack]
+        _ <- IO(println(d))
         _ <- client.execute(ByteVector(0x20))
       } yield ()
     }

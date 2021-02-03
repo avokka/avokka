@@ -1,6 +1,6 @@
 package avokka
 
-import cats.{ApplicativeThrow, MonadThrow}
+import cats.{ApplicativeError, ApplicativeThrow, Monad, MonadError, MonadThrow}
 import cats.data.{Kleisli, StateT}
 import cats.syntax.all._
 import scodec.{Attempt, DecodeResult, Decoder}
@@ -12,10 +12,12 @@ import scala.annotation.implicitNotFound
 package object velocypack extends ShowInstances with VPackDecoderInstances {
 
   @implicitNotFound("Cannot find an velocypack decoder for ${F}[${T}]")
-  type VPackDecoder[F[_], T] = Kleisli[F, VPack, T]
+  type VPackDecoderF[F[_], T] = Kleisli[F, VPack, T]
 
   /** return type of decoding a VPack to a T */
   private[velocypack] type Result[T] = Either[Throwable, T]
+
+  type VPackDecoder[T] = VPackDecoderF[Result, T]
 
   implicit final class SyntaxToVPack[T](private val value: T) extends AnyVal {
 
@@ -48,7 +50,9 @@ package object velocypack extends ShowInstances with VPackDecoderInstances {
       * @tparam T decoded type
       * @return either error or (T value and remainder)
       */
-    def asVPack[F[_], T](implicit decoder: VPackDecoder[F, T], F: MonadThrow[F]): F[DecodeResult[T]] = decoder.decodeBits(bits)
+    def asVPackF[F[_], T](implicit decoder: VPackDecoderF[F, T], F: MonadThrow[F]): F[DecodeResult[T]] = decoder.decodeBits(bits)
+
+    def asVPack[T](implicit decoder: VPackDecoder[T]): Result[DecodeResult[T]] = asVPackF[Result, T]
   }
 
   implicit final class DecoderStateOps[T](private val decoder: Decoder[T]) extends AnyVal {
@@ -60,16 +64,17 @@ package object velocypack extends ShowInstances with VPackDecoderInstances {
     }
   }
 
-  implicit final class VPackDecoderOps[F[_], T](private val decoder: VPackDecoder[F, T]) extends AnyVal {
+  implicit final class VPackDecoderOps[F[_], T](private val decoder: VPackDecoderF[F, T]) extends AnyVal {
     def decodeBits(bits: BitVector)(implicit F: MonadThrow[F]): F[DecodeResult[T]] = codecs.vpackDecoder
       .decode(bits)
       .toEither
+//      .fold(e => E.raiseError(VPackError.Codec(e)), F.pure)
       .leftMap(VPackError.Codec)
       .liftTo[F]
       .flatMap(_.traverse(decoder.run))
 
     def state(implicit F: MonadThrow[F]): StateT[F, BitVector, T] = {
-      codecs.vpackDecoder.asState.flatMapF(decoder.run)
+      codecs.vpackDecoder.asState[F].flatMapF(decoder.run)
     }
   }
 }

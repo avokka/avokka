@@ -13,7 +13,7 @@ object MessageType {
   case object Authentication extends MessageType(1000)
 
   implicit val encoder: VPackEncoder[MessageType] = VPackEncoder[Int].contramap(_.i)
-  implicit val decoder: VPackDecoder[MessageType] = VPackDecoder[Int].emap {
+  implicit val decoder: VPackDecoder[MessageType] = VPackDecoder[Int].flatMapF {
     case Request.i        => Request.asRight
     case ResponseFinal.i  => ResponseFinal.asRight
     case ResponseChunk.i  => ResponseChunk.asRight

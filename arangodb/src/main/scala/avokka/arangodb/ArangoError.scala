@@ -5,6 +5,10 @@ import avokka.velocypack.VPackError
 sealed trait ArangoError extends Exception with Product with Serializable
 
 object ArangoError {
+  final case class Unknown(cause: Throwable)
+      extends Exception("unknown error", cause)
+      with ArangoError
+
   final case class VPack(error: VPackError)
       extends Exception("velocypack error", error)
       with ArangoError

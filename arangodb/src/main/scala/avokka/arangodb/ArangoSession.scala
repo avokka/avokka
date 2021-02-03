@@ -11,6 +11,7 @@ import avokka.velocystream._
 import cats.data.EitherT
 import cats.instances.future._
 import cats.syntax.either._
+import cats.syntax.show._
 import com.typesafe.scalalogging.StrictLogging
 import scodec.bits.BitVector
 
@@ -59,30 +60,34 @@ class ArangoSession(conf: ArangoConfiguration)(
   private[arangodb] def execute[P: VPackEncoder, O: VPackDecoder](
       request: ArangoRequest[P]): FEE[ArangoResponse[O]] = {
     (for {
-      hBits <- EitherT.fromEither[Future](request.header.toVPackBits.leftMap(ArangoError.VPack))
-      _ = logger.debug("REQ head {}", hBits.asVPackValue.show)
-      pBits <- EitherT.fromEither[Future](request.body.toVPackBits.leftMap(ArangoError.VPack))
-      _ = if (pBits.nonEmpty) logger.debug("REQ body {}", pBits.asVPackValue.show)
+      hBits <- EitherT.fromEither[Future](request.header.toVPackBits)
+      _ = logger.debug("REQ head {}", hBits.asVPackValue.toTry.show)
+      pBits <- EitherT.fromEither[Future](request.body.toVPackBits)
+      _ = if (pBits.nonEmpty) logger.debug("REQ body {}", pBits.asVPackValue.toTry.show)
       message <- askClient(hBits ++ pBits)
-      _ = logger.debug("RES head {}", message.data.bits.asVPackValue.show)
-      head <- EitherT.fromEither[Future](message.data.bits.asVPack[Header].leftMap(ArangoError.VPack))
-      _ = if (head.remainder.nonEmpty) logger.debug("RES body {}", head.remainder.asVPackValue.show)
+      _ = logger.debug("RES head {}", message.data.bits.asVPackValue.toTry.show)
+      head <- EitherT.fromEither[Future](message.data.bits.asVPack[Header])
+      _ = if (head.remainder.nonEmpty) logger.debug("RES body {}", head.remainder.asVPackValue.toTry.show)
       response <- EitherT.fromEither[Future](if (head.remainder.isEmpty) {
         (ArangoError.Head(head.value): ArangoError).asLeft
       } else if (head.value.responseCode >= 400) {
         head.remainder
           .asVPack[ResponseError]
-          .leftMap(ArangoError.VPack)
+          //.leftMap(ArangoError.VPack)
           .flatMap(body => ArangoError.Resp(head.value, body.value).asLeft)
       } else {
         head.remainder
           .asVPack[O]
-          .leftMap(ArangoError.VPack)
+          //.leftMap(ArangoError.VPack)
           .flatMap(body => ArangoResponse(head.value, body.value).asRight)
       })
-    } yield response).leftMap { e =>
-      logger.error("arangodb error from request head=%s body=%s".format(request.header.toString, request.body.toString), e)
-      e
+    } yield response).leftMap { err =>
+      logger.error("arangodb error from request head=%s body=%s".format(request.header.toString, request.body.toString), err)
+      err match {
+        case a: ArangoError => a
+        case e: VPackError => ArangoError.VPack(e)
+        case e => ArangoError.Unknown(e)
+      }
     }
   }
 }

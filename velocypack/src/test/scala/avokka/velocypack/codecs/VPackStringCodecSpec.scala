@@ -24,7 +24,7 @@ class VPackStringCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
   "long strings" should "encode at 0xbf" in {
     val len = 300
     assertCodec(vpackCodec, VString("@" * len),
-      hex"bf" ++ codecs.ulongBytes(len, 8).bytes ++ ByteVector.fill(len)(0x40)
+      hex"bf" ++ codecs.ulongBytes(len.toLong, 8).bytes ++ ByteVector.fill(len.toLong)(0x40)
     )
   }
 

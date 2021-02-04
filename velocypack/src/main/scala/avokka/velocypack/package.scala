@@ -1,9 +1,8 @@
 package avokka
 
 import cats.data.{Kleisli, StateT}
-import cats.mtl.Raise
 import cats.syntax.all._
-import cats.{Applicative, Monad, MonadThrow}
+import cats.{ApplicativeThrow, MonadThrow}
 import scodec.bits.BitVector
 import scodec.interop.cats._
 import scodec.{Attempt, DecodeResult, Decoder}
@@ -11,12 +10,12 @@ import scodec.{Attempt, DecodeResult, Decoder}
 package object velocypack extends ShowInstances with VPackDecoderInstances {
 
   //@implicitNotFound("Cannot find an velocypack decoder for ${F}[${T}]")
-  type VPackDecoder[F[_], T] = Kleisli[F, VPack, T]
+  type VPackDecoderF[F[_], T] = Kleisli[F, VPack, T]
 
   /** return type of decoding a VPack to a T */
-  private[velocypack] type Result[T] = Either[Throwable, T]
+  type VPackResult[T] = Either[Throwable, T]
 
-  type VPackDecoderEither[T] = VPackDecoder[Result, T]
+  type VPackDecoder[T] = VPackDecoderF[VPackResult, T]
 
   implicit final class SyntaxToVPack[T](private val value: T) extends AnyVal {
 
@@ -32,13 +31,13 @@ package object velocypack extends ShowInstances with VPackDecoderInstances {
       * @param encoder implicit encoder
       * @return
       */
-    def toVPackBits(implicit encoder: VPackEncoder[T]): Result[BitVector] = encoder.bits(value)
+    def toVPackBits(implicit encoder: VPackEncoder[T]): VPackResult[BitVector] = encoder.bits(value)
   }
 
   implicit final class SyntaxFromVPackBits(private val bits: BitVector) extends AnyVal {
 
     /** decodes to vpack value (internal use only because this looses remainder) */
-    private[avokka] def asVPackValue: Result[VPack] = codecs.vpackDecoder
+    private[avokka] def asVPackValue: VPackResult[VPack] = codecs.vpackDecoder
       .decodeValue(bits)
       .toEither
       .leftMap(VPackError.Codec)
@@ -49,23 +48,23 @@ package object velocypack extends ShowInstances with VPackDecoderInstances {
       * @tparam T decoded type
       * @return either error or (T value and remainder)
       */
-    def asVPackF[F[_], T](implicit decoder: VPackDecoder[F, T], F: MonadThrow[F]): F[DecodeResult[T]] = decoder.decodeBits(bits)
+    def asVPackF[F[_], T](implicit decoder: VPackDecoderF[F, T], F: MonadThrow[F]): F[DecodeResult[T]] = decoder.decodeBits(bits)
 
-    def asVPack[T](implicit decoder: VPackDecoderEither[T]): Result[DecodeResult[T]] = asVPackF[Result, T]
+    def asVPack[T](implicit decoder: VPackDecoder[T]): VPackResult[DecodeResult[T]] = asVPackF[VPackResult, T]
   }
 
   implicit final class DecoderStateOps[T](private val decoder: Decoder[T]) extends AnyVal {
 
-    def asState[F[_]](implicit F: Applicative[F], E: Raise[F, VPackError]): StateT[F, BitVector, T] = StateT { bits: BitVector =>
+    def asState[F[_]](implicit F: ApplicativeThrow[F]): StateT[F, BitVector, T] = StateT { bits: BitVector =>
       decoder.decode(bits) match {
         case Attempt.Successful(result) => F.pure(result.remainder -> result.value)
-        case Attempt.Failure(cause) => E.raise(VPackError.Codec(cause))
+        case Attempt.Failure(cause) => F.raiseError(VPackError.Codec(cause))
       }
     }
 
   }
 
-  implicit final class VPackDecoderOps[F[_], T](private val decoder: VPackDecoder[F, T]) extends AnyVal {
+  implicit final class VPackDecoderOps[F[_], T](private val decoder: VPackDecoderF[F, T]) extends AnyVal {
     def decodeBits(bits: BitVector)(implicit F: MonadThrow[F]): F[DecodeResult[T]] = codecs.vpackDecoder
       .decode(bits)
       .toEither
@@ -74,8 +73,17 @@ package object velocypack extends ShowInstances with VPackDecoderInstances {
       .liftTo[F]
       .flatMap(_.traverse(decoder.run))
 
-    def state(implicit F: Monad[F], E: Raise[F, VPackError]): StateT[F, BitVector, T] = {
+    def state(implicit F: MonadThrow[F]): StateT[F, BitVector, T] = {
       codecs.vpackDecoder.asState[F].flatMapF(decoder.run)
     }
   }
+
+  /*
+  implicit final class ApplicativeErrorVPOps[F[_], E](private val F: ApplicativeError[F, E]) {
+    def catchNonFatalTo[A](a: => A)(f: Throwable => E): F[A] = {
+      try F.pure(a)
+      catch { case NonFatal(e) => F.raiseError(f(e)) }
+    }
+  }
+   */
 }

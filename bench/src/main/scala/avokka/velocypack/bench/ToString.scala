@@ -8,14 +8,14 @@ import scala.util.Random
 class ToString {
   @Benchmark
   def vpack(): Unit = {
-    val res = randomString().toVPackBits
+    randomString().toVPackBits
   }
 
 
   @Benchmark
   def arango(): Unit = {
     val builder = new com.arangodb.velocypack.VPack.Builder().build()
-    val res = builder.serialize(randomString())
+    builder.serialize(randomString())
   }
 
   def randomString(): String = Random.nextString(50)

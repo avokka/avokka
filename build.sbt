@@ -42,7 +42,8 @@ lazy val velocypack = (project in file("velocypack"))
       testSuite :+ arango % Test,
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
-    logBuffered in Test := false
+    logBuffered in Test := false,
+    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val velocystream = (project in file("velocystream"))
@@ -54,7 +55,8 @@ lazy val velocystream = (project in file("velocystream"))
       compatDeps ++
       akka ++
       testSuite,
-    logBuffered in Test := false
+    logBuffered in Test := false,
+    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val arangodbTypes = (project in file("arangodb-types"))
@@ -70,6 +72,7 @@ lazy val arangodbTypes = (project in file("arangodb-types"))
           Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full))
         case _ => Nil
       }),
+    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val arangodb = (project in file("arangodb"))

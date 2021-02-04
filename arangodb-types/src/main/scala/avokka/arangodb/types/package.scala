@@ -2,7 +2,8 @@ package avokka.arangodb
 
 import avokka.velocypack._
 import io.estatico.newtype.macros.newtype
-import cats.syntax.all._
+
+// import cats.syntax.all._
 
 package object types {
 

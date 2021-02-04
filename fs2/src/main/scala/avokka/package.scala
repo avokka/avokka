@@ -3,7 +3,10 @@ import cats.syntax.either._
 import scodec.{Attempt, DecodeResult, Decoder, Encoder, Err}
 import scodec.bits.BitVector
 
+import scala.annotation.nowarn
+
 package object avokka {
+  @nowarn
   final case class CodecException(err: Err) extends Exception(err.messageWithContext)
 
   private def attemptEither[T](attempt: Attempt[T]): Either[Throwable, T] = attempt.toEither.leftMap(CodecException)

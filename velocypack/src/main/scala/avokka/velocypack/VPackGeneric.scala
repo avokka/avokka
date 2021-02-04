@@ -1,7 +1,7 @@
 package avokka.velocypack
 
 import avokka.velocypack.VPack.VArray
-import cats.MonadThrow
+import cats.{MonadThrow}
 import cats.data.Kleisli
 import cats.syntax.all._
 import shapeless.{::, Generic, HList, HNil}
@@ -35,7 +35,7 @@ object VPackGeneric { c =>
   }
 
   private[velocypack] object Decoder {
-    def apply[F[_], A <: HList](implicit ev: Decoder[F, A], F: MonadThrow[F]): VPackDecoder[F, A] = Kleisli {
+    def apply[F[_], A <: HList](implicit ev: Decoder[F, A], F: MonadThrow[F]): VPackDecoderF[F, A] = Kleisli {
       case VArray(values) => ev.decode(values)
       case v              => F.raiseError(VPackError.WrongType(v))
     }
@@ -45,7 +45,7 @@ object VPackGeneric { c =>
     }
 
     implicit def hconsDecoder[F[_], T, A <: HList](
-        implicit decoder: VPackDecoder[F, T],
+        implicit decoder: VPackDecoderF[F, T],
         ev: Decoder[F, A],
         F: MonadThrow[F]
     ): Decoder[F, T :: A] = {
@@ -64,12 +64,12 @@ object VPackGeneric { c =>
     def encoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: Encoder[R]): VPackEncoder[T] =
       Encoder(vp).contramap(gen.to)
 
-    def decoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: Decoder[F, R], F: MonadThrow[F]): VPackDecoder[F, T] =
+    def decoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: Decoder[F, R], F: MonadThrow[F]): VPackDecoderF[F, T] =
       Decoder(vp, F).map(gen.from)
 
   }
 
   def F[F[_], T] = new DeriveHelper[F, T]
-  def apply[T] = new DeriveHelper[Result, T]
+  def apply[T] = new DeriveHelper[VPackResult, T]
 
 }

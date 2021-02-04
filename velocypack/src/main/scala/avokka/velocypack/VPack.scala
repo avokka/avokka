@@ -15,9 +15,9 @@ sealed trait VPack extends Any with Product with Serializable {
    * @tparam T decoded type
    * @return either error or T value
    */
-  def as[T](implicit decoder: VPackDecoderEither[T]): Result[T] = decoder(this)
+  def as[T](implicit decoder: VPackDecoder[T]): VPackResult[T] = decoder(this)
 
-  def asF[F[_], T](implicit decoder: VPackDecoder[F, T]): F[T] = decoder(this)
+  def asF[F[_], T](implicit decoder: VPackDecoderF[F, T]): F[T] = decoder(this)
 
   /**
    * the value is empty (none, null, "", [], {})

@@ -30,7 +30,7 @@ trait VPackEncoder[T] { self =>
     * @param t value
     * @return either codec error or bitvector
     */
-  def bits(t: T): Result[BitVector] = {
+  def bits(t: T): VPackResult[BitVector] = {
     codecs.vpackEncoder.encode(encode(t)).toEither.leftMap(VPackError.Codec)
   }
 }

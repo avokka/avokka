@@ -11,7 +11,7 @@ import VPack.{VObject, VSmallint, VString}
 import VPackType.{ObjectEmptyType, ObjectType, ObjectCompactType}
 
 import scala.collection.SortedMap
-import scala.collection.compat._
+// import scala.collection.compat._
 
 private[codecs] object VPackObjectCodec extends VPackCompoundCodec {
 
@@ -56,7 +56,7 @@ private[codecs] object VPackObjectCodec extends VPackCompoundCodec {
           indexTable = offsets.view.mapValues(_ + headBytes)
 
           len = ulongBytes(headBytes + valuesBytes + lengthBytes * offsets.size, lengthBytes)
-          nr = ulongBytes(offsets.size, lengthBytes)
+          nr = ulongBytes(offsets.size.toLong, lengthBytes)
           sor = if (sorted) SortedMap(indexTable.toSeq: _*) else indexTable
           index = sor.foldLeft(BitVector.empty)((b, l) => b ++ ulongBytes(l._2, lengthBytes))
 

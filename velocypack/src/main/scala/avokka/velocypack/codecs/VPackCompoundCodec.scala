@@ -19,7 +19,7 @@ private trait VPackCompoundCodec {
     val valuesAll = values.fold(BitVector.empty)(_ ++ _)
     val valuesBytes = valuesAll.size / 8
     for {
-      nr <- VPackVLongCodec.encode(values.length)
+      nr <- VPackVLongCodec.encode(values.length.toLong)
       lengthBase = 1 + valuesBytes + nr.size / 8
       lengthBaseL = vlongLength(lengthBase)
       lengthT = lengthBase + lengthBaseL

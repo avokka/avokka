@@ -1,8 +1,8 @@
 package avokka.velocypack
 
+/*
 import cats.ApplicativeError
 
-/*
 trait VPackErrorF[F[_]] {
   def raiseError[A](e: VPackError): F[A]
 }

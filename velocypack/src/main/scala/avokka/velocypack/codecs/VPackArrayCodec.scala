@@ -65,7 +65,7 @@ private[codecs] object VPackArrayCodec extends VPackCompoundCodec {
 
             val len =
               ulongBytes(headBytes + valuesBytes + lengthBytes * offsets.length, lengthBytes)
-            val nr = ulongBytes(offsets.length, lengthBytes)
+            val nr = ulongBytes(offsets.length.toLong, lengthBytes)
             val index =
               indexTable.foldLeft(BitVector.empty)((b, l) => b ++ ulongBytes(l, lengthBytes))
 

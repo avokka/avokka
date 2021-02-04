@@ -1,11 +1,11 @@
 package avokka.velocypack
 
+import avokka.velocypack.VPack.VObject
+import cats.MonadThrow
+import cats.data.Kleisli
 import cats.syntax.all._
 import shapeless.labelled.{FieldType, field}
 import shapeless.{::, Default, HList, HNil, LabelledGeneric, Witness}
-import VPack.VObject
-import cats.data.Kleisli
-import cats.{Monad, MonadError, MonadThrow}
 
 object VPackRecord {
 
@@ -15,7 +15,7 @@ object VPackRecord {
 
   private[velocypack] object Encoder {
 
-    def apply[A <: HList](compact: Boolean = false)(
+    def apply[A <: HList](
         implicit ev: Encoder[A]
     ): VPackEncoder[A] = value => VObject(ev.encode(value))
 
@@ -41,7 +41,7 @@ object VPackRecord {
   }
 
   private[velocypack] object Decoder {
-    def apply[F[_], A <: HList, D <: HList](defaults: D)(implicit ev: Decoder[F, A, D], F: MonadThrow[F]): VPackDecoderF[F, A] = Kleisli {
+    def apply[F[_], A <: HList, D <: HList](defaults: D)(implicit ev: Decoder[F, A, D], F: MonadThrow[F]): VPackDecoder[F, A] = Kleisli {
       case VObject(values) => ev.decode(values, defaults)
       case v               => F.raiseError(VPackError.WrongType(v))
     }
@@ -53,7 +53,7 @@ object VPackRecord {
     implicit def hconsDecoder[F[_], K <: Symbol, H, T <: HList](
         implicit ev: Decoder[F, T, HNil],
         key: Witness.Aux[K],
-        decoder: VPackDecoderF[F, H],
+        decoder: VPackDecoder[F, H],
         F: MonadThrow[F]
     ): Decoder[F, FieldType[K, H] :: T, HNil] = new Decoder[F, FieldType[K, H] :: T, HNil] {
       private val keyName: String = key.value.name
@@ -76,7 +76,7 @@ object VPackRecord {
     implicit def hconsDefaultsDecoder[F[_], K <: Symbol, H, T <: HList, D <: HList](
         implicit ev: Decoder[F, T, D],
         key: Witness.Aux[K],
-        decoder: VPackDecoderF[F, H],
+        decoder: VPackDecoder[F, H],
         F: MonadThrow[F]
     ): Decoder[F, FieldType[K, H] :: T, Option[H] :: D] =
       new Decoder[F, FieldType[K, H] :: T, Option[H] :: D] {
@@ -108,20 +108,20 @@ object VPackRecord {
     def encoder[R <: HList](
         implicit lgen: LabelledGeneric.Aux[T, R],
         e: Encoder[R]
-    ): VPackEncoder[T] = Encoder()(e).contramap(lgen.to)
+    ): VPackEncoder[T] = Encoder(e).contramap(lgen.to)
 
     def decoder[R <: HList](
         implicit lgen: LabelledGeneric.Aux[T, R],
         d: Decoder[F, R, HNil],
         F: MonadThrow[F]
-    ): VPackDecoderF[F, T] = Decoder[F, R, HNil](HNil)(d, F).map(lgen.from)
+    ): VPackDecoder[F, T] = Decoder[F, R, HNil](HNil)(d, F).map(lgen.from)
 
     def decoderWithDefaults[R <: HList, D <: HList](
         implicit lgen: LabelledGeneric.Aux[T, R],
         defaults: Default.AsOptions.Aux[T, D],
         d: Decoder[F, R, D],
         F: MonadThrow[F]
-    ): VPackDecoderF[F, T] = Decoder(defaults())(d, F).map(lgen.from)
+    ): VPackDecoder[F, T] = Decoder(defaults())(d, F).map(lgen.from)
 
   }
 

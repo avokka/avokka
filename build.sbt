@@ -9,24 +9,6 @@ ThisBuild / bintrayOrganization := Some("avokka")
 ThisBuild / crossScalaVersions := Seq(scala212Version, scala213Version)
 ThisBuild / scalaVersion := scala213Version
 
-ThisBuild / scalacOptions ++= Seq(
-  "-target:jvm-1.8",
-  "-encoding", "UTF-8",
-  "-unchecked",
-  "-deprecation",
-  "-feature",
-  "-language:higherKinds",
-  "-language:implicitConversions",
-  "-Xlint"
-) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
-  case Some((2, 13)) => Seq(
-    "-Ymacro-annotations"
-  )
-  case _ => Seq(
-    "-Ypartial-unification",
-  )
-})
-
 ThisBuild / javacOptions ++= Seq(
   "-source", "1.8",
   "-target", "1.8",
@@ -53,10 +35,13 @@ lazy val velocypack = (project in file("velocypack"))
     description := "velocypack codec (scodec, shapeless, cats)",
     libraryDependencies ++= compatDeps ++ Seq(
       cats,
+      catsMtl,
       shapeless,
     ) ++
       scodec ++
       testSuite :+ arango % Test,
+    addCompilerPlugin(kindProjector),
+    addCompilerPlugin(betterMonadicFor),
     logBuffered in Test := false
   )
 
@@ -126,8 +111,8 @@ lazy val avokkafs2 = (project in file("fs2"))
         scalaTest % Test,
         "com.codecommit" %% "cats-effect-testing-scalatest" % "0.4.0" % Test,
       ),
-    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full),
-    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
+    addCompilerPlugin(kindProjector),
+    addCompilerPlugin(betterMonadicFor)
   )
 
 lazy val bench = (project in file("bench"))

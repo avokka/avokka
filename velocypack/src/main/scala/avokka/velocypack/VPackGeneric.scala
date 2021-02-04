@@ -1,10 +1,10 @@
 package avokka.velocypack
 
+import avokka.velocypack.VPack.VArray
+import cats.MonadThrow
+import cats.data.Kleisli
 import cats.syntax.all._
 import shapeless.{::, Generic, HList, HNil}
-import VPack.VArray
-import cats.{Monad, MonadThrow}
-import cats.data.Kleisli
 
 object VPackGeneric { c =>
 
@@ -14,7 +14,7 @@ object VPackGeneric { c =>
 
   private[velocypack] object Encoder {
 
-    def apply[A <: HList](compact: Boolean = false)(
+    def apply[A <: HList](
       implicit ev: Encoder[A]
     ): VPackEncoder[A] = value => VArray(ev.encode(value))
 
@@ -30,12 +30,12 @@ object VPackGeneric { c =>
 
   }
 
-  private[velocypack] trait Decoder[F[_], A <: HList] {
+  trait Decoder[F[_], A <: HList] {
     def decode(v: Vector[VPack]): F[A]
   }
 
   private[velocypack] object Decoder {
-    def apply[F[_], A <: HList](implicit ev: Decoder[F, A], F: MonadThrow[F]): VPackDecoderF[F, A] = Kleisli {
+    def apply[F[_], A <: HList](implicit ev: Decoder[F, A], F: MonadThrow[F]): VPackDecoder[F, A] = Kleisli {
       case VArray(values) => ev.decode(values)
       case v              => F.raiseError(VPackError.WrongType(v))
     }
@@ -45,7 +45,7 @@ object VPackGeneric { c =>
     }
 
     implicit def hconsDecoder[F[_], T, A <: HList](
-        implicit decoder: VPackDecoderF[F, T],
+        implicit decoder: VPackDecoder[F, T],
         ev: Decoder[F, A],
         F: MonadThrow[F]
     ): Decoder[F, T :: A] = {
@@ -62,9 +62,9 @@ object VPackGeneric { c =>
   private[velocypack] final class DeriveHelper[F[_], T](private val dummy: Boolean = false) extends AnyVal {
 
     def encoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: Encoder[R]): VPackEncoder[T] =
-      Encoder()(vp).contramap(gen.to)
+      Encoder(vp).contramap(gen.to)
 
-    def decoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: Decoder[F, R], F: MonadThrow[F]): VPackDecoderF[F, T] =
+    def decoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: Decoder[F, R], F: MonadThrow[F]): VPackDecoder[F, T] =
       Decoder(vp, F).map(gen.from)
 
   }

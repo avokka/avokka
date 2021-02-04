@@ -13,10 +13,11 @@ object Dependencies {
   ).map(_ % Test)
 
   val compatDeps = Seq(
-    "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.0"
+    "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.1"
   )
 
   val cats = "org.typelevel" %% "cats-core" % "2.3.1"
+  val catsMtl = "org.typelevel" %% "cats-mtl" % "1.1.1"
   val catsEffect = "org.typelevel" %% "cats-effect" % "2.3.1"
   val catsRetry = "com.github.cb372" %% "cats-retry" % "2.1.0"
   val fs2 = "co.fs2" %% "fs2-core" % "2.5.0"
@@ -53,4 +54,7 @@ object Dependencies {
 
   val pureconfig = "com.github.pureconfig" %% "pureconfig" % "0.14.0"
   val pureconfigF = "com.github.pureconfig" %% "pureconfig-cats-effect" % "0.14.0"
+
+  val kindProjector = "org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full
+  val betterMonadicFor = "com.olegpy" %% "better-monadic-for" % "0.3.1"
 }

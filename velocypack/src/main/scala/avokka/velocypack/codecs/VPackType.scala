@@ -241,7 +241,7 @@ private object VPackType {
     import StringShortType._
     require(header >= minByte && header <= maxByte)
     override val lengthSize: Int = 0
-    override val lengthDecoder: Decoder[Long] = provide(header - minByte)
+    override val lengthDecoder: Decoder[Long] = provide((header - minByte).toLong)
     override val name: String = "string(short)"
   }
 

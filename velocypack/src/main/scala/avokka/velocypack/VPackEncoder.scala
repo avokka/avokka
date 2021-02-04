@@ -10,7 +10,7 @@ import scodec.bits.{BitVector, ByteVector}
 import shapeless.HList
 
 import scala.annotation.implicitNotFound
-import scala.collection.compat._
+// import scala.collection.compat._
 
 @implicitNotFound("Cannot find a velocypack encoder for ${T}")
 trait VPackEncoder[T] { self =>
@@ -48,17 +48,17 @@ object VPackEncoder {
 
   implicit val byteEncoder: VPackEncoder[Byte] = {
     case b if VSmallint.isValid(b) => VSmallint(b)
-    case b => VLong(b)
+    case b => VLong(b.toLong)
   }
 
   implicit val shortEncoder: VPackEncoder[Short] = {
     case i if VSmallint.isValid(i) => VSmallint(i.toByte)
-    case i => VLong(i)
+    case i => VLong(i.toLong)
   }
 
   implicit val intEncoder: VPackEncoder[Int] = {
     case i if VSmallint.isValid(i) => VSmallint(i.toByte)
-    case i => VLong(i)
+    case i => VLong(i.toLong)
   }
 
   implicit val longEncoder: VPackEncoder[Long] = {
@@ -118,7 +118,7 @@ object VPackEncoder {
     a => VArray(a.map(e.encode).toVector)
 
   implicit def genericEncoder[T <: HList](implicit a: VPackGeneric.Encoder[T]): VPackEncoder[T] =
-    VPackGeneric.Encoder()(a)
+    VPackGeneric.Encoder(a)
 
   implicit def tuple1Encoder[T1](implicit e1: VPackEncoder[T1]): VPackEncoder[Tuple1[T1]] =
     a => VArray(Vector(e1.encode(a._1)))

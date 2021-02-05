@@ -3,7 +3,6 @@ package avokka
 import cats.data.StateT
 import cats.instances.either._
 import cats.syntax.all._
-import cats.{Align, MonadError, Traverse}
 import scodec.bits.BitVector
 import scodec.{Attempt, DecodeResult, Decoder}
 
@@ -11,8 +10,6 @@ package object velocypack extends ShowInstances {
 
   /** return type of decoding a VPack to a T */
   type VPackResult[T] = Either[VPackError, T]
-
-  implicit val vpackResultIntances: MonadError[VPackResult, VPackError] with Traverse[VPackResult] with Align[VPackResult] = catsStdInstancesForEither[VPackError]
 
   implicit final class SyntaxToVPack[T](private val value: T) extends AnyVal {
 

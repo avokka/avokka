@@ -4,7 +4,6 @@ import java.time.Instant
 import cats.Show
 import cats.syntax.contravariant._
 import VPack._
-import cats.instances.either.catsStdShowForEither
 
 trait ShowInstances {
 

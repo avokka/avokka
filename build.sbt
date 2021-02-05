@@ -1,5 +1,4 @@
 import Dependencies._
-import sbt.addCompilerPlugin
 
 val scala212Version = "2.12.13"
 val scala213Version = "2.13.4"
@@ -28,6 +27,11 @@ ThisBuild / developers := List(
 )
 ThisBuild / releasePublishArtifactsAction := PgpKeys.publishSigned.value
 
+ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
+  case Some((2, 13)) => Seq(
+    "-Ymacro-annotations"
+  )
+})
 
 lazy val velocypack = (project in file("velocypack"))
   .settings(

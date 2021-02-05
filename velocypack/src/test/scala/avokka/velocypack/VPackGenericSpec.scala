@@ -9,9 +9,9 @@ class VPackGenericSpec extends AnyFlatSpec with VPackSpecTrait {
 
   type R = String :: Boolean :: HNil
   val requestE: VPackEncoder[R] = VPackGeneric.Encoder[R]
-  val requestD: VPackDecoder[R] = VPackGeneric.Decoder[VPackResult, R]
+  val requestD: VPackDecoder[R] = VPackGeneric.Decoder[R]
   val requestsE = VPackGeneric.Encoder[R :: R :: HNil]
-  val requestsD = VPackGeneric.Decoder[VPackResult, R :: R :: HNil]
+  val requestsD = VPackGeneric.Decoder[R :: R :: HNil]
   val compactE = VPackGeneric.Encoder[Int :: Boolean :: HNil]
 
   "hnil" should "encode to empty array" in {
@@ -41,9 +41,9 @@ class VPackGenericSpec extends AnyFlatSpec with VPackSpecTrait {
       ("a" :: true :: HNil) :: ("b" :: false :: HNil) :: HNil
     )
 
-    assert(requestD.run(VTrue).isLeft)
-    assert(requestD.run(VArray(VTrue, VString("a"))).isLeft)
-    assert(requestD.run(VArray(VString("a"))).isLeft)
+    assert(requestD.decode(VTrue).isLeft)
+    assert(requestD.decode(VArray(VTrue, VString("a"))).isLeft)
+    assert(requestD.decode(VArray(VString("a"))).isLeft)
   }
 
   "derive from case class" should "encode to array" in {
@@ -55,7 +55,7 @@ class VPackGenericSpec extends AnyFlatSpec with VPackSpecTrait {
     val r = Rcc("a", true)
     assertDec(rccDecoder, VArray(VString("a"), VTrue), r)
 
-    val f = rccDecoder.run(VTrue)
+    val f = rccDecoder.decode(VTrue)
     assert(f.isLeft)
   }
 }

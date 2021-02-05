@@ -2,7 +2,7 @@ package avokka.arangodb
 
 import avokka.velocypack._
 import io.estatico.newtype.macros.newtype
-import io.estatico.newtype.ops._
+// import io.estatico.newtype.ops._
 
 // import cats.syntax.all._
 
@@ -13,8 +13,8 @@ package object types {
   @newtype case class DatabaseName(repr: String)
 
   object DatabaseName {
-    implicit val encoder: VPackEncoder[DatabaseName] = implicitly[VPackEncoder[String]].coerce
-    implicit val decoder: VPackDecoder[DatabaseName] = implicitly[VPackDecoder[String]].coerce
+    implicit val encoder: VPackEncoder[DatabaseName] = deriving
+    implicit val decoder: VPackDecoder[DatabaseName] = deriving
     val system: DatabaseName = DatabaseName("_system")
   }
 
@@ -23,8 +23,8 @@ package object types {
   }
 
   object CollectionName {
-    implicit val encoder: VPackEncoder[CollectionName] = implicitly[VPackEncoder[String]].coerce
-    implicit val decoder: VPackDecoder[CollectionName] = implicitly[VPackDecoder[String]].coerce
+    implicit val encoder: VPackEncoder[CollectionName] = deriving
+    implicit val decoder: VPackDecoder[CollectionName] = deriving
   }
 
   @newtype case class DocumentKey(repr: String) {
@@ -33,8 +33,8 @@ package object types {
 
   object DocumentKey {
     val key: String = "_key"
-    implicit val encoder: VPackEncoder[DocumentKey] = implicitly[VPackEncoder[String]].coerce
-    implicit val decoder: VPackDecoder[DocumentKey] = implicitly[VPackDecoder[String]].coerce
+    implicit val encoder: VPackEncoder[DocumentKey] = deriving
+    implicit val decoder: VPackDecoder[DocumentKey] = deriving
     val empty = apply("")
   }
 
@@ -64,7 +64,7 @@ package object types {
     def apply(path: String): DocumentHandle = parse(path).getOrElse(empty)
 
     implicit val encoder: VPackEncoder[DocumentHandle] = VPackEncoder[String].contramap(_.path)
-    implicit val decoder: VPackDecoder[DocumentHandle] = VPackDecoder[String].flatMapF { path =>
+    implicit val decoder: VPackDecoder[DocumentHandle] = VPackDecoder[String].flatMap { path =>
       parse(path).toRight(VPackError.IllegalValue(s"invalid document handle '$path'"))
     }
 
@@ -77,8 +77,8 @@ package object types {
 
   object DocumentRevision {
     val key: String = "_rev"
-    implicit val encoder: VPackEncoder[DocumentRevision] = implicitly[VPackEncoder[String]].coerce
-    implicit val decoder: VPackDecoder[DocumentRevision] = implicitly[VPackDecoder[String]].coerce
+    implicit val encoder: VPackEncoder[DocumentRevision] = deriving
+    implicit val decoder: VPackDecoder[DocumentRevision] = deriving
     val empty = apply("")
   }
 

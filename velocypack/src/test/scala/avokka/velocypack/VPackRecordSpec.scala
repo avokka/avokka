@@ -63,7 +63,7 @@ class VPackRecordSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPa
       VObject(Map("a" -> VFalse)),
       TestDefault(false),
     )
-    assert(TestDefaultDecoder.run(VObject(Map("i" -> VSmallint(0)))).isLeft)
+    assert(TestDefaultDecoder.decode(VObject(Map("i" -> VSmallint(0)))).isLeft)
   }
 
 }

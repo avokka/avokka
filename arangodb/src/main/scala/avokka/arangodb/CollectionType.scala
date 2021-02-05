@@ -1,7 +1,6 @@
 package avokka.arangodb
 
 import avokka.velocypack.{VPackDecoder, VPackEncoder, VPackError}
-import cats.syntax.either._
 
 sealed abstract class CollectionType(val i: Int) extends Product with Serializable
 
@@ -12,10 +11,10 @@ object CollectionType {
   case object Edge extends CollectionType(3)
 
   implicit val encoder: VPackEncoder[CollectionType] = VPackEncoder[Int].contramap(_.i)
-  implicit val decoder: VPackDecoder[CollectionType] = VPackDecoder[Int].flatMapF {
-    case Unknown.i  => Unknown.asRight
-    case Document.i => Document.asRight
-    case Edge.i     => Edge.asRight
-    case i          => VPackError.IllegalValue(s"unknown collection type $i").asLeft
+  implicit val decoder: VPackDecoder[CollectionType] = VPackDecoder[Int].flatMap {
+    case Unknown.i  => Right(Unknown)
+    case Document.i => Right(Document)
+    case Edge.i     => Right(Edge)
+    case i          => Left(VPackError.IllegalValue(s"unknown collection type $i"))
   }
 }

@@ -1,185 +1,184 @@
 package avokka.velocypack
 
 import avokka.velocypack.VPack._
-import cats.{ApplicativeThrow, MonadThrow}
-import cats.data.Kleisli
-import cats.mtl.Raise
+import cats.data.{Kleisli, StateT}
 import cats.syntax.all._
-//import cats.syntax.bifunctor._
-//import cats.syntax.functor._
-//import cats.syntax.traverse._
-import cats.Applicative
+import scodec.DecodeResult
+import scodec.bits.BitVector
 import scodec.bits.ByteVector
+import scodec.interop.cats._
 import shapeless.HList
+
+import scala.annotation.implicitNotFound
 
 import java.time.{Instant, LocalDate}
 import java.util.{Date, UUID}
 
-/*
 @implicitNotFound("Cannot find an velocypack decoder for ${T}")
-trait VPackDecoder[F[_], T] {
-  def decode(v: VPack): F[T]
+trait VPackDecoder[T] {
+  def decode(v: VPack): VPackResult[T]
 
 //  def decodeEither(v: VPack): Result[T] = decode[Result](v)
 
-//  def map[U](f: T => U)(implicit F: Functor[F]): VPackDecoder[F, U] = (v: VPack) => decode(v).map(f)
+  def map[U](f: T => U): VPackDecoder[U] = (v: VPack) => decode(v).map(f)
 
-//  def flatMap[U](f: T => F[U])(implicit F: FlatMap[F]): VPackDecoder[F, U] = (v: VPack) => decode(v).flatMap(f)
+  def flatMap[U](f: T => VPackResult[U]): VPackDecoder[U] = (v: VPack) => decode(v).flatMap(f)
 
   /** decodes vpack bitvector to T
     * @return either error or (T value and remainder)
     */
-  def decodeBits(bits: BitVector)(implicit F: MonadVPackError[F]): F[DecodeResult[T]] = codecs.vpackDecoder
+  def decodeBits(bits: BitVector): VPackResult[DecodeResult[T]] = codecs.vpackDecoder
       .decode(bits)
       .toEither
       .leftMap(VPackError.Codec)
-      .liftTo
       .flatMap(_.traverse(decode))
 
-  def state(implicit F: MonadVPackError[F]): StateT[F, BitVector, T] = {
+  def state: StateT[VPackResult, BitVector, T] = {
     codecs.vpackDecoder.asState.flatMapF(decode)
   }
+
+  def kleisli: Kleisli[VPackResult, VPack, T] = Kleisli(decode)
 }
-  */
 
 
 object VPackDecoder {
   def apply[T](implicit decoder: VPackDecoder[T]): VPackDecoder[T] = decoder
-}
-
-trait VPackDecoderInstances {
 
   // scala types instances
 
-  implicit def booleanDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, Boolean] = Kleisli {
-    case b: VBoolean => F.pure(b.value)
-    case v           => F.raiseError(VPackError.WrongType(v))
+  implicit val booleanDecoder: VPackDecoder[Boolean] = {
+    case b: VBoolean => Right(b.value)
+    case v           => Left(VPackError.WrongType(v))
   }
 
-  implicit def byteDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, Byte] = Kleisli {
-    case VSmallint(s)                => F.pure(s)
-    case VLong(l) if l.isValidByte   => F.pure(l.toByte)
-    case VLong(l)                    => F.raiseError(VPackError.Overflow(l))
-    case VDouble(d) if d.isValidByte => F.pure(d.toByte)
-    case v                           => F.raiseError(VPackError.WrongType(v))
+  implicit val byteDecoder: VPackDecoder[Byte] = {
+    case VSmallint(s)                => Right(s)
+    case VLong(l) if l.isValidByte   => Right(l.toByte)
+    case VLong(l)                    => Left(VPackError.Overflow(l))
+    case VDouble(d) if d.isValidByte => Right(d.toByte)
+    case v                           => Left(VPackError.WrongType(v))
   }
 
-  implicit def shortDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, Short] = Kleisli {
-    case VSmallint(s)                 => F.pure(s.toShort)
-    case VLong(l) if l.isValidShort   => F.pure(l.toShort)
-    case VLong(l)                     => F.raiseError(VPackError.Overflow(l))
-    case VDouble(d) if d.isValidShort => F.pure(d.toShort)
-    case v                            => F.raiseError(VPackError.WrongType(v))
+  implicit val shortDecoder: VPackDecoder[Short] = {
+    case VSmallint(s)                 => Right(s.toShort)
+    case VLong(l) if l.isValidShort   => Right(l.toShort)
+    case VLong(l)                     => Left(VPackError.Overflow(l))
+    case VDouble(d) if d.isValidShort => Right(d.toShort)
+    case v                            => Left(VPackError.WrongType(v))
   }
 
-  implicit def intDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, Int] = Kleisli {
-    case VSmallint(s)               => F.pure(s.toInt)
-    case VLong(l) if l.isValidInt   => F.pure(l.toInt)
-    case VLong(l)                   => F.raiseError(VPackError.Overflow(l))
-    case VDouble(d) if d.isValidInt => F.pure(d.toInt)
-    case v                          => F.raiseError(VPackError.WrongType(v))
+  implicit val intDecoder: VPackDecoder[Int] = {
+    case VSmallint(s)               => Right(s.toInt)
+    case VLong(l) if l.isValidInt   => Right(l.toInt)
+    case VLong(l)                   => Left(VPackError.Overflow(l))
+    case VDouble(d) if d.isValidInt => Right(d.toInt)
+    case v                          => Left(VPackError.WrongType(v))
   }
 
-  implicit def longDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, Long] = Kleisli {
-    case VSmallint(s)            => F.pure(s.toLong)
-    case VLong(l)                => F.pure(l)
-    case VDouble(d) if d.isWhole => F.pure(d.toLong)
-    case v                       => F.raiseError(VPackError.WrongType(v))
+  implicit val longDecoder: VPackDecoder[Long] = {
+    case VSmallint(s)            => Right(s.toLong)
+    case VLong(l)                => Right(l)
+    case VDouble(d) if d.isWhole => Right(d.toLong)
+    case v                       => Left(VPackError.WrongType(v))
   }
 
-  implicit def bigintDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, BigInt] = Kleisli {
-    case VSmallint(s)            => F.pure(BigInt(s.toLong))
-    case VLong(l)                => F.pure(BigInt(l))
-    case VDouble(d) if d.isWhole => F.pure(BigInt(d.toLong))
-    case VBinary(b)              => F.pure(BigInt(b.toArray))
-    case v                       => F.raiseError(VPackError.WrongType(v))
+  implicit val bigintDecoder: VPackDecoder[BigInt] = {
+    case VSmallint(s)            => Right(BigInt(s.toLong))
+    case VLong(l)                => Right(BigInt(l))
+    case VDouble(d) if d.isWhole => Right(BigInt(d.toLong))
+    case VBinary(b)              => Right(BigInt(b.toArray))
+    case v                       => Left(VPackError.WrongType(v))
   }
 
-  implicit def floatDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, Float] = Kleisli {
-    case VSmallint(s) => F.pure(s.toFloat)
-    case VLong(l)     => F.pure(l.toFloat)
-    case VDouble(d)   => F.pure(d.toFloat)
-    case v            => F.raiseError(VPackError.WrongType(v))
+  implicit val floatDecoder: VPackDecoder[Float] = {
+    case VSmallint(s) => Right(s.toFloat)
+    case VLong(l)     => Right(l.toFloat)
+    case VDouble(d)   => Right(d.toFloat)
+    case v            => Left(VPackError.WrongType(v))
   }
 
-  implicit def doubleDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, Double] = Kleisli {
-    case VSmallint(s) => F.pure(s.toDouble)
-    case VLong(l)     => F.pure(l.toDouble)
-    case VDouble(d)   => F.pure(d)
-    case v            => F.raiseError(VPackError.WrongType(v))
+  implicit val doubleDecoder: VPackDecoder[Double] = {
+    case VSmallint(s) => Right(s.toDouble)
+    case VLong(l)     => Right(l.toDouble)
+    case VDouble(d)   => Right(d)
+    case v            => Left(VPackError.WrongType(v))
   }
 
-  implicit def bigdecimalDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, BigDecimal] = Kleisli {
-    case VSmallint(s)            => F.pure(BigDecimal(s.toInt))
-    case VLong(l)                => F.pure(BigDecimal(l))
-    case VDouble(d)              => F.pure(BigDecimal(d))
+  implicit val bigdecimalDecoder: VPackDecoder[BigDecimal] = {
+    case VSmallint(s)            => Right(BigDecimal(s.toInt))
+    case VLong(l)                => Right(BigDecimal(l))
+    case VDouble(d)              => Right(BigDecimal(d))
     case VBinary(b)              => {
       val (scale, bigint) = b.splitAt(4)
-      F.pure(BigDecimal(BigInt(bigint.toArray), scale.toInt()))
+      Right(BigDecimal(BigInt(bigint.toArray), scale.toInt()))
     }
-    case v                       => F.raiseError(VPackError.WrongType(v))
+    case v                       => Left(VPackError.WrongType(v))
   }
 
-  implicit def stringDecoder[F[_]](implicit F: Applicative[F], E: Raise[F, VPackError]): VPackDecoderF[F, String] = Kleisli {
-    case VString(s) => F.pure(s)
-    case v          => E.raise(VPackError.WrongType(v))
+  implicit val stringDecoder: VPackDecoder[String] = {
+    case VString(s) => Right(s)
+    case v          => Left(VPackError.WrongType(v))
   }
 
-  implicit def instantDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, Instant] = Kleisli({
-    case VDate(d) => F.pure(Instant.ofEpochMilli(d))
-    case VLong(l) => F.pure(Instant.ofEpochMilli(l))
-    case VString(s) => F.catchNonFatal(Instant.parse(s)).adaptErr { case e => VPackError.Conversion(e) }
-    case v => F.raiseError(VPackError.WrongType(v))
-  })
+  implicit val instantDecoder: VPackDecoder[Instant] = {
+    case VDate(d) => Right(Instant.ofEpochMilli(d))
+    case VLong(l) => Right(Instant.ofEpochMilli(l))
+    case VString(s) => Either.catchNonFatal(Instant.parse(s))
+      .leftMap(VPackError.Conversion(_))
+    case v => Left(VPackError.WrongType(v))
+  }
 
-  implicit def dateDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, Date] = Kleisli({
-    case VDate(d) => F.pure(new Date(d))
-    case VLong(l) => F.pure(new Date(l))
-    case VString(s) => F.catchNonFatal(Instant.parse(s)).adaptErr { case e => VPackError.Conversion(e) }.map(i => new Date(i.toEpochMilli))
-    case v => F.raiseError(VPackError.WrongType(v))
-  })
+  implicit val dateDecoder: VPackDecoder[Date] = {
+    case VDate(d) => Right(new Date(d))
+    case VLong(l) => Right(new Date(l))
+    case VString(s) => Either.catchNonFatal(Instant.parse(s))
+      .leftMap(VPackError.Conversion(_))
+      .map(i => new Date(i.toEpochMilli))
+    case v => Left(VPackError.WrongType(v))
+  }
 
-  implicit def byteVectorDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, ByteVector] = Kleisli({
-    case VBinary(b) => F.pure(b)
-    case VString(s) => F.fromEither(ByteVector.fromHexDescriptive(s).leftMap(s => VPackError.Conversion(new IllegalArgumentException(s))))
-    case v          => F.raiseError(VPackError.WrongType(v))
-  })
+  implicit val byteVectorDecoder: VPackDecoder[ByteVector] = {
+    case VBinary(b) => Right(b)
+    case VString(s) => ByteVector.fromHexDescriptive(s)
+      .leftMap(s => VPackError.Conversion(new IllegalArgumentException(s)))
+    case v          => Left(VPackError.WrongType(v))
+  }
 
-  implicit def arrayByteDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, Array[Byte]] = byteVectorDecoder[F].map(_.toArray)
+  implicit val arrayByteDecoder: VPackDecoder[Array[Byte]] = byteVectorDecoder.map(_.toArray)
 
-  implicit def uuidDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, UUID] = Kleisli({
-    case VBinary(b) => F.pure(b.toUUID)
-    case VString(s) => F.catchNonFatal(UUID.fromString(s)).adaptErr { case e => VPackError.Conversion(e) }
-    case v          => F.raiseError(VPackError.WrongType(v))
-  })
+  implicit val uuidDecoder: VPackDecoder[UUID] = {
+    case VBinary(b) => Right(b.toUUID)
+    case VString(s) => Either.catchNonFatal(UUID.fromString(s)).leftMap(VPackError.Conversion(_))
+    case v          => Left(VPackError.WrongType(v))
+  }
 
-  implicit def optionDecoder[F[_], T](implicit d: VPackDecoderF[F, T], F: ApplicativeThrow[F]): VPackDecoderF[F, Option[T]] = Kleisli({
-    case VNull => F.pure(None)
-    case v     => d(v).map(Some(_))
-  })
+  implicit def optionDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Option[T]] = {
+    case VNull => Right(None)
+    case v     => d.decode(v).map(Some(_))
+  }
 
-  implicit def vectorDecoder[F[_], T](implicit d: VPackDecoderF[F, T], F: ApplicativeThrow[F]): VPackDecoderF[F, Vector[T]] = Kleisli({
-    case VArray(a) => a.traverse(d.run) //.map(_.toVector)
-    case v         => F.raiseError(VPackError.WrongType(v))
-  })
+  implicit def vectorDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Vector[T]] = {
+    case VArray(a) => a.traverse(d.decode) //.map(_.toVector)
+    case v         => Left(VPackError.WrongType(v))
+  }
 
-  implicit def listDecoder[F[_], T](implicit d: VPackDecoderF[F, T], F: ApplicativeThrow[F]): VPackDecoderF[F, List[T]] = Kleisli({
-    case VArray(a) => a.traverse(d.run).map(_.toList)
-    case v         => F.raiseError(VPackError.WrongType(v))
-  })
+  implicit def listDecoder[F[_], T](implicit d: VPackDecoder[T]): VPackDecoder[List[T]] = {
+    case VArray(a) => a.traverse(d.decode).map(_.toList)
+    case v         => Left(VPackError.WrongType(v))
+  }
 
-  implicit def seqDecoder[F[_], T](implicit d: VPackDecoderF[F, T], F: ApplicativeThrow[F]): VPackDecoderF[F, Seq[T]] = Kleisli({
-    case VArray(a) => a.traverse(d.run).map(_.toSeq) //.map(_.toVector)
-    case v         => F.raiseError(VPackError.WrongType(v))
-  })
+  implicit def seqDecoder[F[_], T](implicit d: VPackDecoder[T]): VPackDecoder[Seq[T]] = {
+    case VArray(a) => a.traverse(d.decode).map(_.toSeq) //.map(_.toVector)
+    case v         => Left(VPackError.WrongType(v))
+  }
 
-  implicit def setDecoder[F[_], T](implicit d: VPackDecoderF[F, T], F: ApplicativeThrow[F]): VPackDecoderF[F, Set[T]] = Kleisli({
-    case VArray(a) => a.traverse(d.run).map(_.toSet)
-    case v         => F.raiseError(VPackError.WrongType(v))
-  })
+  implicit def setDecoder[F[_], T](implicit d: VPackDecoder[T]): VPackDecoder[Set[T]] = {
+    case VArray(a) => a.traverse(d.decode).map(_.toSet)
+    case v         => Left(VPackError.WrongType(v))
+  }
 
-  implicit def genericDecoder[F[_], T <: HList](implicit a: VPackGeneric.Decoder[F, T], F: MonadThrow[F]): VPackDecoderF[F, T] =
-    VPackGeneric.Decoder(a, F)
+  implicit def genericDecoder[T <: HList](implicit a: VPackGeneric.Decoder[T]): VPackDecoder[T] =
+    VPackGeneric.Decoder(a)
 
   /*
   implicit def tuple1Decoder[T1](implicit d1: VPackDecoderF[T1]): VPackDecoderF[Tuple1[T1]] = {
@@ -197,36 +196,36 @@ trait VPackDecoderInstances {
   }
 */
 
-  implicit def mapDecoder[F[_], T](implicit d: VPackDecoderF[F, T], F: ApplicativeThrow[F]): VPackDecoderF[F, Map[String, T]] = Kleisli({
+  implicit def mapDecoder[F[_], T](implicit d: VPackDecoder[T]): VPackDecoder[Map[String, T]] = {
     case VObject(o) => {
       o.toVector
         .traverse({
-          case (key, v) => d(v).adaptErr {
-            case e: VPackError => e.historyAdd(key)
-          }.map(r => key -> r)
+          case (key, v) => d.decode(v)
+            .leftMap(_.historyAdd(key))
+            .map(r => key -> r)
         })
         .map(_.toMap)
 
       // o.values.toList.traverse(d.decode).map { r => (o.keys zip r).toMap }
     }
-    case v => F.raiseError(VPackError.WrongType(v))
-  })
+    case v => Left(VPackError.WrongType(v))
+  }
 
-//  implicit val unitDecoder: VPackDecoderF[Unit] = _ => F.pure(())
+//  implicit val unitDecoder: VPackDecoderF[Unit] = _ => Right(())
 
-  implicit def vPackDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, VPack] = Kleisli(F.pure)
-  implicit def vArrayDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, VArray] = Kleisli({
-    case v: VArray => F.pure(v)
-    case v         => F.raiseError(VPackError.WrongType(v))
-  })
-  implicit def vObjectDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, VObject] = Kleisli({
-    case v: VObject => F.pure(v)
-    case v          => F.raiseError(VPackError.WrongType(v))
-  })
+  implicit val vPackDecoder: VPackDecoder[VPack] = Right(_)
+  implicit val vArrayDecoder: VPackDecoder[VArray] = {
+    case v: VArray => Right(v)
+    case v         => Left(VPackError.WrongType(v))
+  }
+  implicit val vObjectDecoder: VPackDecoder[VObject] = {
+    case v: VObject => Right(v)
+    case v          => Left(VPackError.WrongType(v))
+  }
 
-  implicit def localDateDecoder[F[_]](implicit F: ApplicativeThrow[F]): VPackDecoderF[F, LocalDate] = Kleisli({
-    case VString(value) => F.catchNonFatal(LocalDate.parse(value)).adaptErr { case e => VPackError.Conversion(e) }
-    case v => F.raiseError(VPackError.WrongType(v))
-  })
+  implicit val localDateDecoder: VPackDecoder[LocalDate] = {
+    case VString(value) => Either.catchNonFatal(LocalDate.parse(value)).leftMap(VPackError.Conversion(_))
+    case v => Left(VPackError.WrongType(v))
+  }
 
 }

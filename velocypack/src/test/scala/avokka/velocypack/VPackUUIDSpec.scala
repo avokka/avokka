@@ -24,7 +24,7 @@ class VPackUUIDSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPack
       assertDec(VPackDecoder[UUID], VString(uuid.toString), uuid)
     }
 
-    VPackDecoder[UUID].run(VString("000")).left.value should be (a [VPackError.Conversion])
+    VPackDecoder[UUID].decode(VString("000")).left.value should be (a [VPackError.Conversion])
   }
 
   "uuid" should "roundtrip" in {

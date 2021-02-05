@@ -2,6 +2,7 @@ package avokka.arangodb
 
 import avokka.velocypack._
 import io.estatico.newtype.macros.newtype
+import io.estatico.newtype.ops._
 
 // import cats.syntax.all._
 
@@ -12,8 +13,8 @@ package object types {
   @newtype case class DatabaseName(repr: String)
 
   object DatabaseName {
-    implicit val encoder: VPackEncoder[DatabaseName] = deriving
-    implicit val decoder: VPackDecoder[DatabaseName] = deriving
+    implicit val encoder: VPackEncoder[DatabaseName] = implicitly[VPackEncoder[String]].coerce
+    implicit val decoder: VPackDecoder[DatabaseName] = implicitly[VPackDecoder[String]].coerce
     val system: DatabaseName = DatabaseName("_system")
   }
 
@@ -22,8 +23,8 @@ package object types {
   }
 
   object CollectionName {
-    implicit val encoder: VPackEncoder[CollectionName] = deriving
-    implicit val decoder: VPackDecoder[CollectionName] = deriving
+    implicit val encoder: VPackEncoder[CollectionName] = implicitly[VPackEncoder[String]].coerce
+    implicit val decoder: VPackDecoder[CollectionName] = implicitly[VPackDecoder[String]].coerce
   }
 
   @newtype case class DocumentKey(repr: String) {
@@ -32,8 +33,8 @@ package object types {
 
   object DocumentKey {
     val key: String = "_key"
-    implicit val encoder: VPackEncoder[DocumentKey] = deriving
-    implicit val decoder: VPackDecoder[DocumentKey] = deriving
+    implicit val encoder: VPackEncoder[DocumentKey] = implicitly[VPackEncoder[String]].coerce
+    implicit val decoder: VPackDecoder[DocumentKey] = implicitly[VPackDecoder[String]].coerce
     val empty = apply("")
   }
 
@@ -76,8 +77,8 @@ package object types {
 
   object DocumentRevision {
     val key: String = "_rev"
-    implicit val encoder: VPackEncoder[DocumentRevision] = deriving
-    implicit val decoder: VPackDecoder[DocumentRevision] = deriving
+    implicit val encoder: VPackEncoder[DocumentRevision] = implicitly[VPackEncoder[String]].coerce
+    implicit val decoder: VPackDecoder[DocumentRevision] = implicitly[VPackDecoder[String]].coerce
     val empty = apply("")
   }
 

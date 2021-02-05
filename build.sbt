@@ -92,7 +92,8 @@ lazy val arangodb = (project in file("arangodb"))
         case _ => Nil
       }),
     logBuffered in Test := false,
-    parallelExecution in Test := false
+    parallelExecution in Test := false,
+    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val avokkafs2 = (project in file("fs2"))
@@ -115,7 +116,8 @@ lazy val avokkafs2 = (project in file("fs2"))
         "com.codecommit" %% "cats-effect-testing-scalatest" % "0.4.0" % Test,
       ),
     addCompilerPlugin(kindProjector),
-    addCompilerPlugin(betterMonadicFor)
+    addCompilerPlugin(betterMonadicFor),
+    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val bench = (project in file("bench"))
@@ -125,7 +127,8 @@ lazy val bench = (project in file("bench"))
     libraryDependencies ++= Seq(
       arango,
       logback
-    )
+    ),
+    scalacOptions -= "-Xfatal-warnings"
   ).enablePlugins(JmhPlugin)
 
 lazy val avokka = (project in file("."))

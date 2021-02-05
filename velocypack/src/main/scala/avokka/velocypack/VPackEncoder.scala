@@ -10,7 +10,7 @@ import scodec.bits.{BitVector, ByteVector}
 import shapeless.HList
 
 import scala.annotation.implicitNotFound
-// import scala.collection.compat._
+import scala.collection.compat._
 
 @implicitNotFound("Cannot find a velocypack encoder for ${T}")
 trait VPackEncoder[T] { self =>

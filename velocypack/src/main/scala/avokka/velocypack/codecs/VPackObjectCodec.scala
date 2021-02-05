@@ -11,7 +11,7 @@ import VPack.{VObject, VSmallint, VString}
 import VPackType.{ObjectEmptyType, ObjectType, ObjectCompactType}
 
 import scala.collection.SortedMap
-// import scala.collection.compat._
+import scala.collection.compat._
 
 private[codecs] object VPackObjectCodec extends VPackCompoundCodec {
 

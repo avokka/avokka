@@ -31,6 +31,7 @@ ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) m
   case Some((2, 13)) => Seq(
     "-Ymacro-annotations"
   )
+  case _ => Seq.empty
 })
 
 lazy val velocypack = (project in file("velocypack"))

@@ -40,8 +40,9 @@ lazy val velocypack = (project in file("velocypack"))
     description := "velocypack codec (scodec, shapeless, cats)",
     libraryDependencies ++= compatDeps ++ Seq(
       cats,
-      catsMtl,
       shapeless,
+      magnolia,
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
     ) ++
       scodec ++
       testSuite :+ arango % Test,

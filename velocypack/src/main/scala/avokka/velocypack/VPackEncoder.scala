@@ -2,10 +2,10 @@ package avokka.velocypack
 
 import java.time.{Instant, LocalDate}
 import java.util.{Date, UUID}
-
 import avokka.velocypack.VPack._
 import cats.Contravariant
 import cats.syntax.either._
+import magnolia._
 import scodec.bits.{BitVector, ByteVector}
 import shapeless.HList
 
@@ -36,7 +36,7 @@ trait VPackEncoder[T] { self =>
 }
 
 object VPackEncoder {
-  def apply[T](implicit encoder: VPackEncoder[T]): VPackEncoder[T] = encoder
+  @inline def apply[T](implicit encoder: VPackEncoder[T]): VPackEncoder[T] = encoder
 
   implicit val contravariance: Contravariant[VPackEncoder] = new Contravariant[VPackEncoder] {
     override def contramap[A, B](fa: VPackEncoder[A])(f: B => A): VPackEncoder[B] = fa.contramap(f)
@@ -136,4 +136,19 @@ object VPackEncoder {
 
   implicit val localDateEncoder: VPackEncoder[LocalDate] = stringEncoder.contramap(_.toString)
 
+  type Typeclass[T] = VPackEncoder[T]
+
+  def combine[T](ctx: CaseClass[VPackEncoder, T]): VPackEncoder[T] = new VPackEncoder[T] {
+    override def encode(value: T): VPack = VObject(ctx.parameters.map { p =>
+      p.label -> p.typeclass.encode(p.dereference(value))
+    }.toMap)
+  }
+
+  def dispatch[T](ctx: SealedTrait[VPackEncoder, T]): VPackEncoder[T] = new VPackEncoder[T] {
+    override def encode(value: T): VPack = ctx.dispatch(value) { sub =>
+      sub.typeclass.encode(sub.cast(value))
+    }
+  }
+
+  def gen[T]: VPackEncoder[T] = macro Magnolia.gen[T]
 }

@@ -3,6 +3,7 @@ package avokka.velocypack
 import avokka.velocypack.VPack._
 import cats.data.{Kleisli, StateT}
 import cats.syntax.all._
+import magnolia._
 import scodec.DecodeResult
 import scodec.bits.BitVector
 import scodec.bits.ByteVector
@@ -10,15 +11,12 @@ import scodec.interop.cats._
 import shapeless.HList
 
 import scala.annotation.implicitNotFound
-
 import java.time.{Instant, LocalDate}
 import java.util.{Date, UUID}
 
 @implicitNotFound("Cannot find an velocypack decoder for ${T}")
 trait VPackDecoder[T] {
   def decode(v: VPack): VPackResult[T]
-
-//  def decodeEither(v: VPack): Result[T] = decode[Result](v)
 
   def map[U](f: T => U): VPackDecoder[U] = (v: VPack) => decode(v).map(f)
 
@@ -42,7 +40,7 @@ trait VPackDecoder[T] {
 
 
 object VPackDecoder {
-  def apply[T](implicit decoder: VPackDecoder[T]): VPackDecoder[T] = decoder
+  @inline def apply[T](implicit decoder: VPackDecoder[T]): VPackDecoder[T] = decoder
 
   // scala types instances
 
@@ -228,4 +226,27 @@ object VPackDecoder {
     case v => Left(VPackError.WrongType(v))
   }
 
+  type Typeclass[T] = VPackDecoder[T]
+
+  def combine[T](ctx: CaseClass[VPackDecoder, T]): VPackDecoder[T] = new VPackDecoder[T] {
+    override def decode(v: VPack): VPackResult[T] = v match {
+      case VObject(values) => ctx.constructEither { p =>
+        values.get(p.label) match {
+          case Some(value) => p.typeclass.decode(value).leftMap(_.historyAdd(p.label))
+          case None => p.default.toRight(VPackError.ObjectFieldAbsent(p.label))
+        }
+      }.leftMap(_.head)
+      case _ => Left(VPackError.WrongType(v))
+    }
+  }
+
+  /*
+  def dispatch[T](ctx: SealedTrait[VPackDecoder, T]): VPackDecoder[T] =
+    new VPackDecoder[T] {
+      override def decode(v: VPack): VPackResult[T] = ctx.dispatch(v) { sub =>
+        sub.typeclass.decode(sub.cast(v))
+      }
+    }
+*/
+  def gen[T]: VPackDecoder[T] = macro Magnolia.gen[T]
 }

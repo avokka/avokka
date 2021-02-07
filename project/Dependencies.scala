@@ -57,4 +57,6 @@ object Dependencies {
 
   val kindProjector = "org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full
   val betterMonadicFor = "com.olegpy" %% "better-monadic-for" % "0.3.1"
+
+  val magnolia = "com.propensive" %% "magnolia" % "0.17.0"
 }

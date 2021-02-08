@@ -29,16 +29,16 @@ object DatabaseCreate { self =>
   )
 
   object Users {
-    implicit val encoder: VPackEncoder[Users] = VPackRecord[Users].encoder
+    implicit val encoder: VPackEncoder[Users] = VPackEncoder.gen
   }
 
-  implicit val encoder: VPackEncoder[DatabaseCreate] = VPackRecord[DatabaseCreate].encoder
+  implicit val encoder: VPackEncoder[DatabaseCreate] = VPackEncoder.gen
 
   final case class Response(
       result: Boolean
   )
   object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoderWithDefaults
+    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
   implicit val api: Api.Command.Aux[ArangoSession, DatabaseCreate, Response] = new Api.Command[ArangoSession, DatabaseCreate] {

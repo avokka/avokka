@@ -30,7 +30,7 @@ object Version { self =>
   )
 
   object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoderWithDefaults
+    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
   implicit val api: Api.EmptyBody.Aux[ArangoSession, Version, Response] = new Api.EmptyBody[ArangoSession, Version] {

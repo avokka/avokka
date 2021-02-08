@@ -70,10 +70,10 @@ object CollectionCreate { self =>
   )
 
   object KeyOptions {
-    implicit val encoder: VPackEncoder[KeyOptions] = VPackRecord[KeyOptions].encoder
+    implicit val encoder: VPackEncoder[KeyOptions] = VPackEncoder.gen
   }
 
-  implicit val encoder: VPackEncoder[CollectionCreate] = VPackRecord[CollectionCreate].encoder
+  implicit val encoder: VPackEncoder[CollectionCreate] = VPackEncoder.gen
 
   implicit val api: Api.Command.Aux[ArangoDatabase, CollectionCreate, CollectionInfo.Response] =
     new Api.Command[ArangoDatabase, CollectionCreate] {

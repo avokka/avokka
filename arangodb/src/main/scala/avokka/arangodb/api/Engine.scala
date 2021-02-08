@@ -21,11 +21,11 @@ object Engine { self =>
       indexes: List[String],
   )
   object Supports {
-    implicit val decoder: VPackDecoder[Supports] = VPackRecord[Supports].decoder
+    implicit val decoder: VPackDecoder[Supports] = VPackDecoder.gen
   }
 
   object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
+    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
   implicit val api: Api.EmptyBody.Aux[ArangoDatabase, Engine.type, Response] = new Api.EmptyBody[ArangoDatabase, Engine.type] {

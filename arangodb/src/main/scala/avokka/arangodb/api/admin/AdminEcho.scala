@@ -14,7 +14,7 @@ object AdminEcho { self =>
   )
 
   object Server {
-    implicit val decoder: VPackDecoder[Server] = VPackRecord[Server].decoderWithDefaults
+    implicit val decoder: VPackDecoder[Server] = VPackDecoder.gen
   }
 
   final case class Client(
@@ -23,7 +23,7 @@ object AdminEcho { self =>
       id: String,
   )
   object Client {
-    implicit val decoder: VPackDecoder[Client] = VPackRecord[Client].decoderWithDefaults
+    implicit val decoder: VPackDecoder[Client] = VPackDecoder.gen
   }
 
   /**
@@ -69,7 +69,7 @@ object AdminEcho { self =>
   )
 
   object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoderWithDefaults
+    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
   implicit val api: Api.EmptyBody.Aux[ArangoSession, AdminEcho.type, Response] = new Api.EmptyBody[ArangoSession, AdminEcho.type] {

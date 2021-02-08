@@ -91,6 +91,7 @@ lazy val arangodb = (project in file("arangodb"))
 //      enumeratum,
       pureconfig,
       logging,
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
     ) ++ testSuite ++ akkaTestKit ++ dockerTest ++
       (CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, v)) if v <= 12 =>

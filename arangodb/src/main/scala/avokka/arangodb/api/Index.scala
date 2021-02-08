@@ -18,7 +18,7 @@ object Index {
   )
 
   object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoderWithDefaults
+    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
 }

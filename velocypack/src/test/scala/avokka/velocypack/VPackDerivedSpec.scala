@@ -4,32 +4,9 @@ import org.scalacheck._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class VPackRecordSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPackSpecTrait {
+class VPackDerivedSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPackSpecTrait {
   import VPack._
-  import VPackRecordSpec._
-
-  /*
-  "generic codec" should "conform specs" in {
-
-    val c = VPackRecord.codec[
-      FieldType[Witness.`'test`.T, Boolean] ::
-      FieldType[Witness.`'code`.T, Int] ::
-      HNil,
-      HNil
-    ]()
-
-    assertEncode(c, 'test ->> false :: 'code ->> 200 :: HNil,
-      hex"0b 12 02 44636f6465 28c8 4474657374 19 03 0a"
-    )
-    assert(c.decode(hex"0b 0a 01 44636f6465 35 03".bits).isFailure)
-    assertDecode(c, hex"0b 11 02 4474657374 1a 44636f6465 35 09 03",
-      'test ->> true :: 'code ->> 5 :: HNil
-    )
-    assertDecode(c, hex"0b 11 02 44636f6465 35 4474657374 1a 09 03",
-      'test ->> true :: 'code ->> 5 :: HNil
-    )
-  }
-   */
+  import VPackDerivedSpec._
 
   "case class codec" should "conform specs" in {
     assertDec(VersionResponseDecoder,
@@ -68,7 +45,7 @@ class VPackRecordSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPa
 
 }
 
-object VPackRecordSpec {
+object VPackDerivedSpec {
 
   import Arbitrary._
 
@@ -81,8 +58,8 @@ object VPackRecordSpec {
 
   implicit val arbitrayVR: Arbitrary[VersionResponse] = Arbitrary(Gen.resultOf(VersionResponse.tupled))
 
-  val VersionResponseEncoder: VPackEncoder[VersionResponse] = VPackRecord[VersionResponse].encoder
-  val VersionResponseDecoder: VPackDecoder[VersionResponse] = VPackRecord[VersionResponse].decoder
+  val VersionResponseEncoder: VPackEncoder[VersionResponse] = VPackEncoder.gen
+  val VersionResponseDecoder: VPackDecoder[VersionResponse] = VPackDecoder.gen
 
   case class TestDefault
   (
@@ -90,6 +67,7 @@ object VPackRecordSpec {
     i: Int = 10
   )
 
-  val TestDefaultEncoder: VPackEncoder[TestDefault] = VPackRecord[TestDefault].encoder
-  val TestDefaultDecoder: VPackDecoder[TestDefault] = VPackRecord[TestDefault].decoderWithDefaults
+  val TestDefaultEncoder: VPackEncoder[TestDefault] = VPackEncoder.gen
+  val TestDefaultDecoder: VPackDecoder[TestDefault] = VPackDecoder.gen
 }
+

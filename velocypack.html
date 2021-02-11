@@ -270,9 +270,9 @@ import scodec.bits._
 
 case class Test(b: Boolean)
 implicit val testEncoder: VPackEncoder[Test] = VPackEncoder.gen
-// testEncoder: VPackEncoder[Test] = avokka.velocypack.VPackEncoder$$anon$2@19a81ccd
+// testEncoder: VPackEncoder[Test] = avokka.velocypack.VPackEncoder$$anon$2@80c0cb2
 implicit val testDecoder: VPackDecoder[Test] = VPackDecoder.gen
-// testDecoder: VPackDecoder[Test] = avokka.velocypack.VPackDecoder$$anon$1@c3d69ef
+// testDecoder: VPackDecoder[Test] = avokka.velocypack.VPackDecoder$$anon$1@1d7ae0a6
 
 val t = Test(true)
 // t: Test = Test(true)
@@ -290,7 +290,7 @@ hex&quot;0a&quot;.bits.asVPack[Test].left.get
 case class TestTrue(b: Boolean = true)                
 
 implicit val testTrueDecoder: VPackDecoder[TestTrue] = VPackDecoder.gen
-// testTrueDecoder: VPackDecoder[TestTrue] = avokka.velocypack.VPackDecoder$$anon$1@331761a7
+// testTrueDecoder: VPackDecoder[TestTrue] = avokka.velocypack.VPackDecoder$$anon$1@1994fae1
 
 hex&quot;0b070141621903&quot;.bits.asVPack[TestTrue].right.get.value             
 // res9: TestTrue = TestTrue(false)             

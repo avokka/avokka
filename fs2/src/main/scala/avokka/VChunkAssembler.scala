@@ -3,7 +3,6 @@ package avokka
 import cats.data.{Chain, OptionT}
 import cats.effect.Sync
 import cats.effect.concurrent.Ref
-import cats.instances.vector._
 import cats.syntax.foldable._
 import cats.syntax.functor._
 import scodec.interop.cats.ByteVectorMonoidInstance
@@ -41,7 +40,7 @@ object VChunkAssembler {
           // remove chunks when message is complete
           _ <- OptionT.liftF(stack.update(_.filterNot(_.header.id == c.header.id)))
           // reconstruct message payload
-          data = same.toVector.sortBy(_.header.x.position).foldMap(_.data)
+          data = same.sortBy(_.header.x.position).foldMap(_.data)
         } yield VMessage(c.header.id, data)
 
       override private[avokka] def size: F[Long] = stack.get.map(_.size)

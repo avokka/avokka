@@ -138,6 +138,25 @@ lazy val bench = (project in file("bench"))
     scalacOptions -= "-Xfatal-warnings"
   ).enablePlugins(JmhPlugin)
 
+lazy val docs = (project in file("docs"))
+  .dependsOn(velocypack)
+  .settings(
+    name := "avokka-docs",
+    publishArtifact := false,
+    skip in publish := true,
+    scalacOptions -= "-Xfatal-warnings",
+    mdocIn := (baseDirectory.value) / "src" / "main" / "paradox",
+    Compile / paradox / sourceDirectory := mdocOut.value,
+    makeSite := makeSite.dependsOn(mdoc.toTask("")).value,
+    mdocExtraArguments := Seq("--no-link-hygiene"), // paradox handles this
+    git.remoteRepo := "git@github.com:avokka/avokka.git",
+    ghpagesNoJekyll := true,
+    Compile / paradoxMaterialTheme ~= {
+      _.withColor("green", "green")
+        .withRepository(uri("https://github.com/avokka/avokka"))
+    }
+  ).enablePlugins(ParadoxPlugin, ParadoxSitePlugin, ParadoxMaterialThemePlugin, MdocPlugin, GhpagesPlugin)
+
 lazy val avokka = (project in file("."))
   .aggregate(velocypack, velocystream, arangodbTypes, arangodb, avokkafs2)
   .settings(

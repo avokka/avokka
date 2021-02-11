@@ -151,6 +151,10 @@ lazy val docs = (project in file("docs"))
     mdocExtraArguments := Seq("--no-link-hygiene"), // paradox handles this
     git.remoteRepo := "git@github.com:avokka/avokka.git",
     ghpagesNoJekyll := true,
+    version            := version.value.takeWhile(_ != '+'),
+    paradoxProperties ++= Map(
+      "version" -> version.value
+    ),
     Compile / paradoxMaterialTheme ~= {
       _.withColor("green", "green")
         .withRepository(uri("https://github.com/avokka/avokka"))

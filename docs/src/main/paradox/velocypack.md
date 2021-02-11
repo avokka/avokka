@@ -11,12 +11,16 @@ The *codecs* package includes the scodec codecs for VPack values: `VPack => Atte
 
 SBT configuration :
 
+@@@ vars
+
 ```sbt
 // avokka is published at bintray
 resolvers += Resolver.bintrayRepo("avokka", "maven")
 
-libraryDependencies += "avokka" %% "avokka-velocypack" % "0.0.3"
+libraryDependencies += "avokka" %% "avokka-velocypack" % "$version$"
 ```
+
+@@@
 
 ## Usage
 
@@ -28,12 +32,12 @@ import avokka.velocypack._
 val b: Boolean = true
 
 b.toVPack
-b.toVPackBits.right.get
+b.toVPackBits
 
 val a: Seq[Int] = List(1,2)
 
 a.toVPack
-a.toVPackBits.right.get
+a.toVPackBits
 ```
 
 Decoding from BitVector is the opposite transformation whith an implicit `VPackDecoder[T]` :
@@ -43,7 +47,7 @@ import avokka.velocypack._
 import scodec.bits._
 
 val bits = hex"02043334".bits
-bits.asVPack[Vector[Long]].right.get.value
+bits.asVPack[Vector[Long]]
 ```
 
 ## Supported types
@@ -76,16 +80,16 @@ implicit val testDecoder: VPackDecoder[Test] = VPackDecoder.gen
 
 val t = Test(true)
 
-t.toVPack.toString      
-t.toVPackBits.right.get
+t.toVPack      
+t.toVPackBits
 
-hex"0b070141621903".bits.asVPack[Test].right.get.value
-hex"0a".bits.asVPack[Test].left.get                                                                                         
+hex"0b070141621903".bits.asVPack[Test]
+hex"0a".bits.asVPack[Test]                                                                                         
 
 case class TestTrue(b: Boolean = true)        
 
 implicit val testTrueDecoder: VPackDecoder[TestTrue] = VPackDecoder.gen
 
-hex"0b070141621903".bits.asVPack[TestTrue].right.get.value             
-hex"0a".bits.asVPack[TestTrue].right.get.value                                                                                                         
+hex"0b070141621903".bits.asVPack[TestTrue]            
+hex"0a".bits.asVPack[TestTrue]                                                                                                         
 ```

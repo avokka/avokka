@@ -1,10 +1,11 @@
 ---
 layout: docs
-title:  Velocypack
-position: 2
+title: Velocypack
+position: 3
+permalink: velocypack
 ---
 
-# avokka-velocypack
+# Velocypack
 
 Velocypack encoder and decoder in pure scala
 
@@ -19,7 +20,7 @@ SBT configuration :
 
 @@@ vars
 
-```sbt
+```scala
 // avokka is published at bintray
 resolvers += Resolver.bintrayRepo("avokka", "maven")
 

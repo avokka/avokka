@@ -139,26 +139,39 @@ lazy val bench = (project in file("bench"))
     scalacOptions -= "-Xfatal-warnings"
   ).enablePlugins(JmhPlugin)
 
-lazy val docs = (project in file("docs"))
+lazy val site = (project in file("site"))
   .dependsOn(velocypack)
   .settings(
-    name := "avokka-docs",
+    name := "avokka-site",
     publishArtifact := false,
     skip in publish := true,
     scalacOptions -= "-Xfatal-warnings",
+    mdocExtraArguments := Seq("--no-link-hygiene"),
+
     micrositeName := "Avokka",
     micrositeDescription := "ArangoDB in pure scala",
     micrositeAuthor := "Benjamin Viellard",
     micrositeGithubOwner := "avokka",
     micrositeGithubRepo := "avokka",
 //    micrositeUrl := "https://avokka.github.io/avokka",
-    micrositeBaseUrl := "avokka",
+    micrositeBaseUrl := "/avokka",
     micrositePushSiteWith := GHPagesPlugin,
     micrositeGitterChannel := false,
-    /*
+    micrositeHighlightTheme := "github",
+    // micrositeHighlightLanguages ++= Seq("sbt"),
+    micrositePalette ++= Map(
+      "brand-primary" -> "#649d66",
+      "brand-secondary" -> "#06623b",
+    ),
+    micrositeSearchEnabled := false,
+    // micrositeDocumentationUrl := "documentation",
+    micrositeTheme := "light",
+    // micrositeDocumentationUrl := "docs",
     git.remoteRepo := "git@github.com:avokka/avokka.git",
-    mdocIn := (baseDirectory.value) / "src" / "main" / "paradox",
-    Compile / paradox / sourceDirectory := mdocOut.value,
+
+    /*
+    mdocIn := (baseDirectory.value) / "docs",
+    paradox / sourceDirectory := mdocOut.value,
     makeSite := makeSite.dependsOn(mdoc.toTask("")).value,
     mdocExtraArguments := Seq("--no-link-hygiene"), // paradox handles this
     ghpagesNoJekyll := true,
@@ -173,7 +186,7 @@ lazy val docs = (project in file("docs"))
         .withRepository(uri("https://github.com/avokka/avokka"))
     },
      */
-  ).enablePlugins(MicrositesPlugin, MdocPlugin)
+  ).enablePlugins(MicrositesPlugin)
 
 lazy val avokka = (project in file("."))
   .aggregate(velocypack, velocystream, arangodbTypes, arangodb, avokkafs2)

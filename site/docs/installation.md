@@ -1,11 +1,18 @@
-#Installation
+---
+layout: docs
+title: Installation
+position: 2
+permalink: installation
+---
+
+# Installation
 
 Packages are published to bintray under the [`avokka`](https://bintray.com/avokka) organization.
 
 SBT configuration :
 
 @@@ vars
-```sbt
+```scala
 // add avokka bintray repository to resolvers
 resolvers += Resolver.bintrayRepo("avokka", "maven")
 

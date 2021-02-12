@@ -1,22 +1,18 @@
 ---
-layout: docs
+layout: home
+title: Home
+position: 1
 ---
 
-@@@index
-
-* @ref:[Installation](installation.md)
-* @ref:[Velocypack](velocypack.md)
-
-@@@
-
 # Avokka
+
 [![Build Status](https://travis-ci.org/avokka/avokka.svg?branch=master)](https://travis-ci.org/avokka/avokka)
 
 ArangoDB client written in pure scala
 
 ## Packages
 
-### @ref:[avokka-velocypack](velocypack.md)
+### [avokka-velocypack]({% link velocypack.md %})
 
 [Velocypack](https://github.com/arangodb/velocypack) codec for scala built with scodec, shapeless and cats
 

@@ -1,4 +1,5 @@
 import Dependencies._
+import com.lightbend.paradox.markdown.SnipDirective
 
 val scala212Version = "2.12.13"
 val scala213Version = "2.13.4"
@@ -145,21 +146,34 @@ lazy val docs = (project in file("docs"))
     publishArtifact := false,
     skip in publish := true,
     scalacOptions -= "-Xfatal-warnings",
+    micrositeName := "Avokka",
+    micrositeDescription := "ArangoDB in pure scala",
+    micrositeAuthor := "Benjamin Viellard",
+    micrositeGithubOwner := "avokka",
+    micrositeGithubRepo := "avokka",
+//    micrositeUrl := "https://avokka.github.io/avokka",
+    micrositeBaseUrl := "avokka",
+    micrositePushSiteWith := GHPagesPlugin,
+    micrositeGitterChannel := false,
+    /*
+    git.remoteRepo := "git@github.com:avokka/avokka.git",
     mdocIn := (baseDirectory.value) / "src" / "main" / "paradox",
     Compile / paradox / sourceDirectory := mdocOut.value,
     makeSite := makeSite.dependsOn(mdoc.toTask("")).value,
     mdocExtraArguments := Seq("--no-link-hygiene"), // paradox handles this
-    git.remoteRepo := "git@github.com:avokka/avokka.git",
     ghpagesNoJekyll := true,
     version            := version.value.takeWhile(_ != '+'),
     paradoxProperties ++= Map(
-      "version" -> version.value
+      "version" -> version.value,
+      "snip.build.base_dir" -> "scratched",
+      SnipDirective.showGithubLinks -> "false"
     ),
     Compile / paradoxMaterialTheme ~= {
       _.withColor("green", "green")
         .withRepository(uri("https://github.com/avokka/avokka"))
-    }
-  ).enablePlugins(ParadoxPlugin, ParadoxSitePlugin, ParadoxMaterialThemePlugin, MdocPlugin, GhpagesPlugin)
+    },
+     */
+  ).enablePlugins(MicrositesPlugin, MdocPlugin)
 
 lazy val avokka = (project in file("."))
   .aggregate(velocypack, velocystream, arangodbTypes, arangodb, avokkafs2)

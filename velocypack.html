@@ -1,392 +1,182 @@
-<!DOCTYPE html>
-<html lang="en" class="no-js">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="x-ua-compatible" content="ie=edge">
-<meta name="description" content="avokka-docs">
-<meta name="generator" content="Paradox, paradox-material-theme=0.6.0, mkdocs-material=3.0.3">
+<!DOCTYPE html><html><head><title>Avokka: Velocypack</title><meta charset="utf-8" /><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Benjamin Viellard" /><meta name="description" content="ArangoDB in pure scala" /><meta name="og:image" content="/avokka/img/poster.png" /><meta name="image" property="og:image" content="/avokka/img/poster.png" /><meta name="og:title" content="Avokka: Velocypack" /><meta name="title" property="og:title" content="Avokka: Velocypack" /><meta name="og:site_name" content="Avokka" /><meta name="og:url" content="https://github.com/avokka" /><meta name="og:type" content="website" /><meta name="og:description" content="ArangoDB in pure scala" /><link rel="icon" type="image/png" href="/avokka/img/favicon.png" /><meta name="twitter:title" content="Avokka: Velocypack" /><meta name="twitter:image" content="/avokka/img/poster.png" /><meta name="twitter:description" content="ArangoDB in pure scala" /><meta name="twitter:card" content="summary_large_image" /><link rel="icon" type="image/png" sizes="16x16" href="/avokka/img/favicon16x16.png" /><link rel="icon" type="image/png" sizes="24x24" href="/avokka/img/favicon24x24.png" /><link rel="icon" type="image/png" sizes="32x32" href="/avokka/img/favicon32x32.png" /><link rel="icon" type="image/png" sizes="48x48" href="/avokka/img/favicon48x48.png" /><link rel="icon" type="image/png" sizes="57x57" href="/avokka/img/favicon57x57.png" /><link rel="icon" type="image/png" sizes="60x60" href="/avokka/img/favicon60x60.png" /><link rel="icon" type="image/png" sizes="64x64" href="/avokka/img/favicon64x64.png" /><link rel="icon" type="image/png" sizes="70x70" href="/avokka/img/favicon70x70.png" /><link rel="icon" type="image/png" sizes="72x72" href="/avokka/img/favicon72x72.png" /><link rel="icon" type="image/png" sizes="76x76" href="/avokka/img/favicon76x76.png" /><link rel="icon" type="image/png" sizes="96x96" href="/avokka/img/favicon96x96.png" /><link rel="icon" type="image/png" sizes="114x114" href="/avokka/img/favicon114x114.png" /><link rel="icon" type="image/png" sizes="120x120" href="/avokka/img/favicon120x120.png" /><link rel="icon" type="image/png" sizes="128x128" href="/avokka/img/favicon128x128.png" /><link rel="icon" type="image/png" sizes="144x144" href="/avokka/img/favicon144x144.png" /><link rel="icon" type="image/png" sizes="150x150" href="/avokka/img/favicon150x150.png" /><link rel="icon" type="image/png" sizes="152x152" href="/avokka/img/favicon152x152.png" /><link rel="icon" type="image/png" sizes="196x196" href="/avokka/img/favicon196x196.png" /><link rel="icon" type="image/png" sizes="310x310" href="/avokka/img/favicon310x310.png" /><link rel="icon" type="image/png" sizes="310x150" href="/avokka/img/favicon310x150.png" /><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" /><link rel="stylesheet" href="/avokka/highlight/styles/github.css" /><link rel="stylesheet" href="/avokka/css/light-style.css" /></head><body class="docs"><div id="wrapper"><div id="sidebar-wrapper"><div id="sidebar-brand"><a href="/avokka/" class="brand"><div class="brand-wrapper"></div><span>Avokka</span></a><button id="main-toggle" class="sidebar-toggle"><span class="close"></span></button></div><div class="sidebar-nav"> <div class="sidebar-nav-item  "><a href="/avokka/installation" title="Installation" class="">Installation</a></div> <div class="sidebar-nav-item active "><a href="/avokka/velocypack" title="Velocypack" class="active">Velocypack</a></div></div></div><div id="page-content-wrapper"><div class="nav"><div class="container-fluid"><div class="row"><div class="col-lg-12"><div class="action-menu pull-left clearfix"><a href="#menu-toggle" id="menu-toggle"><i class="fa fa-bars" aria-hidden="true"></i></a></div><ul class="pull-right"><li id="gh-eyes-item" class="hidden-xs to-uppercase"><a href="https://github.com/avokka/avokka" target="_blank" rel="noopener noreferrer"><i class="fa fa-eye"></i><span>Watchers<span id="eyes" class="label label-default">--</span></span></a></li><li id="gh-stars-item" class="hidden-xs to-uppercase"><a href="https://github.com/avokka/avokka" target="_blank" rel="noopener noreferrer"><i class="fa fa-star-o"></i><span>Stars<span id="stars" class="label label-default">--</span></span></a></li></ul></div></div></div></div><div id="content" data-github-owner="avokka" data-github-repo="avokka"><div class="content-wrapper"><section><h1 id="velocypack">Velocypack</h1>
 
-<meta name="lang:clipboard.copy" content="Copy to clipboard">
-<meta name="lang:clipboard.copied" content="Copied to clipboard">
-<meta name="lang:search.language" content="">
-<meta name="lang:search.pipeline.stopwords" content="true">
-<meta name="lang:search.pipeline.trimmer" content="true">
-<meta name="lang:search.result.none" content="No matching documents">
-<meta name="lang:search.result.one" content="1 matching document">
-<meta name="lang:search.result.other" content="# matching documents">
-<meta name="lang:search.tokenizer" content="[\s\-]+">
-
-
-<meta name="description" content="avokka-docs">
-<link rel="shortcut icon" href="assets/images/favicon.png">
-<title>avokka-velocypack · Avokka</title>
-<link rel="stylesheet" href="assets/stylesheets/application.451f80e5.css">
-<link rel="stylesheet" href="assets/stylesheets/application-palette.22915126.css">
-<meta name="theme-color" content="#4caf50" />
-<link rel="stylesheet" href="lib/material__tabs/dist/mdc.tabs.min.css">
-<link rel="stylesheet" href="lib/prettify/prettify.css">
-<script src="assets/javascripts/modernizr.1aa3b519.js"></script>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono">
-<style>
-body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}
-code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}
-</style>
-<link rel="stylesheet" href="assets/fonts/font-awesome.css">
-<link rel="stylesheet" href="assets/fonts/material-icons.css">
-<link rel="stylesheet" href="assets/stylesheets/paradox-material-theme.css">
-</head>
-<body
-data-md-color-primary="green"
-data-md-color-accent="green"
->
-<input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
-<input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
-<label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
-<header class="md-header" data-md-component="header">
-<nav class="md-header-nav md-grid">
-<div class="md-flex">
-<div class="md-flex__cell md-flex__cell--shrink">
-<a href="index.html" title="Avokka" class="md-header-nav__button md-logo">
-<i class="md-icon">local_library</i>
-</a>
-</div>
-<div class="md-flex__cell md-flex__cell--shrink">
-<label class="md-icon md-icon--menu md-header-nav__button" for="__drawer"></label>
-</div>
-<div class="md-flex__cell md-flex__cell--stretch">
-<div class="md-flex__ellipsis md-header-nav__title" data-md-component="title">
-<span class="md-header-nav__topic">
-Avokka
-</span>
-<span class="md-header-nav__topic">
-avokka-velocypack
-</span>
-</div>
-</div>
-<div class="md-flex__cell md-flex__cell--shrink">
-<label class="md-icon md-icon--search md-header-nav__button" for="__search"></label>
-<div class="md-search" data-md-component="search" role="dialog">
-<label class="md-search__overlay" for="__search"></label>
-<div class="md-search__inner" role="search">
-<form class="md-search__form" name="search">
-<input type="text" class="md-search__input" name="query" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query" data-md-state="active">
-<label class="md-icon md-search__icon" for="__search"></label>
-<button type="reset" class="md-icon md-search__icon" data-md-component="reset" tabindex="-1">&#xE5CD;</button>
-</form>
-<div class="md-search__output">
-<div class="md-search__scrollwrap" data-md-scrollfix>
-<div class="md-search-result" data-md-component="result">
-<div class="md-search-result__meta">
-Type to start searching
-</div>
-<ol class="md-search-result__list"></ol>
-</div>
-</div>
-</div>
-</div>
-</div>
-
-</div>
-<div class="md-flex__cell md-flex__cell--shrink">
-<div class="md-header-nav__source">
-<a href="https://github.com/avokka/avokka"
-title="Go to repository"
-class="md-source"
-data-md-source="github">
-<div class="md-source__icon">
-<i class="fa fa-github"></i>
-</div>
-<div class="md-source__repository">
-avokka/avokka
-</div>
-</a>
-
-</div>
-</div>
-</div>
-</nav>
-</header>
-
-<div class="md-container">
-<main class="md-main">
-<div class="md-main__inner md-grid" data-md-component="container">
-<div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
-<div class="md-sidebar__scrollwrap">
-<div class="md-sidebar__inner">
-<nav class="md-nav md-nav--primary" data-md-level="0" style="visibility: hidden">
-<label class="md-nav__title md-nav__title--site" for="drawer">
-<a href="index.html" title="Avokka" class="md-nav__button md-logo">
-<span class="md-nav__button md-logo">
-<i class="md-icon">local_library</i>
-</a>
-<a href="index.html" title="Avokka">
-Avokka
-</a>
-</label>
-<div class="md-nav__source">
-<a href="https://github.com/avokka/avokka"
-title="Go to repository"
-class="md-source"
-data-md-source="github">
-<div class="md-source__icon">
-<i class="fa fa-github"></i>
-</div>
-<div class="md-source__repository">
-avokka/avokka
-</div>
-</a>
-
-</div>
-<ul>
-  <li><a href="velocypack.html" class="active page">avokka-velocypack</a></li>
-</ul>
-<nav class="md-nav md-nav--secondary">
-<label class="md-nav__title" for="__toc">Table of contents</label>
-<ul>
-  <li><a href="velocypack.html#avokka-velocypack" class="header">avokka-velocypack</a>
-  <ul>
-    <li><a href="velocypack.html#installation" class="header">Installation</a></li>
-    <li><a href="velocypack.html#usage" class="header">Usage</a></li>
-    <li><a href="velocypack.html#supported-types" class="header">Supported types</a></li>
-    <li><a href="velocypack.html#case-class-derivation" class="header">Case class derivation</a></li>
-  </ul></li>
-</ul>
-</nav>
-
-</nav>
-<ul style="display: none">
-<li class="md-nav__item md-version" id="project.version">
-<label class="md-nav__link" for="__version">
-<i class="md-icon" title="Version">label_outline</i> 0.0.4*
-</label>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
-<div class="md-sidebar__scrollwrap">
-<div class="md-sidebar__inner">
-<nav class="md-nav md-nav--secondary">
-<label class="md-nav__title" for="__toc">Table of contents</label>
-<ul>
-  <li><a href="velocypack.html#avokka-velocypack" class="header">avokka-velocypack</a>
-  <ul>
-    <li><a href="velocypack.html#installation" class="header">Installation</a></li>
-    <li><a href="velocypack.html#usage" class="header">Usage</a></li>
-    <li><a href="velocypack.html#supported-types" class="header">Supported types</a></li>
-    <li><a href="velocypack.html#case-class-derivation" class="header">Case class derivation</a></li>
-  </ul></li>
-</ul>
-</nav>
-
-</div>
-</div>
-</div>
-<div class="md-content">
-<article class="md-content__inner md-typeset">
-<div class="md-content__searchable">
-<h1><a href="#avokka-velocypack" name="avokka-velocypack" class="anchor"><span class="anchor-link"></span></a>avokka-velocypack</h1>
 <p>Velocypack encoder and decoder in pure scala</p>
+
 <ul>
-  <li><code>VPackEncoder</code> encodes scala values to VPack values <code>T =&gt; VPack</code></li>
-  <li><code>VPackDecoder</code> decodes vpack values to scala values <code>VPack =&gt; Either[VPackError, T]</code></li>
+  <li><code class="language-plaintext highlighter-rouge">VPackEncoder</code> encodes scala values to VPack values <code class="language-plaintext highlighter-rouge">T =&gt; VPack</code></li>
+  <li><code class="language-plaintext highlighter-rouge">VPackDecoder</code> decodes vpack values to scala values <code class="language-plaintext highlighter-rouge">VPack =&gt; Either[VPackError, T]</code></li>
 </ul>
-<p>The <em>codecs</em> package includes the scodec codecs for VPack values: <code>VPack =&gt; Attempt[BitVector]</code> and <code>BitVector =&gt; Attempt[DecodeResult[VPack]]</code></p>
-<h2><a href="#installation" name="installation" class="anchor"><span class="anchor-link"></span></a>Installation</h2>
+
+<p>The <em>codecs</em> package includes the scodec codecs for VPack values: <code class="language-plaintext highlighter-rouge">VPack =&gt; Attempt[BitVector]</code> and <code class="language-plaintext highlighter-rouge">BitVector =&gt; Attempt[DecodeResult[VPack]]</code></p>
+
+<h2 id="installation">Installation</h2>
+
 <p>SBT configuration :</p>
-<pre class="prettyprint"><code class="language-sbt">// avokka is published at bintray
-resolvers += Resolver.bintrayRepo(&quot;avokka&quot;, &quot;maven&quot;)
 
-libraryDependencies += &quot;avokka&quot; %% &quot;avokka-velocypack&quot; % &quot;0.0.3&quot;
-</code></pre>
-<h2><a href="#usage" name="usage" class="anchor"><span class="anchor-link"></span></a>Usage</h2>
-<p>By importing <code>avokka.velocypack._</code> you bring <code>asVPack</code> and <code>asVPackBits</code> to all types <code>T</code> having an implicit <code>VPackEncoder[T]</code> :</p>
-<pre class="prettyprint"><code class="language-scala">import avokka.velocypack._
+<p>@@@ vars</p>
 
-val b: Boolean = true
-// b: Boolean = true
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// avokka is published at bintray</span>
+<span class="n">resolvers</span> <span class="o">+=</span> <span class="nv">Resolver</span><span class="o">.</span><span class="py">bintrayRepo</span><span class="o">(</span><span class="s">"avokka"</span><span class="o">,</span> <span class="s">"maven"</span><span class="o">)</span>
 
-b.toVPack
-// res0: VPack = VTrue
-b.toVPackBits.right.get
-// res1: scodec.bits.BitVector = BitVector(8 bits, 0x1a)
+<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"avokka"</span> <span class="o">%%</span> <span class="s">"avokka-velocypack"</span> <span class="o">%</span> <span class="s">"$version$"</span>
+</code></pre></div></div>
 
-val a: Seq[Int] = List(1,2)
-// a: Seq[Int] = List(1, 2)
+<p>@@@</p>
 
-a.toVPack
-// res2: VPack = VArray(Vector(VSmallint(1), VSmallint(2)))
-a.toVPackBits.right.get
-// res3: scodec.bits.BitVector = BitVector(32 bits, 0x02043132)
-</code></pre>
-<p>Decoding from BitVector is the opposite transformation whith an implicit <code>VPackDecoder[T]</code> :</p>
-<pre class="prettyprint"><code class="language-scala">import avokka.velocypack._
-import scodec.bits._
+<h2 id="usage">Usage</h2>
 
-val bits = hex&quot;02043334&quot;.bits
-// bits: BitVector = BitVector(32 bits, 0x02043334)
-bits.asVPack[Vector[Long]].right.get.value
-// res4: Vector[Long] = Vector(3, 4)
-</code></pre>
-<h2><a href="#supported-types" name="supported-types" class="anchor"><span class="anchor-link"></span></a>Supported types</h2>
+<p>By importing <code class="language-plaintext highlighter-rouge">avokka.velocypack._</code> you bring <code class="language-plaintext highlighter-rouge">asVPack</code> and <code class="language-plaintext highlighter-rouge">asVPackBits</code> to all types <code class="language-plaintext highlighter-rouge">T</code> having an implicit <code class="language-plaintext highlighter-rouge">VPackEncoder[T]</code> :</p>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">avokka.velocypack._</span>
+
+<span class="k">val</span> <span class="nv">b</span><span class="k">:</span> <span class="kt">Boolean</span> <span class="o">=</span> <span class="kc">true</span>
+<span class="c1">// b: Boolean = true</span>
+
+<span class="nv">b</span><span class="o">.</span><span class="py">toVPack</span>
+<span class="c1">// res0: VPack = VTrue</span>
+<span class="nv">b</span><span class="o">.</span><span class="py">toVPackBits</span>
+<span class="c1">// res1: VPackResult[scodec.bits.BitVector] = Right(BitVector(8 bits, 0x1a))</span>
+
+<span class="k">val</span> <span class="nv">a</span><span class="k">:</span> <span class="kt">Seq</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span><span class="mi">2</span><span class="o">)</span>
+<span class="c1">// a: Seq[Int] = List(1, 2)</span>
+
+<span class="nv">a</span><span class="o">.</span><span class="py">toVPack</span>
+<span class="c1">// res2: VPack = VArray(Vector(VSmallint(1), VSmallint(2)))</span>
+<span class="nv">a</span><span class="o">.</span><span class="py">toVPackBits</span>
+<span class="c1">// res3: VPackResult[scodec.bits.BitVector] = Right(BitVector(32 bits, 0x02043132))</span>
+</code></pre></div></div>
+
+<p>Decoding from BitVector is the opposite transformation whith an implicit <code class="language-plaintext highlighter-rouge">VPackDecoder[T]</code> :</p>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">avokka.velocypack._</span>
+<span class="k">import</span> <span class="nn">scodec.bits._</span>
+
+<span class="k">val</span> <span class="nv">bits</span> <span class="k">=</span> <span class="n">hex</span><span class="s">"02043334"</span><span class="o">.</span><span class="py">bits</span>
+<span class="c1">// bits: BitVector = BitVector(32 bits, 0x02043334)</span>
+<span class="nv">bits</span><span class="o">.</span><span class="py">asVPack</span><span class="o">[</span><span class="kt">Vector</span><span class="o">[</span><span class="kt">Long</span><span class="o">]]</span>
+<span class="c1">// res4: VPackResult[scodec.DecodeResult[Vector[Long]]] = Right(DecodeResult(Vector(3, 4),BitVector(empty)))</span>
+</code></pre></div></div>
+
+<h2 id="supported-types">Supported types</h2>
+
 <table>
   <thead>
     <tr>
-      <th align="left">Scala / Java </th>
-      <th align="left">avokka VPack </th>
-      <th align="left">Velocypack </th>
+      <th style="text-align: left">Scala / Java</th>
+      <th style="text-align: left">avokka VPack</th>
+      <th style="text-align: left">Velocypack</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td align="left">Boolean </td>
-      <td align="left">VBoolean </td>
-      <td align="left">true or false </td>
+      <td style="text-align: left">Boolean</td>
+      <td style="text-align: left">VBoolean</td>
+      <td style="text-align: left">true or false</td>
     </tr>
     <tr>
-      <td align="left">Long Short, Int </td>
-      <td align="left">VLong, VSmallInt </td>
-      <td align="left">signed int, unsigned int, small int </td>
+      <td style="text-align: left">Long Short, Int</td>
+      <td style="text-align: left">VLong, VSmallInt</td>
+      <td style="text-align: left">signed int, unsigned int, small int</td>
     </tr>
     <tr>
-      <td align="left">Double </td>
-      <td align="left">VDouble, VLong, VSmallInt </td>
-      <td align="left">double, signed int, unsigned int, small int </td>
+      <td style="text-align: left">Double</td>
+      <td style="text-align: left">VDouble, VLong, VSmallInt</td>
+      <td style="text-align: left">double, signed int, unsigned int, small int</td>
     </tr>
     <tr>
-      <td align="left">String </td>
-      <td align="left">VString </td>
-      <td align="left">small string, long string </td>
+      <td style="text-align: left">String</td>
+      <td style="text-align: left">VString</td>
+      <td style="text-align: left">small string, long string</td>
     </tr>
     <tr>
-      <td align="left">Instant </td>
-      <td align="left">VDate, VLong, VString </td>
-      <td align="left">utc date, int(millis), string(iso) </td>
+      <td style="text-align: left">Instant</td>
+      <td style="text-align: left">VDate, VLong, VString</td>
+      <td style="text-align: left">utc date, int(millis), string(iso)</td>
     </tr>
     <tr>
-      <td align="left">Array[Byte], ByteVector </td>
-      <td align="left">VBinary, VString </td>
-      <td align="left">binary blob, string(hex) </td>
+      <td style="text-align: left">Array[Byte], ByteVector</td>
+      <td style="text-align: left">VBinary, VString</td>
+      <td style="text-align: left">binary blob, string(hex)</td>
     </tr>
     <tr>
-      <td align="left">UUID </td>
-      <td align="left">VBinary, VString </td>
-      <td align="left">binary blob, string </td>
+      <td style="text-align: left">UUID</td>
+      <td style="text-align: left">VBinary, VString</td>
+      <td style="text-align: left">binary blob, string</td>
     </tr>
     <tr>
-      <td align="left">Option[T] </td>
-      <td align="left">VNull, VPack </td>
-      <td align="left">null, vpack </td>
+      <td style="text-align: left">Option[T]</td>
+      <td style="text-align: left">VNull, VPack</td>
+      <td style="text-align: left">null, vpack</td>
     </tr>
     <tr>
-      <td align="left">Vector[T], List[T], Seq[T], Set[T], Iterable[T], Chain[T], HList </td>
-      <td align="left">VArray </td>
-      <td align="left">array </td>
+      <td style="text-align: left">Vector[T], List[T], Seq[T], Set[T], Iterable[T], Chain[T], HList</td>
+      <td style="text-align: left">VArray</td>
+      <td style="text-align: left">array</td>
     </tr>
     <tr>
-      <td align="left">Map[String, T], case classes </td>
-      <td align="left">VObject </td>
-      <td align="left">object </td>
+      <td style="text-align: left">Map[String, T], case classes</td>
+      <td style="text-align: left">VObject</td>
+      <td style="text-align: left">object</td>
     </tr>
     <tr>
-      <td align="left">Unit </td>
-      <td align="left">VNone </td>
-      <td align="left"><em>empty</em> </td>
+      <td style="text-align: left">Unit</td>
+      <td style="text-align: left">VNone</td>
+      <td style="text-align: left"><em>empty</em></td>
     </tr>
   </tbody>
 </table>
-<h2><a href="#case-class-derivation" name="case-class-derivation" class="anchor"><span class="anchor-link"></span></a>Case class derivation</h2>
-<p>With the help of magnolia, we can instantiate codecs for case classes as velocypack objects (<code>VPackDecoder.gen</code>), or arrays (<code>VPackGeneric</code>) :</p>
-<pre class="prettyprint"><code class="language-scala">import avokka.velocypack._
-import scodec.bits._
 
-case class Test(b: Boolean)
-implicit val testEncoder: VPackEncoder[Test] = VPackEncoder.gen
-// testEncoder: VPackEncoder[Test] = avokka.velocypack.VPackEncoder$$anon$2@246e76d3
-implicit val testDecoder: VPackDecoder[Test] = VPackDecoder.gen
-// testDecoder: VPackDecoder[Test] = avokka.velocypack.VPackDecoder$$anon$1@5d6f7094
+<h2 id="case-class-derivation">Case class derivation</h2>
 
-val t = Test(true)
-// t: Test = Test(true)
+<p>With the help of magnolia, we can instantiate codecs for case classes as velocypack objects (<code class="language-plaintext highlighter-rouge">VPackDecoder.gen</code>), or arrays (<code class="language-plaintext highlighter-rouge">VPackGeneric</code>) :</p>
 
-t.toVPack.toString      
-// res5: String = VObject(Map(b -&gt; VTrue))      
-t.toVPackBits.right.get
-// res6: BitVector = BitVector(56 bits, 0x0b070141621a03)
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">avokka.velocypack._</span>
+<span class="k">import</span> <span class="nn">scodec.bits._</span>
 
-hex&quot;0b070141621903&quot;.bits.asVPack[Test].right.get.value
-// res7: Test = Test(false)
-hex&quot;0a&quot;.bits.asVPack[Test].left.get                                                                                         
-// res8: VPackError = avokka.velocypack.VPackError$ObjectFieldAbsent: object field absent b                                                                                         
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Test</span><span class="o">(</span><span class="n">b</span><span class="k">:</span> <span class="kt">Boolean</span><span class="o">)</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">testEncoder</span><span class="k">:</span> <span class="kt">VPackEncoder</span><span class="o">[</span><span class="kt">Test</span><span class="o">]</span> <span class="k">=</span> <span class="nv">VPackEncoder</span><span class="o">.</span><span class="py">gen</span>
+<span class="c1">// testEncoder: VPackEncoder[Test] = avokka.velocypack.VPackEncoder$$anon$2@140f4854</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">testDecoder</span><span class="k">:</span> <span class="kt">VPackDecoder</span><span class="o">[</span><span class="kt">Test</span><span class="o">]</span> <span class="k">=</span> <span class="nv">VPackDecoder</span><span class="o">.</span><span class="py">gen</span>
+<span class="c1">// testDecoder: VPackDecoder[Test] = avokka.velocypack.VPackDecoder$$anon$1@3401c8a3</span>
 
-case class TestTrue(b: Boolean = true)                
+<span class="k">val</span> <span class="nv">t</span> <span class="k">=</span> <span class="nc">Test</span><span class="o">(</span><span class="kc">true</span><span class="o">)</span>
+<span class="c1">// t: Test = Test(true)</span>
 
-implicit val testTrueDecoder: VPackDecoder[TestTrue] = VPackDecoder.gen
-// testTrueDecoder: VPackDecoder[TestTrue] = avokka.velocypack.VPackDecoder$$anon$1@639b0f45
+<span class="nv">t</span><span class="o">.</span><span class="py">toVPack</span>      
+<span class="c1">// res5: VPack = VObject(Map(b -&gt; VTrue))      </span>
+<span class="nv">t</span><span class="o">.</span><span class="py">toVPackBits</span>
+<span class="c1">// res6: VPackResult[BitVector] = Right(BitVector(56 bits, 0x0b070141621a03))</span>
 
-hex&quot;0b070141621903&quot;.bits.asVPack[TestTrue].right.get.value             
-// res9: TestTrue = TestTrue(false)             
-hex&quot;0a&quot;.bits.asVPack[TestTrue].right.get.value                                                                                                         
-// res10: TestTrue = TestTrue(true)
-</code></pre>
-</div>
-<div>
-<a href="https://github.com/avokka/avokka/tree/master/docs/target/mdoc/velocypack.md" title="Edit this page" class="md-source-file md-edit">
-Edit this page
-</a>
-</div>
-<div class="print-only">
-<span class="md-source-file md-version">
-0.0.4*
-</span>
-</div>
-</article>
-</div>
-</div>
-</main>
-<footer class="md-footer">
-<div class="md-footer-nav">
-<nav class="md-footer-nav__inner md-grid">
-<a href="index.html" title="Avokka" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
-<div class="md-flex__cell md-flex__cell--shrink">
-<i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
-</div>
-<div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
-<span class="md-flex__ellipsis">
-<span class="md-footer-nav__direction">
-Previous
-</span>
-Avokka
-</span>
-</div>
-</a>
-</nav>
-</div>
-<div class="md-footer-meta md-typeset">
-<div class="md-footer-meta__inner md-grid">
-<div class="md-footer-copyright">
-Powered by
-<a href="https://github.com/lightbend/paradox">Paradox</a>
-and
-<a href="https://jonas.github.io/paradox-material-theme/">Paradox Material Theme</a>
+<span class="n">hex</span><span class="s">"0b070141621903"</span><span class="o">.</span><span class="py">bits</span><span class="o">.</span><span class="py">asVPack</span><span class="o">[</span><span class="kt">Test</span><span class="o">]</span>
+<span class="c1">// res7: VPackResult[scodec.DecodeResult[Test]] = Right(DecodeResult(Test(false),BitVector(empty)))</span>
+<span class="n">hex</span><span class="s">"0a"</span><span class="o">.</span><span class="py">bits</span><span class="o">.</span><span class="py">asVPack</span><span class="o">[</span><span class="kt">Test</span><span class="o">]</span>                                                                                         
+<span class="c1">// res8: VPackResult[scodec.DecodeResult[Test]] = Left(avokka.velocypack.VPackError$ObjectFieldAbsent: object field absent b)                                                                                         </span>
 
-</div>
-</div>
-</div>
-</footer>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">TestTrue</span><span class="o">(</span><span class="n">b</span><span class="k">:</span> <span class="kt">Boolean</span> <span class="o">=</span> <span class="kc">true</span><span class="o">)</span>                
 
-</div>
-<script src="assets/javascripts/application.583bbe55.js"></script>
-<script src="assets/javascripts/paradox-material-theme.js"></script>
-<script>app.initialize({version:"0.17",url:{base:"."}})</script>
-<script type="text/javascript" src="lib/prettify/prettify.js"></script>
-<script type="text/javascript" src="lib/prettify/lang-scala.js"></script>
-<script type="text/javascript">
-document.addEventListener("DOMContentLoaded", function(event) {
-window.prettyPrint && prettyPrint();
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">testTrueDecoder</span><span class="k">:</span> <span class="kt">VPackDecoder</span><span class="o">[</span><span class="kt">TestTrue</span><span class="o">]</span> <span class="k">=</span> <span class="nv">VPackDecoder</span><span class="o">.</span><span class="py">gen</span>
+<span class="c1">// testTrueDecoder: VPackDecoder[TestTrue] = avokka.velocypack.VPackDecoder$$anon$1@4ab94f54</span>
+
+<span class="n">hex</span><span class="s">"0b070141621903"</span><span class="o">.</span><span class="py">bits</span><span class="o">.</span><span class="py">asVPack</span><span class="o">[</span><span class="kt">TestTrue</span><span class="o">]</span>            
+<span class="c1">// res9: VPackResult[scodec.DecodeResult[TestTrue]] = Right(DecodeResult(TestTrue(false),BitVector(empty)))            </span>
+<span class="n">hex</span><span class="s">"0a"</span><span class="o">.</span><span class="py">bits</span><span class="o">.</span><span class="py">asVPack</span><span class="o">[</span><span class="kt">TestTrue</span><span class="o">]</span>                                                                                                         
+<span class="c1">// res10: VPackResult[scodec.DecodeResult[TestTrue]] = Right(DecodeResult(TestTrue(true),BitVector(empty)))</span>
+</code></pre></div></div>
+</section></div></div></div></div><script src="/avokka/highlight/highlight.pack.js"></script><script>
+// For all code blocks, copy the language from the containing div
+// to the inner code tag (where hljs expects it to be)
+const langPrefix = 'language-';
+document.querySelectorAll(`div[class^='${langPrefix}']`).forEach(function(div) {
+  div.classList.forEach(function(cssClass) {
+    if (cssClass.startsWith(langPrefix)) {
+      const lang = cssClass.substring(langPrefix.length);
+      div.querySelectorAll('pre code').forEach(function(code) {
+        code.classList.add(lang);
+      });
+    }
+  });
 });
-</script>
-</body>
-</html>
+
+hljs.configure({languages:['scala','java','bash']});
+hljs.initHighlightingOnLoad();
+      </script><script>console.info('\x57\x65\x62\x73\x69\x74\x65\x20\x62\x75\x69\x6c\x74\x20\x77\x69\x74\x68\x3a\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x5f\x20\x20\x20\x20\x5f\x5f\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x20\x5f\x5f\x0a\x20\x20\x20\x5f\x5f\x5f\x5f\x5f\x2f\x20\x2f\x5f\x20\x20\x2f\x20\x2f\x5f\x20\x20\x20\x20\x20\x20\x5f\x5f\x5f\x5f\x20\x5f\x5f\x5f\x20\x20\x28\x5f\x29\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x20\x20\x5f\x5f\x5f\x5f\x5f\x28\x5f\x29\x20\x2f\x5f\x5f\x5f\x5f\x20\x20\x5f\x5f\x5f\x5f\x5f\x0a\x20\x20\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x5c\x2f\x20\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x60\x5f\x5f\x20\x5c\x2f\x20\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x5c\x2f\x20\x5f\x5f\x5f\x2f\x20\x2f\x20\x5f\x5f\x2f\x20\x5f\x20\x5c\x2f\x20\x5f\x5f\x5f\x2f\x0a\x20\x28\x5f\x5f\x20\x20\x29\x20\x2f\x5f\x2f\x20\x2f\x20\x2f\x5f\x2f\x5f\x5f\x5f\x5f\x5f\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x5f\x5f\x2f\x20\x2f\x20\x20\x2f\x20\x2f\x5f\x2f\x20\x28\x5f\x5f\x20\x20\x29\x20\x2f\x20\x2f\x5f\x2f\x20\x20\x5f\x5f\x28\x5f\x5f\x20\x20\x29\x0a\x2f\x5f\x5f\x5f\x5f\x2f\x5f\x2e\x5f\x5f\x5f\x2f\x5c\x5f\x5f\x2f\x20\x20\x20\x20\x20\x2f\x5f\x2f\x20\x2f\x5f\x2f\x20\x2f\x5f\x2f\x5f\x2f\x5c\x5f\x5f\x5f\x2f\x5f\x2f\x20\x20\x20\x5c\x5f\x5f\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x2f\x5f\x2f\x5c\x5f\x5f\x2f\x5c\x5f\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x2f\x0a\x0a\x68\x74\x74\x70\x73\x3a\x2f\x2f\x34\x37\x64\x65\x67\x2e\x67\x69\x74\x68\x75\x62\x2e\x69\x6f\x2f\x73\x62\x74\x2d\x6d\x69\x63\x72\x6f\x73\x69\x74\x65\x73')</script><script src="/avokka/js/search.js"></script><script src="/avokka/js/docs.js"></script></body></html>

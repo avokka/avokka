@@ -146,6 +146,7 @@ lazy val site = (project in file("site"))
     name := "avokka-site",
     publishArtifact := false,
     skip in publish := true,
+    version := version.value.takeWhile(_ != '+'),
     scalacOptions -= "-Xfatal-warnings",
     mdocExtraArguments := Seq("--no-link-hygiene"),
     mdocVariables := Map(

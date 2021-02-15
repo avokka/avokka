@@ -19,10 +19,7 @@ The *codecs* package includes the scodec codecs for VPack values: `VPack => Atte
 SBT configuration :
 
 ```scala
-// avokka is published at bintray
-resolvers += Resolver.bintrayRepo("avokka", "maven")
-
-libraryDependencies += "avokka" %% "avokka-velocypack" % "@VERSION@"
+libraryDependencies += "com.bicou" %% "avokka-velocypack" % "@VERSION@"
 ```
 
 ## Usage

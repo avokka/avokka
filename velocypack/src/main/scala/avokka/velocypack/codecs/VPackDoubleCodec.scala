@@ -29,6 +29,6 @@ private[codecs] object VPackDoubleCodec {
 
   private[codecs] val codec: Codec[VDouble] = Codec(encoder, vpackDecoder.emap({
     case v: VDouble => v.pure[Attempt]
-    case _          => Err("not a vpack double").raiseError
+    case _          => Err("not a vpack double").raiseError[Attempt, VDouble]
   }))
 }

@@ -2,6 +2,7 @@ package avokka.arangodb
 package api
 
 import avokka.velocypack._
+import types._
 
 object DatabaseDrop { self =>
 
@@ -10,7 +11,7 @@ object DatabaseDrop { self =>
   )
 
   object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
+    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
   implicit val api: Api.EmptyBody.Aux[ArangoDatabase, DatabaseDrop.type, Response] =

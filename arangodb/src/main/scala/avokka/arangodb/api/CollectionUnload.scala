@@ -1,6 +1,8 @@
 package avokka.arangodb
 package api
 
+import types._
+
 final case class CollectionUnload(
     name: CollectionName
 )

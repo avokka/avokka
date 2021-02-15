@@ -1,9 +1,7 @@
 package avokka.velocypack
 
 import java.time.Instant
-
 import cats.Show
-import cats.instances.double._
 import cats.syntax.contravariant._
 import VPack._
 
@@ -59,4 +57,5 @@ trait ShowInstances {
   }
 
   implicit val vpackErrorShow: Show[VPackError] = Show.fromToString[VPackError]
+
 }

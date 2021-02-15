@@ -2,6 +2,7 @@ package avokka.arangodb
 package api
 
 import avokka.velocypack._
+import types._
 
 final case class Version(
     details: Boolean = false
@@ -29,7 +30,7 @@ object Version { self =>
   )
 
   object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoderWithDefaults
+    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
   implicit val api: Api.EmptyBody.Aux[ArangoSession, Version, Response] = new Api.EmptyBody[ArangoSession, Version] {

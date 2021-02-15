@@ -1,6 +1,7 @@
 package avokka.arangodb
 
 import avokka.arangodb.api.Api
+import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
 
 final case class ArangoRequest[T](

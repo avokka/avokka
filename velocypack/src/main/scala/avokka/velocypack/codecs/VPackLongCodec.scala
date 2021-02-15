@@ -58,7 +58,7 @@ private[codecs] object VPackLongCodec {
 
   private[codecs] val codec: Codec[VLong] = Codec(encoder, vpackDecoder.emap({
     case v: VLong => v.pure[Attempt]
-    case _        => Err("not a vpack long").raiseError
+    case _        => Err("not a vpack long").raiseError[Attempt, VLong]
   }))
 
 }

@@ -1,7 +1,6 @@
 package avokka.arangodb.syntax
 
 import scala.language.experimental.macros
-import scala.language.implicitConversions
 import scala.reflect.macros.whitebox
 
 class StringContextOps(sc: StringContext) {

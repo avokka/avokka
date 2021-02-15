@@ -30,6 +30,6 @@ private[codecs] object VPackDateCodec {
 
   private[codecs] val codec: Codec[VDate] = Codec(encoder, vpackDecoder.emap({
     case v: VDate => v.pure[Attempt]
-    case _        => Err("not a vpack date").raiseError
+    case _        => Err("not a vpack date").raiseError[Attempt, VDate]
   }))
 }

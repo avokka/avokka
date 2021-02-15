@@ -1,8 +1,7 @@
 package avokka.velocypack
 
-import cats.syntax.either._
+import avokka.velocypack.VPack.VArray
 import shapeless.{::, Generic, HList, HNil}
-import VPack.VArray
 
 object VPackGeneric { c =>
 
@@ -12,7 +11,7 @@ object VPackGeneric { c =>
 
   private[velocypack] object Encoder {
 
-    def apply[A <: HList](compact: Boolean = false)(
+    def apply[A <: HList](
       implicit ev: Encoder[A]
     ): VPackEncoder[A] = value => VArray(ev.encode(value))
 
@@ -28,18 +27,18 @@ object VPackGeneric { c =>
 
   }
 
-  private[velocypack] trait Decoder[A <: HList] {
-    def decode(v: Vector[VPack]): Result[A]
+  trait Decoder[A <: HList] {
+    def decode(v: Vector[VPack]): VPackResult[A]
   }
 
   private[velocypack] object Decoder {
     def apply[A <: HList](implicit ev: Decoder[A]): VPackDecoder[A] = {
       case VArray(values) => ev.decode(values)
-      case v              => VPackError.WrongType(v).asLeft
+      case v              => Left(VPackError.WrongType(v))
     }
 
-    implicit object hnilDecoder extends Decoder[HNil] {
-      override def decode(v: Vector[VPack]): Result[HNil] = HNil.asRight
+    implicit val hnilDecoder: Decoder[HNil] = new Decoder[HNil] {
+      override def decode(v: Vector[VPack]): VPackResult[HNil] = Right(HNil)
     }
 
     implicit def hconsDecoder[T, A <: HList](
@@ -52,14 +51,14 @@ object VPackGeneric { c =>
           rr <- ev.decode(tail)
         } yield rl :: rr
 
-      case _ => VPackError.NotEnoughElements().asLeft
+      case _ => Left(VPackError.NotEnoughElements())
     }
   }
 
-  private[velocypack] class DeriveHelper[T] {
+  private[velocypack] final class DeriveHelper[T](private val dummy: Boolean = false) extends AnyVal {
 
     def encoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: Encoder[R]): VPackEncoder[T] =
-      Encoder()(vp).contramap(gen.to)
+      Encoder(vp).contramap(gen.to)
 
     def decoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: Decoder[R]): VPackDecoder[T] =
       Decoder(vp).map(gen.from)

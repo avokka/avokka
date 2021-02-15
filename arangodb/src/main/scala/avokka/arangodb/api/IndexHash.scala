@@ -2,6 +2,7 @@ package avokka.arangodb
 package api
 
 import avokka.velocypack._
+import types._
 
 /**
   * Creates a hash index for the collection collection-name if it
@@ -35,7 +36,7 @@ final case class IndexHash(
 
 object IndexHash { self =>
 
-  implicit val encoder: VPackEncoder[IndexHash] = VPackRecord[IndexHash].encoder
+  implicit val encoder: VPackEncoder[IndexHash] = VPackEncoder.gen
 
   implicit val api: Api.Command.Aux[ArangoDatabase, IndexHash, Index.Response] =
     new Api.Command[ArangoDatabase, IndexHash] {

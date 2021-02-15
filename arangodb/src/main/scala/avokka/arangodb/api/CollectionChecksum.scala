@@ -2,6 +2,7 @@ package avokka.arangodb
 package api
 
 import avokka.velocypack._
+import types._
 
 /**
   * Will calculate a checksum of the meta-data (keys and optionally revision ids) and
@@ -39,7 +40,7 @@ object CollectionChecksum { self =>
   )
 
   object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
+    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
   implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionChecksum, Response] =

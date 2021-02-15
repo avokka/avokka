@@ -1,7 +1,6 @@
 package avokka.arangodb
 
 import avokka.velocypack.{VPackDecoder, VPackEncoder, VPackError}
-import cats.syntax.either._
 
 sealed abstract class RequestType(val i: Int) extends Product with Serializable
 
@@ -16,14 +15,14 @@ object RequestType {
   case object OPTIONS extends RequestType(6)
 
   implicit val encoder: VPackEncoder[RequestType] = VPackEncoder[Int].contramap(_.i)
-  implicit val decoder: VPackDecoder[RequestType] = VPackDecoder[Int].emap {
-    case DELETE.i  => DELETE.asRight
-    case GET.i     => GET.asRight
-    case POST.i    => POST.asRight
-    case PUT.i     => PUT.asRight
-    case HEAD.i    => HEAD.asRight
-    case PATCH.i   => PATCH.asRight
-    case OPTIONS.i => OPTIONS.asRight
-    case i         => VPackError.IllegalValue(s"unknown request type $i").asLeft
+  implicit val decoder: VPackDecoder[RequestType] = VPackDecoder[Int].flatMap {
+    case DELETE.i  => Right(DELETE)
+    case GET.i     => Right(GET)
+    case POST.i    => Right(POST)
+    case PUT.i     => Right(PUT)
+    case HEAD.i    => Right(HEAD)
+    case PATCH.i   => Right(PATCH)
+    case OPTIONS.i => Right(OPTIONS)
+    case i         => Left(VPackError.IllegalValue(s"unknown request type $i"))
   }
 }

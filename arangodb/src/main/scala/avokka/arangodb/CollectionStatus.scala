@@ -1,7 +1,6 @@
 package avokka.arangodb
 
 import avokka.velocypack.{VPackDecoder, VPackEncoder, VPackError}
-import cats.syntax.either._
 
 sealed abstract class CollectionStatus(val i: Int) extends Product with Serializable
 
@@ -16,14 +15,14 @@ object CollectionStatus {
   case object Loading extends CollectionStatus(6)
 
   implicit val encoder: VPackEncoder[CollectionStatus] = VPackEncoder[Int].contramap(_.i)
-  implicit val decoder: VPackDecoder[CollectionStatus] = VPackDecoder[Int].emap {
-    case Unknown.i   => Unknown.asRight
-    case NewBorn.i   => NewBorn.asRight
-    case Unloaded.i  => Unloaded.asRight
-    case Loaded.i    => Loaded.asRight
-    case Unloading.i => Unloading.asRight
-    case Deleted.i   => Deleted.asRight
-    case Loading.i   => Loading.asRight
-    case i           => VPackError.IllegalValue(s"unknown collection status $i").asLeft
+  implicit val decoder: VPackDecoder[CollectionStatus] = VPackDecoder[Int].flatMap {
+    case Unknown.i   => Right(Unknown)
+    case NewBorn.i   => Right(NewBorn)
+    case Unloaded.i  => Right(Unloaded)
+    case Loaded.i    => Right(Loaded)
+    case Unloading.i => Right(Unloading)
+    case Deleted.i   => Right(Deleted)
+    case Loading.i   => Right(Loading)
+    case i           => Left(VPackError.IllegalValue(s"unknown collection status $i"))
   }
 }

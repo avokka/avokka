@@ -14,7 +14,7 @@ object GraphList { self =>
       graphs: Vector[GraphInfo.GraphRepresentation]
   )
   object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
+    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
   implicit val api: Api.EmptyBody.Aux[ArangoDatabase, GraphList, Response] =

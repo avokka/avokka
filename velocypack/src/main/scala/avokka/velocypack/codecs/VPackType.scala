@@ -19,6 +19,11 @@ private sealed trait VPackType extends Product with Serializable {
     * @return the bitvector of the head
     */
   lazy val bits: BitVector = BitVector(header)
+
+  /**
+    * @return type name
+    */
+  def name: String
 }
 
 private object VPackType {
@@ -53,15 +58,21 @@ private object VPackType {
   sealed abstract class SingleByte(override val header: Int, val singleton: VPack) extends VPackType
 
   /** 0x00 : none - this indicates absence of any type and value, this is not allowed in VPack values */
-  case object NoneType extends VPackType { override val header: Int = 0x00 }
+  case object NoneType extends VPackType {
+    override val header: Int = 0x00
+    override val name: String = "none"
+  }
 
   /** 0x01 : empty array */
-  case object ArrayEmptyType extends SingleByte(0x01, VPack.VArray.empty)
+  case object ArrayEmptyType extends SingleByte(0x01, VPack.VArray.empty) {
+    override val name: String = "array(empty)"
+  }
 
   /** 0x02-0x05 : array without index table (all subitems have the same byte length), [1,2,4,8]-byte byte length */
   final case class ArrayUnindexedType(override val header: Int) extends CompoundType(ArrayUnindexedType.minByte) {
     import ArrayUnindexedType._
     require(header >= minByte && header <= maxByte)
+    override val name: String = "array(unindexed)"
   }
   object ArrayUnindexedType {
     val minByte = 0x02
@@ -72,6 +83,7 @@ private object VPackType {
   final case class ArrayIndexedType(override val header: Int) extends CompoundType(ArrayIndexedType.minByte) {
     import ArrayIndexedType._
     require(header >= minByte && header <= maxByte)
+    override val name: String = "array(indexed)"
   }
   object ArrayIndexedType {
     val minByte = 0x06
@@ -79,7 +91,9 @@ private object VPackType {
   }
 
   /** 0x0a : empty object */
-  case object ObjectEmptyType extends SingleByte(0x0a, VPack.VObject.empty)
+  case object ObjectEmptyType extends SingleByte(0x0a, VPack.VObject.empty) {
+    override val name: String = "object(empty)"
+  }
 
   /** object with data */
   private[codecs] sealed trait ObjectType extends VPackType with WithLength
@@ -88,6 +102,7 @@ private object VPackType {
   final case class ObjectSortedType(override val header: Int) extends CompoundType(ObjectSortedType.minByte) with ObjectType {
     import ObjectSortedType._
     require(header >= minByte && header <= maxByte)
+    override val name: String = "object(sorted)"
   }
   object ObjectSortedType {
     val minByte = 0x0b
@@ -98,6 +113,7 @@ private object VPackType {
   final case class ObjectUnsortedType(override val header: Int) extends CompoundType(ObjectUnsortedType.minByte) with ObjectType {
     import ObjectUnsortedType._
     require(header >= minByte && header <= maxByte)
+    override val name: String = "object(unsorted)"
   }
   object ObjectUnsortedType {
     val minByte = 0x0f
@@ -107,45 +123,61 @@ private object VPackType {
   /** 0x13 : compact array, no index table */
   case object ArrayCompactType extends VPackType {
     override val header: Int = 0x13
+    override val name: String = "array(compact)"
   }
 
   /** 0x14 : compact object, no index table */
   case object ObjectCompactType extends VPackType {
     override val header: Int = 0x14
+    override val name: String = "object(compact)"
   }
 
   // 0x15-0x16 : reserved
 
   /** 0x17 : illegal - this type can be used to indicate a value that is illegal in the embedding application */
-  case object IllegalType extends SingleByte(0x17, VPack.VIllegal)
+  case object IllegalType extends SingleByte(0x17, VPack.VIllegal) {
+    override val name: String = "illegal"
+  }
 
   /** 0x18 : null */
-  case object NullType extends SingleByte(0x18, VPack.VNull)
+  case object NullType extends SingleByte(0x18, VPack.VNull) {
+    override val name: String = "null"
+  }
 
   /** 0x19 : false */
-  case object FalseType extends SingleByte(0x19, VPack.VFalse)
+  case object FalseType extends SingleByte(0x19, VPack.VFalse) {
+    override val name: String = "false"
+  }
 
   /** 0x1a : true */
-  case object TrueType extends SingleByte(0x1a, VPack.VTrue)
+  case object TrueType extends SingleByte(0x1a, VPack.VTrue) {
+    override val name: String = "true"
+  }
 
   /** 0x1b : double IEEE-754, 8 bytes follow, stored as little endian uint64 equivalent */
   case object DoubleType extends VPackType {
     override val header: Int = 0x1b
+    override val name: String = "double"
   }
 
   /** 0x1c : UTC-date in milliseconds since the epoch, stored as 8 byte signed int, little endian, two's complement */
   case object DateType extends VPackType {
     override val header: Int = 0x1c
+    override val name: String = "date"
   }
 
   // 0x1d : external (only in memory): a char* pointing to the actual place in memory, where another VPack item resides,
   // not allowed in VPack values on disk or on the network
 
   /** 0x1e : minKey, nonsensical value that compares < than all other values */
-  case object MinKeyType extends SingleByte(0x1e, VPack.VMinKey)
+  case object MinKeyType extends SingleByte(0x1e, VPack.VMinKey) {
+    override val name: String = "min-key"
+  }
 
   /** 0x1f : maxKey, nonsensical value that compares > than all other values */
-  case object MaxKeyType extends SingleByte(0x1f, VPack.VMaxKey)
+  case object MaxKeyType extends SingleByte(0x1f, VPack.VMaxKey) {
+    override val name: String = "max-key"
+  }
 
   private[codecs] sealed abstract class IntType(minByte: Int) extends VPackType with WithLength {
     override val lengthSize: Int = header - minByte + 1
@@ -156,6 +188,7 @@ private object VPackType {
   final case class IntSignedType(override val header: Int) extends IntType(IntSignedType.minByte) {
     import IntSignedType._
     require(header >= minByte && header <= maxByte)
+    override val name: String = "int(signed)"
   }
   object IntSignedType {
     val minByte = 0x20
@@ -166,6 +199,7 @@ private object VPackType {
   final case class IntUnsignedType(override val header: Int) extends IntType(IntUnsignedType.minByte) {
     import IntUnsignedType._
     require(header >= minByte && header <= maxByte)
+    override val name: String = "int(unsigned)"
   }
   object IntUnsignedType {
     val minByte = 0x28
@@ -176,6 +210,7 @@ private object VPackType {
   final case class SmallintPositiveType(override val header: Int) extends VPackType {
     import SmallintPositiveType._
     require(header >= minByte && header <= maxByte)
+    override val name: String = "smallint(positive)"
   }
   object SmallintPositiveType {
     val minByte = 0x30
@@ -186,6 +221,7 @@ private object VPackType {
   final case class SmallintNegativeType(override val header: Int) extends VPackType {
     import SmallintNegativeType._
     require(header >= minByte && header <= maxByte)
+    override val name: String = "smallint(negative)"
   }
   object SmallintNegativeType {
     val minByte = 0x3a
@@ -205,7 +241,8 @@ private object VPackType {
     import StringShortType._
     require(header >= minByte && header <= maxByte)
     override val lengthSize: Int = 0
-    override val lengthDecoder: Decoder[Long] = provide(header - minByte)
+    override val lengthDecoder: Decoder[Long] = provide((header - minByte).toLong)
+    override val name: String = "string(short)"
   }
 
   object StringShortType {
@@ -227,6 +264,7 @@ private object VPackType {
     override val header: Int = 0xbf
     override val lengthSize: Int = 8
     override val lengthDecoder: Decoder[Long] = int64L
+    override val name: String = "string(long)"
   }
 
   /** 0xc0-0xc7 : binary blob, next V - 0xbf bytes are the length of blob in bytes note that binary blobs are not zero-terminated */
@@ -235,6 +273,7 @@ private object VPackType {
     require(header >= minByte && header <= maxByte)
     override val lengthSize: Int = header - minByte + 1
     override val lengthDecoder: Decoder[Long] = ulongLA(8 * lengthSize)
+    override val name: String = "binary"
   }
   object BinaryType {
     val minByte = 0xc0

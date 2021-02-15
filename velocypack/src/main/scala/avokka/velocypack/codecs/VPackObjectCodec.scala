@@ -4,7 +4,6 @@ package codecs
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
 import cats.syntax.traverse._
-import cats.instances.vector._
 import scodec.bits.BitVector
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
@@ -25,7 +24,7 @@ private[codecs] object VPackObjectCodec extends VPackCompoundCodec {
       case VSmallint(3) => "_id".pure[Attempt]
       case VSmallint(4) => "_from".pure[Attempt]
       case VSmallint(5) => "_to".pure[Attempt]
-      case v            => Err(s"not a key: $v").raiseError
+      case v            => Err(s"not a key: $v").raiseError[Attempt, String]
     })
   )
 
@@ -57,7 +56,7 @@ private[codecs] object VPackObjectCodec extends VPackCompoundCodec {
           indexTable = offsets.view.mapValues(_ + headBytes)
 
           len = ulongBytes(headBytes + valuesBytes + lengthBytes * offsets.size, lengthBytes)
-          nr = ulongBytes(offsets.size, lengthBytes)
+          nr = ulongBytes(offsets.size.toLong, lengthBytes)
           sor = if (sorted) SortedMap(indexTable.toSeq: _*) else indexTable
           index = sor.foldLeft(BitVector.empty)((b, l) => b ++ ulongBytes(l._2, lengthBytes))
 
@@ -117,7 +116,7 @@ private[codecs] object VPackObjectCodec extends VPackCompoundCodec {
 
   private[codecs] val decoder: Decoder[VObject] = vpackDecoder.emap({
     case v: VObject => v.pure[Attempt]
-    case _          => Err("not a vpack object").raiseError
+    case _          => Err("not a vpack object").raiseError[Attempt, VObject]
   })
 
   private[codecs] val codecSorted: Codec[VObject] = Codec(encoderSorted, decoder)

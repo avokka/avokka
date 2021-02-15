@@ -4,10 +4,12 @@ package codecs
 import scodec.Attempt
 import scodec.bits.BitVector
 
+import scala.annotation.switch
+
 private trait VPackCompoundCodec {
 
   protected def lengthUtils(l: Long): (Int, Int) = {
-    ulongLength(l) match {
+    (ulongLength(l): @switch) match {
       case 1     => (1, 0)
       case 2     => (2, 1)
       case 3 | 4 => (4, 2)
@@ -19,7 +21,7 @@ private trait VPackCompoundCodec {
     val valuesAll = values.fold(BitVector.empty)(_ ++ _)
     val valuesBytes = valuesAll.size / 8
     for {
-      nr <- VPackVLongCodec.encode(values.length)
+      nr <- VPackVLongCodec.encode(values.length.toLong)
       lengthBase = 1 + valuesBytes + nr.size / 8
       lengthBaseL = vlongLength(lengthBase)
       lengthT = lengthBase + lengthBaseL

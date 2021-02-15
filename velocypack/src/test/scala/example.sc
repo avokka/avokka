@@ -1,5 +1,7 @@
 import avokka.velocypack._
 
+import scala.util.Try
+
 val b: Boolean = true
 
 b.toVPack
@@ -25,7 +27,7 @@ t.toVPack
 t.toVPackBits.right.get
 
 hex"0b070141621903".bits.asVPack[Test].right.get.value
-hex"0a".bits.asVPack[Test].left.get
+hex"0a".bits.asVPack[Test]
 
 case class TestTrue(b: Boolean = true)
 implicit val testTrueDecoder: VPackDecoder[TestTrue] = VPackRecord[TestTrue].decoderWithDefaults

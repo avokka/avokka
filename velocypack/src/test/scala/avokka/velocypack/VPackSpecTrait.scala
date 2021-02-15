@@ -30,6 +30,6 @@ trait VPackSpecTrait extends Matchers { self: Assertions =>
     if (echo) {
       println(e.bits(t).right.value)
     }
-    d.decode(e.bits(t).right.value).right.value.value should be (t)
+    d.decodeBits(e.bits(t).right.value).right.value.value should be (t)
   }
 }

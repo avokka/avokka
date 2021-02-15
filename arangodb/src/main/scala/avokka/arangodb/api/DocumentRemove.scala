@@ -2,6 +2,7 @@ package avokka.arangodb
 package api
 
 import avokka.velocypack._
+import types._
 
 /**
   * Removes a document
@@ -31,7 +32,7 @@ final case class DocumentRemove[T](
   def meta: Map[String, String] = {
     val m = Map.newBuilder[String, String]
     ifMatch.foreach(m += "If-Match" -> _)
-    m.result
+    m.result()
   }
 }
 

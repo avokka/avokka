@@ -81,9 +81,6 @@ object VPackRecordSpec {
 
   implicit val arbitrayVR: Arbitrary[VersionResponse] = Arbitrary(Gen.resultOf(VersionResponse.tupled))
 
-
-//  val VersionResponseEncoderM: VPackEncoder[VersionResponse] = VPackEncoder.derive
-
   val VersionResponseEncoder: VPackEncoder[VersionResponse] = VPackRecord[VersionResponse].encoder
   val VersionResponseDecoder: VPackDecoder[VersionResponse] = VPackRecord[VersionResponse].decoder
 

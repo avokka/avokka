@@ -2,6 +2,7 @@ package avokka.arangodb
 package api
 
 import avokka.velocypack._
+import types._
 
 final case class CollectionProperties(
     name: CollectionName
@@ -23,7 +24,7 @@ object CollectionProperties { self =>
   )
 
   object KeyOptions {
-    implicit val decoder: VPackDecoder[KeyOptions] = VPackRecord[KeyOptions].decoderWithDefaults
+    implicit val decoder: VPackDecoder[KeyOptions] = VPackDecoder.gen
   }
 
   /**
@@ -71,7 +72,7 @@ object CollectionProperties { self =>
   )
 
   object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoderWithDefaults
+    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
   implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionProperties, Response] =

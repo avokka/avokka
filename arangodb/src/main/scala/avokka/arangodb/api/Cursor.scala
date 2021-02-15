@@ -67,11 +67,10 @@ object Cursor { self =>
   )
 
   object Options {
-    implicit val encoder: VPackEncoder[Options] = VPackRecord[Options].encoder
+    implicit val encoder: VPackEncoder[Options] = VPackEncoder.gen
   }
 
-  implicit def encoder[V: VPackEncoder, T]: VPackEncoder[Cursor[V, T]] =
-    VPackRecord[Cursor[V, T]].encoder
+  implicit def encoder[V: VPackEncoder, T]: VPackEncoder[Cursor[V, T]] = VPackEncoder.gen
 
   final case class ExtraStats(
       writesExecuted: Option[Long] = None,
@@ -85,14 +84,14 @@ object Cursor { self =>
       peakMemoryUsage: Option[Long] = None
   )
   object ExtraStats {
-    implicit val decoder: VPackDecoder[ExtraStats] = VPackRecord[ExtraStats].decoderWithDefaults
+    implicit val decoder: VPackDecoder[ExtraStats] = VPackDecoder.gen
   }
 
   final case class Extra(
       stats: ExtraStats
   )
   object Extra {
-    implicit val decoder: VPackDecoder[Extra] = VPackRecord[Extra].decoderWithDefaults
+    implicit val decoder: VPackDecoder[Extra] = VPackDecoder.gen
   }
 
   /**
@@ -113,8 +112,7 @@ object Cursor { self =>
   )
 
   object Response {
-    implicit def decoder[T: VPackDecoder]: VPackDecoder[Response[T]] =
-      VPackRecord[Response[T]].decoderWithDefaults
+    implicit def decoder[T: VPackDecoder]: VPackDecoder[Response[T]] = VPackDecoder.gen
   }
 
   implicit def api[V: VPackEncoder, T: VPackDecoder]

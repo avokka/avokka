@@ -8,14 +8,14 @@ class VPackGenericSpec extends AnyFlatSpec with VPackSpecTrait {
   import VPackGenericSpec._
 
   type R = String :: Boolean :: HNil
-  val requestE: VPackEncoder[R] = VPackGeneric.Encoder[R]()
+  val requestE: VPackEncoder[R] = VPackGeneric.Encoder[R]
   val requestD: VPackDecoder[R] = VPackGeneric.Decoder[R]
-  val requestsE = VPackGeneric.Encoder[R :: R :: HNil]()
+  val requestsE = VPackGeneric.Encoder[R :: R :: HNil]
   val requestsD = VPackGeneric.Decoder[R :: R :: HNil]
-  val compactE = VPackGeneric.Encoder[Int :: Boolean :: HNil](true)
+  val compactE = VPackGeneric.Encoder[Int :: Boolean :: HNil]
 
   "hnil" should "encode to empty array" in {
-    val c = VPackGeneric.Encoder[HNil]()
+    val c = VPackGeneric.Encoder[HNil]
     assertEnc(c, HNil, VArray.empty)
   }
 

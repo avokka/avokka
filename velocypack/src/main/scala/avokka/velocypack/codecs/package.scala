@@ -89,6 +89,7 @@ package object codecs {
     case t: StringLongType.type                                        => VPackStringCodec.decoder(t)
     case t: BinaryType                                                 => VPackBinaryCodec.decoder(t)
     case t: SingleByte                                                 => provide(t.singleton)
+    case NoneType                                                      => fail(Err("absence of type is not allowed in values"))
   }
 
   val vpackCodec: Codec[VPack] = Codec(vpackEncoder, vpackDecoder)

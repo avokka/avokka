@@ -17,7 +17,7 @@ object CollectionList { self =>
       result: Vector[CollectionInfo.Response]
   )
   object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoderWithDefaults
+    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
   implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionList, Response] =

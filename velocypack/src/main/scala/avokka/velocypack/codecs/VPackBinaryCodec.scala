@@ -37,6 +37,6 @@ private[codecs] object VPackBinaryCodec {
 
   private[codecs] val codec: Codec[VBinary] = Codec(encoder, vpackDecoder.emap({
     case v: VBinary => v.pure[Attempt]
-    case _          => Err("not a vpack binary").raiseError
+    case _          => Err("not a vpack binary").raiseError[Attempt, VBinary]
   }))
 }

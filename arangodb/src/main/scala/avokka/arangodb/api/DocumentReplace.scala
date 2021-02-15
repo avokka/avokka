@@ -2,6 +2,7 @@ package avokka.arangodb
 package api
 
 import avokka.velocypack._
+import types._
 
 /**
   * @param handle document handle
@@ -34,7 +35,7 @@ final case class DocumentReplace[T](
   def meta: Map[String, String] = {
     val m = Map.newBuilder[String, String]
     ifMatch.foreach(m += "If-Match" -> _)
-    m.result
+    m.result()
   }
 }
 

@@ -1,7 +1,6 @@
 package avokka.arangodb
 
 import avokka.velocypack.{VPackDecoder, VPackEncoder, VPackError}
-import cats.syntax.either._
 
 sealed abstract class MessageType(val i: Int) extends Product with Serializable
 
@@ -13,11 +12,11 @@ object MessageType {
   case object Authentication extends MessageType(1000)
 
   implicit val encoder: VPackEncoder[MessageType] = VPackEncoder[Int].contramap(_.i)
-  implicit val decoder: VPackDecoder[MessageType] = VPackDecoder[Int].emap {
-    case Request.i        => Request.asRight
-    case ResponseFinal.i  => ResponseFinal.asRight
-    case ResponseChunk.i  => ResponseChunk.asRight
-    case Authentication.i => Authentication.asRight
-    case i                => VPackError.IllegalValue(s"unknown message type $i").asLeft
+  implicit val decoder: VPackDecoder[MessageType] = VPackDecoder[Int].flatMap {
+    case Request.i        => Right(Request)
+    case ResponseFinal.i  => Right(ResponseFinal)
+    case ResponseChunk.i  => Right(ResponseChunk)
+    case Authentication.i => Right(Authentication)
+    case i                => Left(VPackError.IllegalValue(s"unknown message type $i"))
   }
 }

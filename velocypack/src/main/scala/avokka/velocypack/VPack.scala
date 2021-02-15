@@ -15,7 +15,7 @@ sealed trait VPack extends Any with Product with Serializable {
    * @tparam T decoded type
    * @return either error or T value
    */
-  def as[T](implicit decoder: VPackDecoder[T]): Result[T] = decoder.decode(this)
+  def as[T](implicit decoder: VPackDecoder[T]): VPackResult[T] = decoder.decode(this)
 
   /**
    * the value is empty (none, null, "", [], {})
@@ -23,6 +23,11 @@ sealed trait VPack extends Any with Product with Serializable {
    */
   def isEmpty: Boolean
 
+  /**
+    * type name
+    * @return
+    */
+  def name: String
 }
 
 object VPack {
@@ -33,6 +38,7 @@ object VPack {
    */
   case object VNone extends VPack {
     override val isEmpty: Boolean = true
+    override val name: String = "none"
   }
 
   /**
@@ -40,6 +46,7 @@ object VPack {
    */
   case object VIllegal extends VPack {
     override val isEmpty: Boolean = false
+    override val name: String = "illegal"
   }
 
   /**
@@ -47,6 +54,7 @@ object VPack {
    */
   case object VNull extends VPack {
     override val isEmpty: Boolean = true
+    override val name: String = "null"
   }
 
   /**
@@ -59,9 +67,11 @@ object VPack {
 
   case object VFalse extends VBoolean {
     override val value = false
+    override val name: String = "false"
   }
   case object VTrue extends VBoolean {
     override val value = true
+    override val name: String = "true"
   }
 
   /**
@@ -70,6 +80,7 @@ object VPack {
    */
   final case class VDouble(value: Double) extends AnyVal with VPack {
     override def isEmpty: Boolean = false
+    override def name: String = "double"
   }
 
   /**
@@ -78,6 +89,7 @@ object VPack {
    */
   final case class VDate(value: Long) extends AnyVal with VPack {
     override def isEmpty: Boolean = false
+    override def name: String = "date"
   }
 
   /**
@@ -85,6 +97,7 @@ object VPack {
    */
   case object VMinKey extends VPack {
     override val isEmpty: Boolean = false
+    override val name: String = "min-key"
   }
 
   /**
@@ -92,6 +105,7 @@ object VPack {
    */
   case object VMaxKey extends VPack {
     override val isEmpty: Boolean = false
+    override val name: String = "max-key"
   }
 
   /**
@@ -100,6 +114,7 @@ object VPack {
    */
   final case class VSmallint(value: Byte) extends AnyVal with VPack {
     override def isEmpty: Boolean = false
+    override def name: String = "smallint"
   }
 
   object VSmallint {
@@ -116,6 +131,7 @@ object VPack {
    */
   final case class VLong(value: Long) extends AnyVal with VPack {
     override def isEmpty: Boolean = false
+    override def name: String = "int"
   }
 
   /**
@@ -124,6 +140,7 @@ object VPack {
    */
   final case class VString(value: String) extends AnyVal with VPack {
     override def isEmpty: Boolean = value.isEmpty
+    override def name: String = "string"
   }
 
   /**
@@ -132,6 +149,7 @@ object VPack {
    */
   final case class VBinary(value: ByteVector) extends AnyVal with VPack {
     override def isEmpty: Boolean = value.isEmpty
+    override def name: String = "binary"
   }
 
   /**
@@ -140,6 +158,7 @@ object VPack {
    */
   final case class VArray(values: Vector[VPack]) extends AnyVal with VPack {
     override def isEmpty: Boolean = values.isEmpty
+    override def name: String = "array"
   }
   object VArray {
     def apply(values: VPack*): VArray = VArray(values.toVector)
@@ -152,6 +171,7 @@ object VPack {
    */
   final case class VObject(values: Map[String, VPack]) extends AnyVal with VPack {
     override def isEmpty: Boolean = values.isEmpty
+    override def name: String = "object"
     def updated[T: VPackEncoder](key: String, value: T): VObject = copy(values = values.updated(key, value.toVPack))
     def filter(p: ((String, VPack)) => Boolean): VObject = copy(values = values.filter(p))
   }

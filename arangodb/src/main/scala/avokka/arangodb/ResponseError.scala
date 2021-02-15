@@ -10,5 +10,5 @@ final case class ResponseError(
 )
 
 object ResponseError {
-  implicit val decoder: VPackDecoder[ResponseError] = VPackRecord[ResponseError].decoder
+  implicit val decoder: VPackDecoder[ResponseError] = VPackDecoder.gen
 }

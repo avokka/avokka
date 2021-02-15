@@ -3,7 +3,7 @@ package avokka.arangodb
 import akka.stream.stage.{GraphStage, GraphStageLogic, OutHandler}
 import akka.stream.{Attributes, Outlet, SourceShape}
 import avokka.arangodb.api._
-import avokka.velocypack.VPackDecoder
+import avokka.velocypack._
 import cats.data.EitherT
 import cats.instances.future._
 

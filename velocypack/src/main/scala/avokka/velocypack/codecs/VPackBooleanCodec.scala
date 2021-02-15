@@ -27,6 +27,6 @@ private[codecs] object VPackBooleanCodec {
 
   private[codecs] val codec: Codec[VBoolean] = Codec(encoder, vpackDecoder.emap({
     case v: VBoolean => v.pure[Attempt]
-    case _           => Err("not a vpack boolean").raiseError
+    case _           => Err("not a vpack boolean").raiseError[Attempt, VBoolean]
   }))
 }

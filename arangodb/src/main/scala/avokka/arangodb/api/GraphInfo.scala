@@ -22,7 +22,7 @@ object GraphInfo { self =>
   )
   object GraphEdgeDefinition {
     implicit val decoder: VPackDecoder[GraphEdgeDefinition] =
-      VPackRecord[GraphEdgeDefinition].decoder
+      VPackDecoder.gen
   }
 
   /** The information about a graph
@@ -53,14 +53,14 @@ object GraphInfo { self =>
 
   object GraphRepresentation {
     implicit val decoder: VPackDecoder[GraphRepresentation] =
-      VPackRecord[GraphRepresentation].decoderWithDefaults
+      VPackDecoder.gen
   }
 
   final case class Response(
       graph: GraphRepresentation
   )
   object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
+    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
   implicit val api: Api.EmptyBody.Aux[ArangoDatabase, GraphInfo, Response] =

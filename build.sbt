@@ -1,30 +1,11 @@
 import Dependencies._
 
-val scala212Version = "2.12.11"
-val scala213Version = "2.13.2"
+val scala212Version = "2.12.13"
+val scala213Version = "2.13.4"
 
-ThisBuild / organization := "avokka"
-ThisBuild / bintrayOrganization := Some("avokka")
+ThisBuild / organization := "com.bicou"
 ThisBuild / crossScalaVersions := Seq(scala212Version, scala213Version)
 ThisBuild / scalaVersion := scala213Version
-
-ThisBuild / scalacOptions ++= Seq(
-  "-target:jvm-1.8",
-  "-encoding", "UTF-8",
-  "-unchecked",
-  "-deprecation",
-  "-feature",
-  "-language:higherKinds",
-  "-language:implicitConversions",
-  "-Xlint"
-) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
-  case Some((2, 13)) => Seq(
-    "-Ymacro-annotations"
-  )
-  case _ => Seq(
-    "-Ypartial-unification",
-  )
-})
 
 ThisBuild / javacOptions ++= Seq(
   "-source", "1.8",
@@ -43,8 +24,15 @@ ThisBuild / scmInfo := Some(
 ThisBuild / developers := List(
   Developer(id="bicou", name="Benjamin VIELLARD", email="bicou@bicou.com", url = url("http://bicou.com/"))
 )
-ThisBuild / releasePublishArtifactsAction := PgpKeys.publishSigned.value
+// ThisBuild / releasePublishArtifactsAction := PgpKeys.publishSigned.value
+// ThisBuild / publishTo := sonatypePublishToBundle.value
 
+ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
+  case Some((2, 13)) => Seq(
+    "-Ymacro-annotations"
+  )
+  case _ => Seq.empty
+})
 
 lazy val velocypack = (project in file("velocypack"))
   .settings(
@@ -53,10 +41,15 @@ lazy val velocypack = (project in file("velocypack"))
     libraryDependencies ++= compatDeps ++ Seq(
       cats,
       shapeless,
+      magnolia,
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
     ) ++
       scodec ++
       testSuite :+ arango % Test,
-    logBuffered in Test := false
+    addCompilerPlugin(kindProjector),
+    addCompilerPlugin(betterMonadicFor),
+    logBuffered in Test := false,
+    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val velocystream = (project in file("velocystream"))
@@ -68,20 +61,37 @@ lazy val velocystream = (project in file("velocystream"))
       compatDeps ++
       akka ++
       testSuite,
-    logBuffered in Test := false
+    logBuffered in Test := false,
+    scalacOptions -= "-Xfatal-warnings"
+  )
+
+lazy val arangodbTypes = (project in file("arangodb-types"))
+  .dependsOn(velocypack)
+  .settings(
+    name := "avokka-arangodb-types",
+    description := "ArangoDB model types",
+    libraryDependencies ++= Seq(
+      newtype,
+    ) ++
+      (CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, v)) if v <= 12 =>
+          Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full))
+        case _ => Nil
+      }),
+    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val arangodb = (project in file("arangodb"))
-  .dependsOn(velocystream)
+  .dependsOn(velocystream, arangodbTypes)
   .aggregate(velocypack, velocystream)
   .settings(
     name := "avokka-arangodb",
     description := "ArangoDB client",
     libraryDependencies ++= compatDeps ++ Seq(
 //      enumeratum,
-      newtype,
       pureconfig,
       logging,
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
     ) ++ testSuite ++ akkaTestKit ++ dockerTest ++
       (CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, v)) if v <= 12 =>
@@ -89,11 +99,100 @@ lazy val arangodb = (project in file("arangodb"))
         case _ => Nil
       }),
     logBuffered in Test := false,
-    parallelExecution in Test := false
+    parallelExecution in Test := false,
+    scalacOptions -= "-Xfatal-warnings"
   )
 
+lazy val avokkafs2 = (project in file("fs2"))
+  .dependsOn(velocypack)
+  .settings(
+    name := "avokka-fs2",
+    description := "ArangoDB with fs2",
+    skip in publish := true,
+    libraryDependencies ++=
+      compatDeps ++ Seq(
+        log4cats,
+        scodecStream,
+        catsRetry,
+        catsEffect,
+        fs2,
+        fs2IO,
+        pureconfig,
+        pureconfigF % Test,
+        logback % Test,
+        scalaTest % Test,
+        "com.codecommit" %% "cats-effect-testing-scalatest" % "0.4.0" % Test,
+      ),
+    addCompilerPlugin(kindProjector),
+    addCompilerPlugin(betterMonadicFor),
+    scalacOptions -= "-Xfatal-warnings"
+  )
+
+lazy val bench = (project in file("bench"))
+  .dependsOn(velocypack)
+  .settings(
+    name := "avokka-bench",
+    skip in publish := true,
+    libraryDependencies ++= Seq(
+      arango,
+      logback
+    ),
+    scalacOptions -= "-Xfatal-warnings"
+  ).enablePlugins(JmhPlugin)
+
+lazy val site = (project in file("site"))
+  .dependsOn(velocypack)
+  .settings(
+    name := "avokka-site",
+    publishArtifact := false,
+    skip in publish := true,
+    scalacOptions -= "-Xfatal-warnings",
+    mdocExtraArguments := Seq("--no-link-hygiene"),
+    mdocVariables := Map(
+     "VERSION" -> version.value
+    ),
+    micrositeName := "Avokka",
+    micrositeDescription := "ArangoDB in pure scala",
+    micrositeAuthor := "Benjamin Viellard",
+    micrositeGithubOwner := "avokka",
+    micrositeGithubRepo := "avokka",
+//    micrositeUrl := "https://avokka.github.io/avokka",
+    micrositeBaseUrl := "/avokka",
+    micrositePushSiteWith := GHPagesPlugin,
+    micrositeGitterChannel := false,
+    micrositeHighlightTheme := "github",
+    // micrositeHighlightLanguages ++= Seq("sbt"),
+    micrositePalette ++= Map(
+      "brand-primary" -> "#649d66",
+      "brand-secondary" -> "#06623b",
+    ),
+    micrositeSearchEnabled := false,
+    // micrositeDocumentationUrl := "documentation",
+    micrositeTheme := "light",
+    // micrositeDocumentationUrl := "docs",
+    git.remoteRepo := "git@github.com:avokka/avokka.git",
+
+    /*
+    mdocIn := (baseDirectory.value) / "docs",
+    paradox / sourceDirectory := mdocOut.value,
+    makeSite := makeSite.dependsOn(mdoc.toTask("")).value,
+    mdocExtraArguments := Seq("--no-link-hygiene"), // paradox handles this
+    ghpagesNoJekyll := true,
+    version            := version.value.takeWhile(_ != '+'),
+    paradoxProperties ++= Map(
+      "version" -> version.value,
+      "snip.build.base_dir" -> "scratched",
+      SnipDirective.showGithubLinks -> "false"
+    ),
+    Compile / paradoxMaterialTheme ~= {
+      _.withColor("green", "green")
+        .withRepository(uri("https://github.com/avokka/avokka"))
+    },
+     */
+  ).enablePlugins(MicrositesPlugin)
+
 lazy val avokka = (project in file("."))
-  .aggregate(velocypack, velocystream, arangodb)
+  .aggregate(velocypack, velocystream, arangodbTypes, arangodb, avokkafs2)
   .settings(
     publishArtifact := false,
     skip in publish := true

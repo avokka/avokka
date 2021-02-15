@@ -3,6 +3,7 @@ package api
 package admin
 
 import avokka.velocypack._
+import types._
 
 object AdminLog { self =>
 
@@ -23,7 +24,7 @@ object AdminLog { self =>
       totalAmount: Long,
   )
   object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackRecord[Response].decoder
+    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
   implicit val api: Api.EmptyBody.Aux[ArangoSession, AdminLog.type, Response] = new Api.EmptyBody[ArangoSession, AdminLog.type] {

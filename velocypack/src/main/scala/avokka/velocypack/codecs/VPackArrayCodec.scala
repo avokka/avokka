@@ -4,7 +4,6 @@ package codecs
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
 import cats.syntax.traverse._
-import cats.instances.vector._
 import scodec.bits.BitVector
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
@@ -66,7 +65,7 @@ private[codecs] object VPackArrayCodec extends VPackCompoundCodec {
 
             val len =
               ulongBytes(headBytes + valuesBytes + lengthBytes * offsets.length, lengthBytes)
-            val nr = ulongBytes(offsets.length, lengthBytes)
+            val nr = ulongBytes(offsets.length.toLong, lengthBytes)
             val index =
               indexTable.foldLeft(BitVector.empty)((b, l) => b ++ ulongBytes(l, lengthBytes))
 
@@ -129,11 +128,11 @@ private[codecs] object VPackArrayCodec extends VPackCompoundCodec {
 
   private[codecs] val codec: Codec[VArray] = Codec(encoder, vpackDecoder.emap({
     case v: VArray => v.pure[Attempt]
-    case _         => Err("not a vpack array").raiseError
+    case _         => Err("not a vpack array").raiseError[Attempt, VArray]
   }))
 
   private[codecs] val codecCompact: Codec[VArray] = Codec(encoderCompact, vpackDecoder.emap({
     case v: VArray => v.pure[Attempt]
-    case _         => Err("not a vpack array").raiseError
+    case _         => Err("not a vpack array").raiseError[Attempt, VArray]
   }))
 }

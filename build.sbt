@@ -1,11 +1,9 @@
 import Dependencies._
-import com.lightbend.paradox.markdown.SnipDirective
 
 val scala212Version = "2.12.13"
 val scala213Version = "2.13.4"
 
-ThisBuild / organization := "avokka"
-ThisBuild / bintrayOrganization := Some("avokka")
+ThisBuild / organization := "com.bicou"
 ThisBuild / crossScalaVersions := Seq(scala212Version, scala213Version)
 ThisBuild / scalaVersion := scala213Version
 
@@ -26,7 +24,8 @@ ThisBuild / scmInfo := Some(
 ThisBuild / developers := List(
   Developer(id="bicou", name="Benjamin VIELLARD", email="bicou@bicou.com", url = url("http://bicou.com/"))
 )
-ThisBuild / releasePublishArtifactsAction := PgpKeys.publishSigned.value
+// ThisBuild / releasePublishArtifactsAction := PgpKeys.publishSigned.value
+// ThisBuild / publishTo := sonatypePublishToBundle.value
 
 ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
   case Some((2, 13)) => Seq(
@@ -109,6 +108,7 @@ lazy val avokkafs2 = (project in file("fs2"))
   .settings(
     name := "avokka-fs2",
     description := "ArangoDB with fs2",
+    skip in publish := true,
     libraryDependencies ++=
       compatDeps ++ Seq(
         log4cats,
@@ -132,6 +132,7 @@ lazy val bench = (project in file("bench"))
   .dependsOn(velocypack)
   .settings(
     name := "avokka-bench",
+    skip in publish := true,
     libraryDependencies ++= Seq(
       arango,
       logback

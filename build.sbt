@@ -147,7 +147,9 @@ lazy val site = (project in file("site"))
     skip in publish := true,
     scalacOptions -= "-Xfatal-warnings",
     mdocExtraArguments := Seq("--no-link-hygiene"),
-
+    mdocVariables := Map(
+     "VERSION" -> version.value
+    ),
     micrositeName := "Avokka",
     micrositeDescription := "ArangoDB in pure scala",
     micrositeAuthor := "Benjamin Viellard",

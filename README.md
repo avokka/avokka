@@ -22,11 +22,11 @@ SBT configuration :
 
 ```sbt
 // add dependency to the arangodb client
-libraryDependencies += "com.bicou" %% "avokka-arangodb" % "0.0.3"
+libraryDependencies += "com.bicou" %% "avokka-arangodb" % "0.0.5"
 
 // or the velocystream client only
-libraryDependencies += "com.bicou" %% "avokka-velocystream" % "0.0.3"
+libraryDependencies += "com.bicou" %% "avokka-velocystream" % "0.0.5"
 
 // or just the velocypack codec library
-libraryDependencies += "com.bicou" %% "avokka-velocypack" % "0.0.3"
+libraryDependencies += "com.bicou" %% "avokka-velocypack" % "0.0.5"
 ```

@@ -4,20 +4,18 @@
 
 <p>SBT configuration :</p>
 
-<p>@@@ vars</p>
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// add avokka bintray repository to resolvers</span>
 <span class="n">resolvers</span> <span class="o">+=</span> <span class="nv">Resolver</span><span class="o">.</span><span class="py">bintrayRepo</span><span class="o">(</span><span class="s">"avokka"</span><span class="o">,</span> <span class="s">"maven"</span><span class="o">)</span>
 
 <span class="c1">// add dependency to the arangodb client</span>
-<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"avokka"</span> <span class="o">%%</span> <span class="s">"avokka-arangodb"</span> <span class="o">%</span> <span class="s">"$version$"</span>
+<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"avokka"</span> <span class="o">%%</span> <span class="s">"avokka-arangodb"</span> <span class="o">%</span> <span class="s">"0.0.4-SNAPSHOT"</span>
 
 <span class="c1">// or the velocystream client only</span>
-<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"avokka"</span> <span class="o">%%</span> <span class="s">"avokka-velocystream"</span> <span class="o">%</span> <span class="s">"$version$"</span>
+<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"avokka"</span> <span class="o">%%</span> <span class="s">"avokka-velocystream"</span> <span class="o">%</span> <span class="s">"0.0.4-SNAPSHOT"</span>
 
 <span class="c1">// or just the velocypack codec library</span>
-<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"avokka"</span> <span class="o">%%</span> <span class="s">"avokka-velocypack"</span> <span class="o">%</span> <span class="s">"$version$"</span>
+<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"avokka"</span> <span class="o">%%</span> <span class="s">"avokka-velocypack"</span> <span class="o">%</span> <span class="s">"0.0.4-SNAPSHOT"</span>
 </code></pre></div></div>
-<p>@@@</p>
 </section></div></div></div></div><script src="/avokka/highlight/highlight.pack.js"></script><script>
 // For all code blocks, copy the language from the containing div
 // to the inner code tag (where hljs expects it to be)

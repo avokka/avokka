@@ -14,18 +14,9 @@ ThisBuild / javacOptions ++= Seq(
 
 ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 ThisBuild / homepage := Some(url("https://github.com/avokka"))
-ThisBuild / scmInfo := Some(
-  ScmInfo(
-    url("https://github.com/avokka/avokka"),
-    "scm:git:https://github.com/avokka/avokka.git",
-    "scm:git:git@github.com:avokka/avokka.git",
-  )
-)
 ThisBuild / developers := List(
   Developer(id="bicou", name="Benjamin VIELLARD", email="bicou@bicou.com", url = url("http://bicou.com/"))
 )
-// ThisBuild / releasePublishArtifactsAction := PgpKeys.publishSigned.value
-// ThisBuild / publishTo := sonatypePublishToBundle.value
 
 ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
   case Some((2, 13)) => Seq(
@@ -171,25 +162,6 @@ lazy val site = (project in file("site"))
     // micrositeDocumentationUrl := "documentation",
     micrositeTheme := "light",
     // micrositeDocumentationUrl := "docs",
-    git.remoteRepo := "git@github.com:avokka/avokka.git",
-
-    /*
-    mdocIn := (baseDirectory.value) / "docs",
-    paradox / sourceDirectory := mdocOut.value,
-    makeSite := makeSite.dependsOn(mdoc.toTask("")).value,
-    mdocExtraArguments := Seq("--no-link-hygiene"), // paradox handles this
-    ghpagesNoJekyll := true,
-    version            := version.value.takeWhile(_ != '+'),
-    paradoxProperties ++= Map(
-      "version" -> version.value,
-      "snip.build.base_dir" -> "scratched",
-      SnipDirective.showGithubLinks -> "false"
-    ),
-    Compile / paradoxMaterialTheme ~= {
-      _.withColor("green", "green")
-        .withRepository(uri("https://github.com/avokka/avokka"))
-    },
-     */
   ).enablePlugins(MicrositesPlugin)
 
 lazy val avokka = (project in file("."))

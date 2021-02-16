@@ -47,10 +47,9 @@ lazy val velocystream = (project in file("velocystream"))
   .dependsOn(velocypack)
   .settings(
     name := "avokka-velocystream",
-    description := "velocystream client (akka IO)",
+    description := "velocystream models",
     libraryDependencies ++=
       compatDeps ++
-      akka ++
       testSuite,
     logBuffered in Test := false,
     scalacOptions -= "-Xfatal-warnings"
@@ -78,7 +77,7 @@ lazy val arangodb = (project in file("arangodb"))
   .settings(
     name := "avokka-arangodb",
     description := "ArangoDB client",
-    libraryDependencies ++= compatDeps ++ Seq(
+    libraryDependencies ++= compatDeps ++ akka ++ Seq(
 //      enumeratum,
       pureconfig,
       logging,

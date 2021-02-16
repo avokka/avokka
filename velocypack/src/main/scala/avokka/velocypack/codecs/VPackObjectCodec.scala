@@ -7,7 +7,6 @@ import cats.syntax.traverse._
 import scodec.bits.BitVector
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
-import VPack.{VObject, VSmallint, VString}
 import VPackType.{ObjectEmptyType, ObjectType, ObjectCompactType}
 
 import scala.collection.SortedMap

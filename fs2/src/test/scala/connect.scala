@@ -1,4 +1,3 @@
-import avokka.velocypack.VPack.VArray
 import avokka.{Configuration, Transport}
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Sync}
 import cats.syntax.all._

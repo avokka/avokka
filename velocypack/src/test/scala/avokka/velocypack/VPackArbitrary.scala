@@ -8,7 +8,6 @@ import scodec.bits.ByteVector
 trait VPackArbitrary {
 
   import Arbitrary._
-  import VPack._
 
   val maxDepth = 4
   val maxArray = 10

@@ -8,7 +8,6 @@ import scodec.bits.BitVector
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
 import VPackType.{ArrayCompactType, ArrayEmptyType, ArrayIndexedType, ArrayUnindexedType}
-import VPack.VArray
 
 /**
   * Codec of velocypack arrays

@@ -3,7 +3,6 @@ package avokka.velocypack
 import java.time.Instant
 import java.util.Date
 
-import VPack._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.EitherValues._
 import org.scalatest.matchers.should.Matchers

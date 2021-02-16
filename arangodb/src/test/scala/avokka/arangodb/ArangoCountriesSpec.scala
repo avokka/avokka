@@ -4,7 +4,6 @@ import akka.actor.ActorSystem
 import akka.testkit.{TestKit, TestKitBase}
 import avokka.arangodb.api._
 import avokka.arangodb.types._
-import avokka.velocypack.VPack.VObject
 import avokka.velocypack._
 import cats.data.EitherT
 import cats.instances.future._

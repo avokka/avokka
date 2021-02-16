@@ -5,7 +5,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 class VPackDerivedSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPackSpecTrait {
-  import VPack._
   import VPackDerivedSpec._
 
   "case class codec" should "conform specs" in {

@@ -1,7 +1,6 @@
-package avokka.velocypack.codecs
+package avokka.velocypack
+package codecs
 
-import avokka.velocypack.VPack.VString
-import avokka.velocypack.codecs
 import org.scalatest.flatspec.AnyFlatSpec
 import scodec.bits._
 

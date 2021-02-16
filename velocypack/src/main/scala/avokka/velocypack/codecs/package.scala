@@ -5,7 +5,6 @@ import scodec._
 import scodec.bits._
 import scodec.codecs._
 import scodec.interop.cats._
-import VPack._
 
 import scala.annotation.tailrec
 
@@ -43,7 +42,7 @@ package object codecs {
     */
   private[codecs] def ulongBytes(value: Long, size: Int): BitVector = BitVector.fromLong(value, size * 8, ByteOrdering.LittleEndian)
 
-  private[codecs] def ulongLA(bits: Int): Codec[Long] = if (bits < 64) ulongL(bits) else longL(bits)
+  private[velocypack] def ulongLA(bits: Int): Codec[Long] = if (bits < 64) ulongL(bits) else longL(bits)
 
   private[codecs] object AllSameSize {
     def unapply(s: Iterable[BitVector]): Option[Long] =
@@ -69,7 +68,7 @@ package object codecs {
     case v: VBinary   => VPackBinaryCodec.encoder.encode(v)
   })
 
-  val vpackDecoder: Decoder[VPack] = vpackTypeDecoder.flatMap {
+  val vpackDecoder: Decoder[VPack] = VPackTypeCodec.decoder.flatMap {
     case t: ArrayUnindexedType                                         => VPackArrayCodec.decoderLinear(t)
     case t: ArrayIndexedType if t.header == ArrayIndexedType.maxByte   => VPackArrayCodec.decoderOffsets64(t)
     case t: ArrayIndexedType                                           => VPackArrayCodec.decoderOffsets(t)

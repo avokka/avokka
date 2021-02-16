@@ -8,7 +8,6 @@ import scodec.codecs.{longL, ulongL}
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, Decoder, Encoder, Err, SizeBound}
 import VPackType.{IntSignedType, IntUnsignedType}
-import VPack.VLong
 
 /**
   * Codec of ints

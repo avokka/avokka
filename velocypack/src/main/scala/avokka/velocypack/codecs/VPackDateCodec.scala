@@ -8,7 +8,6 @@ import scodec.codecs.int64L
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, Decoder, Encoder, Err, SizeBound}
 import VPackType.DateType
-import VPack.VDate
 
 /**
   * Codec of date

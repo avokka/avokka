@@ -1,6 +1,5 @@
 package avokka.velocypack
 
-import avokka.velocypack.VPack.VArray
 import shapeless.{::, Generic, HList, HNil}
 
 object VPackGeneric { c =>

@@ -6,7 +6,6 @@ import scodec.bits.BitVector
 import scodec.codecs.provide
 import scodec.interop.cats._
 import scodec.{Attempt, Decoder, Encoder, SizeBound}
-import VPack.VSmallint
 import VPackType.{SmallintNegativeType, SmallintPositiveType}
 
 /**

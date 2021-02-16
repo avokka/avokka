@@ -1,14 +1,13 @@
 package avokka.velocypack
-package codecs
 
+import scodec.Decoder
 import scodec.bits.BitVector
 import scodec.codecs._
-import scodec.{Attempt, Codec, Decoder, Encoder, Err}
 
 /**
   * velocypack value type
   */
-private sealed trait VPackType extends Product with Serializable {
+private[velocypack] sealed trait VPackType extends Product with Serializable {
 
   /**
     * @return the head byte
@@ -26,12 +25,12 @@ private sealed trait VPackType extends Product with Serializable {
   def name: String
 }
 
-private object VPackType {
+private[velocypack] object VPackType {
 
   /**
     * velocypack types having a length field after the head
     */
-  private[codecs] sealed trait WithLength { self: VPackType =>
+  sealed trait WithLength { self: VPackType =>
 
     /**
       * @return size in bytes of the length field
@@ -45,9 +44,9 @@ private object VPackType {
   }
 
   /** array or object with data */
-  private[codecs] sealed abstract class CompoundType(minByte: Int) extends VPackType with WithLength {
+  sealed abstract class CompoundType(minByte: Int) extends VPackType with WithLength {
     override val lengthSize: Int = 1 << (header - minByte)
-    override val lengthDecoder: Decoder[Long] = ulongLA(8 * lengthSize).map(_ - 1 - lengthSize)
+    override val lengthDecoder: Decoder[Long] = codecs.ulongLA(8 * lengthSize).map(_ - 1 - lengthSize)
   }
 
   /**
@@ -64,7 +63,7 @@ private object VPackType {
   }
 
   /** 0x01 : empty array */
-  case object ArrayEmptyType extends SingleByte(0x01, VPack.VArray.empty) {
+  case object ArrayEmptyType extends SingleByte(0x01, VArray.empty) {
     override val name: String = "array(empty)"
   }
 
@@ -91,12 +90,12 @@ private object VPackType {
   }
 
   /** 0x0a : empty object */
-  case object ObjectEmptyType extends SingleByte(0x0a, VPack.VObject.empty) {
+  case object ObjectEmptyType extends SingleByte(0x0a, VObject.empty) {
     override val name: String = "object(empty)"
   }
 
   /** object with data */
-  private[codecs] sealed trait ObjectType extends VPackType with WithLength
+  sealed trait ObjectType extends VPackType with WithLength
 
   /** 0x0b-0x0e : object with 1-byte index table offsets, sorted by attribute name, [1,2,4,8]-byte bytelen and # subvals */
   final case class ObjectSortedType(override val header: Int) extends CompoundType(ObjectSortedType.minByte) with ObjectType {
@@ -135,22 +134,22 @@ private object VPackType {
   // 0x15-0x16 : reserved
 
   /** 0x17 : illegal - this type can be used to indicate a value that is illegal in the embedding application */
-  case object IllegalType extends SingleByte(0x17, VPack.VIllegal) {
+  case object IllegalType extends SingleByte(0x17, VIllegal) {
     override val name: String = "illegal"
   }
 
   /** 0x18 : null */
-  case object NullType extends SingleByte(0x18, VPack.VNull) {
+  case object NullType extends SingleByte(0x18, VNull) {
     override val name: String = "null"
   }
 
   /** 0x19 : false */
-  case object FalseType extends SingleByte(0x19, VPack.VFalse) {
+  case object FalseType extends SingleByte(0x19, VFalse) {
     override val name: String = "false"
   }
 
   /** 0x1a : true */
-  case object TrueType extends SingleByte(0x1a, VPack.VTrue) {
+  case object TrueType extends SingleByte(0x1a, VTrue) {
     override val name: String = "true"
   }
 
@@ -170,16 +169,16 @@ private object VPackType {
   // not allowed in VPack values on disk or on the network
 
   /** 0x1e : minKey, nonsensical value that compares < than all other values */
-  case object MinKeyType extends SingleByte(0x1e, VPack.VMinKey) {
+  case object MinKeyType extends SingleByte(0x1e, VMinKey) {
     override val name: String = "min-key"
   }
 
   /** 0x1f : maxKey, nonsensical value that compares > than all other values */
-  case object MaxKeyType extends SingleByte(0x1f, VPack.VMaxKey) {
+  case object MaxKeyType extends SingleByte(0x1f, VMaxKey) {
     override val name: String = "max-key"
   }
 
-  private[codecs] sealed abstract class IntType(minByte: Int) extends VPackType with WithLength {
+  sealed abstract class IntType(minByte: Int) extends VPackType with WithLength {
     override val lengthSize: Int = header - minByte + 1
     override val lengthDecoder: Decoder[Long] = provide(0)
   }
@@ -230,7 +229,7 @@ private object VPackType {
   }
 
   // string types
-  private[codecs] sealed trait StringType extends VPackType with WithLength
+  sealed trait StringType extends VPackType with WithLength
 
   /**
     * 0x40-0xbe : UTF-8-string, using V - 0x40 bytes (not Unicode characters!)
@@ -272,7 +271,7 @@ private object VPackType {
     import BinaryType._
     require(header >= minByte && header <= maxByte)
     override val lengthSize: Int = header - minByte + 1
-    override val lengthDecoder: Decoder[Long] = ulongLA(8 * lengthSize)
+    override val lengthDecoder: Decoder[Long] = codecs.ulongLA(8 * lengthSize)
     override val name: String = "binary"
   }
   object BinaryType {
@@ -281,63 +280,4 @@ private object VPackType {
     def fromLength(length: Int): BinaryType = BinaryType(minByte - 1 + length)
   }
 
-  /**
-    * decode the head byte to the velocypack type
-    */
-  private[codecs] val vpackTypeDecoder: Decoder[VPackType] = uint8L.emap({
-    case NoneType.`header` => Attempt.failure(Err("absence of type is not allowed in values"))
-
-    case ArrayEmptyType.`header` => Attempt.successful(ArrayEmptyType)
-    case header if header >= ArrayUnindexedType.minByte && header <= ArrayUnindexedType.maxByte =>
-      Attempt.successful(ArrayUnindexedType(header))
-    case header if header >= ArrayIndexedType.minByte && header <= ArrayIndexedType.maxByte =>
-      Attempt.successful(ArrayIndexedType(header))
-
-    case ObjectEmptyType.`header` => Attempt.successful(ObjectEmptyType)
-    case header if header >= ObjectSortedType.minByte && header <= ObjectSortedType.maxByte =>
-      Attempt.successful(ObjectSortedType(header))
-    case header if header >= ObjectUnsortedType.minByte && header <= ObjectUnsortedType.maxByte =>
-      Attempt.successful(ObjectUnsortedType(header))
-
-    case ArrayCompactType.`header`  => Attempt.successful(ArrayCompactType)
-    case ObjectCompactType.`header` => Attempt.successful(ObjectCompactType)
-
-    case IllegalType.`header` => Attempt.successful(IllegalType)
-    case NullType.`header`    => Attempt.successful(NullType)
-    case FalseType.`header`   => Attempt.successful(FalseType)
-    case TrueType.`header`    => Attempt.successful(TrueType)
-    case DoubleType.`header`  => Attempt.successful(DoubleType)
-    case DateType.`header`    => Attempt.successful(DateType)
-
-    case MinKeyType.`header` => Attempt.successful(MinKeyType)
-    case MaxKeyType.`header` => Attempt.successful(MaxKeyType)
-
-    case header if header >= IntSignedType.minByte && header <= IntSignedType.maxByte =>
-      Attempt.successful(IntSignedType(header))
-    case header if header >= IntUnsignedType.minByte && header <= IntUnsignedType.maxByte =>
-      Attempt.successful(IntUnsignedType(header))
-    case header if header >= SmallintPositiveType.minByte && header <= SmallintPositiveType.maxByte =>
-      Attempt.successful(SmallintPositiveType(header))
-    case header if header >= SmallintNegativeType.minByte && header <= SmallintNegativeType.maxByte =>
-      Attempt.successful(SmallintNegativeType(header))
-
-    case header if header >= StringShortType.minByte && header <= StringShortType.maxByte =>
-      Attempt.successful(StringShortType(header))
-    case StringLongType.`header` => Attempt.successful(StringLongType)
-
-    case header if header >= BinaryType.minByte && header <= BinaryType.maxByte =>
-      Attempt.successful(BinaryType(header))
-
-    case u => Attempt.failure(Err(s"unknown header byte ${u.toHexString}"))
-  })
-
-  /**
-    * encodes the type to the head byte
-    */
-  private[codecs] val vpackTypeEncoder: Encoder[VPackType] = Encoder(t => Attempt.successful(t.bits))
-
-  /**
-    * type codec
-    */
-  private[codecs] val vpackTypeCodec: Codec[VPackType] = Codec(vpackTypeEncoder, vpackTypeDecoder)
 }

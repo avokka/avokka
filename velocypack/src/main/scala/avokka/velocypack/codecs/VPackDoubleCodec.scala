@@ -8,7 +8,6 @@ import scodec.codecs.doubleL
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, Decoder, Encoder, Err, SizeBound}
 import VPackType.DoubleType
-import VPack.VDouble
 
 /**
   * Codec of double

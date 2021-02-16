@@ -2,7 +2,6 @@ package avokka.velocypack
 
 import java.time.{Instant, LocalDate}
 import java.util.{Date, UUID}
-import avokka.velocypack.VPack._
 import cats.Contravariant
 import cats.syntax.either._
 import magnolia._

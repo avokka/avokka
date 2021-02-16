@@ -1,6 +1,6 @@
-package avokka.velocypack.codecs
+package avokka.velocypack
+package codecs
 
-import avokka.velocypack.VPackArbitrary
 import com.arangodb.velocypack.VPackSlice
 import org.scalatest.{Assertion, Assertions}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks

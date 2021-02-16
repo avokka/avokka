@@ -3,7 +3,6 @@ package codecs
 
 import scodec.codecs.{fixedSizeBytes, utf8}
 import scodec.{Decoder, Encoder}
-import VPack.VString
 import VPackType.{StringLongType, StringShortType, StringType}
 
 /**

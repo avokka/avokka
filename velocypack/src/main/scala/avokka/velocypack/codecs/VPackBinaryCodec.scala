@@ -8,7 +8,6 @@ import scodec.codecs.{bytes, fixedSizeBytes}
 import scodec.interop.cats._
 import scodec.{Attempt, Codec, Decoder, Encoder, Err, SizeBound}
 import VPackType.BinaryType
-import VPack.VBinary
 
 /**
   * Codec of binary blob

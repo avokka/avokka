@@ -4,7 +4,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import shapeless.{::, HNil}
 
 class VPackGenericSpec extends AnyFlatSpec with VPackSpecTrait {
-  import VPack._
   import VPackGenericSpec._
 
   type R = String :: Boolean :: HNil

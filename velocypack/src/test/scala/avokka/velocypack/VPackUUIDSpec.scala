@@ -2,7 +2,6 @@ package avokka.velocypack
 
 import java.util.UUID
 
-import avokka.velocypack.VPack.{VBinary, VString}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import scodec.bits.ByteVector

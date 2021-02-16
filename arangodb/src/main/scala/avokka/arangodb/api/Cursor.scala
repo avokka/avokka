@@ -1,7 +1,6 @@
 package avokka.arangodb
 package api
 
-import avokka.velocypack.VPack.VObject
 import avokka.velocypack._
 
 /**

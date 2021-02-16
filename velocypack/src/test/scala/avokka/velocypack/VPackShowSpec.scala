@@ -2,7 +2,6 @@ package avokka.velocypack
 
 import java.time.Instant
 
-import VPack._
 import cats.syntax.show._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

@@ -1,6 +1,5 @@
 package avokka.velocypack
 
-import avokka.velocypack.VPack.VObject
 import shapeless.labelled.{FieldType, field}
 import shapeless.{::, Default, HList, HNil, LabelledGeneric, Witness}
 import cats.syntax.bifunctor._

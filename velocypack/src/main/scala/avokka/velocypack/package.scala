@@ -2,7 +2,7 @@ package avokka
 
 import cats.data.StateT
 import cats.instances.either._
-import cats.syntax.all._
+import cats.syntax.bifunctor._
 import scodec.bits.BitVector
 import scodec.{Attempt, DecodeResult, Decoder}
 

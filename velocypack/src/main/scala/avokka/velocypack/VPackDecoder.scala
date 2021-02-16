@@ -1,6 +1,5 @@
 package avokka.velocypack
 
-import avokka.velocypack.VPack._
 import cats.data.{Kleisli, StateT}
 import cats.syntax.all._
 import magnolia._

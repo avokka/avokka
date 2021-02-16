@@ -5,7 +5,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 class VPackRecordSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPackSpecTrait {
-  import VPack._
   import VPackRecordSpec._
 
   /*

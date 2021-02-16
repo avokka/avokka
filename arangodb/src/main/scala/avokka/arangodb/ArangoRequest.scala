@@ -4,36 +4,50 @@ import avokka.arangodb.api.Api
 import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
 
-final case class ArangoRequest[T](
-                             header: ArangoRequest.HeaderTrait,
-                             body: T
+final case class ArangoRequest[T]
+(
+  header: ArangoRequest.Header,
+  body: T
 )
 
 object ArangoRequest {
 
-  sealed trait HeaderTrait extends Product with Serializable
+  final case class Header
+  (
+    version: Int = 1,
+    `type`: MessageType = MessageType.Request,
+    database: DatabaseName,
+    requestType: RequestType,
+    request: String,
+    parameters: Map[String, String] = Map.empty,
+    meta: Map[String, String] = Map.empty,
+  )
 
-  final case class Header(
-      version: Int = 1,
-      `type`: MessageType = MessageType.Request,
-      database: DatabaseName,
-      requestType: RequestType,
-      request: String,
-      parameters: Map[String, String] = Map.empty,
-      meta: Map[String, String] = Map.empty,
-  ) extends HeaderTrait
+  def GET(
+    database: DatabaseName,
+    request: String,
+    parameters: Map[String, String] = Map.empty,
+    meta: Map[String, String] = Map.empty
+  ): Header = Header(
+    database = database,
+    requestType = RequestType.GET,
+    request = request,
+    parameters = parameters,
+    meta = meta
+  )
 
   object Header {
     implicit val encoder: VPackEncoder[Header] = VPackGeneric[Header].encoder
   }
 
-  final case class Authentication(
-      version: Int = 1,
-      `type`: MessageType = MessageType.Authentication,
-      encryption: String = "plain",
-      user: String,
-      password: String
-  ) extends HeaderTrait
+  final case class Authentication
+  (
+    version: Int = 1,
+    `type`: MessageType = MessageType.Authentication,
+    encryption: String = "plain",
+    user: String,
+    password: String
+  )
 
   object Authentication {
     implicit val encoder: VPackEncoder[Authentication] = VPackGeneric[Authentication].encoder
@@ -43,11 +57,6 @@ object ArangoRequest {
         override type Response = ResponseError
         override def header(session: ArangoSession, command: Authentication): HeaderTrait = command
       }
-  }
-
-  implicit val headerEncoder: VPackEncoder[HeaderTrait] = {
-    case h: Header         => Header.encoder.encode(h)
-    case h: Authentication => Authentication.encoder.encode(h)
   }
 
 }

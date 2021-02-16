@@ -23,7 +23,7 @@ object CollectionCount { self =>
     new Api.EmptyBody[ArangoDatabase, CollectionCount] {
       override type Response = self.Response
 
-      override def header(database: ArangoDatabase, command: CollectionCount): ArangoRequest.HeaderTrait = ArangoRequest.Header(
+      override def header(database: ArangoDatabase, command: CollectionCount): ArangoRequest.Header = ArangoRequest.Header(
         database = database.name,
         requestType = RequestType.GET,
         request = s"/_api/collection/${command.name}/count",

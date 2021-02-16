@@ -1,6 +1,6 @@
 package avokka.arangodb.api
 
-import avokka.arangodb.ArangoRequest.HeaderTrait
+import avokka.arangodb.ArangoRequest.Header
 import avokka.velocypack.VPackEncoder
 
 /**
@@ -24,7 +24,7 @@ trait Api[Ctx, Cmd, Req] {
     * @param context context
     * @return header value
     */
-  def header(context: Ctx, command: Cmd): HeaderTrait
+  def header(context: Ctx, command: Cmd): Header
 
   /**
     * build the request body

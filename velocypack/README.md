@@ -7,17 +7,6 @@ Velocypack encoder and decoder in pure scala
 
 The *codecs* package includes the scodec codecs for VPack values: `VPack => Attempt[BitVector]` and `BitVector => Attempt[DecodeResult[VPack]]`
 
-## Installation
-
-SBT configuration :
-
-```sbt
-// avokka is published at bintray
-resolvers += Resolver.bintrayRepo("avokka", "maven")
-
-libraryDependencies += "avokka" %% "avokka-velocypack" % "0.0.3"
-```
-
 ## Usage
 
 By importing `avokka.velocypack._` you bring `asVPack` and `asVPackBits` to all types `T` having an implicit `VPackEncoder[T]` :

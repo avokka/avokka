@@ -177,33 +177,15 @@ object VPackDecoder {
   implicit def genericDecoder[T <: HList](implicit a: VPackGeneric.Decoder[T]): VPackDecoder[T] =
     VPackGeneric.Decoder(a)
 
-  /*
-  implicit def tuple1Decoder[T1](implicit d1: VPackDecoderF[T1]): VPackDecoderF[Tuple1[T1]] = {
-    case VArray(Vector(a1)) => d1.decode(a1).map(Tuple1.apply)
-    case v                  => VPackError.WrongType(v).raiseError
-  }
-  implicit def tuple2Decoder[T1, T2](implicit d1: VPackDecoderF[T1],
-                                     d2: VPackDecoderF[T2]): VPackDecoderF[Tuple2[T1, T2]] = {
-    case VArray(Vector(a1, a2)) =>
-      for {
-        r1 <- d1.decode(a1)
-        r2 <- d2.decode(a2)
-      } yield Tuple2(r1, r2)
-    case v => VPackError.WrongType(v).raiseError
-  }
-*/
-
   implicit def mapDecoder[F[_], T](implicit d: VPackDecoder[T]): VPackDecoder[Map[String, T]] = {
     case VObject(o) => {
       o.toVector
         .traverse({
           case (key, v) => d.decode(v)
             .leftMap(_.historyAdd(key))
-            .map(r => key -> r)
+            .map(key -> _)
         })
         .map(_.toMap)
-
-      // o.values.toList.traverse(d.decode).map { r => (o.keys zip r).toMap }
     }
     case v => Left(VPackError.WrongType(v))
   }

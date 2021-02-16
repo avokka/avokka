@@ -119,11 +119,6 @@ object VPackEncoder {
   implicit def genericEncoder[T <: HList](implicit a: VPackGeneric.Encoder[T]): VPackEncoder[T] =
     VPackGeneric.Encoder(a)
 
-  implicit def tuple1Encoder[T1](implicit e1: VPackEncoder[T1]): VPackEncoder[Tuple1[T1]] =
-    a => VArray(Vector(e1.encode(a._1)))
-  implicit def tuple2Encoder[T1, T2](implicit e1: VPackEncoder[T1], e2: VPackEncoder[T2]): VPackEncoder[Tuple2[T1, T2]] =
-    a => VArray(Vector(e1.encode(a._1), e2.encode(a._2)))
-
   implicit def mapEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Map[String, T]] =
     a => VObject(a.view.mapValues(e.encode).toMap)
 

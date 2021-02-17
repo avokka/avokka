@@ -2,7 +2,7 @@ package avokka.arangodb
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
-import avokka.arangodb.api.{Cursor}
+import avokka.arangodb.api.Cursor
 import avokka.arangodb.types.{CollectionName, DocumentHandle, DocumentKey}
 import avokka.velocypack._
 

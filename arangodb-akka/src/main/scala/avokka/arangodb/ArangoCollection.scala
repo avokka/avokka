@@ -2,23 +2,11 @@ package avokka.arangodb
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
-import avokka.arangodb.api.{Cursor, DocumentCreate}
+import avokka.arangodb.api.{Cursor}
 import avokka.arangodb.types.{CollectionName, DocumentHandle, DocumentKey}
 import avokka.velocypack._
 
 class ArangoCollectionF[F[_]](val database: ArangoDatabase[F], val name: CollectionName) {
-
-  def handle(key: DocumentKey): DocumentHandle = DocumentHandle(name, key)
-
-  def create[T](
-      document: T,
-      waitForSync: Boolean = false,
-      returnNew: Boolean = false,
-      returnOld: Boolean = false,
-      silent: Boolean = false,
-      overwrite: Boolean = false,
-  ): DocumentCreate[T] =
-    DocumentCreate[T](name, document, waitForSync, returnNew, returnOld, silent, overwrite)
 
   def all[T]: Cursor[VObject, T] = Cursor[VObject, T](
     query = "FOR doc IN @@collection RETURN doc",

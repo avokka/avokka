@@ -70,7 +70,7 @@ class ArangoCountriesSpec
   it should "create, read, update, delete document" in {
     val key = DocumentKey("XX")
     for {
-      c <- collection.document().create(Country(key, name = "country name"), returnNew = true)
+      c <- collection.insert(Country(key, name = "country name"), returnNew = true)
       r <- collection.document(key).read[Country]()
       u <- collection.document(key).update[Country, VObject](VObject("name" -> "updated name".toVPack))
       d <- collection.document(key).remove[Country]()

@@ -1,6 +1,7 @@
 package avokka.arangodb
 
 import api._
+import avokka.velocypack._
 import protocol._
 import types._
 
@@ -10,7 +11,10 @@ trait ArangoDatabase[F[_]] {
   def collection(name: CollectionName): ArangoCollection[F]
   def document(handle: DocumentHandle): ArangoDocument[F]
 
-  def create(setup: DatabaseCreate => DatabaseCreate = identity): F[ArangoResponse[DatabaseCreate.Response]]
+  /**
+    * @param users Has to be an array of user objects to initially create for the new database. User information will not be changed for users that already exist. If *users* is not specified or does not contain any users, a default user *root* will be created with an empty string password. This ensures that the new database will be accessible after it is created. Each user object can contain the following attributes:
+    */
+  def create(users: DatabaseCreate.User*): F[ArangoResponse[DatabaseCreate]]
 
   def info(): F[ArangoResponse[DatabaseInfo]]
   def drop(): F[ArangoResponse[DatabaseDrop]]
@@ -34,13 +38,15 @@ object ArangoDatabase {
         )
       ))
 
-    override def create(setup: DatabaseCreate => DatabaseCreate): F[ArangoResponse[DatabaseCreate.Response]] = {
-      val options = setup(DatabaseCreate(name))
+    override def create(users: DatabaseCreate.User*): F[ArangoResponse[DatabaseCreate]] = {
       ArangoProtocol[F].execute(
         ArangoRequest.POST(
           DatabaseName.system,
           "/_api/database"
-        ).body(options)
+        ).body(VObject(
+          "name" -> name.toVPack,
+          "users" -> users.toVPack
+        ))
       )
     }
 

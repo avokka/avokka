@@ -5,18 +5,13 @@ import avokka.velocypack._
 import types._
 
 final case class IndexList(
-    collection: CollectionName
-)
+                            indexes: List[Index.Response],
+                            identifiers: Map[String, Index.Response]
+                          )
 
-object IndexList { self =>
+object IndexList {
 
-  final case class Response(
-      indexes: List[Index.Response],
-      identifiers: Map[String, Index.Response]
-  )
-  object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
-  }
+    implicit val decoder: VPackDecoder[IndexList] = VPackDecoder.gen
 
 /*  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, IndexList, Response] =
     new Api.EmptyBody[ArangoDatabase, IndexList] {

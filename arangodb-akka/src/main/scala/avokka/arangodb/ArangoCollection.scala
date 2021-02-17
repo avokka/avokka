@@ -6,7 +6,7 @@ import avokka.arangodb.api.{Cursor, DocumentCreate, DocumentRead, DocumentRemove
 import avokka.arangodb.types.{CollectionName, DocumentHandle, DocumentKey}
 import avokka.velocypack._
 
-class ArangoCollection(val database: ArangoDatabase, val name: CollectionName) {
+class ArangoCollectionF[F[_]](val database: ArangoDatabase[F], val name: CollectionName) {
 
   def handle(key: DocumentKey): DocumentHandle = DocumentHandle(name, key)
 
@@ -47,6 +47,9 @@ class ArangoCollection(val database: ArangoDatabase, val name: CollectionName) {
     )
   }
 
+  /*
   def source[T: VPackDecoder](batchSize: Long): Source[T, NotUsed] =
     database.source(all[T].withBatchSize(batchSize))
+
+   */
 }

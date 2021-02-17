@@ -38,7 +38,7 @@ final case class DocumentRemove[T](
 
 object DocumentRemove {
 
-  implicit def api[T: VPackDecoder]: Api.EmptyBody.Aux[ArangoDatabase, DocumentRemove[T], Document.Response[T]] =
+/*  implicit def api[T: VPackDecoder]: Api.EmptyBody.Aux[ArangoDatabase, DocumentRemove[T], Document.Response[T]] =
     new Api.EmptyBody[ArangoDatabase, DocumentRemove[T]] {
       override type Response = Document.Response[T]
       override def header(database: ArangoDatabase, command: DocumentRemove[T]): ArangoRequest.HeaderTrait = ArangoRequest.Header(
@@ -48,5 +48,5 @@ object DocumentRemove {
         parameters = command.parameters,
         meta = command.meta,
       )
-    }
+    }*/
 }

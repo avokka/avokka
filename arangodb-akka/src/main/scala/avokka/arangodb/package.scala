@@ -1,12 +1,13 @@
 package avokka
 
+import avokka.arangodb.protocol.ArangoError
 import cats.data.EitherT
 
 import scala.concurrent.Future
 
 package object arangodb {
 
-  private[arangodb] type FEE[T] = EitherT[Future, ArangoError, T]
+//  private[arangodb] type FEE[T] = EitherT[Future, ArangoError, T]
 
   /*
   type DatabaseName = types.DatabaseName

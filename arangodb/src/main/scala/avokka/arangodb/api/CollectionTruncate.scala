@@ -9,7 +9,7 @@ final case class CollectionTruncate(
 
 object CollectionTruncate {
 
-  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionTruncate, CollectionInfo.Response] =
+/*  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionTruncate, CollectionInfo.Response] =
     new Api.EmptyBody[ArangoDatabase, CollectionTruncate] {
       override type Response = CollectionInfo.Response
       override def header(database: ArangoDatabase,
@@ -19,6 +19,6 @@ object CollectionTruncate {
           requestType = RequestType.PUT,
           request = s"/_api/collection/${command.name}/truncate",
         )
-    }
+    }*/
 
 }

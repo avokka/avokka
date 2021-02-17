@@ -43,7 +43,7 @@ object CollectionChecksum { self =>
     implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
-  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionChecksum, Response] =
+/*  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionChecksum, Response] =
     new Api.EmptyBody[ArangoDatabase, CollectionChecksum] {
       override type Response = self.Response
       override def header(database: ArangoDatabase, command: CollectionChecksum): ArangoRequest.HeaderTrait = ArangoRequest.Header(
@@ -52,5 +52,5 @@ object CollectionChecksum { self =>
         request = s"/_api/collection/${command.name}/checksum",
         parameters = command.parameters
       )
-    }
+    }*/
 }

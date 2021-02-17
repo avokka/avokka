@@ -34,7 +34,7 @@ final case class DocumentCreate[T](
 
 object DocumentCreate { self =>
 
-  implicit def api[T: VPackDecoder: VPackEncoder]
+/*  implicit def api[T: VPackDecoder: VPackEncoder]
     : Api.Aux[ArangoDatabase, DocumentCreate[T], T, Document.Response[T]] =
     new Api[ArangoDatabase, DocumentCreate[T], T] {
       override type Response = Document.Response[T]
@@ -48,5 +48,5 @@ object DocumentCreate { self =>
       override def body(database: ArangoDatabase, command: DocumentCreate[T]): T = command.document
       override val encoder: VPackEncoder[T] =
         implicitly[VPackEncoder[T]].mapObject(_.filter(Document.filterEmptyInternalAttributes))
-    }
+    }*/
 }

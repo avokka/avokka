@@ -9,7 +9,7 @@ final case class CollectionUnload(
 
 object CollectionUnload {
 
-  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionUnload, CollectionInfo.Response] =
+/*  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionUnload, CollectionInfo.Response] =
     new Api.EmptyBody[ArangoDatabase, CollectionUnload] {
       override type Response = CollectionInfo.Response
       override def header(database: ArangoDatabase,
@@ -19,6 +19,6 @@ object CollectionUnload {
           requestType = RequestType.PUT,
           request = s"/_api/collection/${command.name}/unload",
         )
-    }
+    }*/
 
 }

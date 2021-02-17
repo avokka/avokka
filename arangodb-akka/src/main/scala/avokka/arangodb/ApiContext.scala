@@ -1,5 +1,6 @@
 package avokka.arangodb
 
+import avokka.arangodb.protocol.{ArangoError, ArangoRequest, ArangoResponse}
 import avokka.velocypack._
 
 import scala.concurrent.Future
@@ -18,6 +19,7 @@ trait ApiContext[Ctx] { self: Ctx =>
    * @tparam O response body type
    * @return
    */
+  /*
   def apply[C, T, O](c: C)(
     implicit command: api.Api.Aux[Ctx, C, T, O],
     decoder: VPackDecoder[O]
@@ -26,4 +28,6 @@ trait ApiContext[Ctx] { self: Ctx =>
     val body = command.body(self, c)
     session.execute(ArangoRequest(header, body))(command.encoder, decoder).value
   }
+
+   */
 }

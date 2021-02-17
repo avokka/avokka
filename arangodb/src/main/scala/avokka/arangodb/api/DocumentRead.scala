@@ -31,7 +31,7 @@ final case class DocumentRead[T](
 
 object DocumentRead {
 
-  implicit def api[T]: Api.EmptyBody.Aux[ArangoDatabase, DocumentRead[T], T] = new Api.EmptyBody[ArangoDatabase, DocumentRead[T]] {
+/*  implicit def api[T]: Api.EmptyBody.Aux[ArangoDatabase, DocumentRead[T], T] = new Api.EmptyBody[ArangoDatabase, DocumentRead[T]] {
     override type Response = T
 
     override def header(database: ArangoDatabase, command: DocumentRead[T]): ArangoRequest.HeaderTrait = ArangoRequest.Header(
@@ -40,6 +40,6 @@ object DocumentRead {
       request = s"/_api/document/${command.handle.path}",
       meta = command.meta
     )
-  }
+  }*/
 
 }

@@ -1,4 +1,4 @@
-package avokka.arangodb
+package avokka.arangodb.protocol
 
 import avokka.velocypack.{VPackDecoder, VPackEncoder, VPackError}
 

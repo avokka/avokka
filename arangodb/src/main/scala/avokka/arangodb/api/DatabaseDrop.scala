@@ -14,7 +14,7 @@ object DatabaseDrop { self =>
     implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
-  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, DatabaseDrop.type, Response] =
+/*  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, DatabaseDrop.type, Response] =
     new Api.EmptyBody[ArangoDatabase, DatabaseDrop.type] {
       override type Response = self.Response
       override def header(database: ArangoDatabase, command: DatabaseDrop.type): ArangoRequest.HeaderTrait = ArangoRequest.Header(
@@ -22,5 +22,5 @@ object DatabaseDrop { self =>
         requestType = RequestType.DELETE,
         request = s"/_api/database/${database.name}",
       )
-    }
+    }*/
 }

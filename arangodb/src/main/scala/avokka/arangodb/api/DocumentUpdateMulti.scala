@@ -58,7 +58,7 @@ final case class DocumentUpdateMulti[T, P](
 
 object DocumentUpdateMulti {
 
-  implicit def api[P: VPackEncoder, T: VPackDecoder]
+/*  implicit def api[P: VPackEncoder, T: VPackDecoder]
     : Api.Aux[ArangoDatabase, DocumentUpdateMulti[T, P], List[P], List[Document.Response[T]]] =
     new Api[ArangoDatabase, DocumentUpdateMulti[T, P], List[P]] {
       override type Response = List[Document.Response[T]]
@@ -73,6 +73,6 @@ object DocumentUpdateMulti {
       override def body(database: ArangoDatabase, command: DocumentUpdateMulti[T, P]): List[P] =
         command.patch
       override val encoder: VPackEncoder[List[P]] = implicitly
-    }
+    }*/
 
 }

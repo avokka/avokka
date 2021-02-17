@@ -20,7 +20,7 @@ object CollectionList { self =>
     implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
-  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionList, Response] =
+/*  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionList, Response] =
     new Api.EmptyBody[ArangoDatabase, CollectionList] {
       override type Response = self.Response
       override def header(database: ArangoDatabase, command: CollectionList): ArangoRequest.HeaderTrait =
@@ -30,5 +30,5 @@ object CollectionList { self =>
           request = "/_api/collection",
           parameters = command.parameters
         )
-    }
+    }*/
 }

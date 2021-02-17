@@ -17,7 +17,7 @@ object IndexDelete { self =>
     implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
-  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, IndexDelete, Response] =
+/*  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, IndexDelete, Response] =
     new Api.EmptyBody[ArangoDatabase, IndexDelete] {
       override type Response = self.Response
 
@@ -27,5 +27,5 @@ object IndexDelete { self =>
           requestType = RequestType.DELETE,
           request = s"/_api/index/${command.handle}"
         )
-    }
+    }*/
 }

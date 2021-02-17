@@ -48,7 +48,7 @@ final case class DocumentUpdate[T, P](
 
 object DocumentUpdate {
 
-  implicit def api[P: VPackEncoder, T: VPackDecoder]: Api.Aux[ArangoDatabase, DocumentUpdate[T, P], P, Document.Response[T]] =
+/*  implicit def api[P: VPackEncoder, T: VPackDecoder]: Api.Aux[ArangoDatabase, DocumentUpdate[T, P], P, Document.Response[T]] =
     new Api[ArangoDatabase, DocumentUpdate[T, P], P] {
       override type Response = Document.Response[T]
       override def header(database: ArangoDatabase, command: DocumentUpdate[T, P]): ArangoRequest.HeaderTrait = ArangoRequest.Header(
@@ -60,6 +60,6 @@ object DocumentUpdate {
       )
       override def body(context: ArangoDatabase, command: DocumentUpdate[T, P]): P = command.patch
       override val encoder: VPackEncoder[P] = implicitly
-    }
+    }*/
 
 }

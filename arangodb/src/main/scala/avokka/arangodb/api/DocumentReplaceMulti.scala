@@ -40,7 +40,7 @@ final case class DocumentReplaceMulti[T](
 
 object DocumentReplaceMulti {
 
-  implicit def api[T: VPackEncoder: VPackDecoder]
+/*  implicit def api[T: VPackEncoder: VPackDecoder]
     : Api.Aux[ArangoDatabase, DocumentReplaceMulti[T], List[T], List[Document.Response[T]]] =
     new Api[ArangoDatabase, DocumentReplaceMulti[T], List[T]] {
       override type Response = List[Document.Response[T]]
@@ -56,6 +56,6 @@ object DocumentReplaceMulti {
         command.documents
       override val encoder: VPackEncoder[List[T]] = VPackEncoder.listEncoder(
         implicitly[VPackEncoder[T]].mapObject(_.filter(Document.filterEmptyInternalAttributes)))
-    }
+    }*/
 
 }

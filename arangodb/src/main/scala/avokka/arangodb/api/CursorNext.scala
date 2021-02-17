@@ -8,7 +8,7 @@ final case class CursorNext[T](
 )
 
 object CursorNext { self =>
-  implicit def api[T: VPackDecoder]: Api.EmptyBody.Aux[ArangoDatabase, CursorNext[T], Cursor.Response[T]] =
+/*  implicit def api[T: VPackDecoder]: Api.EmptyBody.Aux[ArangoDatabase, CursorNext[T], Cursor.Response[T]] =
     new Api.EmptyBody[ArangoDatabase, CursorNext[T]] {
       override type Response = Cursor.Response[T]
       override def header(database: ArangoDatabase, command: CursorNext[T]): ArangoRequest.HeaderTrait =
@@ -17,5 +17,5 @@ object CursorNext { self =>
           requestType = RequestType.PUT,
           request = s"/_api/cursor/${command.id}"
         )
-    }
+    }*/
 }

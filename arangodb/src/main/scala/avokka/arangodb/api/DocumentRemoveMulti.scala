@@ -37,7 +37,7 @@ final case class DocumentRemoveMulti[T, K](
 
 object DocumentRemoveMulti {
 
-  implicit def api[T: VPackDecoder, K: VPackEncoder]
+/*  implicit def api[T: VPackDecoder, K: VPackEncoder]
     : Api.Aux[ArangoDatabase, DocumentRemoveMulti[T, K], List[K], List[Document.Response[T]]] =
     new Api[ArangoDatabase, DocumentRemoveMulti[T, K], List[K]] {
       override type Response = List[Document.Response[T]]
@@ -51,5 +51,5 @@ object DocumentRemoveMulti {
       override def body(database: ArangoDatabase, command: DocumentRemoveMulti[T, K]): List[K] =
         command.keys
       override val encoder: VPackEncoder[List[K]] = implicitly
-    }
+    }*/
 }

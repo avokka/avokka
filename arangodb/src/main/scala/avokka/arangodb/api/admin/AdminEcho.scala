@@ -72,12 +72,12 @@ object AdminEcho { self =>
     implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
-  implicit val api: Api.EmptyBody.Aux[ArangoSession, AdminEcho.type, Response] = new Api.EmptyBody[ArangoSession, AdminEcho.type] {
+/*  implicit val api: Api.EmptyBody.Aux[ArangoSession, AdminEcho.type, Response] = new Api.EmptyBody[ArangoSession, AdminEcho.type] {
     override type Response = self.Response
     override def header(session: ArangoSession, command: AdminEcho.type): ArangoRequest.HeaderTrait = ArangoRequest.Header(
       database = DatabaseName.system,
       requestType = RequestType.POST,
       request = "/_admin/echo"
     )
-  }
+  }*/
 }

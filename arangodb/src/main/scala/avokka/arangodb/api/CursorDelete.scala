@@ -17,7 +17,7 @@ object CursorDelete { self =>
     implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
-  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CursorDelete, Response] =
+/*  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CursorDelete, Response] =
     new Api.EmptyBody[ArangoDatabase, CursorDelete] {
       override type Response = self.Response
       override def header(database: ArangoDatabase, command: CursorDelete): ArangoRequest.HeaderTrait =
@@ -26,5 +26,5 @@ object CursorDelete { self =>
           requestType = RequestType.DELETE,
           request = s"/_api/cursor/${command.id}"
         )
-    }
+    }*/
 }

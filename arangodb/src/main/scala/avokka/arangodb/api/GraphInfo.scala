@@ -63,7 +63,7 @@ object GraphInfo { self =>
     implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
-  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, GraphInfo, Response] =
+/*  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, GraphInfo, Response] =
     new Api.EmptyBody[ArangoDatabase, GraphInfo] {
       override type Response = self.Response
       override def header(database: ArangoDatabase, command: GraphInfo): ArangoRequest.HeaderTrait =
@@ -72,5 +72,5 @@ object GraphInfo { self =>
           requestType = RequestType.GET,
           request = s"/_api/gharial/${command.name}",
         )
-    }
+    }*/
 }

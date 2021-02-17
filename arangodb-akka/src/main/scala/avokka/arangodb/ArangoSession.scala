@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicLong
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
-import avokka.arangodb.ArangoResponse.Header
+import avokka.arangodb.protocol.{ArangoError, ArangoProtocolImpl, ArangoRequest, ArangoResponse}
 import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
 import avokka.velocystream._
@@ -15,17 +15,15 @@ import cats.syntax.show._
 import com.typesafe.scalalogging.StrictLogging
 import scodec.bits.BitVector
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
 class ArangoSession(conf: ArangoConfiguration)(
-    implicit val system: ActorSystem
-) extends ApiContext[ArangoSession] with StrictLogging {
+    implicit val system: ActorSystem, ec: ExecutionContext
+) extends ArangoProtocolImpl[Future] with StrictLogging {
 
-  override lazy val session: ArangoSession = this
-
-  lazy val _system = new ArangoDatabase(this, DatabaseName.system)
-  lazy val db = new ArangoDatabase(this, conf.database)
+  lazy val _system = ArangoDatabase[Future](DatabaseName.system)
+  lazy val db = ArangoDatabase[Future](conf.database)
 
   val authRequest = ArangoRequest.Authentication(user = conf.username, password = conf.password).toVPackBits
 //  val authSource = Source.fromIterator(() => authRequest.map(bits => VStreamMessage.create(bits.bytes)).toOption.iterator)
@@ -51,12 +49,18 @@ class ArangoSession(conf: ArangoConfiguration)(
   implicit val timeout: Timeout = Timeout(30.seconds)
   import system.dispatcher
 
+  /*
   def askClient[T](bits: BitVector): FEE[VStreamMessage] =
     EitherT.liftF(ask(client, VStreamClient.MessageSend(VStreamMessage.create(bits.bytes))).mapTo[VStreamMessage])
+*/
+  override protected def send(message: VStreamMessage): Future[VStreamMessage] = {
+    ask(client, VStreamClient.MessageSend(message)).mapTo[VStreamMessage]
+  }
 
   def closeClient(): Unit =
     client ! VStreamClient.Stop
 
+  /*
   private[arangodb] def execute[P: VPackEncoder, O: VPackDecoder](
       request: ArangoRequest[P]): FEE[ArangoResponse[O]] = {
     (for {
@@ -79,7 +83,7 @@ class ArangoSession(conf: ArangoConfiguration)(
         head.remainder
           .asVPack[O]
           //.leftMap(ArangoError.VPack)
-          .flatMap(body => ArangoResponse(head.value, body.value).asRight)
+          .flatMap(body => protocol.ArangoResponse(head.value, body.value).asRight)
       })
     } yield response).leftMap { err =>
       logger.error("arangodb error from request head=%s body=%s".format(request.header.toString, request.body.toString), err)
@@ -90,6 +94,8 @@ class ArangoSession(conf: ArangoConfiguration)(
       }
     }
   }
+
+   */
 }
 
 object ArangoSession {

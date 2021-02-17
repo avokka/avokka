@@ -114,7 +114,7 @@ object Cursor { self =>
     implicit def decoder[T: VPackDecoder]: VPackDecoder[Response[T]] = VPackDecoder.gen
   }
 
-  implicit def api[V: VPackEncoder, T: VPackDecoder]
+/*  implicit def api[V: VPackEncoder, T: VPackDecoder]
     : Api.Command.Aux[ArangoDatabase, Cursor[V, T], Response[T]] =
     new Api.Command[ArangoDatabase, Cursor[V, T]] {
       override type Response = self.Response[T]
@@ -126,5 +126,5 @@ object Cursor { self =>
           request = s"/_api/cursor"
         )
       override val encoder: VPackEncoder[Cursor[V, T]] = implicitly
-    }
+    }*/
 }

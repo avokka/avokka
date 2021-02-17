@@ -38,7 +38,7 @@ object IndexHash { self =>
 
   implicit val encoder: VPackEncoder[IndexHash] = VPackEncoder.gen
 
-  implicit val api: Api.Command.Aux[ArangoDatabase, IndexHash, Index.Response] =
+/*  implicit val api: Api.Command.Aux[ArangoDatabase, IndexHash, Index.Response] =
     new Api.Command[ArangoDatabase, IndexHash] {
       override type Response = Index.Response
 
@@ -52,5 +52,5 @@ object IndexHash { self =>
 
       override def encoder: VPackEncoder[IndexHash] =
         self.encoder.mapObject(_.updated("type", "hash"))
-    }
+    }*/
 }

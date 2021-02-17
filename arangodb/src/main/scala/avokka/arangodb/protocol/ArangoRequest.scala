@@ -1,6 +1,6 @@
 package avokka.arangodb
+package protocol
 
-import avokka.arangodb.api.Api
 import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
 
@@ -52,11 +52,13 @@ object ArangoRequest {
   object Authentication {
     implicit val encoder: VPackEncoder[Authentication] = VPackGeneric[Authentication].encoder
 
+    /*
     implicit val api: Api.EmptyBody.Aux[ArangoSession, Authentication, ResponseError] =
       new Api.EmptyBody[ArangoSession, Authentication] {
         override type Response = ResponseError
         override def header(session: ArangoSession, command: Authentication): HeaderTrait = command
       }
+     */
   }
 
 }

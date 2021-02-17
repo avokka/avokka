@@ -19,7 +19,7 @@ object CollectionCount { self =>
     implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
-  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionCount, Response] =
+/*  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionCount, Response] =
     new Api.EmptyBody[ArangoDatabase, CollectionCount] {
       override type Response = self.Response
 
@@ -28,5 +28,5 @@ object CollectionCount { self =>
         requestType = RequestType.GET,
         request = s"/_api/collection/${command.name}/count",
       )
-    }
+    }*/
 }

@@ -3,6 +3,7 @@ package avokka.arangodb
 import akka.actor.ActorSystem
 import akka.testkit.{TestKit, TestKitBase}
 import avokka.arangodb.api._
+import avokka.arangodb.protocol.MessageType
 import avokka.arangodb.types._
 import avokka.velocypack._
 import cats.data.EitherT
@@ -31,14 +32,18 @@ class ArangoCountriesSpec
 
   val collName = CollectionName("countries")
 
-  val collection = new ArangoCollection(session.db, collName)
+  val client = ArangoClient(session)
+
+  val db = client.database(dbName)
+
+  val collection = db.collection(collName)
 
   it should "have test database" in {
-    EitherT(session(DatabaseList())).map { res =>
+    client.databases.map { res =>
       res.header.responseCode should be(200)
       res.header.`type` should be(MessageType.ResponseFinal)
       res.body.result should contain(dbName)
-    }.rethrowT
+    }
   }
 
   it should "have a countries collection" in {

@@ -20,10 +20,10 @@ import scala.concurrent.duration._
 
 class ArangoSession(conf: ArangoConfiguration)(
     implicit val system: ActorSystem, ec: ExecutionContext
-) extends ArangoProtocolImpl[Future] with StrictLogging {
+) extends ArangoProtocolImpl[Future] with StrictLogging { self =>
 
-  lazy val _system = ArangoDatabase[Future](DatabaseName.system)
-  lazy val db = ArangoDatabase[Future](conf.database)
+  lazy val _system = ArangoDatabase(DatabaseName.system)(self)
+  lazy val db = ArangoDatabase(conf.database)(self)
 
   val authRequest = ArangoRequest.Authentication(user = conf.username, password = conf.password).toVPackBits
 //  val authSource = Source.fromIterator(() => authRequest.map(bits => VStreamMessage.create(bits.bytes)).toOption.iterator)
@@ -47,7 +47,7 @@ class ArangoSession(conf: ArangoConfiguration)(
   )
 
   implicit val timeout: Timeout = Timeout(30.seconds)
-  import system.dispatcher
+  // import system.dispatcher
 
   /*
   def askClient[T](bits: BitVector): FEE[VStreamMessage] =

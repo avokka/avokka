@@ -24,6 +24,7 @@ class ArangoSessionSpec
 
   val session: ArangoSession = new ArangoSession(container.configuration)
 
+  /*
   it should "get version" in {
     EitherT(session(Version())).map { res =>
       res.header.responseCode should be (200)
@@ -100,6 +101,7 @@ class ArangoSessionSpec
       dropped.body.id should be (created.body.id)
     }).rethrowT
   }
+  */
 
   override def afterAll(): Unit = {
     session.closeClient()

@@ -34,6 +34,8 @@ trait ArangoCollection[F[_]] {
   def count(): F[ArangoResponse[CollectionCount]]
 
   def info(): F[ArangoResponse[CollectionInfo]]
+
+  def drop(isSystem: Boolean = false): F[ArangoResponse[CollectionDrop]]
 }
 
 object ArangoCollection {
@@ -43,8 +45,7 @@ object ArangoCollection {
       override def database: ArangoDatabase[F] = _database
       override def name: CollectionName = _name
 
-      override def document(key: DocumentKey): ArangoDocument[F] =
-        ArangoDocument(this, key)
+      override def document(key: DocumentKey): ArangoDocument[F] = ArangoDocument(this, key)
 
       override def checksum(
           withRevisions: Boolean,
@@ -62,16 +63,19 @@ object ArangoCollection {
 
       override def count(): F[ArangoResponse[CollectionCount]] =
         ArangoProtocol[F].execute(
-          ArangoRequest.GET(
-            database.name,
-            s"/_api/collection/$name/count",
-          )
+          ArangoRequest.GET(database.name, s"/_api/collection/$name/count")
         )
 
-      override def info(): F[ArangoResponse[CollectionInfo]] = ArangoProtocol[F].execute(
-        ArangoRequest.GET(
-          database.name,
-          s"/_api/collection/$name",
+      override def info(): F[ArangoResponse[CollectionInfo]] =
+        ArangoProtocol[F].execute(
+          ArangoRequest.GET(database.name, s"/_api/collection/$name")
+        )
+
+      override def drop(isSystem: Boolean): F[ArangoResponse[CollectionDrop]] = ArangoProtocol[F].execute(
+        ArangoRequest.DELETE(database.name, s"/_api/collection/$name",
+          Map(
+            "isSystem" -> isSystem.toString
+          )
         )
       )
     }

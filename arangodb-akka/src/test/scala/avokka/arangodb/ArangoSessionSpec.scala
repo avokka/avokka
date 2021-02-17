@@ -40,7 +40,7 @@ class ArangoSessionSpec
   }
 
   it should "have a _system and test database" in {
-    client.databases.map { res =>
+    client.databases().map { res =>
       res.header.responseCode should be (200)
       res.body.result should contain (DatabaseName.system)
       res.body.result should contain (test.name)

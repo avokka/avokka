@@ -7,7 +7,7 @@ import types._
 trait ArangoClient[F[_]] {
   def database(name: DatabaseName): ArangoDatabase[F]
 
-  def databases: F[ArangoResponse[api.DatabaseList]]
+  def databases(): F[ArangoResponse[api.DatabaseList]]
 
   def version(details: Boolean = false): F[ArangoResponse[api.Version]]
 }
@@ -25,7 +25,7 @@ object ArangoClient {
       )
     ))
 
-    override def databases: F[ArangoResponse[DatabaseList]] = ArangoProtocol[F].execute(ArangoRequest.GET(
+    override def databases(): F[ArangoResponse[DatabaseList]] = ArangoProtocol[F].execute(ArangoRequest.GET(
       DatabaseName.system,
       "/_api/database/user",
     ))

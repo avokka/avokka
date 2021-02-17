@@ -12,8 +12,9 @@ import scodec.bits.ByteVector
 trait ArangoProtocol[F[_]] {
   protected def send(message: VStreamMessage): F[VStreamMessage]
 
-  def execute[P: VPackEncoder, O: VPackDecoder](request: ArangoRequest[P]): F[ArangoResponse[O]]
   def execute[O: VPackDecoder](header: ArangoRequest.Header): F[ArangoResponse[O]]
+
+  def execute[P: VPackEncoder, O: VPackDecoder](request: ArangoRequest[P]): F[ArangoResponse[O]]
 }
 
 object ArangoProtocol {
@@ -21,6 +22,19 @@ object ArangoProtocol {
 }
 
 abstract class ArangoProtocolImpl[F[_]](implicit F: MonadThrow[F]) extends ArangoProtocol[F] {
+
+  override def execute[O: VPackDecoder](header: ArangoRequest.Header): F[ArangoResponse[O]] = for {
+    in  <- F.fromEither(header.toVPackBits)
+    out <- sendBytes(in.bytes)
+    res <- handleResponse(out)
+  } yield res
+
+  override def execute[P: VPackEncoder, O: VPackDecoder](request: ArangoRequest[P]): F[ArangoResponse[O]] = for {
+    inh <- F.fromEither(request.header.toVPackBits)
+    inb <- F.fromEither(request.body.toVPackBits)
+    out <- sendBytes((inh ++ inb).bytes)
+    res <- handleResponse(out)
+  } yield res
 
   protected def sendBytes(data: ByteVector): F[VStreamMessage] = send(VStreamMessage.create(data))
 
@@ -38,16 +52,4 @@ abstract class ArangoProtocolImpl[F[_]](implicit F: MonadThrow[F]) extends Arang
     }
   } yield ArangoResponse(header.value, body.value)
 
-  override def execute[O: VPackDecoder](header: ArangoRequest.Header): F[ArangoResponse[O]] = for {
-    in  <- F.fromEither(header.toVPackBits)
-    out <- sendBytes(in.bytes)
-    res <- handleResponse(out)
-  } yield res
-
-  override def execute[P: VPackEncoder, O: VPackDecoder](request: ArangoRequest[P]): F[ArangoResponse[O]] = for {
-    inh <- F.fromEither(request.header.toVPackBits)
-    inb <- F.fromEither(request.body.toVPackBits)
-    out <- sendBytes((inh ++ inb).bytes)
-    res <- handleResponse(out)
-  } yield res
 }

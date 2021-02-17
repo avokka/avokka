@@ -23,33 +23,34 @@ class ArangoSessionSpec
   override val container = ArangodbContainer.Def().start()
 
   val session: ArangoSession = new ArangoSession(container.configuration)
+  val client = ArangoClient(session)
 
-  /*
   it should "get version" in {
-    EitherT(session(Version())).map { res =>
+    client.version().map { res =>
       res.header.responseCode should be (200)
       res.body.version should startWith (container.version)
-    }.rethrowT
+    }
   }
 
   it should "get version with details" in {
-    EitherT(session(Version(details = true))).map { res =>
+    client.version(details = true).map { res =>
       res.header.responseCode should be (200)
       res.body.details should not be (empty)
-    }.rethrowT
+    }
   }
 
   it should "have a _system and test database" in {
-    EitherT(session(DatabaseList())).map { res =>
+    client.databases.map { res =>
       res.header.responseCode should be (200)
       res.body.result should contain (DatabaseName.system)
       res.body.result should contain (test.name)
-    }.rethrowT
+    }
   }
 
   val scratchName = DatabaseName("scratch")
-  val scratch = new ArangoDatabase(session, scratchName)
+  val scratch = client.database(scratchName)
 
+  /*
   it should "create, read and drop a database" in {
     (for {
       created <- EitherT(session(DatabaseCreate(scratchName)))
@@ -78,10 +79,11 @@ class ArangoSessionSpec
       e.error.errorNum should be (1229)
     }
   }
+*/
+  val test = client.database(DatabaseName("test"))
+  val temp = scratch.collection(CollectionName("temp"))
 
-  val test = new ArangoDatabase(session, DatabaseName("test"))
-  val temp = new ArangoCollection(scratch, CollectionName("temp"))
-
+  /*
   it should "create, read and drop a collection" in {
     (for {
       created <- EitherT(test(CollectionCreate(temp.name)))

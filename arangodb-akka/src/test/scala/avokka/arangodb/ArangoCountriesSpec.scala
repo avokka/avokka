@@ -54,22 +54,25 @@ class ArangoCountriesSpec
     }
   }
 
-  /*
   it should "have france at key FR" in {
-    EitherT(session.db(DocumentRead[Country](DocumentHandle(collName, DocumentKey("FR"))))).map { res =>
+    db.document(DocumentHandle(collName, DocumentKey("FR"))).read[Country]().map { res =>
       res.header.responseCode should be(200)
       res.header.`type` should be(MessageType.ResponseFinal)
       res.body.name should be("France")
-    }.rethrowT
+    }
   }
 
   it should "have france at key FR (collection method)" in {
-    EitherT(session.db(collection.read[Country](DocumentKey("FR")))).map { res =>
+    collection.document(DocumentKey("FR")).read[Country]().map { res =>
       res.header.responseCode should be(200)
       res.header.`type` should be(MessageType.ResponseFinal)
       res.body.name should be("France")
-    }.rethrowT
+    }
   }
+
+  /*
+
+
 
   it should "create, read, update, delete document" in {
     val key = DocumentKey("XX")

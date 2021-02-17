@@ -14,7 +14,7 @@ final case class CollectionList(
 object CollectionList { self =>
 
   final case class Response(
-      result: Vector[CollectionInfo.Response]
+      result: Vector[CollectionInfo]
   )
   object Response {
     implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen

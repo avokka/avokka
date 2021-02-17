@@ -16,8 +16,7 @@ object Document {
   )
 
   object Response {
-    implicit def decoder[T: VPackDecoder]: VPackDecoder[Response[T]] =
-      VPackDecoder.gen
+    implicit def decoder[T: VPackDecoder]: VPackDecoder[Response[T]] = VPackDecoder.gen
   }
 
   val filterEmptyInternalAttributes: ((String, VPack)) => Boolean = {

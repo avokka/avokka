@@ -21,7 +21,9 @@ object ArangoRequest {
     request: String,
     parameters: Map[String, String] = Map.empty,
     meta: Map[String, String] = Map.empty,
-  )
+  ) {
+    def body[T](value: T): ArangoRequest[T] = ArangoRequest(this, value)
+  }
 
   def GET(
     database: DatabaseName,
@@ -51,14 +53,6 @@ object ArangoRequest {
 
   object Authentication {
     implicit val encoder: VPackEncoder[Authentication] = VPackGeneric[Authentication].encoder
-
-    /*
-    implicit val api: Api.EmptyBody.Aux[ArangoSession, Authentication, ResponseError] =
-      new Api.EmptyBody[ArangoSession, Authentication] {
-        override type Response = ResponseError
-        override def header(session: ArangoSession, command: Authentication): HeaderTrait = command
-      }
-     */
   }
 
 }

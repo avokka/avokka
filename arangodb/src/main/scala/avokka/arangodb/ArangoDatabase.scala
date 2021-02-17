@@ -1,8 +1,8 @@
 package avokka.arangodb
 
-import avokka.arangodb.api.CollectionList
-import avokka.arangodb.protocol.{ArangoProtocol, ArangoRequest, ArangoResponse}
-import avokka.arangodb.types.{CollectionName, DatabaseName, DocumentHandle}
+import api._
+import protocol._
+import types._
 
 trait ArangoDatabase[F[_]] {
   def name: DatabaseName
@@ -10,7 +10,12 @@ trait ArangoDatabase[F[_]] {
   def collection(name: CollectionName): ArangoCollection[F]
   def document(handle: DocumentHandle): ArangoDocument[F]
 
-  def collections(excludeSystem: Boolean = false): F[ArangoResponse[api.CollectionList.Response]]
+  def create(setup: DatabaseCreate => DatabaseCreate = identity): F[ArangoResponse[DatabaseCreate.Response]]
+
+  def info(): F[ArangoResponse[DatabaseInfo]]
+  def drop(): F[ArangoResponse[DatabaseDrop]]
+
+  def collections(excludeSystem: Boolean = false): F[ArangoResponse[api.CollectionList]]
 }
 
 object ArangoDatabase {
@@ -20,7 +25,7 @@ object ArangoDatabase {
     override def collection(name: CollectionName): ArangoCollection[F] = ArangoCollection(this, name)
     override def document(handle: DocumentHandle): ArangoDocument[F] = ArangoDocument(this, handle)
 
-    override def collections(excludeSystem: Boolean): F[ArangoResponse[CollectionList.Response]] =
+    override def collections(excludeSystem: Boolean): F[ArangoResponse[CollectionList]] =
       ArangoProtocol[F].execute(ArangoRequest.GET(
         name,
         "/_api/collection",
@@ -29,5 +34,28 @@ object ArangoDatabase {
         )
       ))
 
+    override def create(setup: DatabaseCreate => DatabaseCreate): F[ArangoResponse[DatabaseCreate.Response]] = {
+      val options = setup(DatabaseCreate(name))
+      ArangoProtocol[F].execute(
+        ArangoRequest.POST(
+          DatabaseName.system,
+          "/_api/database"
+        ).body(options)
+      )
+    }
+
+    override def info(): F[ArangoResponse[DatabaseInfo]] = ArangoProtocol[F].execute(
+      ArangoRequest.GET(
+        name,
+        "/_api/database/current"
+      )
+    )
+
+    override def drop(): F[ArangoResponse[DatabaseDrop]] = ArangoProtocol[F].execute(
+      ArangoRequest.DELETE(
+        DatabaseName.system,
+        s"/_api/database/$name"
+      )
+    )
   }
 }

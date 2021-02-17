@@ -10,7 +10,7 @@ import types._
   */
 final case class DatabaseCreate(
     name: DatabaseName,
-    users: List[DatabaseCreate.Users] = List.empty,
+    users: List[DatabaseCreate.User] = List.empty,
 )
 
 object DatabaseCreate { self =>
@@ -21,15 +21,15 @@ object DatabaseCreate { self =>
     * @param passwd The user password as a string. If not specified, it will default to an empty string.
     * @param username Login name of the user to be created
     */
-  final case class Users(
+  final case class User(
       username: String,
       passwd: Option[String] = None,
       active: Boolean = true,
       //  extra: Option[Any],
   )
 
-  object Users {
-    implicit val encoder: VPackEncoder[Users] = VPackEncoder.gen
+  object User {
+    implicit val encoder: VPackEncoder[User] = VPackEncoder.gen
   }
 
   implicit val encoder: VPackEncoder[DatabaseCreate] = VPackEncoder.gen
@@ -40,15 +40,5 @@ object DatabaseCreate { self =>
   object Response {
     implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
-
-/*  implicit val api: Api.Command.Aux[ArangoSession, DatabaseCreate, Response] = new Api.Command[ArangoSession, DatabaseCreate] {
-    override type Response = self.Response
-    override def header(session: ArangoSession, command: DatabaseCreate): ArangoRequest.HeaderTrait = ArangoRequest.Header(
-      database = DatabaseName.system,
-      requestType = RequestType.POST,
-      request = "/_api/database"
-    )
-    override val encoder: VPackEncoder[DatabaseCreate] = self.encoder
-  }*/
 
 }

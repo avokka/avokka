@@ -1,22 +1,18 @@
 package avokka.arangodb
 
-import java.util.concurrent.atomic.AtomicLong
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
-import avokka.arangodb.protocol.{ArangoError, ArangoProtocolImpl, ArangoRequest, ArangoResponse}
+import avokka.arangodb.protocol.{ArangoProtocolImpl, ArangoRequest}
 import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
 import avokka.velocystream._
-import cats.data.EitherT
 import cats.instances.future._
-import cats.syntax.either._
-import cats.syntax.show._
 import com.typesafe.scalalogging.StrictLogging
-import scodec.bits.BitVector
 
-import scala.concurrent.{ExecutionContext, Future}
+import java.util.concurrent.atomic.AtomicLong
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 
 class ArangoSession(conf: ArangoConfiguration)(
     implicit val system: ActorSystem, ec: ExecutionContext

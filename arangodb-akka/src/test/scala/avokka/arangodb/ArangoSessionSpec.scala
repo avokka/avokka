@@ -2,10 +2,8 @@ package avokka.arangodb
 
 import akka.actor.ActorSystem
 import akka.testkit.{TestKit, TestKitBase}
-import avokka.arangodb.api._
+import avokka.arangodb.protocol.ArangoError
 import avokka.arangodb.types._
-import cats.data.EitherT
-import cats.instances.future._
 import com.dimafeng.testcontainers.ForAllTestContainer
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AsyncFlatSpec
@@ -50,13 +48,12 @@ class ArangoSessionSpec
   val scratchName = DatabaseName("scratch")
   val scratch = client.database(scratchName)
 
-  /*
   it should "create, read and drop a database" in {
-    (for {
-      created <- EitherT(session(DatabaseCreate(scratchName)))
-      listed  <- EitherT(session(DatabaseList()))
-      info    <- EitherT(scratch(DatabaseInfo))
-      dropped <- EitherT(scratch(DatabaseDrop))
+    for {
+      created <- scratch.create()
+      listed  <- client.databases()
+      info    <- scratch.info()
+      dropped <- scratch.drop()
     } yield {
       created.header.responseCode should be (201)
       created.body.result should be (true)
@@ -68,28 +65,27 @@ class ArangoSessionSpec
 
       dropped.header.responseCode should be(200)
       dropped.body.result should be (true)
-    }).rethrowT
+    }
   }
 
   it should "fail creating database with invalid name" in {
     recoverToExceptionIf[ArangoError.Resp] {
-      EitherT(session(DatabaseCreate(DatabaseName("@")))).rethrowT
+      client.database(DatabaseName("@")).create()
     }.map { e =>
       e.header.responseCode should be (400)
       e.error.errorNum should be (1229)
     }
   }
-*/
-  val test = client.database(DatabaseName("test"))
-  val temp = scratch.collection(CollectionName("temp"))
 
-  /*
+  val test = client.database(DatabaseName("test"))
+  val temp = test.collection(CollectionName("temp"))
+
   it should "create, read and drop a collection" in {
-    (for {
-      created <- EitherT(test(CollectionCreate(temp.name)))
-      listed  <- EitherT(test(CollectionList()))
-      info    <- EitherT(test(CollectionInfo(temp.name)))
-      dropped <- EitherT(test(CollectionDrop(temp.name)))
+    for {
+      created <- temp.create()
+      listed  <- test.collections()
+      info    <- temp.info()
+      dropped <- temp.drop()
     } yield {
       created.header.responseCode should be (200)
       created.body.name should be (temp.name)
@@ -101,9 +97,8 @@ class ArangoSessionSpec
 
       dropped.header.responseCode should be(200)
       dropped.body.id should be (created.body.id)
-    }).rethrowT
+    }
   }
-  */
 
   override def afterAll(): Unit = {
     session.closeClient()

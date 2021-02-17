@@ -2,7 +2,7 @@ package avokka.arangodb
 
 import akka.NotUsed
 import akka.stream.scaladsl.Source
-import avokka.arangodb.api.{Cursor, DocumentCreate, DocumentRemove, DocumentUpdate}
+import avokka.arangodb.api.{Cursor, DocumentCreate}
 import avokka.arangodb.types.{CollectionName, DocumentHandle, DocumentKey}
 import avokka.velocypack._
 
@@ -19,11 +19,6 @@ class ArangoCollectionF[F[_]](val database: ArangoDatabase[F], val name: Collect
       overwrite: Boolean = false,
   ): DocumentCreate[T] =
     DocumentCreate[T](name, document, waitForSync, returnNew, returnOld, silent, overwrite)
-
-  def remove[T](key: DocumentKey): DocumentRemove[T] = DocumentRemove[T](handle(key))
-
-  def update[T, P](key: DocumentKey, patch: P): DocumentUpdate[T, P] =
-    DocumentUpdate[T, P](handle(key), patch)
 
   def all[T]: Cursor[VObject, T] = Cursor[VObject, T](
     query = "FOR doc IN @@collection RETURN doc",

@@ -1,12 +1,32 @@
 package avokka.arangodb
 
+import api._
 import avokka.arangodb.protocol.{ArangoProtocol, ArangoRequest, ArangoResponse}
 import avokka.arangodb.types.{DocumentHandle, DocumentKey}
-import avokka.velocypack.VPackDecoder
+import avokka.velocypack.{VPackDecoder, VPackEncoder}
 
 trait ArangoDocument[F[_]] {
   def database: ArangoDatabase[F]
   def handle: DocumentHandle
+
+  /**
+    * Create document
+    * @param document document value
+    * @param waitForSync Wait until document has been synced to disk.   (optional)
+    * @param returnNew Additionally return the complete new document under the attribute *new* in the result.   (optional)
+    * @param returnOld Additionally return the complete old document under the attribute *old* in the result. Only available if the overwrite option is used.   (optional)
+    * @param silent If set to *true*, an empty object will be returned as response. No meta-data  will be returned for the created document. This option can be used to save some network traffic.   (optional)
+    * @param overwrite If set to *true*, the insert becomes a replace-insert. If a document with the same *_key* already exists the new document is not rejected with unique constraint violated but will replace the old document.   (optional)
+    * @tparam T document type
+    */
+  def create[T: VPackEncoder: VPackDecoder](
+      document: T,
+      waitForSync: Boolean = false,
+      returnNew: Boolean = false,
+      returnOld: Boolean = false,
+      silent: Boolean = false,
+      overwrite: Boolean = false,
+  ): F[ArangoResponse[Document[T]]]
 
   /**
     * Returns the document identified by *document-handle*. The returned document contains three special attributes:
@@ -21,31 +41,163 @@ trait ArangoDocument[F[_]] {
     *                    Etag. The document is returned, if it has the same revision as the
     *                    given Etag. Otherwise a HTTP 412 is returned.
     */
-  def read[T: VPackDecoder](ifNoneMatch: Option[String] = None, ifMatch: Option[String] = None): F[ArangoResponse[T]]
+  def read[T: VPackDecoder](
+      ifNoneMatch: Option[String] = None,
+      ifMatch: Option[String] = None,
+  ): F[ArangoResponse[T]]
+
+  /**
+    * Removes a document
+    * @param waitForSync Wait until deletion operation has been synced to disk.
+    * @param returnOld   Return additionally the complete previous revision of the changed
+    *                    document under the attribute old in the result.
+    * @param silent      If set to true, an empty object will be returned as response. No meta-data
+    *                    will be returned for the removed document. This option can be used to
+    *                    save some network traffic.
+    * @param ifMatch     You can conditionally remove a document based on a target revision id by
+    *                    using the if-match HTTP header.
+    * @tparam T          Response body type
+    */
+  def remove[T: VPackDecoder](
+      waitForSync: Boolean = false,
+      returnOld: Boolean = false,
+      silent: Boolean = false,
+      ifMatch: Option[String] = None,
+  ): F[ArangoResponse[Document[T]]]
+
+  /**
+    * @param patch representation of a document update as an object
+    * @param keepNull If the intention is to delete existing attributes with the patch command, the URL query parameter *keepNull* can be used with a value of *false*. This will modify the behavior of the patch command to remove any attributes from the existing document that are contained in the patch document with an attribute value of *null*.   (optional)
+    * @param mergeObjects Controls whether objects (not arrays) will be merged if present in both the existing and the patch document. If set to *false*, the value in the patch document will overwrite the existing document&#39;s value. If set to *true*, objects will be merged. The default is *true*.   (optional)
+    * @param waitForSync Wait until document has been synced to disk.   (optional)
+    * @param ignoreRevs By default, or if this is set to *true*, the *_rev* attributes in  the given document is ignored. If this is set to *false*, then the *_rev* attribute given in the body document is taken as a precondition. The document is only updated if the current revision is the one specified.   (optional)
+    * @param returnOld Return additionally the complete previous revision of the changed  document under the attribute *old* in the result.   (optional)
+    * @param returnNew Return additionally the complete new document under the attribute *new* in the result.   (optional)
+    * @param silent If set to *true*, an empty object will be returned as response. No meta-data  will be returned for the updated document. This option can be used to save some network traffic.   (optional)
+    * @param ifMatch You can conditionally update a document based on a target revision id by using the *if-match* HTTP header.   (optional)
+    * @tparam T document type
+    * @tparam P patch type
+    */
+  def update[T: VPackDecoder, P: VPackEncoder](
+      patch: P,
+      keepNull: Boolean = false,
+      mergeObjects: Boolean = true,
+      waitForSync: Boolean = false,
+      ignoreRevs: Boolean = true,
+      returnOld: Boolean = false,
+      returnNew: Boolean = false,
+      silent: Boolean = false,
+      ifMatch: Option[String] = None,
+  ): F[ArangoResponse[Document[T]]]
 }
 
 object ArangoDocument {
 
-  def apply[F[_]: ArangoProtocol](_database: ArangoDatabase[F], _handle: DocumentHandle): ArangoDocument[F] = new Protocol[F] {
-    override def database: ArangoDatabase[F] = _database
-    override def handle: DocumentHandle = _handle
-  }
+  def apply[F[_]: ArangoProtocol](_database: ArangoDatabase[F], _handle: DocumentHandle): ArangoDocument[F] =
+    new Protocol[F] {
+      override def database: ArangoDatabase[F] = _database
+      override def handle: DocumentHandle = _handle
+    }
 
-  def apply[F[_]: ArangoProtocol](_collection: ArangoCollection[F], _key: DocumentKey): ArangoDocument[F] = new Protocol[F] {
-    override def database: ArangoDatabase[F] = _collection.database
-    override def handle: DocumentHandle = DocumentHandle(_collection.name, _key)
-  }
+  def apply[F[_]: ArangoProtocol](_collection: ArangoCollection[F], _key: DocumentKey): ArangoDocument[F] =
+    new Protocol[F] {
+      override def database: ArangoDatabase[F] = _collection.database
+      override def handle: DocumentHandle = DocumentHandle(_collection.name, _key)
+    }
 
   abstract class Protocol[F[_]: ArangoProtocol] extends ArangoDocument[F] {
-    override def read[T: VPackDecoder](ifNoneMatch: Option[String], ifMatch: Option[String]): F[ArangoResponse[T]] =
-      ArangoProtocol[F].execute(ArangoRequest.GET(
-        database.name,
-        s"/_api/document/${handle.path}",
-        meta = Map(
-          "If-None-Match" -> ifNoneMatch,
-          "If-Match" -> ifMatch
-        ).collectDefined
-      ))
+
+    override def create[T: VPackEncoder: VPackDecoder](
+        document: T,
+        waitForSync: Boolean,
+        returnNew: Boolean,
+        returnOld: Boolean,
+        silent: Boolean,
+        overwrite: Boolean
+    ): F[ArangoResponse[Document[T]]] =
+      ArangoProtocol[F].execute(
+        ArangoRequest.POST(
+          database.name,
+          s"/_api/document/${handle.collection}",
+          Map(
+            "waitForSync" -> waitForSync.toString,
+            "returnNew" -> returnNew.toString,
+            "returnOld" -> returnOld.toString,
+            "silent" -> silent.toString,
+            "overwrite" -> overwrite.toString,
+          )
+        ).body(document)
+      )(
+        implicitly[VPackEncoder[T]].mapObject(_.filter(Document.filterEmptyInternalAttributes)),
+        implicitly
+      )
+
+    override def read[T: VPackDecoder](
+        ifNoneMatch: Option[String],
+        ifMatch: Option[String]
+    ): F[ArangoResponse[T]] =
+      ArangoProtocol[F].execute(
+        ArangoRequest.GET(
+          database.name,
+          s"/_api/document/${handle.path}",
+          meta = Map(
+            "If-None-Match" -> ifNoneMatch,
+            "If-Match" -> ifMatch
+          ).collectDefined
+        ))
+
+    override def remove[T: VPackDecoder](
+        waitForSync: Boolean,
+        returnOld: Boolean,
+        silent: Boolean,
+        ifMatch: Option[String]
+    ): F[ArangoResponse[Document[T]]] =
+      ArangoProtocol[F].execute(
+        ArangoRequest.DELETE(
+          database.name,
+          s"/_api/document/${handle.path}",
+          Map(
+            "waitForSync" -> waitForSync.toString,
+            "returnOld" -> returnOld.toString,
+            "silent" -> silent.toString,
+          ),
+          Map(
+            "If-Match" -> ifMatch
+          ).collectDefined
+        )
+      )
+
+    override def update[T: VPackDecoder, P: VPackEncoder](
+        patch: P,
+        keepNull: Boolean,
+        mergeObjects: Boolean,
+        waitForSync: Boolean,
+        ignoreRevs: Boolean,
+        returnOld: Boolean,
+        returnNew: Boolean,
+        silent: Boolean,
+        ifMatch: Option[String]
+    ): F[ArangoResponse[Document[T]]] =
+      ArangoProtocol[F].execute(
+        ArangoRequest
+          .PATCH(
+            database.name,
+            s"/_api/document/${handle.path}",
+            Map(
+              "keepNull" -> keepNull.toString,
+              "mergeObjects" -> mergeObjects.toString,
+              "waitForSync" -> waitForSync.toString,
+              "ignoreRevs" -> ignoreRevs.toString,
+              "returnOld" -> returnOld.toString,
+              "returnNew" -> returnNew.toString,
+              "silent" -> silent.toString,
+            ),
+            Map(
+              "If-Match" -> ifMatch
+            ).collectDefined
+          )
+          .body(patch)
+      )
   }
 
 }

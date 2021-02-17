@@ -4,20 +4,18 @@ package api
 import avokka.velocypack._
 import types._
 
+case class Document[T](
+                        _id: DocumentHandle,
+                        _key: DocumentKey,
+                        _rev: DocumentRevision,
+                        `new`: Option[T] = None,
+                        old: Option[T] = None,
+                        _oldRev: Option[DocumentRevision] = None,
+                      )
+
 object Document {
 
-  final case class Response[T](
-      _id: DocumentHandle,
-      _key: DocumentKey,
-      _rev: DocumentRevision,
-      `new`: Option[T] = None,
-      old: Option[T] = None,
-      _oldRev: Option[DocumentRevision] = None,
-  )
-
-  object Response {
-    implicit def decoder[T: VPackDecoder]: VPackDecoder[Response[T]] = VPackDecoder.gen
-  }
+  implicit def decoder[T: VPackDecoder]: VPackDecoder[Document[T]] = VPackDecoder.gen
 
   val filterEmptyInternalAttributes: ((String, VPack)) => Boolean = {
     case (DocumentHandle.key, value) if value.isEmpty   => false

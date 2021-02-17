@@ -1,15 +1,16 @@
 package avokka.arangodb
 
-import avokka.arangodb.api.{DatabaseList, Version}
+import api._
 import protocol._
 import types._
 
 trait ArangoClient[F[_]] {
   def database(name: DatabaseName): ArangoDatabase[F]
 
-  def databases(): F[ArangoResponse[api.DatabaseList]]
+  def databases(): F[ArangoResponse[DatabaseList]]
 
-  def version(details: Boolean = false): F[ArangoResponse[api.Version]]
+  def version(details: Boolean = false): F[ArangoResponse[Version]]
+  def engine(): F[ArangoResponse[Engine]]
 }
 
 object ArangoClient {
@@ -23,6 +24,11 @@ object ArangoClient {
       parameters = Map(
         "details" -> details.toString
       )
+    ))
+
+    override def engine(): F[ArangoResponse[Engine]] = ArangoProtocol[F].execute(ArangoRequest.GET(
+      DatabaseName.system,
+      "/_api/engine",
     ))
 
     override def databases(): F[ArangoResponse[DatabaseList]] = ArangoProtocol[F].execute(ArangoRequest.GET(

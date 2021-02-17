@@ -4,31 +4,11 @@ package api
 import avokka.velocypack._
 
 final case class CollectionList(
-    excludeSystem: Boolean = false
-) {
-  def parameters = Map(
-    "excludeSystem" -> excludeSystem.toString
-  )
-}
+    result: Vector[CollectionInfo]
+)
 
-object CollectionList { self =>
+object CollectionList {
 
-  final case class Response(
-      result: Vector[CollectionInfo]
-  )
-  object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
-  }
+  implicit val decoder: VPackDecoder[CollectionList] = VPackDecoder.gen
 
-/*  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CollectionList, Response] =
-    new Api.EmptyBody[ArangoDatabase, CollectionList] {
-      override type Response = self.Response
-      override def header(database: ArangoDatabase, command: CollectionList): ArangoRequest.HeaderTrait =
-        ArangoRequest.Header(
-          database = database.name,
-          requestType = RequestType.GET,
-          request = "/_api/collection",
-          parameters = command.parameters
-        )
-    }*/
 }

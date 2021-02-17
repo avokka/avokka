@@ -2,12 +2,9 @@ package avokka.arangodb
 
 import akka.actor.ActorSystem
 import akka.testkit.{TestKit, TestKitBase}
-import avokka.arangodb.api._
 import avokka.arangodb.protocol.MessageType
 import avokka.arangodb.types._
 import avokka.velocypack._
-import cats.data.EitherT
-import cats.instances.future._
 import com.dimafeng.testcontainers.ForAllTestContainer
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.OptionValues._
@@ -39,7 +36,7 @@ class ArangoCountriesSpec
   val collection = db.collection(collName)
 
   it should "have test database" in {
-    client.databases.map { res =>
+    client.databases().map { res =>
       res.header.responseCode should be(200)
       res.header.`type` should be(MessageType.ResponseFinal)
       res.body.result should contain(dbName)
@@ -70,21 +67,17 @@ class ArangoCountriesSpec
     }
   }
 
-  /*
-
-
-
   it should "create, read, update, delete document" in {
     val key = DocumentKey("XX")
-    (for {
-      c <- EitherT(session.db(collection.create(Country(key, name = "country name"), returnNew = true)))
-      r <- EitherT(session.db(collection.read[Country](key)))
-      u <- EitherT(session.db(collection.update[Country, VObject](key, VObject("name" -> "updated name".toVPack))))
-      d <- EitherT(session.db(collection.remove[Country](key)))
+    for {
+      c <- collection.document().create(Country(key, name = "country name"), returnNew = true)
+      r <- collection.document(key).read[Country]()
+      u <- collection.document(key).update[Country, VObject](VObject("name" -> "updated name".toVPack))
+      d <- collection.document(key).remove[Country]()
     } yield {
       c.header.responseCode should be(202)
       c.header.`type` should be(MessageType.ResponseFinal)
-      c.body._id should be(collection.handle(key))
+      c.body._id should be(collection.document(key).handle)
       c.body.`new`.value._rev.repr should not be (empty)
 
       r.header.responseCode should be(200)
@@ -96,9 +89,10 @@ class ArangoCountriesSpec
 
       d.header.responseCode should be(202)
       d.body._rev should be(u.body._rev)
-    }).rethrowT
+    }
   }
 
+  /*
   it should "create multiple documents" in {
     val key1 = DocumentKey("X1")
     val key2 = DocumentKey("X2")

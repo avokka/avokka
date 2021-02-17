@@ -3,18 +3,18 @@ package api
 
 import avokka.velocypack._
 
-object Engine { self =>
+/**
+  * the storage engine the server is configured to use
+  *
+  * @param name will be mmfiles or rocksdb
+  * @param supports what the engine supports
+  */
+case class Engine(
+    name: String,
+    supports: Engine.Supports
+)
 
-  /**
-    * the storage engine the server is configured to use
-    *
-    * @param name will be mmfiles or rocksdb
-    * @param supports what the engine supports
-    */
-  final case class Response(
-      name: String,
-      supports: Supports
-  )
+object Engine {
 
   final case class Supports(
       dfdb: Boolean,
@@ -24,16 +24,6 @@ object Engine { self =>
     implicit val decoder: VPackDecoder[Supports] = VPackDecoder.gen
   }
 
-  object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
-  }
+  implicit val decoder: VPackDecoder[Engine] = VPackDecoder.gen
 
-/*  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, Engine.type, Response] = new Api.EmptyBody[ArangoDatabase, Engine.type] {
-    override type Response = self.Response
-    override def header(database: ArangoDatabase, command: Engine.type): ArangoRequest.HeaderTrait = ArangoRequest.Header(
-      database = database.name,
-      requestType = RequestType.GET,
-      request = "/_api/engine"
-    )
-  }*/
 }

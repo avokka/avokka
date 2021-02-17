@@ -49,6 +49,45 @@ object ArangoRequest {
     meta = meta
   )
 
+  def POST(
+              database: DatabaseName,
+              request: String,
+              parameters: Map[String, String] = Map.empty,
+              meta: Map[String, String] = Map.empty
+            ): Header = Header(
+    database = database,
+    requestType = RequestType.POST,
+    request = request,
+    parameters = parameters,
+    meta = meta
+  )
+
+  def PUT(
+            database: DatabaseName,
+            request: String,
+            parameters: Map[String, String] = Map.empty,
+            meta: Map[String, String] = Map.empty
+          ): Header = Header(
+    database = database,
+    requestType = RequestType.PUT,
+    request = request,
+    parameters = parameters,
+    meta = meta
+  )
+
+  def PATCH(
+           database: DatabaseName,
+           request: String,
+           parameters: Map[String, String] = Map.empty,
+           meta: Map[String, String] = Map.empty
+         ): Header = Header(
+    database = database,
+    requestType = RequestType.PATCH,
+    request = request,
+    parameters = parameters,
+    meta = meta
+  )
+
   object Header {
     implicit val encoder: VPackEncoder[Header] = VPackGeneric[Header].encoder
   }

@@ -8,7 +8,9 @@ trait ArangoCollection[F[_]] {
   def database: ArangoDatabase[F]
   def name: CollectionName
 
-  def document(key: DocumentKey): ArangoDocument[F]
+  def document(key: DocumentKey = DocumentKey.empty): ArangoDocument[F]
+
+  def create(setup: CollectionCreate => CollectionCreate = identity): F[ArangoResponse[CollectionInfo]]
 
   /**
     * Will calculate a checksum of the meta-data (keys and optionally revision ids) and
@@ -34,8 +36,13 @@ trait ArangoCollection[F[_]] {
   def count(): F[ArangoResponse[CollectionCount]]
 
   def info(): F[ArangoResponse[CollectionInfo]]
+  def revision(): F[ArangoResponse[CollectionRevision]]
+  def properties(): F[ArangoResponse[CollectionProperties]]
 
+  def unload(): F[ArangoResponse[CollectionInfo]]
+  def truncate(): F[ArangoResponse[CollectionInfo]]
   def drop(isSystem: Boolean = false): F[ArangoResponse[CollectionDrop]]
+
 }
 
 object ArangoCollection {
@@ -71,12 +78,52 @@ object ArangoCollection {
           ArangoRequest.GET(database.name, s"/_api/collection/$name")
         )
 
-      override def drop(isSystem: Boolean): F[ArangoResponse[CollectionDrop]] = ArangoProtocol[F].execute(
-        ArangoRequest.DELETE(database.name, s"/_api/collection/$name",
-          Map(
-            "isSystem" -> isSystem.toString
+      override def revision(): F[ArangoResponse[CollectionRevision]] =
+        ArangoProtocol[F].execute(
+          ArangoRequest.GET(database.name, s"/_api/collection/$name/revision")
+        )
+
+      override def properties(): F[ArangoResponse[CollectionProperties]] =
+        ArangoProtocol[F].execute(
+          ArangoRequest.GET(database.name, s"/_api/collection/$name/properties")
+        )
+
+      override def truncate(): F[ArangoResponse[CollectionInfo]] =
+        ArangoProtocol[F].execute(
+          ArangoRequest.PUT(
+            database.name,
+            s"/_api/collection/$name/truncate"
           )
         )
-      )
+
+      override def unload(): F[ArangoResponse[CollectionInfo]] =
+        ArangoProtocol[F].execute(
+          ArangoRequest.PUT(
+            database.name,
+            s"/_api/collection/$name/unload"
+          )
+        )
+
+      override def drop(isSystem: Boolean): F[ArangoResponse[CollectionDrop]] =
+        ArangoProtocol[F].execute(
+          ArangoRequest.DELETE(
+            database.name,
+            s"/_api/collection/$name",
+            Map(
+              "isSystem" -> isSystem.toString
+            )
+          )
+        )
+
+      override def create(setup: CollectionCreate => CollectionCreate): F[ArangoResponse[CollectionInfo]] = {
+        val options = setup(CollectionCreate(name))
+        ArangoProtocol[F].execute(
+          ArangoRequest.POST(
+            database.name,
+            s"/_api/collection",
+            options.parameters
+          ).body(options)
+        )
+      }
     }
 }

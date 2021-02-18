@@ -34,4 +34,6 @@ object ArangoError {
     override def code: Int = header.responseCode
     override def num: Long = error.errorNum
   }
+
+//  final case class Runtime(message: String) extends Exception(message) with ArangoError
 }

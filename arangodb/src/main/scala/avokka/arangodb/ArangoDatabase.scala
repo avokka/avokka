@@ -2,11 +2,12 @@ package avokka.arangodb
 
 import api._
 import avokka.velocypack._
+import cats.Functor
 import protocol._
 import types._
 
 trait ArangoDatabase[F[_]] {
-  def name: DatabaseName
+//  def name: DatabaseName
 
   def collection(name: CollectionName): ArangoCollection[F]
   def document(handle: DocumentHandle): ArangoDocument[F]
@@ -31,45 +32,72 @@ trait ArangoDatabase[F[_]] {
     * @param options
     * @param ttl The time-to-live for the cursor (in seconds). The cursor will be removed on the server automatically after the specified amount of time. This is useful to ensure garbage collection of cursors that are not fully fetched by clients. If not set, a server-defined value will be used (default: 30 seconds).
     */
-  /*
-  def query[V: VPackEncoder, T: VPackDecoder](
-                                 query: String,
-                                 bindVars: V,
-                                 batchSize: Option[Long] = None,
-                                 cache: Option[Boolean] = None,
-                                 count: Option[Boolean] = None,
-                                 memoryLimit: Option[Long] = None,
-                                 options: Option[Cursor.Options] = None,
-                                 ttl: Option[Long] = None,
-                               ): F[ArangoResponse[Cursor.Response[T]]]
-   */
+  def query[V: VPackEncoder](
+      query: String,
+      bindVars: V,
+      batchSize: Option[Long] = None,
+      cache: Option[Boolean] = None,
+      count: Option[Boolean] = None,
+      memoryLimit: Option[Long] = None,
+      options: Option[Query.Options] = None,
+      ttl: Option[Long] = None,
+  ): ArangoQuery[F, V]
+
+  def query[V: VPackEncoder](query: Query[V]): ArangoQuery[F, V]
 }
 
 object ArangoDatabase {
-  def apply[F[_]: ArangoProtocol](_name: DatabaseName): ArangoDatabase[F] = new ArangoDatabase[F] {
-    override def name: DatabaseName = _name
+  def apply[F[_]: ArangoProtocol : Functor](name: DatabaseName): ArangoDatabase[F] = new ArangoDatabase[F] {
 
-    override def collection(name: CollectionName): ArangoCollection[F] = ArangoCollection(this, name)
-    override def document(handle: DocumentHandle): ArangoDocument[F] = ArangoDocument(this, handle)
+    override def collection(cname: CollectionName): ArangoCollection[F] = ArangoCollection(name, cname)
+    override def document(handle: DocumentHandle): ArangoDocument[F] = ArangoDocument(name, handle)
+
+    override def query[V: VPackEncoder](query: Query[V]): ArangoQuery[F, V] = ArangoQuery(name, query)
+
+    override def query[V: VPackEncoder](
+        query: String,
+        bindVars: V,
+        batchSize: Option[Long],
+        cache: Option[Boolean],
+        count: Option[Boolean],
+        memoryLimit: Option[Long],
+        options: Option[Query.Options],
+        ttl: Option[Long]
+    ): ArangoQuery[F, V] =
+      ArangoQuery(name,
+                  Query(
+                    query,
+                    bindVars,
+                    batchSize,
+                    cache,
+                    count,
+                    memoryLimit,
+                    options,
+                    ttl
+                  ))
 
     override def collections(excludeSystem: Boolean): F[ArangoResponse[CollectionList]] =
-      ArangoProtocol[F].execute(ArangoRequest.GET(
-        name,
-        "/_api/collection",
-        Map(
-          "excludeSystem" -> excludeSystem.toString
-        )
-      ))
+      ArangoProtocol[F].execute(
+        ArangoRequest.GET(
+          name,
+          "/_api/collection",
+          Map(
+            "excludeSystem" -> excludeSystem.toString
+          )
+        ))
 
     override def create(users: DatabaseCreate.User*): F[ArangoResponse[DatabaseCreate]] = {
       ArangoProtocol[F].execute(
-        ArangoRequest.POST(
-          DatabaseName.system,
-          "/_api/database"
-        ).body(VObject(
-          "name" -> name.toVPack,
-          "users" -> users.toVPack
-        ))
+        ArangoRequest
+          .POST(
+            DatabaseName.system,
+            "/_api/database"
+          )
+          .body(
+            VObject(
+              "name" -> name.toVPack,
+              "users" -> users.toVPack
+            ))
       )
     }
 

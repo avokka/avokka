@@ -26,7 +26,7 @@ final class CursorSource[C, T](
     new GraphStageLogic(shape) with OutHandler {
 
       private var cursorId: Option[String] = None
-      private val responseHandler = getAsyncCallback[ArangoResponse[Cursor.Response[T]]](handleResponse)
+      private val responseHandler = getAsyncCallback[ArangoResponse[Cursor[T]]](handleResponse)
       private val failureHandler = getAsyncCallback[ArangoError](handleFailure)
 
       def sendScrollScanRequest(): Unit = {
@@ -41,7 +41,7 @@ final class CursorSource[C, T](
 
       def handleFailure(ex: ArangoError): Unit = failStage(new IllegalStateException(ex))
 
-      def handleResponse(response: ArangoResponse[Cursor.Response[T]]): Unit = {
+      def handleResponse(response: ArangoResponse[Cursor[T]]): Unit = {
         cursorId = response.body.id
 
         emitMultiple(out, response.body.result.iterator)

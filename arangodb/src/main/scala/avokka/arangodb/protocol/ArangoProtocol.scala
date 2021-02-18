@@ -15,6 +15,8 @@ trait ArangoProtocol[F[_]] {
   def execute[O: VPackDecoder](header: ArangoRequest.Header): F[ArangoResponse[O]]
 
   def execute[P: VPackEncoder, O: VPackDecoder](request: ArangoRequest[P]): F[ArangoResponse[O]]
+
+//  def raiseError[A](e: ArangoError): F[A]
 }
 
 object ArangoProtocol {
@@ -54,4 +56,5 @@ abstract class ArangoProtocolImpl[F[_]](implicit F: MonadThrow[F])
       }
     } yield ArangoResponse(header.value, body.value)
 
+//  override def raiseError[A](e: ArangoError): F[A] = F.raiseError(e)
 }

@@ -7,24 +7,8 @@ final case class CursorDelete(
     id: String
 )
 
-object CursorDelete { self =>
+object CursorDelete {
 
-  final case class Response(
-      id: String
-  )
+  implicit val decoder: VPackDecoder[CursorDelete] = VPackDecoder.gen
 
-  object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
-  }
-
-/*  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, CursorDelete, Response] =
-    new Api.EmptyBody[ArangoDatabase, CursorDelete] {
-      override type Response = self.Response
-      override def header(database: ArangoDatabase, command: CursorDelete): ArangoRequest.HeaderTrait =
-        ArangoRequest.Header(
-          database = database.name,
-          requestType = RequestType.DELETE,
-          request = s"/_api/cursor/${command.id}"
-        )
-    }*/
 }

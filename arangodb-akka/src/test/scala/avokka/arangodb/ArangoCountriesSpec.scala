@@ -10,6 +10,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.OptionValues._
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
+//import cats.instances.future._
 
 class ArangoCountriesSpec
     extends AsyncFlatSpec
@@ -25,11 +26,11 @@ class ArangoCountriesSpec
 
   val dbName = DatabaseName("test")
 
-  val session: ArangoSession = new ArangoSession(container.configuration.copy(database = dbName))
+  implicit val session: ArangoSession = new ArangoSession(container.configuration.copy(database = dbName))
 
   val collName = CollectionName("countries")
 
-  val client = ArangoClient(session)
+  val client = ArangoClient.apply
 
   val db = client.database(dbName)
 
@@ -77,7 +78,7 @@ class ArangoCountriesSpec
     } yield {
       c.header.responseCode should be(202)
       c.header.`type` should be(MessageType.ResponseFinal)
-      c.body._id should be(collection.document(key).handle)
+      c.body._id should be(DocumentHandle(collName, key))
       c.body.`new`.value._rev.repr should not be (empty)
 
       r.header.responseCode should be(200)
@@ -106,18 +107,19 @@ class ArangoCountriesSpec
       res.body.map(_._key) should contain(key2)
     }.rethrowT
   }
+*/
 
   it should "query with cursor batch size" in {
-    (for {
-      cursor <- EitherT(session.db(Cursor[VObject, Country](
+    for {
+      cursor <- db.query(
         query = "FOR c IN @@col LIMIT @limit RETURN c",
         bindVars = VObject(
           "limit" -> 10.toVPack,
-          "@col" -> collection.name.toVPack
+          "@col" -> collName.toVPack
         ),
         batchSize = Some(6)
-      )))
-      next <- EitherT(session.db(CursorNext[Country](cursor.body.id.get)))
+      ).cursor[Country]
+      next <- cursor.next()
     } yield {
       cursor.header.responseCode should be(201)
       cursor.body.result.size should be(6)
@@ -126,10 +128,9 @@ class ArangoCountriesSpec
       next.header.responseCode should be(200)
       next.body.result.size should be(4)
       next.body.hasMore should be(false)
-    }).rethrowT
+    }
   }
 
-   */
 
   override def afterAll(): Unit = {
     session.closeClient()

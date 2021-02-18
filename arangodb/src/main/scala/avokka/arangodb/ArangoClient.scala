@@ -1,6 +1,7 @@
 package avokka.arangodb
 
 import api._
+import cats.Functor
 import protocol._
 import types._
 
@@ -14,7 +15,7 @@ trait ArangoClient[F[_]] {
 }
 
 object ArangoClient {
-  def apply[F[_]: ArangoProtocol]: ArangoClient[F] = new ArangoClient[F] {
+  def apply[F[_]: ArangoProtocol: Functor]: ArangoClient[F] = new ArangoClient[F] {
 
     override def database(name: DatabaseName): ArangoDatabase[F] = ArangoDatabase(name)
 

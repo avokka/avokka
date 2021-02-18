@@ -1,13 +1,11 @@
 package avokka.arangodb
 
 import api._
-import avokka.arangodb.protocol.{ArangoProtocol, ArangoRequest, ArangoResponse}
-import avokka.arangodb.types.{DocumentHandle, DocumentKey}
+import avokka.arangodb.protocol.{ArangoError, ArangoProtocol, ArangoRequest, ArangoResponse}
+import avokka.arangodb.types.{CollectionName, DatabaseName, DocumentHandle, DocumentKey}
 import avokka.velocypack.{VPackDecoder, VPackEncoder}
 
 trait ArangoDocument[F[_]] {
-  def database: ArangoDatabase[F]
-  def handle: DocumentHandle
 
   /**
     * Returns the document identified by *document-handle*. The returned document contains three special attributes:
@@ -94,19 +92,7 @@ trait ArangoDocument[F[_]] {
 
 object ArangoDocument {
 
-  def apply[F[_]: ArangoProtocol](_database: ArangoDatabase[F], _handle: DocumentHandle): ArangoDocument[F] =
-    new Protocol[F] {
-      override def database: ArangoDatabase[F] = _database
-      override def handle: DocumentHandle = _handle
-    }
-
-  def apply[F[_]: ArangoProtocol](_collection: ArangoCollection[F], _key: DocumentKey): ArangoDocument[F] =
-    new Protocol[F] {
-      override def database: ArangoDatabase[F] = _collection.database
-      override def handle: DocumentHandle = DocumentHandle(_collection.name, _key)
-    }
-
-  abstract class Protocol[F[_]: ArangoProtocol] extends ArangoDocument[F] {
+  def apply[F[_]: ArangoProtocol](database: DatabaseName, handle: DocumentHandle): ArangoDocument[F] = new ArangoDocument[F] {
 
     override def read[T: VPackDecoder](
         ifNoneMatch: Option[String],
@@ -114,7 +100,7 @@ object ArangoDocument {
     ): F[ArangoResponse[T]] =
       ArangoProtocol[F].execute(
         ArangoRequest.GET(
-          database.name,
+          database,
           s"/_api/document/${handle.path}",
           meta = Map(
             "If-None-Match" -> ifNoneMatch,
@@ -131,7 +117,7 @@ object ArangoDocument {
     ): F[ArangoResponse[Document[T]]] =
       ArangoProtocol[F].execute(
         ArangoRequest.DELETE(
-          database.name,
+          database,
           s"/_api/document/${handle.path}",
           Map(
             "waitForSync" -> waitForSync.toString,
@@ -158,7 +144,7 @@ object ArangoDocument {
       ArangoProtocol[F].execute(
         ArangoRequest
           .PATCH(
-            database.name,
+            database,
             s"/_api/document/${handle.path}",
             Map(
               "keepNull" -> keepNull.toString,
@@ -188,7 +174,7 @@ object ArangoDocument {
       ArangoProtocol[F].execute(
         ArangoRequest
           .PUT(
-            database.name,
+            database,
             s"/_api/document/${handle.path}",
             Map(
               "waitForSync" -> waitForSync.toString,

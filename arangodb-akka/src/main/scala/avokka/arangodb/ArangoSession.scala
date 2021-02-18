@@ -7,6 +7,7 @@ import avokka.arangodb.protocol.{ArangoProtocolImpl, ArangoRequest}
 import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
 import avokka.velocystream._
+import cats.Functor
 import cats.instances.future._
 import com.typesafe.scalalogging.StrictLogging
 
@@ -16,10 +17,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ArangoSession(conf: ArangoConfiguration)(
     implicit val system: ActorSystem, ec: ExecutionContext
-) extends ArangoProtocolImpl[Future] with StrictLogging { self =>
+) extends ArangoProtocolImpl[Future] with StrictLogging {
 
-  lazy val _system = ArangoDatabase(DatabaseName.system)(self)
-  lazy val db = ArangoDatabase(conf.database)(self)
+  lazy val _system = ArangoDatabase(DatabaseName.system)(this, implicitly[Functor[Future]])
+  lazy val db = ArangoDatabase(conf.database)(this, implicitly[Functor[Future]])
 
   val authRequest = ArangoRequest.Authentication(user = conf.username, password = conf.password).toVPackBits
 //  val authSource = Source.fromIterator(() => authRequest.map(bits => VStreamMessage.create(bits.bytes)).toOption.iterator)

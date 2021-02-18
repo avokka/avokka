@@ -20,8 +20,8 @@ class ArangoSessionSpec
 
   override val container = ArangodbContainer.Def().start()
 
-  val session: ArangoSession = new ArangoSession(container.configuration)
-  val client = ArangoClient(session)
+  implicit val session: ArangoSession = new ArangoSession(container.configuration)
+  val client = ArangoClient.apply
 
   it should "get version" in {
     client.version().map { res =>
@@ -41,7 +41,7 @@ class ArangoSessionSpec
     client.databases().map { res =>
       res.header.responseCode should be (200)
       res.body.result should contain (DatabaseName.system)
-      res.body.result should contain (test.name)
+      res.body.result should contain (DatabaseName("test"))
     }
   }
 
@@ -78,7 +78,8 @@ class ArangoSessionSpec
   }
 
   val test = client.database(DatabaseName("test"))
-  val temp = test.collection(CollectionName("temp"))
+  val tempName = CollectionName("temp")
+  val temp = test.collection(tempName)
 
   it should "create, read and drop a collection" in {
     for {
@@ -88,12 +89,12 @@ class ArangoSessionSpec
       dropped <- temp.drop()
     } yield {
       created.header.responseCode should be (200)
-      created.body.name should be (temp.name)
+      created.body.name should be (tempName)
 
-      listed.body.result.map(_.name) should contain (temp.name)
+      listed.body.result.map(_.name) should contain (tempName)
 
       info.header.responseCode should be (200)
-      info.body.name should be (temp.name)
+      info.body.name should be (tempName)
 
       dropped.header.responseCode should be(200)
       dropped.body.id should be (created.body.id)

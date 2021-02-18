@@ -42,7 +42,7 @@ trait ArangoCollection[F[_]] {
 
   def unload(): F[ArangoResponse[CollectionInfo]]
   def truncate(): F[ArangoResponse[CollectionInfo]]
-  def drop(isSystem: Boolean = false): F[ArangoResponse[CollectionDrop]]
+  def drop(isSystem: Boolean = false): F[ArangoResponse[DeleteResult]]
 
   /**
     * Create a document
@@ -126,7 +126,7 @@ object ArangoCollection {
           )
         )
 
-      override def drop(isSystem: Boolean): F[ArangoResponse[CollectionDrop]] =
+      override def drop(isSystem: Boolean): F[ArangoResponse[DeleteResult]] =
         ArangoProtocol[F].execute(
           ArangoRequest.DELETE(
             database,

@@ -3,10 +3,6 @@ package api
 
 import avokka.velocypack._
 
-final case class DatabaseCreate(
-    result: Boolean
-)
-
 object DatabaseCreate {
 
   /**
@@ -25,7 +21,5 @@ object DatabaseCreate {
   object User {
     implicit val encoder: VPackEncoder[User] = VPackEncoder.gen
   }
-
-  implicit val decoder: VPackDecoder[DatabaseCreate] = VPackDecoder.gen
 
 }

@@ -6,7 +6,7 @@ import protocol._
 
 trait ArangoIndex[F[_]] {
   def read(): F[ArangoResponse[Index]]
-  def delete(): F[ArangoResponse[IndexDelete]]
+  def delete(): F[ArangoResponse[DeleteResult]]
 }
 
 object ArangoIndex {
@@ -19,7 +19,7 @@ object ArangoIndex {
       )
     )
 
-    override def delete(): F[ArangoResponse[IndexDelete]] = ArangoProtocol[F].execute(
+    override def delete(): F[ArangoResponse[DeleteResult]] = ArangoProtocol[F].execute(
       ArangoRequest.DELETE(
         database,
         s"/_api/index/$id"

@@ -11,7 +11,7 @@ trait ArangoCursor[F[_], T] {
   def header: ArangoResponse.Header
   def body: Cursor[T]
   def next(): F[ArangoCursor[F, T]]
-  def delete(): F[ArangoResponse[CursorDelete]]
+  def delete(): F[ArangoResponse[DeleteResult]]
 }
 
 object ArangoCursor {
@@ -35,7 +35,7 @@ object ArangoCursor {
           apply(database, response)
         }
 
-    override def delete(): F[ArangoResponse[CursorDelete]] = ArangoProtocol[F].execute(
+    override def delete(): F[ArangoResponse[DeleteResult]] = ArangoProtocol[F].execute(
       ArangoRequest.DELETE(
         database,
         s"/_api/cursor/${body.id.get}"

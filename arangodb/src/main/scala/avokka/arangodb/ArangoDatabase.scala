@@ -15,10 +15,10 @@ trait ArangoDatabase[F[_]] {
   /**
     * @param users Has to be an array of user objects to initially create for the new database. User information will not be changed for users that already exist. If *users* is not specified or does not contain any users, a default user *root* will be created with an empty string password. This ensures that the new database will be accessible after it is created. Each user object can contain the following attributes:
     */
-  def create(users: DatabaseCreate.User*): F[ArangoResponse[DatabaseCreate]]
+  def create(users: DatabaseCreate.User*): F[ArangoResponse[DatabaseResult]]
 
   def info(): F[ArangoResponse[DatabaseInfo]]
-  def drop(): F[ArangoResponse[DatabaseDrop]]
+  def drop(): F[ArangoResponse[DatabaseResult]]
 
   def collections(excludeSystem: Boolean = false): F[ArangoResponse[api.CollectionList]]
 
@@ -87,7 +87,7 @@ object ArangoDatabase {
           )
         ))
 
-    override def create(users: DatabaseCreate.User*): F[ArangoResponse[DatabaseCreate]] = {
+    override def create(users: DatabaseCreate.User*): F[ArangoResponse[DatabaseResult]] = {
       ArangoProtocol[F].execute(
         ArangoRequest
           .POST(
@@ -109,7 +109,7 @@ object ArangoDatabase {
       )
     )
 
-    override def drop(): F[ArangoResponse[DatabaseDrop]] = ArangoProtocol[F].execute(
+    override def drop(): F[ArangoResponse[DatabaseResult]] = ArangoProtocol[F].execute(
       ArangoRequest.DELETE(
         DatabaseName.system,
         s"/_api/database/$name"

@@ -108,6 +108,14 @@ class ArangoCountriesSpec
   }
 */
 
+  it should "query akka stream" in {
+    for {
+      cursor <- db.query(collection.all).cursor[Country]
+    } yield {
+      cursor.body.count should be (None)
+    }
+  }
+
   it should "query with cursor batch size" in {
     for {
       cursor <- db.query(

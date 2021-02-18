@@ -15,7 +15,7 @@ trait ArangoCursor[F[_], T] {
 }
 
 object ArangoCursor {
-  def apply[F[_]: ArangoProtocol: Functor, T: VPackDecoder](
+  def apply[F[_]: ArangoProtocol: Functor, T: VPackDecoder, S](
       database: DatabaseName,
       response: ArangoResponse[Cursor[T]]
   ): ArangoCursor[F, T] = new ArangoCursor[F, T] {

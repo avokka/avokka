@@ -15,23 +15,32 @@ trait ArangoQuery[F[_], V] {
 
   def cursor[T: VPackDecoder]: F[ArangoCursor[F, T]]
 
-  // def stream[T]: S[F, T]
+//  def stream[S[_[_], _], T]: S[F, T]
 }
 
 object ArangoQuery {
-  def apply[F[_]: ArangoProtocol: Functor, V: VPackEncoder](database: DatabaseName, query: Query[V]): ArangoQuery[F, V] = new ArangoQuery[F, V] {
+  def apply[F[_]: ArangoProtocol: Functor, V: VPackEncoder](
+      database: DatabaseName,
+      query: Query[V]
+  ): ArangoQuery[F, V] = new ArangoQuery[F, V] {
 //    override def database: ArangoDatabase[F] = _database
 //    override def query: Query[V] = _query
 
+//    override def stream[S[_[_], _], T]: S[F, T] = F.fromQuery(this)
+
     override def execute[T: VPackDecoder](): F[ArangoResponse[Cursor[T]]] = ArangoProtocol[F].execute(
-      ArangoRequest.POST(
-        database,
-        "/_api/cursor"
-      ).body(query)
+      ArangoRequest
+        .POST(
+          database,
+          "/_api/cursor"
+        )
+        .body(query)
     )
 
     override def cursor[T: VPackDecoder]: F[ArangoCursor[F, T]] = execute().map { resp =>
       ArangoCursor(database, resp)
     }
+
+//    override def stream[S[_[_], _], T]: S[F, T] = ArangoProtocol[F].fromQuery(this)
   }
 }

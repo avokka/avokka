@@ -1,7 +1,9 @@
 package avokka.arangodb
 
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.pattern.ask
+import akka.stream.scaladsl.Source
 import akka.util.Timeout
 import avokka.arangodb.protocol.{ArangoProtocol, ArangoProtocolImpl, ArangoRequest}
 import avokka.arangodb.types.DatabaseName
@@ -18,6 +20,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class ArangoSession(conf: ArangoConfiguration)(
     implicit val system: ActorSystem, ec: ExecutionContext
 ) extends ArangoProtocolImpl[Future] with StrictLogging {
+
+//  override type S[_[_], T] = Source[T, NotUsed]
 
   val authRequest = ArangoRequest.Authentication(user = conf.username, password = conf.password).toVPackBits
 //  val authSource = Source.fromIterator(() => authRequest.map(bits => VStreamMessage.create(bits.bytes)).toOption.iterator)
@@ -94,6 +98,10 @@ class ArangoSession(conf: ArangoConfiguration)(
   }
 
    */
+
+  def fromQuery[V, T: VPackDecoder](query: ArangoQuery[Future, V]): Source[T, NotUsed] = Source.fromGraph(
+    new CursorSource(query)
+  )
 }
 
 object ArangoSession {

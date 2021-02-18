@@ -3,7 +3,7 @@ package avokka.arangodb
 import api._
 import avokka.arangodb.protocol.{ArangoError, ArangoProtocol, ArangoRequest, ArangoResponse}
 import avokka.arangodb.types.{CollectionName, DatabaseName, DocumentHandle, DocumentKey}
-import avokka.velocypack.{VPackDecoder, VPackEncoder}
+import avokka.velocypack.{VObject, VPackDecoder, VPackEncoder}
 
 trait ArangoDocument[F[_]] {
 
@@ -88,6 +88,8 @@ trait ArangoDocument[F[_]] {
       silent: Boolean = false,
       ifMatch: Option[String] = None,
   ): F[ArangoResponse[Document[T]]]
+
+  def upsert[T](obj: VObject): Query[VObject]
 }
 
 object ArangoDocument {
@@ -192,6 +194,16 @@ object ArangoDocument {
         implicitly[VPackEncoder[T]].mapObject(_.filter(Document.filterEmptyInternalAttributes)),
         implicitly
       )
+
+    override def upsert[T](obj: VObject): Query[VObject] = {
+      val kvs = obj.values.keys
+        .map { key => s"$key:@$key" }
+        .mkString(",")
+      Query[VObject](
+        s"UPSERT {_key:@_key} INSERT {_key:@_key,$kvs} UPDATE {$kvs} IN @@collection RETURN NEW",
+        obj.updated("@collection", handle.collection).updated("_key", handle.key)
+      )
+    }
   }
 
 }

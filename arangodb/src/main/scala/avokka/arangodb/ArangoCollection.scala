@@ -63,7 +63,7 @@ trait ArangoCollection[F[_]] {
       overwrite: Boolean = false,
   ): F[ArangoResponse[Document[T]]]
 
-  def all[T]: Query[VObject]
+  def all: Query[VObject]
 
   def indexes(): F[ArangoResponse[IndexList]]
   def index(id: String): ArangoIndex[F]
@@ -185,7 +185,7 @@ object ArangoCollection {
         )
       )
 
-      override def all[T]: Query[VObject] = Query[VObject](
+      override def all: Query[VObject] = Query[VObject](
         query = "FOR doc IN @@collection RETURN doc",
         bindVars = VObject("@collection" -> name.toVPack)
       )

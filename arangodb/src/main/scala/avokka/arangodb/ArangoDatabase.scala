@@ -50,6 +50,7 @@ object ArangoDatabase {
   def apply[F[_]: ArangoProtocol : Functor](name: DatabaseName): ArangoDatabase[F] = new ArangoDatabase[F] {
 
     override def collection(cname: CollectionName): ArangoCollection[F] = ArangoCollection(name, cname)
+
     override def document(handle: DocumentHandle): ArangoDocument[F] = ArangoDocument(name, handle)
 
     override def query[V: VPackEncoder](query: Query[V]): ArangoQuery[F, V] = ArangoQuery(name, query)

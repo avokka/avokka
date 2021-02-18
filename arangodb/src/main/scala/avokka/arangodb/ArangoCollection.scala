@@ -65,6 +65,11 @@ trait ArangoCollection[F[_]] {
 
   def all: Query[VObject]
 
+  /*
+  def source[T: VPackDecoder](batchSize: Long): Source[T, NotUsed] =
+    database.source(all[T].withBatchSize(batchSize))
+    */
+
   def indexes(): F[ArangoResponse[IndexList]]
   def index(id: String): ArangoIndex[F]
 }

@@ -64,6 +64,7 @@ trait ArangoCollection[F[_]] {
   ): F[ArangoResponse[Document[T]]]
 
   def indexes(): F[ArangoResponse[IndexList]]
+  def index(id: String): ArangoIndex[F]
 }
 
 object ArangoCollection {
@@ -73,6 +74,7 @@ object ArangoCollection {
       override def name: CollectionName = _name
 
       override def document(key: DocumentKey): ArangoDocument[F] = ArangoDocument(this, key)
+      override def index(id: String): ArangoIndex[F] = ArangoIndex(this, id)
 
       override def checksum(withRevisions: Boolean, withData: Boolean): F[ArangoResponse[CollectionChecksum]] =
         ArangoProtocol[F].execute(

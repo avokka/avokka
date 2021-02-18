@@ -3,7 +3,7 @@ package avokka.arangodb
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
-import avokka.arangodb.protocol.{ArangoProtocolImpl, ArangoRequest}
+import avokka.arangodb.protocol.{ArangoProtocol, ArangoProtocolImpl, ArangoRequest}
 import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
 import avokka.velocystream._
@@ -18,9 +18,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class ArangoSession(conf: ArangoConfiguration)(
     implicit val system: ActorSystem, ec: ExecutionContext
 ) extends ArangoProtocolImpl[Future] with StrictLogging {
-
-  lazy val _system = ArangoDatabase(DatabaseName.system)(this, implicitly[Functor[Future]])
-  lazy val db = ArangoDatabase(conf.database)(this, implicitly[Functor[Future]])
 
   val authRequest = ArangoRequest.Authentication(user = conf.username, password = conf.password).toVPackBits
 //  val authSource = Source.fromIterator(() => authRequest.map(bits => VStreamMessage.create(bits.bytes)).toOption.iterator)
@@ -38,24 +35,28 @@ class ArangoSession(conf: ArangoConfiguration)(
     name = s"velocystream-client-${ArangoSession.id.incrementAndGet()}"
   )
 */
-  private val client = system.actorOf(
+  private val vstClient = system.actorOf(
     VStreamClient(conf, authSeq),
     name = s"velocystream-client-${ArangoSession.id.incrementAndGet()}"
   )
 
   implicit val timeout: Timeout = Timeout(30.seconds)
-  // import system.dispatcher
 
   /*
   def askClient[T](bits: BitVector): FEE[VStreamMessage] =
     EitherT.liftF(ask(client, VStreamClient.MessageSend(VStreamMessage.create(bits.bytes))).mapTo[VStreamMessage])
 */
   override protected def send(message: VStreamMessage): Future[VStreamMessage] = {
-    ask(client, VStreamClient.MessageSend(message)).mapTo[VStreamMessage]
+    ask(vstClient, VStreamClient.MessageSend(message)).mapTo[VStreamMessage]
   }
 
+  /*
+  lazy val _system = ArangoDatabase(DatabaseName.system)
+  lazy val db = ArangoDatabase(conf.database)
+*/
+
   def closeClient(): Unit =
-    client ! VStreamClient.Stop
+    vstClient ! VStreamClient.Stop
 
   /*
   private[arangodb] def execute[P: VPackEncoder, O: VPackDecoder](

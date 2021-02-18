@@ -1,6 +1,6 @@
-package avokka.arangodb.protocol
+package avokka.arangodb
+package protocol
 
-import avokka.arangodb.ResponseError
 import avokka.velocypack._
 import avokka.velocystream.VStreamMessage
 import cats.MonadThrow
@@ -17,6 +17,8 @@ trait ArangoProtocol[F[_]] {
   def execute[P: VPackEncoder, O: VPackDecoder](request: ArangoRequest[P]): F[ArangoResponse[O]]
 
 //  def raiseError[A](e: ArangoError): F[A]
+
+  def client: ArangoClient[F]
 }
 
 object ArangoProtocol {
@@ -57,4 +59,6 @@ abstract class ArangoProtocolImpl[F[_]](implicit F: MonadThrow[F])
     } yield ArangoResponse(header.value, body.value)
 
 //  override def raiseError[A](e: ArangoError): F[A] = F.raiseError(e)
+
+  override def client: ArangoClient[F] = ArangoClient(this, F)
 }

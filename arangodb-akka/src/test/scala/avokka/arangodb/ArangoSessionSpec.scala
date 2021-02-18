@@ -20,8 +20,8 @@ class ArangoSessionSpec
 
   override val container = ArangodbContainer.Def().start()
 
-  implicit val session: ArangoSession = new ArangoSession(container.configuration)
-  val client = ArangoClient.apply
+  val session: ArangoSession = new ArangoSession(container.configuration)
+  val client = session.client
 
   it should "get version" in {
     client.version().map { res =>

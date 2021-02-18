@@ -10,7 +10,6 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.OptionValues._
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
-//import cats.instances.future._
 
 class ArangoCountriesSpec
     extends AsyncFlatSpec
@@ -26,11 +25,11 @@ class ArangoCountriesSpec
 
   val dbName = DatabaseName("test")
 
-  implicit val session: ArangoSession = new ArangoSession(container.configuration.copy(database = dbName))
+  val session: ArangoSession = new ArangoSession(container.configuration.copy(database = dbName))
 
   val collName = CollectionName("countries")
 
-  val client = ArangoClient.apply
+  val client = session.client
 
   val db = client.database(dbName)
 

@@ -5,7 +5,7 @@ import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.stream.scaladsl.Source
 import akka.util.Timeout
-import avokka.arangodb.protocol.{ArangoProtocol, ArangoProtocolImpl, ArangoRequest}
+import avokka.arangodb.protocol.{ArangoProtocol, ArangoRequest}
 import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
 import avokka.velocystream._
@@ -19,7 +19,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ArangoSession(conf: ArangoConfiguration)(
     implicit val system: ActorSystem, ec: ExecutionContext
-) extends ArangoProtocolImpl[Future] with ArangoStream[ArangoSession.AkkaStream, Future] with StrictLogging {
+) extends ArangoProtocol.Impl[Future] with ArangoStream[ArangoSession.AkkaStream, Future] with StrictLogging {
 
   val authRequest = ArangoRequest.Authentication(user = conf.username, password = conf.password).toVPackBits
 //  val authSource = Source.fromIterator(() => authRequest.map(bits => VStreamMessage.create(bits.bytes)).toOption.iterator)

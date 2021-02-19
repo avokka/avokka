@@ -10,24 +10,16 @@ import scodec.DecodeResult
 import scodec.bits.ByteVector
 
 trait ArangoProtocol[F[_]] {
-//  type S[_[_], _]
-
   protected def send(message: VStreamMessage): F[VStreamMessage]
 
   def execute[O: VPackDecoder](header: ArangoRequest.Header): F[ArangoResponse[O]]
 
   def execute[P: VPackEncoder, O: VPackDecoder](request: ArangoRequest[P]): F[ArangoResponse[O]]
 
-//  def raiseError[A](e: ArangoError): F[A]
-
   def client: ArangoClient[F]
-
-//  def fromQuery[V, T : VPackDecoder](query: ArangoQuery[F, V]): S[F, T]
 }
 
 object ArangoProtocol {
-  //  type Aux[F, S] = ArangoProtocol[F] { type S = S }
-
   @inline def apply[F[_]](implicit ev: ArangoProtocol[F]): ArangoProtocol[F] = ev
 
   abstract class Impl[F[_]](implicit F: MonadThrow[F])
@@ -62,8 +54,6 @@ object ArangoProtocol {
           F.fromEither(header.remainder.asVPack[O])
         }
       } yield ArangoResponse(header.value, body.value)
-
-    //  override def raiseError[A](e: ArangoError): F[A] = F.raiseError(e)
 
     override def client: ArangoClient[F] = ArangoClient(this, F)
   }

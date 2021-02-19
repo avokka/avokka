@@ -9,8 +9,7 @@ import avokka.arangodb.protocol.{ArangoProtocol, ArangoRequest}
 import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
 import avokka.velocystream._
-import cats.Functor
-import cats.instances.future._
+// import cats.instances.future._
 import com.typesafe.scalalogging.StrictLogging
 
 import java.util.concurrent.atomic.AtomicLong

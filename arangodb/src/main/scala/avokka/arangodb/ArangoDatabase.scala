@@ -7,7 +7,7 @@ import protocol._
 import types._
 
 trait ArangoDatabase[F[_]] {
-//  def name: DatabaseName
+  def name: DatabaseName
 
   def collection(name: CollectionName): ArangoCollection[F]
   def document(handle: DocumentHandle): ArangoDocument[F]
@@ -47,7 +47,9 @@ trait ArangoDatabase[F[_]] {
 }
 
 object ArangoDatabase {
-  def apply[F[_]: ArangoProtocol : Functor](name: DatabaseName): ArangoDatabase[F] = new ArangoDatabase[F] {
+  def apply[F[_]: ArangoProtocol : Functor](_name: DatabaseName): ArangoDatabase[F] = new ArangoDatabase[F] {
+
+    override def name: DatabaseName = _name
 
     override def collection(cname: CollectionName): ArangoCollection[F] = ArangoCollection(name, cname)
 

@@ -19,12 +19,7 @@ object ArangoQuery {
   ): ArangoQuery[F, V] = new ArangoQuery[F, V] {
 
     override def execute[T: VPackDecoder]: F[ArangoResponse[Cursor[T]]] = ArangoProtocol[F].execute(
-      ArangoRequest
-        .POST(
-          database,
-          "/_api/cursor"
-        )
-        .body(query)
+      ArangoRequest.POST(database, "/_api/cursor").body(query)
     )
 
     override def cursor[T: VPackDecoder]: F[ArangoCursor[F, T]] = execute.map { resp =>
@@ -32,4 +27,11 @@ object ArangoQuery {
     }
 
   }
+
+  implicit final class AvokkaQueryStreamOps[S[_[_], _], F[_], V](
+      private val query: ArangoQuery[F, V]
+  )(implicit S: ArangoStream[S, F]) {
+    def stream[T: VPackDecoder]: S[F, T] = S.fromQuery(query)
+  }
+
 }

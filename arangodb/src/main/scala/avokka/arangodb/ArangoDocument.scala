@@ -6,6 +6,7 @@ import avokka.arangodb.types.{CollectionName, DatabaseName, DocumentHandle, Docu
 import avokka.velocypack.{VObject, VPackDecoder, VPackEncoder}
 
 trait ArangoDocument[F[_]] {
+  def handle: DocumentHandle
 
   /**
     * Returns the document identified by *document-handle*. The returned document contains three special attributes:
@@ -94,7 +95,11 @@ trait ArangoDocument[F[_]] {
 
 object ArangoDocument {
 
-  def apply[F[_]: ArangoProtocol](database: DatabaseName, handle: DocumentHandle): ArangoDocument[F] = new ArangoDocument[F] {
+  def apply[F[_]: ArangoProtocol](database: DatabaseName, _handle: DocumentHandle): ArangoDocument[F] = new ArangoDocument[F] {
+
+    override def handle: DocumentHandle = _handle
+
+    private val api: String = s"/_api/document/${handle.path}"
 
     override def read[T: VPackDecoder](
         ifNoneMatch: Option[String],
@@ -103,7 +108,7 @@ object ArangoDocument {
       ArangoProtocol[F].execute(
         ArangoRequest.GET(
           database,
-          s"/_api/document/${handle.path}",
+          api,
           meta = Map(
             "If-None-Match" -> ifNoneMatch,
             "If-Match" -> ifMatch
@@ -120,7 +125,7 @@ object ArangoDocument {
       ArangoProtocol[F].execute(
         ArangoRequest.DELETE(
           database,
-          s"/_api/document/${handle.path}",
+          api,
           Map(
             "waitForSync" -> waitForSync.toString,
             "returnOld" -> returnOld.toString,
@@ -147,7 +152,7 @@ object ArangoDocument {
         ArangoRequest
           .PATCH(
             database,
-            s"/_api/document/${handle.path}",
+            api,
             Map(
               "keepNull" -> keepNull.toString,
               "mergeObjects" -> mergeObjects.toString,
@@ -177,7 +182,7 @@ object ArangoDocument {
         ArangoRequest
           .PUT(
             database,
-            s"/_api/document/${handle.path}",
+            api,
             Map(
               "waitForSync" -> waitForSync.toString,
               "ignoreRevs" -> ignoreRevs.toString,

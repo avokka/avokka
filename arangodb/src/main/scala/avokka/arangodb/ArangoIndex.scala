@@ -5,12 +5,15 @@ import avokka.arangodb.types.DatabaseName
 import protocol._
 
 trait ArangoIndex[F[_]] {
+  def id: String
   def read(): F[ArangoResponse[Index]]
   def delete(): F[ArangoResponse[DeleteResult]]
 }
 
 object ArangoIndex {
-  def apply[F[_]: ArangoProtocol](database: DatabaseName, id: String): ArangoIndex[F] = new ArangoIndex[F] {
+  def apply[F[_]: ArangoProtocol](database: DatabaseName, _id: String): ArangoIndex[F] = new ArangoIndex[F] {
+
+    override def id: String = _id
 
     override def read(): F[ArangoResponse[Index]] = ArangoProtocol[F].execute(
       ArangoRequest.GET(

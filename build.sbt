@@ -90,6 +90,8 @@ lazy val arangodb = (project in file("arangodb"))
       }),
     logBuffered in Test := false,
     parallelExecution in Test := false,
+    addCompilerPlugin(kindProjector),
+    addCompilerPlugin(betterMonadicFor),
     scalacOptions -= "-Xfatal-warnings"
   )
 
@@ -112,6 +114,8 @@ lazy val arangodbAkka = (project in file("arangodb-akka"))
       }),
     logBuffered in Test := false,
     parallelExecution in Test := false,
+    addCompilerPlugin(kindProjector),
+    addCompilerPlugin(betterMonadicFor),
     scalacOptions -= "-Xfatal-warnings"
   )
 

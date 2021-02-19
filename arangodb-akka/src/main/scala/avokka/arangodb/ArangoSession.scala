@@ -19,9 +19,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ArangoSession(conf: ArangoConfiguration)(
     implicit val system: ActorSystem, ec: ExecutionContext
-) extends ArangoProtocolImpl[Future] with StrictLogging {
-
-//  override type S[_[_], T] = Source[T, NotUsed]
+) extends ArangoProtocolImpl[Future] with ArangoStream[ArangoSession.AkkaStream, Future] with StrictLogging {
 
   val authRequest = ArangoRequest.Authentication(user = conf.username, password = conf.password).toVPackBits
 //  val authSource = Source.fromIterator(() => authRequest.map(bits => VStreamMessage.create(bits.bytes)).toOption.iterator)
@@ -46,10 +44,6 @@ class ArangoSession(conf: ArangoConfiguration)(
 
   implicit val timeout: Timeout = Timeout(30.seconds)
 
-  /*
-  def askClient[T](bits: BitVector): FEE[VStreamMessage] =
-    EitherT.liftF(ask(client, VStreamClient.MessageSend(VStreamMessage.create(bits.bytes))).mapTo[VStreamMessage])
-*/
   override protected def send(message: VStreamMessage): Future[VStreamMessage] = {
     ask(vstClient, VStreamClient.MessageSend(message)).mapTo[VStreamMessage]
   }
@@ -99,11 +93,14 @@ class ArangoSession(conf: ArangoConfiguration)(
 
    */
 
-  def fromQuery[V, T: VPackDecoder](query: ArangoQuery[Future, V]): Source[T, NotUsed] = Source.fromGraph(
+  override def fromQuery[V, T: VPackDecoder](query: ArangoQuery[Future, V]): Source[T, NotUsed] = Source.fromGraph(
     new CursorSource(query)
   )
+
 }
 
 object ArangoSession {
+  type AkkaStream[_[_], T] = Source[T, NotUsed]
+
   val id = new AtomicLong()
 }

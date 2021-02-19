@@ -8,14 +8,8 @@ import cats.Functor
 import cats.syntax.functor._
 
 trait ArangoQuery[F[_], V] {
-//  def database: ArangoDatabase[F]
-//  def query: Query[V]
-
-  def execute[T: VPackDecoder](): F[ArangoResponse[Cursor[T]]]
-
+  def execute[T: VPackDecoder]: F[ArangoResponse[Cursor[T]]]
   def cursor[T: VPackDecoder]: F[ArangoCursor[F, T]]
-
-//  def stream[S[_[_], _], T]: S[F, T]
 }
 
 object ArangoQuery {
@@ -23,12 +17,8 @@ object ArangoQuery {
       database: DatabaseName,
       query: Query[V]
   ): ArangoQuery[F, V] = new ArangoQuery[F, V] {
-//    override def database: ArangoDatabase[F] = _database
-//    override def query: Query[V] = _query
 
-//    override def stream[S[_[_], _], T]: S[F, T] = F.fromQuery(this)
-
-    override def execute[T: VPackDecoder](): F[ArangoResponse[Cursor[T]]] = ArangoProtocol[F].execute(
+    override def execute[T: VPackDecoder]: F[ArangoResponse[Cursor[T]]] = ArangoProtocol[F].execute(
       ArangoRequest
         .POST(
           database,
@@ -37,10 +27,9 @@ object ArangoQuery {
         .body(query)
     )
 
-    override def cursor[T: VPackDecoder]: F[ArangoCursor[F, T]] = execute().map { resp =>
+    override def cursor[T: VPackDecoder]: F[ArangoCursor[F, T]] = execute.map { resp =>
       ArangoCursor(database, resp)
     }
 
-//    override def stream[S[_[_], _], T]: S[F, T] = ArangoProtocol[F].fromQuery(this)
   }
 }

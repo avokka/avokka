@@ -1,6 +1,7 @@
 package avokka.arangodb
 
 import akka.actor.ActorSystem
+import akka.stream.scaladsl.Sink
 import akka.testkit.{TestKit, TestKitBase}
 import avokka.arangodb.protocol.MessageType
 import avokka.arangodb.types._
@@ -25,7 +26,7 @@ class ArangoCountriesSpec
 
   val dbName = DatabaseName("test")
 
-  val session: ArangoSession = new ArangoSession(container.configuration.copy(database = dbName))
+  implicit val session: ArangoSession = new ArangoSession(container.configuration.copy(database = dbName))
 
   val collName = CollectionName("countries")
 
@@ -109,10 +110,10 @@ class ArangoCountriesSpec
 */
 
   it should "query akka stream" in {
-    for {
-      cursor <- db.query(collection.all).cursor[Country]
-    } yield {
-      cursor.body.count should be (None)
+    val source = db.query(collection.all.copy(batchSize = Some(100))).stream[Country]
+
+    source.runWith(Sink.seq).map { s =>
+      s.length should be(250)
     }
   }
 

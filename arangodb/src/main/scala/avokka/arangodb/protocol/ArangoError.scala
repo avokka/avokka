@@ -6,15 +6,8 @@ import avokka.velocypack.VPackError
 sealed trait ArangoError extends Exception with Product with Serializable
 
 object ArangoError {
-  final case class Unknown(cause: Throwable)
-      extends Exception("unknown error", cause)
-      with ArangoError
 
-  final case class VPack(error: VPackError)
-      extends Exception("velocypack error", error)
-      with ArangoError
-
-  trait WithCode {
+  sealed trait WithCode {
     def code: Int
   }
   final case class Head(header: ArangoResponse.Header)
@@ -24,7 +17,7 @@ object ArangoError {
     override def code: Int = header.responseCode
   }
 
-  trait WithNum extends WithCode {
+  sealed trait WithNum extends WithCode {
     def num: Long
   }
   final case class Resp(header: ArangoResponse.Header, error: ResponseError)

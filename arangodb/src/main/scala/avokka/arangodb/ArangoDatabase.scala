@@ -51,7 +51,7 @@ object ArangoDatabase {
 
     override def name: DatabaseName = _name
 
-    override def collection(cname: CollectionName): ArangoCollection[F] = ArangoCollection(name, cname)
+    override def collection(cname: CollectionName): ArangoCollection[F] = ArangoCollection(this, cname)
 
     override def document(handle: DocumentHandle): ArangoDocument[F] = ArangoDocument(name, handle)
 

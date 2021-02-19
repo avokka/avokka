@@ -4,8 +4,8 @@ import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.stream.scaladsl.Source
-import akka.util.Timeout
 import avokka.arangodb.protocol.{ArangoProtocol, ArangoRequest}
+import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
 import avokka.velocystream._
 import com.typesafe.scalalogging.StrictLogging
@@ -41,10 +41,11 @@ class ArangoSession(configuration: ArangoConfiguration)(
     ask(vstClient, VStreamClient.MessageSend(message))(configuration.replyTimeout).mapTo[VStreamMessage]
   }
 
-  /*
-  lazy val _system = ArangoDatabase(DatabaseName.system)
-  lazy val db = ArangoDatabase(conf.database)
-*/
+  @deprecated("TODO: move with configuration in ArangoClient")
+  lazy val _system = client.database(DatabaseName.system)
+  @deprecated("TODO: move with configuration in ArangoClient")
+  lazy val db = client.database(configuration.database)
+
 
   def closeClient(): Unit =
     vstClient ! VStreamClient.Stop

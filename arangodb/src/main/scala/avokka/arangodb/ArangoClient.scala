@@ -7,6 +7,8 @@ import types._
 
 trait ArangoClient[F[_]] {
   def database(name: DatabaseName): ArangoDatabase[F]
+  // lazy val _system = database(DatabaseName.system)
+  // lazy val db = database(configuration.database)
 
   def databases(): F[ArangoResponse[DatabaseList]]
 

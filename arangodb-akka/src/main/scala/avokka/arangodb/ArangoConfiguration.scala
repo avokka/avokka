@@ -15,6 +15,7 @@ final case class ArangoConfiguration(
     password: String,
     chunkLength: Long = VStreamConfiguration.CHUNK_LENGTH_DEFAULT,
     connectTimeout: FiniteDuration = VStreamConfiguration.CONNECT_TIMEOUT_DEFAULT,
+    replyTimeout: FiniteDuration = VStreamConfiguration.REPLY_TIMEOUT_DEFAULT,
     database: DatabaseName = DatabaseName.system
 ) extends VStreamConfiguration
 

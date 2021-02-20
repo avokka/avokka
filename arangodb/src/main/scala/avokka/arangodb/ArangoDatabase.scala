@@ -6,7 +6,7 @@ import cats.Functor
 import protocol._
 import types._
 
-trait ArangoDatabase[F[_]] {
+trait ArangoDatabase[F[_]] { self =>
   def name: DatabaseName
 
   def collection(name: CollectionName): ArangoCollection[F]
@@ -25,23 +25,11 @@ trait ArangoDatabase[F[_]] {
   /**
     * @param query contains the query string to be executed
     * @param bindVars key/value pairs representing the bind parameters.
-    * @param batchSize maximum number of result documents to be transferred from the server to the client in one roundtrip. If this attribute is not set, a server-controlled default value will be used. A *batchSize* value of *0* is disallowed.
-    * @param cache flag to determine whether the AQL query results cache shall be used. If set to *false*, then any query cache lookup will be skipped for the query. If set to *true*, it will lead to the query cache being checked for the query if the query cache mode is either *on* or *demand*.
-    * @param count indicates whether the number of documents in the result set should be returned in the \"count\" attribute of the result. Calculating the \"count\" attribute might have a performance impact for some queries in the future so this option is turned off by default, and \"count\" is only returned when requested.
-    * @param memoryLimit the maximum number of memory (measured in bytes) that the query is allowed to use. If set, then the query will fail with error \"resource limit exceeded\" in case it allocates too much memory. A value of *0* indicates that there is no memory limit.
-    * @param options
-    * @param ttl The time-to-live for the cursor (in seconds). The cursor will be removed on the server automatically after the specified amount of time. This is useful to ensure garbage collection of cursors that are not fully fetched by clients. If not set, a server-defined value will be used (default: 30 seconds).
     */
   def query[V: VPackEncoder](
       query: String,
       bindVars: V,
-      batchSize: Option[Long] = None,
-      cache: Option[Boolean] = None,
-      count: Option[Boolean] = None,
-      memoryLimit: Option[Long] = None,
-      options: Option[Query.Options] = None,
-      ttl: Option[Long] = None,
-  ): ArangoQuery[F, V]
+  ): ArangoQuery[F, V] = self.query(Query(query, bindVars))
 
   def query[V: VPackEncoder](query: Query[V]): ArangoQuery[F, V]
 }
@@ -56,28 +44,6 @@ object ArangoDatabase {
     override def document(handle: DocumentHandle): ArangoDocument[F] = ArangoDocument(name, handle)
 
     override def query[V: VPackEncoder](query: Query[V]): ArangoQuery[F, V] = ArangoQuery(name, query)
-
-    override def query[V: VPackEncoder](
-        query: String,
-        bindVars: V,
-        batchSize: Option[Long],
-        cache: Option[Boolean],
-        count: Option[Boolean],
-        memoryLimit: Option[Long],
-        options: Option[Query.Options],
-        ttl: Option[Long]
-    ): ArangoQuery[F, V] =
-      ArangoQuery(name,
-                  Query(
-                    query,
-                    bindVars,
-                    batchSize,
-                    cache,
-                    count,
-                    memoryLimit,
-                    options,
-                    ttl
-                  ))
 
     override def collections(excludeSystem: Boolean): F[ArangoResponse[CollectionList]] =
       ArangoProtocol[F].execute(

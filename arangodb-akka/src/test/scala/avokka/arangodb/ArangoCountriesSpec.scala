@@ -124,9 +124,8 @@ class ArangoCountriesSpec
         bindVars = VObject(
           "limit" -> 10.toVPack,
           "@col" -> collName.toVPack
-        ),
-        batchSize = Some(6)
-      ).cursor[Country]
+        )
+      ).batchSize(6).cursor[Country]
       next <- cursor.next()
     } yield {
       cursor.header.responseCode should be(201)

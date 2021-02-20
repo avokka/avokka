@@ -91,7 +91,7 @@ trait ArangoDocument[F[_]] {
       ifMatch: Option[String] = None,
   ): F[ArangoResponse[Document[T]]]
 
-  def upsert[T](obj: VObject): ArangoQuery[F, VObject]
+  def upsert(obj: VObject): ArangoQuery[F, VObject]
 }
 
 object ArangoDocument {
@@ -201,7 +201,7 @@ object ArangoDocument {
         implicitly
       )
 
-    override def upsert[T](obj: VObject): ArangoQuery[F, VObject] = {
+    override def upsert(obj: VObject): ArangoQuery[F, VObject] = {
       val kvs = obj.values.keys
         .map { key => s"$key:@$key" }
         .mkString(",")

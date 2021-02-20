@@ -110,7 +110,7 @@ class ArangoCountriesSpec
 */
 
   it should "query akka stream" in {
-    val source = db.query(collection.all.copy(batchSize = Some(100))).stream[Country]
+    val source = collection.all.batchSize(100).stream[Country]
 
     source.runWith(Sink.seq).map { s =>
       s.length should be(250)

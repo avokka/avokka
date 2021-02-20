@@ -3,7 +3,7 @@ package protocol
 
 import avokka.velocypack._
 import avokka.velocystream.VStreamMessage
-import cats.MonadThrow
+import cats.{Functor, MonadThrow}
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import scodec.DecodeResult
@@ -24,6 +24,8 @@ object ArangoProtocol {
 
   abstract class Impl[F[_]](implicit F: MonadThrow[F])
     extends ArangoProtocol[F] {
+
+//    override def map[A, B](fa: F[A])(f: A => B): F[B] = F.map(fa)(f)
 
     override def execute[O: VPackDecoder](header: ArangoRequest.Header): F[ArangoResponse[O]] =
       for {

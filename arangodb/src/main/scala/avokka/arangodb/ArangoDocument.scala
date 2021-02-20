@@ -4,6 +4,7 @@ import api._
 import avokka.arangodb.protocol.{ArangoError, ArangoProtocol, ArangoRequest, ArangoResponse}
 import avokka.arangodb.types.{CollectionName, DatabaseName, DocumentHandle, DocumentKey}
 import avokka.velocypack.{VObject, VPackDecoder, VPackEncoder}
+import cats.Functor
 
 trait ArangoDocument[F[_]] {
   def handle: DocumentHandle
@@ -90,12 +91,12 @@ trait ArangoDocument[F[_]] {
       ifMatch: Option[String] = None,
   ): F[ArangoResponse[Document[T]]]
 
-  def upsert[T](obj: VObject): Query[VObject]
+  def upsert[T](obj: VObject): ArangoQuery[F, VObject]
 }
 
 object ArangoDocument {
 
-  def apply[F[_]: ArangoProtocol](database: DatabaseName, _handle: DocumentHandle): ArangoDocument[F] = new ArangoDocument[F] {
+  def apply[F[_]: ArangoProtocol : Functor](database: DatabaseName, _handle: DocumentHandle): ArangoDocument[F] = new ArangoDocument[F] {
 
     override def handle: DocumentHandle = _handle
 
@@ -200,14 +201,14 @@ object ArangoDocument {
         implicitly
       )
 
-    override def upsert[T](obj: VObject): Query[VObject] = {
+    override def upsert[T](obj: VObject): ArangoQuery[F, VObject] = {
       val kvs = obj.values.keys
         .map { key => s"$key:@$key" }
         .mkString(",")
-      Query[VObject](
+      ArangoQuery[F, VObject](database, Query(
         s"UPSERT {_key:@_key} INSERT {_key:@_key,$kvs} UPDATE {$kvs} IN @@collection RETURN NEW",
         obj.updated("@collection", handle.collection).updated("_key", handle.key)
-      )
+      ))
     }
   }
 

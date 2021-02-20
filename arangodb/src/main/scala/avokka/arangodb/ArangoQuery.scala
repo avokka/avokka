@@ -8,15 +8,19 @@ import cats.Functor
 import cats.syntax.functor._
 
 trait ArangoQuery[F[_], V] {
+  def batchSize(size: Long): ArangoQuery[F, V]
+
   def execute[T: VPackDecoder]: F[ArangoResponse[Cursor[T]]]
   def cursor[T: VPackDecoder]: F[ArangoCursor[F, T]]
 }
 
 object ArangoQuery {
-  def apply[F[_]: ArangoProtocol: Functor, V: VPackEncoder](
+  def apply[F[_]: ArangoProtocol : Functor, V: VPackEncoder](
       database: DatabaseName,
       query: Query[V]
   ): ArangoQuery[F, V] = new ArangoQuery[F, V] {
+
+    override def batchSize(batchSize: Long): ArangoQuery[F, V] = apply(database, query.copy(batchSize = Some(batchSize)))
 
     override def execute[T: VPackDecoder]: F[ArangoResponse[Cursor[T]]] = ArangoProtocol[F].execute(
       ArangoRequest.POST(database, "/_api/cursor").body(query)

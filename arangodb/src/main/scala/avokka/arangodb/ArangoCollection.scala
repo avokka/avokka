@@ -2,11 +2,11 @@ package avokka.arangodb
 
 import api._
 import avokka.velocypack._
+import cats.Functor
 import protocol._
 import types._
 
 trait ArangoCollection[F[_]] {
-  def database: ArangoDatabase[F]
   def name: CollectionName
 
   def document(key: DocumentKey): ArangoDocument[F]
@@ -68,30 +68,26 @@ trait ArangoCollection[F[_]] {
       overwrite: Boolean = false,
   ): F[ArangoResponse[Document[T]]]
 
-  def all: Query[VObject]
-  def aq: ArangoQuery[F, VObject]
+  def all: ArangoQuery[F, VObject]
 
   def indexes(): F[ArangoResponse[IndexList]]
   def index(id: String): ArangoIndex[F]
 }
 
 object ArangoCollection {
-  def apply[F[_]: ArangoProtocol](_database: ArangoDatabase[F], _name: CollectionName): ArangoCollection[F] =
+  def apply[F[_]: ArangoProtocol: Functor](database: DatabaseName, _name: CollectionName): ArangoCollection[F] =
     new ArangoCollection[F] {
-      override def database: ArangoDatabase[F] = _database
       override def name: CollectionName = _name
 
       private val api: String = s"/_api/collection/$name"
-
-      private val databaseName = _database.name
-
-      override def document(key: DocumentKey): ArangoDocument[F] = ArangoDocument(databaseName, DocumentHandle(name, key))
-      override def index(id: String): ArangoIndex[F] = ArangoIndex(databaseName, id)
+      
+      override def document(key: DocumentKey): ArangoDocument[F] = ArangoDocument(database, DocumentHandle(name, key))
+      override def index(id: String): ArangoIndex[F] = ArangoIndex(database, id)
 
       override def checksum(withRevisions: Boolean, withData: Boolean): F[ArangoResponse[CollectionChecksum]] =
         ArangoProtocol[F].execute(
           ArangoRequest.GET(
-            databaseName,
+            database,
             s"$api/checksum",
             Map(
               "withRevisions" -> withRevisions.toString,
@@ -102,28 +98,28 @@ object ArangoCollection {
 
       override def count(): F[ArangoResponse[CollectionCount]] =
         ArangoProtocol[F].execute(
-          ArangoRequest.GET(databaseName, s"$api/count")
+          ArangoRequest.GET(database, s"$api/count")
         )
 
       override def info(): F[ArangoResponse[CollectionInfo]] =
         ArangoProtocol[F].execute(
-          ArangoRequest.GET(databaseName, api)
+          ArangoRequest.GET(database, api)
         )
 
       override def revision(): F[ArangoResponse[CollectionRevision]] =
         ArangoProtocol[F].execute(
-          ArangoRequest.GET(databaseName, s"$api/revision")
+          ArangoRequest.GET(database, s"$api/revision")
         )
 
       override def properties(): F[ArangoResponse[CollectionProperties]] =
         ArangoProtocol[F].execute(
-          ArangoRequest.GET(databaseName, s"$api/properties")
+          ArangoRequest.GET(database, s"$api/properties")
         )
 
       override def truncate(): F[ArangoResponse[CollectionInfo]] =
         ArangoProtocol[F].execute(
           ArangoRequest.PUT(
-            databaseName,
+            database,
             s"$api/truncate"
           )
         )
@@ -131,7 +127,7 @@ object ArangoCollection {
       override def unload(): F[ArangoResponse[CollectionInfo]] =
         ArangoProtocol[F].execute(
           ArangoRequest.PUT(
-            databaseName,
+            database,
             s"$api/unload"
           )
         )
@@ -139,7 +135,7 @@ object ArangoCollection {
       override def drop(isSystem: Boolean): F[ArangoResponse[DeleteResult]] =
         ArangoProtocol[F].execute(
           ArangoRequest.DELETE(
-            databaseName,
+            database,
             api,
             Map(
               "isSystem" -> isSystem.toString
@@ -152,7 +148,7 @@ object ArangoCollection {
         ArangoProtocol[F].execute(
           ArangoRequest
             .POST(
-              databaseName,
+              database,
               s"/_api/collection",
               options.parameters
             )
@@ -171,7 +167,7 @@ object ArangoCollection {
         ArangoProtocol[F].execute(
           ArangoRequest
             .POST(
-              databaseName,
+              database,
               s"/_api/document/$name",
               Map(
                 "waitForSync" -> waitForSync.toString,
@@ -189,18 +185,17 @@ object ArangoCollection {
 
       override def indexes(): F[ArangoResponse[IndexList]] = ArangoProtocol[F].execute(
         ArangoRequest.GET(
-          databaseName,
+          database,
           "/_api/index",
           Map("collection" -> name.repr)
         )
       )
 
-      override def all: Query[VObject] = Query[VObject](
+      override def all: ArangoQuery[F, VObject] = ArangoQuery(database, Query[VObject](
         query = "FOR doc IN @@collection RETURN doc",
         bindVars = VObject("@collection" -> name.toVPack)
-      )
+      ))
 
-      override def aq: ArangoQuery[F, VObject] = database.query(all)
     }
 
 }

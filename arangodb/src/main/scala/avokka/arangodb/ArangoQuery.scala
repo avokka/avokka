@@ -22,7 +22,8 @@ trait ArangoQuery[F[_], V] {
     */
   def withQuery(f: Query[V] => Query[V]): ArangoQuery[F, V]
 
-  def batchSize(size: Long): ArangoQuery[F, V] = withQuery(_.copy(batchSize = Some(size)))
+  def batchSize(value: Long): ArangoQuery[F, V] = withQuery(_.copy(batchSize = Some(value)))
+  def count(value: Boolean): ArangoQuery[F, V] = withQuery(_.copy(count = Some(value)))
 
   /**
     * execute the query

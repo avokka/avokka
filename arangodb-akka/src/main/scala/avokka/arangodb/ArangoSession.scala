@@ -8,14 +8,14 @@ import avokka.arangodb.protocol.{ArangoProtocol, ArangoRequest}
 import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
 import avokka.velocystream._
-import com.typesafe.scalalogging.StrictLogging
+import implicits._
 
 import java.util.concurrent.atomic.AtomicLong
 import scala.concurrent.{ExecutionContext, Future}
 
 class ArangoSession(configuration: ArangoConfiguration)(
-    implicit val system: ActorSystem, ec: ExecutionContext
-) extends ArangoProtocol.Impl[Future] with ArangoStream[ArangoSession.AkkaStream, Future] with StrictLogging {
+    implicit val system: ActorSystem, implicit val ec: ExecutionContext
+) extends ArangoProtocol.Impl[Future] with ArangoStream[ArangoSession.AkkaStream, Future] {
 
   val authRequest = ArangoRequest.Authentication(user = configuration.username, password = configuration.password).toVPackBits
   val authSeq = authRequest.map(bits => VStreamMessage.create(bits.bytes)).toOption

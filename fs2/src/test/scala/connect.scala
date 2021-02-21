@@ -1,8 +1,8 @@
 import avokka.{Configuration, Transport}
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Sync}
 import cats.syntax.all._
-import io.chrisdavenport.log4cats.Logger
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 import pureconfig.ConfigSource
 import pureconfig.module.catseffect.syntax._
 import scodec.bits.ByteVector

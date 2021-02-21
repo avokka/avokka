@@ -10,7 +10,7 @@ import cats.syntax.functor._
 import fs2.Pipe
 import fs2.concurrent.SignallingRef
 import fs2.io.tcp.SocketGroup
-import io.chrisdavenport.log4cats.Logger
+import org.typelevel.log4cats.Logger
 import scodec.bits.ByteVector
 
 import java.net.InetSocketAddress

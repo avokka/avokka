@@ -8,7 +8,7 @@ import cats.syntax.functor._
 import fs2.concurrent.{Queue, SignallingRef}
 import fs2.io.tcp.Socket
 import fs2.{Chunk, Pipe, Stream}
-import io.chrisdavenport.log4cats.Logger
+import org.typelevel.log4cats.Logger
 
 trait VChunkSocket[F[_]] {
   def send(message: VMessage): F[Unit]

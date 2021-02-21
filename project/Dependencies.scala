@@ -22,7 +22,9 @@ object Dependencies {
   val catsRetry = "com.github.cb372" %% "cats-retry" % "2.1.0"
   val fs2 = "co.fs2" %% "fs2-core" % "2.5.0"
   val fs2IO = "co.fs2" %% "fs2-io" % "2.5.0"
-  val log4cats = "io.chrisdavenport" %% "log4cats-slf4j" % "1.1.1"
+
+  val log4cats = "org.typelevel" %% "log4cats-core"    % "1.2.0"
+  val log4catsSlf = "org.typelevel" %% "log4cats-slf4j" % "1.2.0"
 
   val shapeless = "com.chuusai" %% "shapeless" % "2.3.3"
 

@@ -80,7 +80,7 @@ lazy val arangodb = (project in file("arangodb"))
     libraryDependencies ++= compatDeps ++ Seq(
       //      enumeratum,
       pureconfig,
-      logging,
+      log4cats,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
     ) ++ testSuite ++
       (CrossVersion.partialVersion(scalaVersion.value) match {
@@ -127,7 +127,7 @@ lazy val avokkafs2 = (project in file("fs2"))
     skip in publish := true,
     libraryDependencies ++=
       compatDeps ++ Seq(
-        log4cats,
+        log4catsSlf,
         scodecStream,
         catsRetry,
         catsEffect,

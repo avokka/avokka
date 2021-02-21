@@ -6,6 +6,7 @@ import avokka.velocystream.VStreamMessage
 import cats.{Functor, MonadThrow}
 import cats.syntax.flatMap._
 import cats.syntax.functor._
+import org.typelevel.log4cats.Logger
 import scodec.DecodeResult
 import scodec.bits.ByteVector
 
@@ -22,14 +23,13 @@ trait ArangoProtocol[F[_]] {
 object ArangoProtocol {
   @inline def apply[F[_]](implicit ev: ArangoProtocol[F]): ArangoProtocol[F] = ev
 
-  abstract class Impl[F[_]](implicit F: MonadThrow[F])
+  abstract class Impl[F[_]](implicit F: MonadThrow[F], L: Logger[F])
     extends ArangoProtocol[F] {
-
-//    override def map[A, B](fa: F[A])(f: A => B): F[B] = F.map(fa)(f)
 
     override def execute[O: VPackDecoder](header: ArangoRequest.Header): F[ArangoResponse[O]] =
       for {
         in <- F.fromEither(header.toVPackBits)
+        _  <- L.trace(s"REQ head $in.asVPackValue")
         out <- sendBytes(in.bytes)
         res <- handleResponse(out)
       } yield res

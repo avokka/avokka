@@ -10,6 +10,7 @@ trait ArangoCollection[F[_]] {
   def name: CollectionName
 
   def document(key: DocumentKey): ArangoDocument[F]
+  def documents: ArangoDocuments[F]
 
   /**
     * create the collection
@@ -108,6 +109,7 @@ trait ArangoCollection[F[_]] {
 }
 
 object ArangoCollection {
+
   def apply[F[_]: ArangoProtocol: Functor](database: DatabaseName, _name: CollectionName): ArangoCollection[F] =
     new ArangoCollection[F] {
       override def name: CollectionName = _name
@@ -115,6 +117,9 @@ object ArangoCollection {
       private val api: String = s"/_api/collection/$name"
       
       override def document(key: DocumentKey): ArangoDocument[F] = ArangoDocument(database, DocumentHandle(name, key))
+
+      override def documents: ArangoDocuments[F] = ArangoDocuments(database, _name)
+
       override def index(id: String): ArangoIndex[F] = ArangoIndex(database, id)
 
       override def checksum(withRevisions: Boolean, withData: Boolean): F[ArangoResponse[CollectionChecksum]] =

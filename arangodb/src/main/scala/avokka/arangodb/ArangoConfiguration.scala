@@ -8,6 +8,17 @@ import pureconfig.generic.semiauto._
 
 import scala.concurrent.duration.FiniteDuration
 
+/**
+  * arango configuration
+  * @param host server hostname
+  * @param port server port
+  * @param username username
+  * @param password password
+  * @param chunkLength chunk byte size
+  * @param connectTimeout timeout to connection
+  * @param replyTimeout timeout to response
+  * @param database default database name
+  */
 final case class ArangoConfiguration(
     host: String,
     port: Int = 8529,

@@ -18,7 +18,7 @@ trait ArangoSession extends ArangoProtocol[Future] {
 
 object ArangoSession {
 
-  val id = new AtomicLong()
+  private val id = new AtomicLong()
 
   def apply(configuration: ArangoConfiguration)(
     implicit system: ActorSystem
@@ -34,7 +34,7 @@ object ArangoSession {
       override def trace(message: => String): Future[Unit] = system.log.debug(message).pure
     }
 
-    new ArangoProtocol.Impl[Future](configuration) with ArangoSession {
+    new ArangoProtocol.Impl(configuration) with ArangoSession {
 
       val authRequest = ArangoRequest.Authentication(user = configuration.username, password = configuration.password).toVPackBits
       val authSeq = authRequest.map(bits => VStreamMessage.create(bits.bytes)).toOption

@@ -120,7 +120,7 @@ lazy val arangodbAkka = (project in file("arangodb-akka"))
   )
 
 lazy val avokkafs2 = (project in file("fs2"))
-  .dependsOn(velocypack)
+  .dependsOn(velocypack, velocystream)
   .settings(
     name := "avokka-fs2",
     description := "ArangoDB with fs2",

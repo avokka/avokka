@@ -1,5 +1,6 @@
 package avokka
 
+import avokka.velocystream.VStreamChunkX
 import scodec.Codec
 import scodec.codecs.int64L
 
@@ -11,7 +12,7 @@ import scodec.codecs.int64L
   */
 final case class VChunkHeader
 (
-  x: VChunkX,
+  x: VStreamChunkX,
   id: Long,
   length: Long,
 ) {
@@ -20,5 +21,5 @@ final case class VChunkHeader
 }
 
 object VChunkHeader {
-  implicit val codec: Codec[VChunkHeader] = (VChunkX.codec :: int64L :: int64L).as[VChunkHeader]
+  implicit val codec: Codec[VChunkHeader] = (VStreamChunkX.codec :: int64L :: int64L).as[VChunkHeader]
 }

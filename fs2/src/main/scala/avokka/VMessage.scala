@@ -1,5 +1,6 @@
 package avokka
 
+import avokka.velocystream.VStreamChunkX
 import scodec.bits.ByteVector
 
 /** complete velocystream payload
@@ -19,7 +20,7 @@ final case class VMessage(
     */
   def firstChunk(length: Long): VChunk = {
     val chunksCount = (data.size.toDouble / length).ceil.toLong
-    val header = VChunkHeader(VChunkX(first = true, chunksCount), id, data.size)
+    val header = VChunkHeader(VStreamChunkX(first = true, chunksCount), id, data.size)
     VChunk(header, data)
   }
 }

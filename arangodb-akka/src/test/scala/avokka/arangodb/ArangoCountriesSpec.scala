@@ -11,6 +11,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.OptionValues._
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
+import avokka.arangodb.akkaStream._
 
 class ArangoCountriesSpec
     extends AsyncFlatSpec
@@ -26,7 +27,7 @@ class ArangoCountriesSpec
 
   val dbName = DatabaseName("test")
 
-  implicit val session: ArangoSession = new ArangoSession(container.configuration.copy(database = dbName))
+  val session: ArangoSession = ArangoSession(container.configuration.copy(database = dbName))
 
   val collName = CollectionName("countries")
 
@@ -93,21 +94,19 @@ class ArangoCountriesSpec
     }
   }
 
-  /*
   it should "create multiple documents" in {
     val key1 = DocumentKey("X1")
     val key2 = DocumentKey("X2")
-    EitherT(session.db(DocumentCreateMulti(collection.name, List(
+    collection.documents.create(List(
       Country(key1, name = "country 1"), Country(key2, name = "country 2")
-    )))).map { res =>
+    )).map { res =>
       res.header.responseCode should be(202)
       res.header.`type` should be(MessageType.ResponseFinal)
       res.body.size should be(2)
       res.body.map(_._key) should contain(key1)
       res.body.map(_._key) should contain(key2)
-    }.rethrowT
+    }
   }
-*/
 
   it should "query akka stream" in {
     val source = collection.all.batchSize(100).stream[Country]

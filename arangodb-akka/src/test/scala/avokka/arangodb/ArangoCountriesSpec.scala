@@ -33,7 +33,7 @@ class ArangoCountriesSpec
 
   val client = session.client
 
-  val db = client.database(dbName)
+  val db = client.db
 
   val collection = db.collection(collName)
 

@@ -6,20 +6,51 @@ import protocol._
 import types._
 
 trait ArangoClient[F[_]] {
+  /**
+    * database api
+    * @param name database name
+    * @return database api
+    */
   def database(name: DatabaseName): ArangoDatabase[F]
-  // lazy val _system = database(DatabaseName.system)
-  // lazy val db = database(configuration.database)
 
+  /**
+    * _system database api
+    * @return database
+    */
+  def system: ArangoDatabase[F]
+
+  /**
+    * configured database api
+    * @return database
+    */
+  def db: ArangoDatabase[F]
+
+  /**
+    * list databases
+    * @return
+    */
   def databases(): F[ArangoResponse[DatabaseList]]
 
+  /**
+    * server version
+    * @param details include details
+    * @return version
+    */
   def version(details: Boolean = false): F[ArangoResponse[Version]]
+
+  /**
+    * server engine
+    * @return engine
+    */
   def engine(): F[ArangoResponse[Engine]]
 }
 
 object ArangoClient {
-  def apply[F[_]: ArangoProtocol: Functor]: ArangoClient[F] = new ArangoClient[F] {
+  def apply[F[_]: ArangoProtocol: Functor](configuration: ArangoConfiguration): ArangoClient[F] = new ArangoClient[F] {
 
     override def database(name: DatabaseName): ArangoDatabase[F] = ArangoDatabase(name)
+    override def system: ArangoDatabase[F] = database(DatabaseName.system)
+    override def db: ArangoDatabase[F] = database(configuration.database)
 
     override def version(details: Boolean): F[ArangoResponse[Version]] = ArangoProtocol[F].execute(ArangoRequest.GET(
       DatabaseName.system,

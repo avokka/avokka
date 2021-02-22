@@ -3,7 +3,6 @@ package avokka.arangodb
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import avokka.arangodb.protocol.{ArangoProtocol, ArangoRequest}
-import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
 import avokka.velocystream._
 import cats.instances.future._
@@ -35,7 +34,7 @@ object ArangoSession {
       override def trace(message: => String): Future[Unit] = system.log.debug(message).pure
     }
 
-    new ArangoProtocol.Impl[Future] with ArangoSession {
+    new ArangoProtocol.Impl[Future](configuration) with ArangoSession {
 
       val authRequest = ArangoRequest.Authentication(user = configuration.username, password = configuration.password).toVPackBits
       val authSeq = authRequest.map(bits => VStreamMessage.create(bits.bytes)).toOption
@@ -48,11 +47,6 @@ object ArangoSession {
       override protected def send(message: VStreamMessage): Future[VStreamMessage] = {
         ask(vstClient, VStreamClient.MessageSend(message))(configuration.replyTimeout).mapTo[VStreamMessage]
       }
-
-      @deprecated("TODO: move with configuration in ArangoClient")
-      lazy val _system = client.database(DatabaseName.system)
-      @deprecated("TODO: move with configuration in ArangoClient")
-      lazy val db = client.database(configuration.database)
 
       override def closeClient(): Unit =
         vstClient ! VStreamClient.Stop

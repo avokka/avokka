@@ -35,7 +35,7 @@ trait ArangoDatabase[F[_]] { self =>
 }
 
 object ArangoDatabase {
-  def apply[F[_]: ArangoProtocol : Functor](_name: DatabaseName): ArangoDatabase[F] = new ArangoDatabase[F] {
+  def apply[F[_]: ArangoClient : Functor](_name: DatabaseName): ArangoDatabase[F] = new ArangoDatabase[F] {
 
     override def name: DatabaseName = _name
 
@@ -46,7 +46,7 @@ object ArangoDatabase {
     override def query[V: VPackEncoder](query: Query[V]): ArangoQuery[F, V] = ArangoQuery(name, query)
 
     override def collections(excludeSystem: Boolean): F[ArangoResponse[CollectionList]] =
-      ArangoProtocol[F].execute(
+      ArangoClient[F].execute(
         ArangoRequest.GET(
           name,
           "/_api/collection",
@@ -56,7 +56,7 @@ object ArangoDatabase {
         ))
 
     override def create(users: DatabaseCreate.User*): F[ArangoResponse[DatabaseResult]] = {
-      ArangoProtocol[F].execute(
+      ArangoClient[F].execute(
         ArangoRequest
           .POST(
             DatabaseName.system,
@@ -70,14 +70,14 @@ object ArangoDatabase {
       )
     }
 
-    override def info(): F[ArangoResponse[DatabaseInfo]] = ArangoProtocol[F].execute(
+    override def info(): F[ArangoResponse[DatabaseInfo]] = ArangoClient[F].execute(
       ArangoRequest.GET(
         name,
         "/_api/database/current"
       )
     )
 
-    override def drop(): F[ArangoResponse[DatabaseResult]] = ArangoProtocol[F].execute(
+    override def drop(): F[ArangoResponse[DatabaseResult]] = ArangoClient[F].execute(
       ArangoRequest.DELETE(
         DatabaseName.system,
         s"/_api/database/$name"

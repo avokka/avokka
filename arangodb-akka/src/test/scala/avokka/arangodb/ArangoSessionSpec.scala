@@ -20,8 +20,8 @@ class ArangoSessionSpec
 
   override val container = ArangodbContainer.Def().start()
 
-  val session: ArangoSession = ArangoSession(container.configuration)
-  val client = session.client
+  val arango: ArangoSession = ArangoSession(container.configuration)
+  val client = arango.server
 
   it should "get version" in {
     client.version().map { res =>
@@ -46,7 +46,7 @@ class ArangoSessionSpec
   }
 
   val scratchName = DatabaseName("scratch")
-  val scratch = client.database(scratchName)
+  val scratch = arango.database(scratchName)
 
   it should "create, read and drop a database" in {
     for {
@@ -70,14 +70,14 @@ class ArangoSessionSpec
 
   it should "fail creating database with invalid name" in {
     recoverToExceptionIf[ArangoError.Resp] {
-      client.database(DatabaseName("@")).create()
+      arango.database(DatabaseName("@")).create()
     }.map { e =>
       e.header.responseCode should be (400)
       e.error.errorNum should be (1229)
     }
   }
 
-  val test = client.database(DatabaseName("test"))
+  val test = arango.database(DatabaseName("test"))
   val tempName = CollectionName("temp")
   val temp = test.collection(tempName)
 
@@ -102,7 +102,7 @@ class ArangoSessionSpec
   }
 
   override def afterAll(): Unit = {
-    session.closeClient()
+    arango.closeClient()
     TestKit.shutdownActorSystem(system)
   }
 }

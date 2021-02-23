@@ -1,6 +1,7 @@
 package avokka.arangodb
 package protocol
 
+import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
 import avokka.velocystream.VStreamMessage
 import cats.MonadThrow
@@ -11,7 +12,7 @@ import org.typelevel.log4cats.MessageLogger
 import scodec.DecodeResult
 import scodec.bits.ByteVector
 
-trait ArangoProtocol[F[_]] {
+trait ArangoClient[F[_]] {
 
   /**
     * send a velocystream request message and receive a velocystream reply message
@@ -41,15 +42,39 @@ trait ArangoProtocol[F[_]] {
     * arangodb client api to server
     * @return client
     */
-  def client: ArangoClient[F]
+  def server: ArangoServer[F]
+
+  /**
+    * database api
+    * @param name database name
+    * @return database api
+    */
+  def database(name: DatabaseName): ArangoDatabase[F]
+
+  /**
+    * _system database api
+    * @return database
+    */
+  def system: ArangoDatabase[F]
+
+  /**
+    * configured database api
+    * @return database
+    */
+  def db: ArangoDatabase[F]
 
 }
 
-object ArangoProtocol {
-  @inline def apply[F[_]](implicit ev: ArangoProtocol[F]): ArangoProtocol[F] = ev
+object ArangoClient {
+  @inline def apply[F[_]](implicit ev: ArangoClient[F]): ArangoClient[F] = ev
 
   abstract class Impl[F[_]](configuration: ArangoConfiguration)(implicit F: MonadThrow[F], L: MessageLogger[F])
-    extends ArangoProtocol[F] {
+    extends ArangoClient[F] {
+
+    override def server: ArangoServer[F] = ArangoServer(this)
+    override def database(name: DatabaseName): ArangoDatabase[F] = ArangoDatabase(name)(this, F)
+    override def system: ArangoDatabase[F] = database(DatabaseName.system)
+    override def db: ArangoDatabase[F] = database(configuration.database)
 
     override def execute[O: VPackDecoder](header: ArangoRequest.Header): F[ArangoResponse[O]] =
       for {
@@ -87,7 +112,6 @@ object ArangoProtocol {
         }
       } yield ArangoResponse(header.value, body.value)
 
-    override def client: ArangoClient[F] = ArangoClient(configuration)(this, F)
   }
 
 }

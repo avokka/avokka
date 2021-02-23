@@ -1,7 +1,7 @@
 package avokka.arangodb
 
 import avokka.arangodb.api.{Cursor, Query}
-import avokka.arangodb.protocol.{ArangoProtocol, ArangoRequest, ArangoResponse}
+import avokka.arangodb.protocol.{ArangoClient, ArangoRequest, ArangoResponse}
 import avokka.arangodb.types.DatabaseName
 import avokka.velocypack.{VPackDecoder, VPackEncoder}
 import cats.Functor
@@ -41,14 +41,14 @@ trait ArangoQuery[F[_], V] {
 }
 
 object ArangoQuery {
-  def apply[F[_]: ArangoProtocol : Functor, V: VPackEncoder](
+  def apply[F[_]: ArangoClient : Functor, V: VPackEncoder](
       database: DatabaseName,
       query: Query[V]
   ): ArangoQuery[F, V] = new ArangoQuery[F, V] {
 
     override def withQuery(f: Query[V] => Query[V]): ArangoQuery[F, V] = apply(database, f(query))
 
-    override def execute[T: VPackDecoder]: F[ArangoResponse[Cursor[T]]] = ArangoProtocol[F].execute(
+    override def execute[T: VPackDecoder]: F[ArangoResponse[Cursor[T]]] = ArangoClient[F].execute(
       ArangoRequest.POST(database, "/_api/cursor").body(query)
     )
 

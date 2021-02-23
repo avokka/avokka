@@ -110,7 +110,7 @@ trait ArangoCollection[F[_]] {
 
 object ArangoCollection {
 
-  def apply[F[_]: ArangoProtocol: Functor](database: DatabaseName, _name: CollectionName): ArangoCollection[F] =
+  def apply[F[_]: ArangoClient: Functor](database: DatabaseName, _name: CollectionName): ArangoCollection[F] =
     new ArangoCollection[F] {
       override def name: CollectionName = _name
 
@@ -123,7 +123,7 @@ object ArangoCollection {
       override def index(id: String): ArangoIndex[F] = ArangoIndex(database, id)
 
       override def checksum(withRevisions: Boolean, withData: Boolean): F[ArangoResponse[CollectionChecksum]] =
-        ArangoProtocol[F].execute(
+        ArangoClient[F].execute(
           ArangoRequest.GET(
             database,
             s"$api/checksum",
@@ -135,27 +135,27 @@ object ArangoCollection {
         )
 
       override def count(): F[ArangoResponse[CollectionCount]] =
-        ArangoProtocol[F].execute(
+        ArangoClient[F].execute(
           ArangoRequest.GET(database, s"$api/count")
         )
 
       override def info(): F[ArangoResponse[CollectionInfo]] =
-        ArangoProtocol[F].execute(
+        ArangoClient[F].execute(
           ArangoRequest.GET(database, api)
         )
 
       override def revision(): F[ArangoResponse[CollectionRevision]] =
-        ArangoProtocol[F].execute(
+        ArangoClient[F].execute(
           ArangoRequest.GET(database, s"$api/revision")
         )
 
       override def properties(): F[ArangoResponse[CollectionProperties]] =
-        ArangoProtocol[F].execute(
+        ArangoClient[F].execute(
           ArangoRequest.GET(database, s"$api/properties")
         )
 
       override def truncate(): F[ArangoResponse[CollectionInfo]] =
-        ArangoProtocol[F].execute(
+        ArangoClient[F].execute(
           ArangoRequest.PUT(
             database,
             s"$api/truncate"
@@ -163,7 +163,7 @@ object ArangoCollection {
         )
 
       override def unload(): F[ArangoResponse[CollectionInfo]] =
-        ArangoProtocol[F].execute(
+        ArangoClient[F].execute(
           ArangoRequest.PUT(
             database,
             s"$api/unload"
@@ -171,7 +171,7 @@ object ArangoCollection {
         )
 
       override def drop(isSystem: Boolean): F[ArangoResponse[DeleteResult]] =
-        ArangoProtocol[F].execute(
+        ArangoClient[F].execute(
           ArangoRequest.DELETE(
             database,
             api,
@@ -183,7 +183,7 @@ object ArangoCollection {
 
       override def create(setup: CollectionCreate => CollectionCreate): F[ArangoResponse[CollectionInfo]] = {
         val options = setup(CollectionCreate(name))
-        ArangoProtocol[F].execute(
+        ArangoClient[F].execute(
           ArangoRequest
             .POST(
               database,
@@ -202,7 +202,7 @@ object ArangoCollection {
           silent: Boolean,
           overwrite: Boolean
       ): F[ArangoResponse[Document[T]]] =
-        ArangoProtocol[F].execute(
+        ArangoClient[F].execute(
           ArangoRequest
             .POST(
               database,
@@ -221,7 +221,7 @@ object ArangoCollection {
           implicitly
         )
 
-      override def indexes(): F[ArangoResponse[IndexList]] = ArangoProtocol[F].execute(
+      override def indexes(): F[ArangoResponse[IndexList]] = ArangoClient[F].execute(
         ArangoRequest.GET(
           database,
           "/_api/index",
@@ -230,7 +230,7 @@ object ArangoCollection {
       )
 
       override def createIndexHash(fields: List[String], unique: Boolean, sparse: Boolean, deduplicate: Boolean): F[ArangoResponse[Index]] =
-        ArangoProtocol[F].execute(
+        ArangoClient[F].execute(
           ArangoRequest.POST(
             database,
             "/_api/index",

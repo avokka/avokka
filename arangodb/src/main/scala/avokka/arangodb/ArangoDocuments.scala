@@ -1,7 +1,7 @@
 package avokka.arangodb
 
 import avokka.arangodb.api.Document
-import avokka.arangodb.protocol.{ArangoProtocol, ArangoRequest, ArangoResponse}
+import avokka.arangodb.protocol.{ArangoClient, ArangoRequest, ArangoResponse}
 import avokka.arangodb.types.{CollectionName, DatabaseName}
 import avokka.velocypack._
 
@@ -121,7 +121,7 @@ trait ArangoDocuments[F[_]] {
 }
 
 object ArangoDocuments {
-  def apply[F[_]: ArangoProtocol](database: DatabaseName, collection: CollectionName): ArangoDocuments[F] =
+  def apply[F[_]: ArangoClient](database: DatabaseName, collection: CollectionName): ArangoDocuments[F] =
     new ArangoDocuments[F] {
 
       override def create[T: VPackDecoder: VPackEncoder](
@@ -132,7 +132,7 @@ object ArangoDocuments {
           silent: Boolean,
           overwrite: Boolean
       ): F[ArangoResponse[Seq[Document[T]]]] =
-        ArangoProtocol[F].execute(
+        ArangoClient[F].execute(
           ArangoRequest
             .POST(
               database,
@@ -160,7 +160,7 @@ object ArangoDocuments {
           returnOld: Boolean,
           returnNew: Boolean
       ): F[ArangoResponse[Seq[Document[T]]]] =
-        ArangoProtocol[F].execute(
+        ArangoClient[F].execute(
           ArangoRequest
             .PUT(
               database,
@@ -189,7 +189,7 @@ object ArangoDocuments {
           returnOld: Boolean,
           returnNew: Boolean
       ): F[ArangoResponse[Seq[Document[T]]]] =
-        ArangoProtocol[F].execute(
+        ArangoClient[F].execute(
           ArangoRequest
             .PATCH(
               database,
@@ -209,7 +209,7 @@ object ArangoDocuments {
       override def remove[T: VPackDecoder, K: VPackEncoder](
                                                keys: Seq[K], waitForSync: Boolean, returnOld: Boolean, ignoreRevs: Boolean
                                              ): F[ArangoResponse[Seq[Document[T]]]] =
-        ArangoProtocol[F].execute(
+        ArangoClient[F].execute(
           ArangoRequest
             .DELETE(
               database,

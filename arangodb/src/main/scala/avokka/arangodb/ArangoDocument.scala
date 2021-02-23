@@ -1,7 +1,7 @@
 package avokka.arangodb
 
 import avokka.arangodb.api._
-import avokka.arangodb.protocol.{ArangoProtocol, ArangoRequest, ArangoResponse}
+import avokka.arangodb.protocol.{ArangoClient, ArangoRequest, ArangoResponse}
 import avokka.arangodb.types.{DatabaseName, DocumentHandle}
 import avokka.velocypack.{VObject, VPackDecoder, VPackEncoder}
 import cats.Functor
@@ -96,7 +96,7 @@ trait ArangoDocument[F[_]] {
 
 object ArangoDocument {
 
-  def apply[F[_]: ArangoProtocol : Functor](database: DatabaseName, _handle: DocumentHandle): ArangoDocument[F] = new ArangoDocument[F] {
+  def apply[F[_]: ArangoClient : Functor](database: DatabaseName, _handle: DocumentHandle): ArangoDocument[F] = new ArangoDocument[F] {
 
     override def handle: DocumentHandle = _handle
 
@@ -106,7 +106,7 @@ object ArangoDocument {
         ifNoneMatch: Option[String],
         ifMatch: Option[String]
     ): F[ArangoResponse[T]] =
-      ArangoProtocol[F].execute(
+      ArangoClient[F].execute(
         ArangoRequest.GET(
           database,
           api,
@@ -123,7 +123,7 @@ object ArangoDocument {
         silent: Boolean,
         ifMatch: Option[String]
     ): F[ArangoResponse[Document[T]]] =
-      ArangoProtocol[F].execute(
+      ArangoClient[F].execute(
         ArangoRequest.DELETE(
           database,
           api,
@@ -149,7 +149,7 @@ object ArangoDocument {
         silent: Boolean,
         ifMatch: Option[String]
     ): F[ArangoResponse[Document[T]]] =
-      ArangoProtocol[F].execute(
+      ArangoClient[F].execute(
         ArangoRequest
           .PATCH(
             database,
@@ -179,7 +179,7 @@ object ArangoDocument {
         silent: Boolean,
         ifMatch: Option[String]
     ): F[ArangoResponse[Document[T]]] =
-      ArangoProtocol[F].execute(
+      ArangoClient[F].execute(
         ArangoRequest
           .PUT(
             database,

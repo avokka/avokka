@@ -27,18 +27,15 @@ class ArangoCountriesSpec
 
   val dbName = DatabaseName("test")
 
-  val session: ArangoSession = ArangoSession(container.configuration.copy(database = dbName))
+  val arango: ArangoSession = ArangoSession(container.configuration.copy(database = dbName))
+
+  val db = arango.db
 
   val collName = CollectionName("countries")
-
-  val client = session.client
-
-  val db = client.db
-
   val collection = db.collection(collName)
 
   it should "have test database" in {
-    client.databases().map { res =>
+    arango.server.databases().map { res =>
       res.header.responseCode should be(200)
       res.header.`type` should be(MessageType.ResponseFinal)
       res.body.result should contain(dbName)
@@ -112,7 +109,7 @@ class ArangoCountriesSpec
     val source = collection.all.batchSize(100).stream[Country]
 
     source.runWith(Sink.seq).map { s =>
-      s.length should be(250)
+      s.length should be > 200
     }
   }
 
@@ -139,7 +136,7 @@ class ArangoCountriesSpec
 
 
   override def afterAll(): Unit = {
-    session.closeClient()
+    arango.closeClient()
     TestKit.shutdownActorSystem(system)
   }
 }

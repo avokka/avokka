@@ -1,7 +1,7 @@
 package avokka.arangodb
 
 import avokka.arangodb.api._
-import avokka.arangodb.protocol.{ArangoProtocol, ArangoRequest, ArangoResponse}
+import avokka.arangodb.protocol.{ArangoClient, ArangoRequest, ArangoResponse}
 import avokka.arangodb.types.DatabaseName
 import avokka.velocypack.VPackDecoder
 import cats.Functor
@@ -15,7 +15,7 @@ trait ArangoCursor[F[_], T] {
 }
 
 object ArangoCursor {
-  def apply[F[_]: ArangoProtocol: Functor, T: VPackDecoder, S](
+  def apply[F[_]: ArangoClient: Functor, T: VPackDecoder, S](
       database: DatabaseName,
       response: ArangoResponse[Cursor[T]]
   ): ArangoCursor[F, T] = new ArangoCursor[F, T] {
@@ -24,7 +24,7 @@ object ArangoCursor {
     override def body: Cursor[T] = response.body
 
     override def next(): F[ArangoCursor[F, T]] =
-      ArangoProtocol[F]
+      ArangoClient[F]
         .execute[Cursor[T]](
           ArangoRequest.PUT(
             database,
@@ -35,7 +35,7 @@ object ArangoCursor {
           apply(database, response)
         }
 
-    override def delete(): F[ArangoResponse[DeleteResult]] = ArangoProtocol[F].execute(
+    override def delete(): F[ArangoResponse[DeleteResult]] = ArangoClient[F].execute(
       ArangoRequest.DELETE(
         database,
         s"/_api/cursor/${body.id.get}"

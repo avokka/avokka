@@ -73,7 +73,6 @@ lazy val arangodbTypes = (project in file("arangodb-types"))
 
 lazy val arangodb = (project in file("arangodb"))
   .dependsOn(velocystream, arangodbTypes)
-  .aggregate(velocypack, velocystream)
   .settings(
     name := "avokka-arangodb",
     description := "ArangoDB core",
@@ -97,7 +96,6 @@ lazy val arangodb = (project in file("arangodb"))
 
 lazy val arangodbAkka = (project in file("arangodb-akka"))
   .dependsOn(arangodb)
-  .aggregate(velocypack, velocystream)
   .settings(
     name := "avokka-arangodb-akka",
     description := "ArangoDB client (akka)",
@@ -120,7 +118,7 @@ lazy val arangodbAkka = (project in file("arangodb-akka"))
   )
 
 lazy val avokkafs2 = (project in file("fs2"))
-  .dependsOn(velocypack, velocystream, arangodb)
+  .dependsOn(arangodb)
   .settings(
     name := "avokka-fs2",
     description := "ArangoDB with fs2",

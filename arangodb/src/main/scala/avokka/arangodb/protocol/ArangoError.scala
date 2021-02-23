@@ -1,7 +1,6 @@
 package avokka.arangodb.protocol
 
 import avokka.arangodb.ResponseError
-import avokka.velocypack.VPackError
 
 sealed trait ArangoError extends Exception with Product with Serializable
 

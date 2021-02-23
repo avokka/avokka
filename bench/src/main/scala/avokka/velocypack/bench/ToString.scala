@@ -9,6 +9,7 @@ class ToString {
   @Benchmark
   def vpack(): Unit = {
     randomString().toVPackBits
+    ()
   }
 
 
@@ -16,6 +17,7 @@ class ToString {
   def arango(): Unit = {
     val builder = new com.arangodb.velocypack.VPack.Builder().build()
     builder.serialize(randomString())
+    ()
   }
 
   def randomString(): String = Random.nextString(50)

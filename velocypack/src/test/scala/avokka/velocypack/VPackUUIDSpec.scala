@@ -5,7 +5,7 @@ import java.util.UUID
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import scodec.bits.ByteVector
-import cats.instances.either._
+// import cats.instances.either._
 import org.scalatest.EitherValues._
 
 class VPackUUIDSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPackSpecTrait {

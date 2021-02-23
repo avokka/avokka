@@ -1,8 +1,8 @@
 package avokka.arangodb
 
-import api._
-import avokka.arangodb.protocol.{ArangoError, ArangoProtocol, ArangoRequest, ArangoResponse}
-import avokka.arangodb.types.{CollectionName, DatabaseName, DocumentHandle, DocumentKey}
+import avokka.arangodb.api._
+import avokka.arangodb.protocol.{ArangoProtocol, ArangoRequest, ArangoResponse}
+import avokka.arangodb.types.{DatabaseName, DocumentHandle}
 import avokka.velocypack.{VObject, VPackDecoder, VPackEncoder}
 import cats.Functor
 

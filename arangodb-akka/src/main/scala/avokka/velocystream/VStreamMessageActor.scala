@@ -50,13 +50,13 @@ class VStreamMessageActor(id: Long, replyTo: ActorRef) extends Actor with ActorL
   override def receive: Actor.Receive = {
 
     // solo chunk, bypass stack computation
-    case VStreamReader.ChunkReceived(chunk) if chunk.x.single =>
+    case VStreamReader.ChunkReceived(chunk) if chunk.header.x.single =>
       replyMessage(VStreamMessage(id, chunk.data))
 
     case VStreamReader.ChunkReceived(chunk) =>
       // first chunk index is the total number of expected chunks
-      if (chunk.x.first) {
-        expected = Some(chunk.x.index)
+      if (chunk.header.x.first) {
+        expected = Some(chunk.header.x.index)
       }
       // push chunk in stack
       buffer += chunk
@@ -71,7 +71,7 @@ class VStreamMessageActor(id: Long, replyTo: ActorRef) extends Actor with ActorL
 }
 
 object VStreamMessageActor {
-  val chunkOrder: Ordering[VStreamChunk] = Ordering.by(_.x.position)
+  val chunkOrder: Ordering[VStreamChunk] = Ordering.by(_.header.x.position)
 
   def props(id: Long, replyTo: ActorRef): Props = Props(new VStreamMessageActor(id, replyTo))
 }

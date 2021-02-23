@@ -41,11 +41,11 @@ class VStreamReader() extends Actor with ActorLogging {
         // success decode
         case Attempt.Successful(result) => {
           val chunks = result.value
-          log.debug("successful decode {}", chunks.map(_.messageId))
+          log.debug("successful decode {}", chunks.map(_.header.id))
           chunks.foreach { chunk =>
             // log.debug("decoded {}: {}", chunk.messageId, chunk.data.bits.asVPack.map(r => Show[VPack].show(r)))
             // send each chunk to corresponding message decoder actor
-            context.child(messageName(chunk.messageId)).foreach { child =>
+            context.child(messageName(chunk.header.id)).foreach { child =>
               log.debug("send chunk to child {}", child)
               child ! ChunkReceived(chunk)
             }

@@ -1,5 +1,6 @@
 package avokka
 
+import avokka.velocystream._
 import cats.effect.Concurrent
 import cats.effect.syntax.concurrent._
 import cats.syntax.apply._
@@ -9,9 +10,10 @@ import fs2.concurrent.{Queue, SignallingRef}
 import fs2.io.tcp.Socket
 import fs2.{Chunk, Pipe, Stream}
 import org.typelevel.log4cats.Logger
+import scodec.stream.{StreamDecoder, StreamEncoder}
 
 trait VChunkSocket[F[_]] {
-  def send(message: VMessage): F[Unit]
+  def send(message: VStreamMessage): F[Unit]
   def pump: F[Unit]
 }
 
@@ -22,17 +24,20 @@ object VChunkSocket {
   val requestsQueueSize: Int = 128
 
   def apply[F[_]](
-      config: Configuration,
+      config: VStreamConfiguration,
       socket: Socket[F],
       stateSignal: SignallingRef[F, ConnectionState],
       closeSignal: SignallingRef[F, Boolean],
-      in: Pipe[F, VMessage, Unit],
+      in: Pipe[F, VStreamMessage, Unit],
     )(implicit C: Concurrent[F], L: Logger[F]): F[VChunkSocket[F]] = {
 
     for {
-      chunks    <- Queue.bounded[F, VChunk](requestsQueueSize)
+      chunks    <- Queue.bounded[F, VStreamChunk](requestsQueueSize)
       assembler <- VChunkAssembler[F]
     } yield {
+
+      val streamDecoder: Pipe[F, Byte, VStreamChunk] = StreamDecoder.many(VStreamChunk.codec).toPipeByte
+      val streamEncoder: Pipe[F, VStreamChunk, Byte] = StreamEncoder.many(VStreamChunk.codec).toPipeByte
 
       val outgoing: Stream[F, Unit] = chunks.dequeue
         .evalMapChunk { chunk =>
@@ -40,13 +45,13 @@ object VChunkSocket {
           chunk.take(config.chunkLength, chunks.enqueue1)
         }
         .evalTap(msg => L.debug(s"${Console.BLUE}SEND${Console.RESET}: $msg"))
-        .through(VChunk.streamEncoder.toPipeByte)
+        .through(streamEncoder)
         .cons(handshake)
         .through(socket.writes())
 
       val incoming: Stream[F, Unit] = socket
         .reads(config.readBufferSize)
-        .through(VChunk.streamDecoder.toPipeByte)
+        .through(streamDecoder)
         .evalTap(msg => L.debug(s"${Console.BLUE_B}${Console.WHITE}RECV${Console.RESET}: $msg"))
         .evalMap(ch => assembler.push(ch).value).unNone
         .through(in)
@@ -64,7 +69,7 @@ object VChunkSocket {
         .drain
 
       new VChunkSocket[F] {
-        override def send(message: VMessage): F[Unit] = {
+        override def send(message: VStreamMessage): F[Unit] = {
           chunks.enqueue1(message.firstChunk(config.chunkLength))
         }
 

@@ -99,14 +99,14 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
   private def doSendChunk(connection: ActorRef,
                           chunk: VStreamChunk,
                           ack: Tcp.Event = WriteAck): Unit = {
-    log.debug("send chunk #{}-{} {} bytes", chunk.messageId, chunk.x.position, chunk.length)
+    log.debug("send chunk #{}-{} {} bytes", chunk.header.id, chunk.header.x.position, chunk.header.length)
     connection ! Tcp.Write(chunkToByteString(chunk), ack)
     waitingForAck = true
   }
 
   private def flushChunkQueue(connection: ActorRef, ack: Tcp.Event): Unit = {
     val chunks: Seq[VStreamChunk] = queue.dequeueAll
-    log.debug("flush chunk queue #{} {} bytes", chunks.map(c => s"${c.messageId}-${c.x.position}"), chunks.map(_.length).sum)
+    log.debug("flush chunk queue #{} {} bytes", chunks.map(c => s"${c.header.id}-${c.header.x.position}"), chunks.map(_.header.length).sum)
     val bs = ByteString.newBuilder
     chunks.foreach { chunk =>
       bs.append(chunkToByteString(chunk))
@@ -205,7 +205,7 @@ object VStreamConnection {
     * MessageId-Position : 1-0 -> [2-0|1-1] -> 3-0 -> [4-0|3-1] -> [5-0|3-2] -> ...
     */
   private val chunkOrdering: Ordering[VStreamChunk] =
-    Ordering.by[VStreamChunk, Long](chunk => chunk.messageId + chunk.x.position).reverse
+    Ordering.by[VStreamChunk, Long](chunk => chunk.header.id + chunk.header.x.position).reverse
 
 
   /*

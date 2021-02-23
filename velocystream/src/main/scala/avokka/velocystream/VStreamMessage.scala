@@ -8,7 +8,7 @@ import scala.annotation.tailrec
 
 /**
   * velocystream message in or out
-  * @param id identifier
+  * @param id unique identifier
   * @param data data bytes
   */
 final case class VStreamMessage(
@@ -17,9 +17,9 @@ final case class VStreamMessage(
 ) {
 
   /**
-    * splits the message in a stream of chunks
+    * splits the message in a sequence of chunks
     * @param length maximum length of data chunk
-    * @return stream of chunks
+    * @return iterable of chunks
     */
   def chunks(length: Long = VStreamConfiguration.CHUNK_LENGTH_DEFAULT): Iterable[VStreamChunk] = {
     val count = (data.size.toDouble / length).ceil.toLong
@@ -42,6 +42,17 @@ final case class VStreamMessage(
 
     stream(0, data)
      */
+  }
+
+  /** build the first chunk with all data
+    *
+    * @param length maximum length in bytes of chunks
+    * @return first full chunk
+    */
+  def firstChunk(length: Long): VStreamChunk = {
+    val chunksCount = (data.size.toDouble / length).ceil.toLong
+    val header = VStreamChunkHeader(VStreamChunkX(first = true, chunksCount), id, data.size)
+    VStreamChunk(header, data)
   }
 }
 

@@ -1,5 +1,6 @@
 package avokka
 
+import avokka.velocystream._
 import cats.effect.concurrent.{Deferred, Ref}
 import cats.effect.syntax.bracket._
 import cats.effect.syntax.concurrent._
@@ -23,7 +24,7 @@ trait Transport[F[_]] {
 object Transport {
 
   def apply[F[_]: ContextShift: Timer](
-      config: Configuration,
+    config: VStreamConfiguration,
   )(implicit C: Concurrent[F], L: Logger[F]): F[Resource[F, Transport[F]]] = for {
       counter <- Ref.of(0L)
       responses <- FMap[F, Long, Deferred[F, ByteVector]]
@@ -31,7 +32,7 @@ object Transport {
       closeSignal <- SignallingRef[F, Boolean](false)
     } yield {
 
-      val in: Pipe[F, VMessage, Unit] = _.evalMapChunk { msg =>
+      val in: Pipe[F, VStreamMessage, Unit] = _.evalMapChunk { msg =>
           responses.remove(msg.id).flatMap {
             case Some(deferred) => deferred.complete(msg.data)
             case None           => C.raiseError[Unit](new Exception(s"unknown message id ${msg.id}"))
@@ -79,7 +80,7 @@ object Transport {
                 _ <- L.debug(s"prepare message #$id")
                 dfr <- Deferred[F, ByteVector]
                 _ <- responses.update(id, dfr)
-                _ <- socket.send(VMessage(id, data))
+                _ <- socket.send(VStreamMessage(id, data))
                 r <- dfr.get.timeout(config.replyTimeout).guarantee(responses.remove(id).void)
               } yield r
 

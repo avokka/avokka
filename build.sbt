@@ -103,7 +103,7 @@ lazy val arangodbAkka = (project in file("arangodb-akka"))
     description := "ArangoDB client (akka)",
     libraryDependencies ++= compatDeps ++ akka ++ Seq(
 //      enumeratum,
-      pureconfig,
+//      pureconfig,
       logging,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
     ) ++ testSuite ++ akkaTestKit ++ dockerTest ++
@@ -120,7 +120,7 @@ lazy val arangodbAkka = (project in file("arangodb-akka"))
   )
 
 lazy val avokkafs2 = (project in file("fs2"))
-  .dependsOn(velocypack, velocystream)
+  .dependsOn(velocypack, velocystream, arangodb)
   .settings(
     name := "avokka-fs2",
     description := "ArangoDB with fs2",

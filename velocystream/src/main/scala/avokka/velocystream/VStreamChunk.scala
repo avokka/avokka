@@ -1,43 +1,57 @@
 package avokka.velocystream
 
-import scodec._
-import scodec.bits._
-import scodec.codecs._
+import cats.Applicative
+import cats.syntax.applicative._
+import cats.syntax.functor._
+import scodec.Codec
+import scodec.bits.ByteVector
+import scodec.codecs.{bytes, fixedSizeBytes, uint32L}
+import shapeless.{::, HNil}
 
-/**
-  * Message chunk
+/** chunk of message
   *
-  * @param length total length in bytes of the current chunk, including the header
-  * @param x chunk/isFirstChunk
-  * @param messageId a unique identifier (zero is reserved for not set ID)
-  * @param messageLength the total size of the message
-  * @param data blob of chunk
+  * @param header header to reassemble message
+  * @param data chunk payload
   */
-final case class VStreamChunk(
-    length: Long,
-    x: VStreamChunkX,
-    messageId: Long,
-    messageLength: Long,
-    data: ByteVector
-)
+final case class VStreamChunk
+(
+  header: VStreamChunkHeader,
+  data: ByteVector
+) {
+
+  /** split chunk data at length bytes, do something with remainder and returns the chunk
+    *
+    * @param length max number of bytes of data
+    * @param withRemainder what to do with data tail
+    * @tparam F applicative context
+    * @return
+    */
+  def take[F[_]: Applicative](length: Long, withRemainder: VStreamChunk => F[Unit]): F[VStreamChunk] = {
+    val (chunk, tail) = data.splitAt(length)
+    withRemainder(VStreamChunk(header.next, tail)).whenA(tail.nonEmpty).as(copy(data = chunk))
+  }
+}
 
 object VStreamChunk {
+
   def apply(message: VStreamMessage, index: Long, count: Long, data: ByteVector): VStreamChunk = {
     VStreamChunk(
-      length = 4L + 4L + 8L + 8L + data.size,
-      x = VStreamChunkX(index, count),
-      messageId = message.id,
-      messageLength = message.data.size,
+      header = VStreamChunkHeader(
+        x = VStreamChunkX(index, count),
+        id = message.id,
+        length = message.data.size,
+      ),
       data = data
     )
   }
 
-  val codec: Codec[VStreamChunk] = {
-    ("length" | uint32L) >>:~ { length =>
-      ("chunkX" | VStreamChunkX.codec) ::
-        ("messageId" | int64L) ::
-        ("messageLength" | int64L) ::
-        ("data" | fixedSizeBytes(length - 4 - 4 - 8 - 8, bytes))
-    }
-  }.as[VStreamChunk]
+  // 4 chunk length + 4 chunkx + 8 message id + 8 message length
+  val dataOffset: Long = 24
+
+  val codec: Codec[VStreamChunk] = uint32L.consume { l =>
+    VStreamChunkHeader.codec :: fixedSizeBytes(l - dataOffset, bytes)
+  } {
+    case _ :: bv :: HNil => bv.size + dataOffset
+  }.as
+
 }

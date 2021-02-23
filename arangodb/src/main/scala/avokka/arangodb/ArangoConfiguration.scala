@@ -25,6 +25,7 @@ final case class ArangoConfiguration(
     username: String,
     password: String,
     chunkLength: Long = VStreamConfiguration.CHUNK_LENGTH_DEFAULT,
+    readBufferSize: Int = VStreamConfiguration.READ_BUFFER_SIZE_DEFAULT,
     connectTimeout: FiniteDuration = VStreamConfiguration.CONNECT_TIMEOUT_DEFAULT,
     replyTimeout: FiniteDuration = VStreamConfiguration.REPLY_TIMEOUT_DEFAULT,
     database: DatabaseName = DatabaseName.system

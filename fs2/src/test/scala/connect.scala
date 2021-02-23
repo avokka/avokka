@@ -1,4 +1,5 @@
-import avokka.{Configuration, Transport}
+import avokka.arangodb.ArangoConfiguration
+import avokka.Transport
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Sync}
 import cats.syntax.all._
 import org.typelevel.log4cats.Logger
@@ -12,7 +13,7 @@ object connect extends IOApp {
   implicit def unsafeLogger[F[_]: Sync]: Logger[F] = Slf4jLogger.getLogger[F]
 
   override def run(args: List[String]): IO[ExitCode] = for {
-    config <- Blocker[IO].use(ConfigSource.default.at("avokka").loadF[IO, Configuration])
+    config <- Blocker[IO].use(ConfigSource.default.at("avokka").loadF[IO, ArangoConfiguration])
     transport <- Transport(config)
     _ <- transport.use { client =>
       for {

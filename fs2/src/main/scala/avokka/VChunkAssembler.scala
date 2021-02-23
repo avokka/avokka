@@ -1,5 +1,6 @@
 package avokka
 
+import avokka.velocystream._
 import cats.data.{Chain, OptionT}
 import cats.effect.Sync
 import cats.effect.concurrent.Ref
@@ -14,7 +15,7 @@ trait VChunkAssembler[F[_]] {
     * @param chunk chunk received
     * @return some message if complete, else none
     */
-  def push(chunk: VChunk): OptionT[F, VMessage]
+  def push(chunk: VStreamChunk): OptionT[F, VStreamMessage]
 
   // for testing purposes
   private[avokka] def size: F[Long]
@@ -24,12 +25,12 @@ object VChunkAssembler {
   def apply[F[_]](implicit F: Sync[F]): F[VChunkAssembler[F]] =
     for {
       // history of incomplete chunks received
-      stack <- Ref.of(Chain.empty[VChunk])
+      stack <- Ref.of(Chain.empty[VStreamChunk])
     } yield new VChunkAssembler[F] {
-      override def push(c: VChunk): OptionT[F, VMessage] =
+      override def push(c: VStreamChunk): OptionT[F, VStreamMessage] =
         if (c.header.x.single) {
           // message is not split, bypass stack
-          OptionT.pure[F](VMessage(c.header.id, c.data))
+          OptionT.pure[F](VStreamMessage(c.header.id, c.data))
         } else for {
           // push chunk in history
           st <- OptionT.liftF(stack.updateAndGet(_ :+ c))
@@ -41,7 +42,7 @@ object VChunkAssembler {
           _ <- OptionT.liftF(stack.update(_.filterNot(_.header.id == c.header.id)))
           // reconstruct message payload
           data = same.sortBy(_.header.x.position).foldMap(_.data)
-        } yield VMessage(c.header.id, data)
+        } yield VStreamMessage(c.header.id, data)
 
       override private[avokka] def size: F[Long] = stack.get.map(_.size)
     }

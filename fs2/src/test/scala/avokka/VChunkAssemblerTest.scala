@@ -1,6 +1,6 @@
 package avokka
 
-import avokka.velocystream.VStreamChunkX
+import avokka.velocystream.{VStreamChunk, VStreamChunkHeader, VStreamChunkX, VStreamMessage}
 import cats.effect.IO
 import cats.effect.testing.scalatest.AsyncIOSpec
 import org.scalatest.freespec.AsyncFreeSpec
@@ -9,8 +9,8 @@ import scodec.bits.ByteVector
 import org.scalatest.OptionValues._
 
 class VChunkAssemblerTest extends AsyncFreeSpec with AsyncIOSpec with Matchers {
-  val singleC = VChunk(VChunkHeader(VStreamChunkX(first = true, index = 1), 1, 1), ByteVector(1))
-  val singleM = VMessage(1, ByteVector(1))
+  val singleC = VStreamChunk(VStreamChunkHeader(VStreamChunkX(first = true, index = 1), 1, 1), ByteVector(1))
+  val singleM = VStreamMessage(1, ByteVector(1))
 
   "single chunk is returned immediately" in {
     (for {
@@ -23,9 +23,9 @@ class VChunkAssemblerTest extends AsyncFreeSpec with AsyncIOSpec with Matchers {
     }
   }
 
-  val splitC1 = VChunk(VChunkHeader(VStreamChunkX(first = true, index = 2), 1, 2), ByteVector(1))
-  val splitC2 = VChunk(VChunkHeader(VStreamChunkX(first = false, index = 1), 1, 2), ByteVector(2))
-  val splitM = VMessage(1, ByteVector(1, 2))
+  val splitC1 = VStreamChunk(VStreamChunkHeader(VStreamChunkX(first = true, index = 2), 1, 2), ByteVector(1))
+  val splitC2 = VStreamChunk(VStreamChunkHeader(VStreamChunkX(first = false, index = 1), 1, 2), ByteVector(2))
+  val splitM = VStreamMessage(1, ByteVector(1, 2))
 
   "chunks are stacked until complete" in {
     (for {
@@ -58,9 +58,9 @@ class VChunkAssemblerTest extends AsyncFreeSpec with AsyncIOSpec with Matchers {
     }
   }
 
-  val splitC1b = VChunk(VChunkHeader(VStreamChunkX(first = true, index = 2), 2, 2), ByteVector(10))
-  val splitC2b = VChunk(VChunkHeader(VStreamChunkX(first = false, index = 1), 2, 2), ByteVector(20))
-  val splitMb = VMessage(2, ByteVector(10, 20))
+  val splitC1b = VStreamChunk(VStreamChunkHeader(VStreamChunkX(first = true, index = 2), 2, 2), ByteVector(10))
+  val splitC2b = VStreamChunk(VStreamChunkHeader(VStreamChunkX(first = false, index = 1), 2, 2), ByteVector(20))
+  val splitMb = VStreamMessage(2, ByteVector(10, 20))
 
   "multiplex chunks" in {
     (for {

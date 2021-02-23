@@ -3,7 +3,6 @@ package protocol
 
 import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
-import avokka.velocystream.VStreamMessage
 import cats.MonadThrow
 import cats.syntax.flatMap._
 import cats.syntax.functor._
@@ -19,7 +18,7 @@ trait ArangoClient[F[_]] {
     * @param message VST message
     * @return VST message
     */
-  protected def send(message: VStreamMessage): F[VStreamMessage]
+  protected def send(message: ByteVector): F[ByteVector]
 
   /**
     * send a arangodb request without body and receive arango response
@@ -80,7 +79,7 @@ object ArangoClient {
       for {
         in <- F.fromEither(header.toVPackBits)
         _  <- L.trace(s"REQ head ${in.asVPackValue.map(_.show)}")
-        out <- sendBytes(in.bytes)
+        out <- send(in.bytes)
         res <- handleResponse(out)
       } yield res
 
@@ -90,16 +89,16 @@ object ArangoClient {
         _   <- L.trace(s"REQ head ${inh.asVPackValue.map(_.show)}")
         inb <- F.fromEither(request.body.toVPackBits)
         _   <- L.trace(s"REQ body ${inb.asVPackValue.map(_.show)}")
-        out <- sendBytes((inh ++ inb).bytes)
+        out <- send((inh ++ inb).bytes)
         res <- handleResponse(out)
       } yield res
 
-    protected def sendBytes(data: ByteVector): F[VStreamMessage] = send(VStreamMessage.create(data))
+    // protected def sendBytes(data: ByteVector): F[VStreamMessage] = send(VStreamMessage.create(data))
 
-    protected def handleResponse[O: VPackDecoder](response: VStreamMessage): F[ArangoResponse[O]] =
+    protected def handleResponse[O: VPackDecoder](response: ByteVector): F[ArangoResponse[O]] =
       for {
-        _      <- L.trace(s"RES head ${response.data.bits.asVPackValue.map(_.show)}")
-        header <- F.fromEither(response.data.bits.asVPack[ArangoResponse.Header])
+        _      <- L.trace(s"RES head ${response.bits.asVPackValue.map(_.show)}")
+        header <- F.fromEither(response.bits.asVPack[ArangoResponse.Header])
         body <- if (header.remainder.isEmpty) {
           F.raiseError[DecodeResult[O]](ArangoError.Head(header.value))
         } else if (header.value.responseCode >= 400) {

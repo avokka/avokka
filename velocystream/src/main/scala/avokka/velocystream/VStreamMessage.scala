@@ -55,8 +55,3 @@ final case class VStreamMessage(
     VStreamChunk(header, data)
   }
 }
-
-object VStreamMessage {
-  val id = new AtomicLong()
-  def create(data: ByteVector): VStreamMessage = VStreamMessage(id.incrementAndGet(), data)
-}

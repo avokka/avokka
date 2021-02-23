@@ -8,6 +8,7 @@ import avokka.velocystream._
 import cats.instances.future._
 import cats.syntax.applicative._
 import org.typelevel.log4cats.MessageLogger
+import scodec.bits.ByteVector
 
 import java.util.concurrent.atomic.AtomicLong
 import scala.concurrent.Future
@@ -18,7 +19,8 @@ trait ArangoSession extends ArangoClient[Future] {
 
 object ArangoSession {
 
-  private val id = new AtomicLong()
+  private val vstClientId = new AtomicLong()
+  private val vstMessageId = new AtomicLong()
 
   def apply(configuration: ArangoConfiguration)(
     implicit actorSystem: ActorSystem
@@ -36,16 +38,23 @@ object ArangoSession {
 
     new ArangoClient.Impl(configuration) with ArangoSession {
 
-      val authRequest = ArangoRequest.Authentication(user = configuration.username, password = configuration.password).toVPackBits
-      val authSeq = authRequest.map(bits => VStreamMessage.create(bits.bytes)).toOption
+      val authRequest = ArangoRequest.Authentication(user = configuration.username, password = configuration.password)
+        .toVPackBits
+        .map { bits =>
+          VStreamMessage(vstMessageId.incrementAndGet(), bits.bytes)
+        }
+        .toOption
 
       private val vstClient = actorSystem.actorOf(
-        VStreamClient(configuration, authSeq),
-        name = s"velocystream-client-${id.incrementAndGet()}"
+        VStreamClient(configuration, authRequest),
+        name = s"velocystream-client-${vstClientId.incrementAndGet()}"
       )
 
-      override protected def send(message: VStreamMessage): Future[VStreamMessage] = {
-        ask(vstClient, VStreamClient.MessageSend(message))(configuration.replyTimeout).mapTo[VStreamMessage]
+      override protected def send(message: ByteVector): Future[ByteVector] = {
+        val vstMessage = VStreamMessage(vstMessageId.incrementAndGet(), message)
+        ask(vstClient, VStreamClient.MessageSend(vstMessage))(configuration.replyTimeout)
+          .mapTo[VStreamMessage]
+          .map(_.data)
       }
 
       override def closeClient(): Unit =

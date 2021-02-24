@@ -56,6 +56,12 @@ object VPackGeneric { c =>
 
   final class DeriveHelper[T](private val dummy: Boolean = false) extends AnyVal {
 
+    def cmap[R <: HList](gen: T => R)(implicit vp: Encoder[R]): VPackEncoder[T] =
+      Encoder(vp).contramap(gen)
+
+    def map[R <: HList](f: R => T)(implicit vp: Decoder[R]): VPackDecoder[T] =
+      Decoder(vp).map(f)
+
     def encoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: Encoder[R]): VPackEncoder[T] =
       Encoder(vp).contramap(gen.to)
 

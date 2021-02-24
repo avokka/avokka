@@ -12,9 +12,9 @@ final case class ArangoRequest[T](
 
 object ArangoRequest {
 
-  sealed trait Header
+  sealed trait Header extends Product with Serializable
 
-  sealed trait Request extends Header {
+  sealed trait Request extends Header with Product with Serializable {
     def version: Int = 1
     def `type`: MessageType = MessageType.Request
     def database: DatabaseName
@@ -72,12 +72,9 @@ object ArangoRequest {
   }
 
   object Request {
-    implicit val encoder: VPackEncoder[Request] = VPackGeneric.Encoder[
-        Int :: MessageType :: DatabaseName :: RequestType :: String :: Map[String, String] :: Map[String, String] :: HNil
-      ]
-      .contramap { r =>
-        r.version :: r.`type` :: r.database :: r.requestType :: r.request :: r.parameters :: r.meta :: HNil
-      }
+    implicit val encoder: VPackEncoder[Request] = VPackGeneric[Request].cmap { r =>
+      r.version :: r.`type` :: r.database :: r.requestType :: r.request :: r.parameters :: r.meta :: HNil
+    }
   }
 
   final case class Authentication(
@@ -93,6 +90,11 @@ object ArangoRequest {
   }
 
   object Header {
-    implicit val encoder: VPackEncoder[Header] = VPackEncoder.gen
+   // implicit val encoder: VPackEncoder[Header] = VPackEncoder.gen
+
+    implicit val encoder: VPackEncoder[Header] = {
+      case r: Request => Request.encoder.encode(r)
+      case a: Authentication => Authentication.encoder.encode(a)
+    }
   }
 }

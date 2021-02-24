@@ -1,7 +1,5 @@
 package avokka.velocystream
 
-import java.util.concurrent.atomic.AtomicLong
-
 import scodec.bits.ByteVector
 
 import scala.annotation.tailrec

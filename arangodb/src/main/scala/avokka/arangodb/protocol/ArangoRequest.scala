@@ -3,6 +3,7 @@ package protocol
 
 import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
+import shapeless.{HNil, ::}
 
 final case class ArangoRequest[T](
     header: ArangoRequest.Header,
@@ -13,85 +14,70 @@ object ArangoRequest {
 
   sealed trait Header
 
-  final case class Request(
-      version: Int = 1,
-      `type`: MessageType = MessageType.Request,
-      database: DatabaseName,
-      requestType: RequestType,
-      request: String,
-      parameters: Map[String, String] = Map.empty,
-      meta: Map[String, String] = Map.empty,
-  ) extends Header {
+  sealed trait Request extends Header {
+    def version: Int = 1
+    def `type`: MessageType = MessageType.Request
+    def database: DatabaseName
+    def requestType: RequestType
+    def request: String
+    def parameters: Map[String, String]
+    def meta: Map[String, String]
+
     def body[T](value: T): ArangoRequest[T] = ArangoRequest(this, value)
   }
 
-  def GET(
+  final case class GET(
       database: DatabaseName,
       request: String,
       parameters: Map[String, String] = Map.empty,
       meta: Map[String, String] = Map.empty
-  ): Request = Request(
-    database = database,
-    requestType = RequestType.GET,
-    request = request,
-    parameters = parameters,
-    meta = meta
-  )
+  ) extends Request {
+    override def requestType: RequestType = RequestType.GET
+  }
 
-  def DELETE(
+  final case class DELETE(
       database: DatabaseName,
       request: String,
       parameters: Map[String, String] = Map.empty,
       meta: Map[String, String] = Map.empty
-  ): Request = Request(
-    database = database,
-    requestType = RequestType.DELETE,
-    request = request,
-    parameters = parameters,
-    meta = meta
-  )
+  ) extends Request {
+    override def requestType: RequestType = RequestType.DELETE
+  }
 
-  def POST(
-              database: DatabaseName,
-              request: String,
-              parameters: Map[String, String] = Map.empty,
-              meta: Map[String, String] = Map.empty
-            ): Request = Request(
-    database = database,
-    requestType = RequestType.POST,
-    request = request,
-    parameters = parameters,
-    meta = meta
-  )
+  final case class POST(
+      database: DatabaseName,
+      request: String,
+      parameters: Map[String, String] = Map.empty,
+      meta: Map[String, String] = Map.empty
+  ) extends Request {
+    override def requestType: RequestType = RequestType.POST
+  }
 
-  def PUT(
-            database: DatabaseName,
-            request: String,
-            parameters: Map[String, String] = Map.empty,
-            meta: Map[String, String] = Map.empty
-          ): Request = Request(
-    database = database,
-    requestType = RequestType.PUT,
-    request = request,
-    parameters = parameters,
-    meta = meta
-  )
+  final case class PUT(
+      database: DatabaseName,
+      request: String,
+      parameters: Map[String, String] = Map.empty,
+      meta: Map[String, String] = Map.empty
+  ) extends Request {
+    override def requestType: RequestType = RequestType.PUT
+  }
 
-  def PATCH(
-           database: DatabaseName,
-           request: String,
-           parameters: Map[String, String] = Map.empty,
-           meta: Map[String, String] = Map.empty
-         ): Request = Request(
-    database = database,
-    requestType = RequestType.PATCH,
-    request = request,
-    parameters = parameters,
-    meta = meta
-  )
+  final case class PATCH(
+      database: DatabaseName,
+      request: String,
+      parameters: Map[String, String] = Map.empty,
+      meta: Map[String, String] = Map.empty
+  ) extends Request {
+    override def requestType: RequestType = RequestType.PATCH
+  }
 
   object Request {
-    implicit val encoder: VPackEncoder[Request] = VPackGeneric[Request].encoder
+    implicit val encoder: VPackEncoder[Request] = VPackGeneric.Encoder[
+        Int :: MessageType :: DatabaseName :: RequestType :: String :: Map[String, String] :: Map[String, String] :: HNil
+      ]
+      .contramap { r =>
+        r.version :: r.`type` :: r.database :: r.requestType :: r.request :: r.parameters :: r.meta :: HNil
+      }
   }
 
   final case class Authentication(

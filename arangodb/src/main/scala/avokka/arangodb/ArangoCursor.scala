@@ -1,7 +1,7 @@
 package avokka.arangodb
 
 import avokka.arangodb.api._
-import avokka.arangodb.protocol.{ArangoClient, ArangoRequest, ArangoResponse}
+import avokka.arangodb.protocol._
 import avokka.arangodb.types.DatabaseName
 import avokka.velocypack.VPackDecoder
 import cats.Functor
@@ -31,9 +31,7 @@ object ArangoCursor {
             s"/_api/cursor/${body.id.get}"
           )
         )
-        .map { response =>
-          apply(database, response)
-        }
+        .map { apply(database, _) }
 
     override def delete(): F[ArangoResponse[DeleteResult]] = ArangoClient[F].execute(
       ArangoRequest.DELETE(

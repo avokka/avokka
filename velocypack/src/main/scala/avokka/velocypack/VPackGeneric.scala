@@ -4,11 +4,11 @@ import shapeless.{::, Generic, HList, HNil}
 
 object VPackGeneric { c =>
 
-  private[velocypack] trait Encoder[A <: HList] {
+  trait Encoder[A <: HList] {
     def encode(t: A): Vector[VPack]
   }
 
-  private[velocypack] object Encoder {
+  object Encoder {
 
     def apply[A <: HList](
       implicit ev: Encoder[A]
@@ -30,7 +30,7 @@ object VPackGeneric { c =>
     def decode(v: Vector[VPack]): VPackResult[A]
   }
 
-  private[velocypack] object Decoder {
+  object Decoder {
     def apply[A <: HList](implicit ev: Decoder[A]): VPackDecoder[A] = {
       case VArray(values) => ev.decode(values)
       case v              => Left(VPackError.WrongType(v))
@@ -54,7 +54,7 @@ object VPackGeneric { c =>
     }
   }
 
-  private[velocypack] final class DeriveHelper[T](private val dummy: Boolean = false) extends AnyVal {
+  final class DeriveHelper[T](private val dummy: Boolean = false) extends AnyVal {
 
     def encoder[R <: HList](implicit gen: Generic.Aux[T, R], vp: Encoder[R]): VPackEncoder[T] =
       Encoder(vp).contramap(gen.to)

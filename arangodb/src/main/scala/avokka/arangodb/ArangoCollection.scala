@@ -7,9 +7,23 @@ import protocol._
 import types._
 
 trait ArangoCollection[F[_]] {
+
+  /**
+    * @return collection name
+    */
   def name: CollectionName
 
+  /**
+    * existing document api
+    * @param key document key
+    * @return document api
+    */
   def document(key: DocumentKey): ArangoDocument[F]
+
+  /**
+    * multi documents api
+    * @return documents api
+    */
   def documents: ArangoDocuments[F]
 
   /**
@@ -40,14 +54,19 @@ trait ArangoCollection[F[_]] {
       withData: Boolean = false,
   ): F[ArangoResponse[CollectionChecksum]]
 
+
   def count(): F[ArangoResponse[CollectionCount]]
 
   def info(): F[ArangoResponse[CollectionInfo]]
+
   def revision(): F[ArangoResponse[CollectionRevision]]
+
   def properties(): F[ArangoResponse[CollectionProperties]]
 
   def unload(): F[ArangoResponse[CollectionInfo]]
+
   def truncate(): F[ArangoResponse[CollectionInfo]]
+
   def drop(isSystem: Boolean = false): F[ArangoResponse[DeleteResult]]
 
   /**
@@ -59,6 +78,7 @@ trait ArangoCollection[F[_]] {
     * @param silent If set to *true*, an empty object will be returned as response. No meta-data  will be returned for the created document. This option can be used to save some network traffic.   (optional)
     * @param overwrite If set to *true*, the insert becomes a replace-insert. If a document with the same *_key* already exists the new document is not rejected with unique constraint violated but will replace the old document.   (optional)
     * @tparam T document type
+    * @todo refactor to documents api
     */
   def insert[T: VPackEncoder: VPackDecoder](
       document: T,
@@ -70,7 +90,7 @@ trait ArangoCollection[F[_]] {
   ): F[ArangoResponse[Document[T]]]
 
   /**
-    * Query to all documents in collection
+    * Query all documents in collection
     * @return query
     */
   def all: ArangoQuery[F, VObject]

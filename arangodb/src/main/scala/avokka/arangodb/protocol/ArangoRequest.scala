@@ -11,7 +11,9 @@ final case class ArangoRequest[T](
 
 object ArangoRequest {
 
-  final case class Header(
+  sealed trait Header
+
+  final case class Request(
       version: Int = 1,
       `type`: MessageType = MessageType.Request,
       database: DatabaseName,
@@ -19,7 +21,7 @@ object ArangoRequest {
       request: String,
       parameters: Map[String, String] = Map.empty,
       meta: Map[String, String] = Map.empty,
-  ) {
+  ) extends Header {
     def body[T](value: T): ArangoRequest[T] = ArangoRequest(this, value)
   }
 
@@ -28,7 +30,7 @@ object ArangoRequest {
       request: String,
       parameters: Map[String, String] = Map.empty,
       meta: Map[String, String] = Map.empty
-  ): Header = Header(
+  ): Request = Request(
     database = database,
     requestType = RequestType.GET,
     request = request,
@@ -41,7 +43,7 @@ object ArangoRequest {
       request: String,
       parameters: Map[String, String] = Map.empty,
       meta: Map[String, String] = Map.empty
-  ): Header = Header(
+  ): Request = Request(
     database = database,
     requestType = RequestType.DELETE,
     request = request,
@@ -54,7 +56,7 @@ object ArangoRequest {
               request: String,
               parameters: Map[String, String] = Map.empty,
               meta: Map[String, String] = Map.empty
-            ): Header = Header(
+            ): Request = Request(
     database = database,
     requestType = RequestType.POST,
     request = request,
@@ -67,7 +69,7 @@ object ArangoRequest {
             request: String,
             parameters: Map[String, String] = Map.empty,
             meta: Map[String, String] = Map.empty
-          ): Header = Header(
+          ): Request = Request(
     database = database,
     requestType = RequestType.PUT,
     request = request,
@@ -80,7 +82,7 @@ object ArangoRequest {
            request: String,
            parameters: Map[String, String] = Map.empty,
            meta: Map[String, String] = Map.empty
-         ): Header = Header(
+         ): Request = Request(
     database = database,
     requestType = RequestType.PATCH,
     request = request,
@@ -88,8 +90,8 @@ object ArangoRequest {
     meta = meta
   )
 
-  object Header {
-    implicit val encoder: VPackEncoder[Header] = VPackGeneric[Header].encoder
+  object Request {
+    implicit val encoder: VPackEncoder[Request] = VPackGeneric[Request].encoder
   }
 
   final case class Authentication(
@@ -98,11 +100,13 @@ object ArangoRequest {
       encryption: String = "plain",
       user: String,
       password: String
-  )
+  ) extends Header
 
   object Authentication {
-    implicit val encoder: VPackEncoder[Authentication] =
-      VPackGeneric[Authentication].encoder
+    implicit val encoder: VPackEncoder[Authentication] = VPackGeneric[Authentication].encoder
   }
 
+  object Header {
+    implicit val encoder: VPackEncoder[Header] = VPackEncoder.gen
+  }
 }

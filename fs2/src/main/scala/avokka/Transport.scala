@@ -1,5 +1,7 @@
 package avokka
 
+import avokka.arangodb.ArangoConfiguration
+import avokka.arangodb.protocol.ArangoClient
 import avokka.velocystream._
 import cats.effect.concurrent.{Deferred, Ref}
 import cats.effect.syntax.bracket._
@@ -16,15 +18,14 @@ import scodec.bits.ByteVector
 
 import java.net.InetSocketAddress
 
-trait Transport[F[_]] {
-  def execute(data: ByteVector): F[ByteVector]
+trait Transport[F[_]] extends ArangoClient[F] {
   def terminate: F[Unit]
 }
 
 object Transport {
 
   def apply[F[_]: ContextShift: Timer](
-    config: VStreamConfiguration,
+    config: ArangoConfiguration,
   )(implicit C: Concurrent[F], L: Logger[F]): F[Resource[F, Transport[F]]] = for {
       counter <- Ref.of(0L)
       responses <- FMap[F, Long, Deferred[F, ByteVector]]
@@ -73,8 +74,8 @@ object Transport {
 
       mkSocket.evalMap { socket =>
         socket.pump.start.map { fib =>
-          new Transport[F] {
-            override def execute(data: ByteVector): F[ByteVector] =
+          new ArangoClient.Impl[F](config) with Transport[F] {
+            override def send(data: ByteVector): F[ByteVector] =
               for {
                 id <- counter.updateAndGet(_ + 1)
                 _ <- L.debug(s"prepare message #$id")
@@ -86,7 +87,7 @@ object Transport {
 
             override def terminate: F[Unit] = fib.cancel *> closeSignal.set(true)
           }
-        }
+        }.flatTap(_.login(config.username, config.password))
 
       // socket.pump.background.as(transport)
       }

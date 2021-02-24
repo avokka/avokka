@@ -44,7 +44,7 @@ object VChunkSocket {
           // take a chunk of length and re-enqueue the remainder
           chunk.take(config.chunkLength, chunks.enqueue1)
         }
-        .evalTap(msg => L.debug(s"${Console.BLUE}SEND${Console.RESET}: $msg"))
+        .evalTap(msg => L.trace(s"${Console.BLUE}SEND${Console.RESET}: $msg"))
         .through(streamEncoder)
         .cons(handshake)
         .through(socket.writes())
@@ -52,7 +52,7 @@ object VChunkSocket {
       val incoming: Stream[F, Unit] = socket
         .reads(config.readBufferSize)
         .through(streamDecoder)
-        .evalTap(msg => L.debug(s"${Console.BLUE_B}${Console.WHITE}RECV${Console.RESET}: $msg"))
+        .evalTap(msg => L.trace(s"${Console.BLUE_B}${Console.WHITE}RECV${Console.RESET}: $msg"))
         .evalMap(ch => assembler.push(ch).value).unNone
         .through(in)
 

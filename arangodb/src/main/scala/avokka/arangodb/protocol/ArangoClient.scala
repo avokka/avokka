@@ -37,6 +37,8 @@ trait ArangoClient[F[_]] {
     */
   def execute[P: VPackEncoder, O: VPackDecoder](request: ArangoRequest[P]): F[ArangoResponse[O]]
 
+  def login(username: String, password: String): F[ArangoResponse[ResponseError]]
+
   /**
     * arangodb client api to server
     * @return client
@@ -74,6 +76,10 @@ object ArangoClient {
     override def database(name: DatabaseName): ArangoDatabase[F] = ArangoDatabase(name)(this, F)
     override def system: ArangoDatabase[F] = database(DatabaseName.system)
     override def db: ArangoDatabase[F] = database(configuration.database)
+
+    override def login(username: String, password: String): F[ArangoResponse[ResponseError]] = execute(
+      ArangoRequest.Authentication(user = username, password = password)
+    )
 
     override def execute[O: VPackDecoder](header: ArangoRequest.Header): F[ArangoResponse[O]] =
       for {

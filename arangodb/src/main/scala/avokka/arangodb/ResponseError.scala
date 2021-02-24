@@ -5,8 +5,8 @@ import avokka.velocypack._
 final case class ResponseError(
     code: Long,
     error: Boolean,
-    errorMessage: String,
     errorNum: Long,
+    errorMessage: String = "",
 )
 
 object ResponseError {

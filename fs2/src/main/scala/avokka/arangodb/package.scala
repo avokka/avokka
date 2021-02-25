@@ -1,3 +1,5 @@
+package avokka
+
 import cats.ApplicativeError
 import cats.syntax.either._
 import scodec.{Attempt, DecodeResult, Decoder, Encoder, Err}
@@ -5,7 +7,7 @@ import scodec.bits.BitVector
 
 import scala.annotation.nowarn
 
-package object avokka {
+package object arangodb {
   @nowarn
   final case class CodecException(err: Err) extends Exception(err.messageWithContext)
 

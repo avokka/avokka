@@ -1,4 +1,4 @@
-package avokka
+package avokka.arangodb
 
 import avokka.velocystream.{VStreamChunk, VStreamChunkHeader, VStreamChunkX, VStreamMessage}
 import cats.effect.IO

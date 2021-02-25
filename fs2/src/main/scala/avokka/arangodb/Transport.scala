@@ -1,4 +1,4 @@
-package avokka
+package avokka.arangodb
 
 import avokka.arangodb.ArangoConfiguration
 import avokka.arangodb.protocol.ArangoClient

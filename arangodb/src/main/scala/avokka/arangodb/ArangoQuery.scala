@@ -38,6 +38,14 @@ trait ArangoQuery[F[_], V] {
     * @return cursor
     */
   def cursor[T: VPackDecoder]: F[ArangoCursor[F, T]]
+
+  /**
+    * execute the query with streaming handler
+    * @param S arango stream implementation
+    * @tparam T result document
+    * @return stream instance
+    */
+  def stream[T: VPackDecoder](implicit S: ArangoStream[F]): S.S[F, T]
 }
 
 object ArangoQuery {
@@ -56,12 +64,8 @@ object ArangoQuery {
       ArangoCursor(database, resp)
     }
 
-  }
+    override def stream[T: VPackDecoder](implicit S: ArangoStream[F]): S.S[F, T] = S.fromQuery(this)
 
-  implicit final class AvokkaQueryStreamOps[S[_[_], _], F[_], V](
-      private val query: ArangoQuery[F, V]
-  )(implicit S: ArangoStream[S, F]) {
-    def stream[T: VPackDecoder]: S[F, T] = S.fromQuery(query)
   }
 
 }

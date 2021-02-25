@@ -1,6 +1,5 @@
 package avokka.arangodb
 
-import avokka.arangodb.ArangoConfiguration
 import avokka.arangodb.protocol.ArangoClient
 import avokka.velocystream._
 import cats.effect.concurrent.{Deferred, Ref}

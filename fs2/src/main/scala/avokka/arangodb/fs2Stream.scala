@@ -1,30 +1,19 @@
 package avokka.arangodb
 
 import avokka.velocypack.VPackDecoder
-import cats.Applicative
-import cats.syntax.all._
-import fs2.{Chunk, Stream}
+import fs2.{Chunk, Pull, Stream}
 
 object fs2Stream {
-  implicit def arangoFs2Stream[F[_]](implicit F: Applicative[F]): ArangoStream.Aux[F, Stream] = new ArangoStream[F] {
+  implicit def arangoFs2Stream[F[_]]: ArangoStream.Aux[F, Stream] = new ArangoStream[F] {
     type S[A[_], B] = Stream[A, B]
 
-    override def fromQuery[V, T: VPackDecoder](query: ArangoQuery[F, V]): S[F, T] =
+    override def fromQuery[V, T: VPackDecoder](query: ArangoQuery[F, V]): S[F, T] = for {
+      cursor <- Stream.eval(query.cursor[T])
+      document <- Pull.loop { c: ArangoCursor[F, T] =>
+        Pull.output(Chunk.vector(c.body.result)) >>
+          (if (c.body.hasMore) Pull.eval(c.next()).map(Some(_)) else Pull.pure(None))
+      } (cursor).void.stream
+    } yield document
 
-      Stream.eval(query.cursor[T])
-        .flatMap { c =>
-          Stream.unfoldLoopEval(c) { c =>
-            if (c.body.hasMore) c.next().map { n => (c.body.result, Option(n)) }
-            else F.pure((c.body.result, none[ArangoCursor[F, T]]))
-          }
-        }
-        .flatMap(r => Stream.chunk(Chunk.vector(r)))
-    /*
-      .repeatPull(_.uncons1.flatMap {
-        case Some((hd, tl)) if hd.body.hasMore => Pull.output(Chunk.vector(hd.body.result)).as(Some(Stream.eval(hd.next()) ++ tl))
-        case Some((hd, tl)) => Pull.output(Chunk.vector(hd.body.result)).as(None)
-        case None => Pull.pure(None)
-      })
-*/
   }
 }

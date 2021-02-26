@@ -69,7 +69,7 @@ class ArangoSessionSpec
   }
 
   it should "fail creating database with invalid name" in {
-    recoverToExceptionIf[ArangoError.Resp] {
+    recoverToExceptionIf[ArangoError.Response] {
       arango.database(DatabaseName("@")).create()
     }.map { e =>
       e.header.responseCode should be (400)

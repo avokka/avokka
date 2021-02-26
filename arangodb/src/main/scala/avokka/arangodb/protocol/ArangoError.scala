@@ -1,31 +1,15 @@
-package avokka.arangodb.protocol
+package avokka.arangodb
+package protocol
 
-import avokka.arangodb.ResponseError
-
-sealed trait ArangoError extends Exception with Product with Serializable
+sealed trait ArangoError extends RuntimeException with Product with Serializable
 
 object ArangoError {
 
-  sealed trait WithCode {
-    def code: Int
-  }
-  final case class Head(header: ArangoResponse.Header)
-      extends Exception(s"header error ${header.responseCode}")
+  final case class Header(header: ArangoResponse.Header)
+      extends RuntimeException(s"header error ${header.responseCode}")
       with ArangoError
-      with WithCode {
-    override def code: Int = header.responseCode
-  }
 
-  sealed trait WithNum extends WithCode {
-    def num: Long
-  }
-  final case class Resp(header: ArangoResponse.Header, error: ResponseError)
-      extends Exception(error.errorMessage)
+  final case class Response(header: ArangoResponse.Header, error: ResponseError)
+      extends RuntimeException(error.errorMessage)
       with ArangoError
-      with WithNum {
-    override def code: Int = header.responseCode
-    override def num: Long = error.errorNum
-  }
-
-//  final case class Runtime(message: String) extends Exception(message) with ArangoError
 }

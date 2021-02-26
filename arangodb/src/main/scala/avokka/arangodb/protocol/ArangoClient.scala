@@ -99,18 +99,16 @@ object ArangoClient {
         res <- handleResponse(out)
       } yield res
 
-    // protected def sendBytes(data: ByteVector): F[VStreamMessage] = send(VStreamMessage.create(data))
-
     protected def handleResponse[O: VPackDecoder](response: ByteVector): F[ArangoResponse[O]] =
       for {
         _      <- L.trace(s"RES head ${response.bits.asVPackValue.map(_.show)}")
         header <- F.fromEither(response.bits.asVPack[ArangoResponse.Header])
         body <- if (header.remainder.isEmpty) {
-          F.raiseError[DecodeResult[O]](ArangoError.Head(header.value))
-        } else if (header.value.responseCode >= 400) {
+          F.raiseError[DecodeResult[O]](ArangoError.Header(header.value))
+        } else if (header.value.responseCode >= 300) {
           L.trace(s"RES body ${header.remainder.asVPackValue.map(_.show)}") >>
-          F.fromEither(header.remainder.asVPack[ResponseError])
-            .flatMap(err => F.raiseError[DecodeResult[O]](ArangoError.Resp(header.value, err.value)))
+          F.fromEither(header.remainder.asVPack[ResponseError]) >>=
+            (err => F.raiseError[DecodeResult[O]](ArangoError.Response(header.value, err.value)))
         } else {
           L.trace(s"RES body ${header.remainder.asVPackValue.map(_.show)}") >>
           F.fromEither(header.remainder.asVPack[O])

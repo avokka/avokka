@@ -12,11 +12,13 @@ final case class ArangoRequest[T](
 
 object ArangoRequest {
 
-  sealed trait Header extends Product with Serializable
+  sealed trait Header extends Product with Serializable {
+    def version: Int = 1
+    def `type`: MessageType
+  }
 
   sealed trait Request extends Header with Product with Serializable {
-    def version: Int = 1
-    def `type`: MessageType = MessageType.Request
+    override val `type`: MessageType = MessageType.Request
     def database: DatabaseName
     def requestType: RequestType
     def request: String
@@ -26,15 +28,6 @@ object ArangoRequest {
     def body[T](value: T): ArangoRequest[T] = ArangoRequest(this, value)
   }
 
-  final case class GET(
-      database: DatabaseName,
-      request: String,
-      parameters: Map[String, String] = Map.empty,
-      meta: Map[String, String] = Map.empty
-  ) extends Request {
-    override def requestType: RequestType = RequestType.GET
-  }
-
   final case class DELETE(
       database: DatabaseName,
       request: String,
@@ -42,6 +35,15 @@ object ArangoRequest {
       meta: Map[String, String] = Map.empty
   ) extends Request {
     override def requestType: RequestType = RequestType.DELETE
+  }
+
+  final case class GET(
+      database: DatabaseName,
+      request: String,
+      parameters: Map[String, String] = Map.empty,
+      meta: Map[String, String] = Map.empty
+  ) extends Request {
+    override def requestType: RequestType = RequestType.GET
   }
 
   final case class POST(
@@ -62,6 +64,15 @@ object ArangoRequest {
     override def requestType: RequestType = RequestType.PUT
   }
 
+  final case class HEAD(
+      database: DatabaseName,
+      request: String,
+      parameters: Map[String, String] = Map.empty,
+      meta: Map[String, String] = Map.empty
+  ) extends Request {
+    override def requestType: RequestType = RequestType.HEAD
+  }
+
   final case class PATCH(
       database: DatabaseName,
       request: String,
@@ -71,6 +82,15 @@ object ArangoRequest {
     override def requestType: RequestType = RequestType.PATCH
   }
 
+  final case class OPTIONS(
+      database: DatabaseName,
+      request: String,
+      parameters: Map[String, String] = Map.empty,
+      meta: Map[String, String] = Map.empty
+  ) extends Request {
+    override def requestType: RequestType = RequestType.OPTIONS
+  }
+
   object Request {
     implicit val encoder: VPackEncoder[Request] = VPackGeneric[Request].cmap { r =>
       r.version :: r.`type` :: r.database :: r.requestType :: r.request :: r.parameters :: r.meta :: HNil
@@ -78,8 +98,8 @@ object ArangoRequest {
   }
 
   final case class Authentication(
-      version: Int = 1,
-      `type`: MessageType = MessageType.Authentication,
+      override val version: Int = 1,
+      override val `type`: MessageType = MessageType.Authentication,
       encryption: String = "plain",
       user: String,
       password: String
@@ -90,10 +110,8 @@ object ArangoRequest {
   }
 
   object Header {
-   // implicit val encoder: VPackEncoder[Header] = VPackEncoder.gen
-
     implicit val encoder: VPackEncoder[Header] = {
-      case r: Request => Request.encoder.encode(r)
+      case r: Request        => Request.encoder.encode(r)
       case a: Authentication => Authentication.encoder.encode(a)
     }
   }

@@ -1,7 +1,7 @@
 package avokka.arangodb
 
 import avokka.arangodb.api._
-import avokka.arangodb.protocol.{ArangoClient, ArangoRequest, ArangoResponse}
+import avokka.arangodb.protocol.{ArangoClient, ArangoResponse}
 import avokka.arangodb.types.{DatabaseName, DocumentHandle}
 import avokka.velocypack.{VObject, VPackDecoder, VPackEncoder}
 import cats.Functor
@@ -96,35 +96,33 @@ trait ArangoDocument[F[_]] {
 
 object ArangoDocument {
 
-  def apply[F[_]: ArangoClient : Functor](database: DatabaseName, _handle: DocumentHandle): ArangoDocument[F] = new ArangoDocument[F] {
+  def apply[F[_]: ArangoClient: Functor](database: DatabaseName, _handle: DocumentHandle): ArangoDocument[F] =
+    new ArangoDocument[F] {
 
-    override def handle: DocumentHandle = _handle
+      override def handle: DocumentHandle = _handle
 
-    private val api: String = s"/_api/document/${handle.path}"
+      private val api: String = s"/_api/document/${handle.path}"
 
-    override def read[T: VPackDecoder](
-        ifNoneMatch: Option[String],
-        ifMatch: Option[String]
-    ): F[ArangoResponse[T]] =
-      ArangoClient[F].execute(
-        ArangoRequest.GET(
+      override def read[T: VPackDecoder](
+          ifNoneMatch: Option[String],
+          ifMatch: Option[String]
+      ): F[ArangoResponse[T]] =
+        GET(
           database,
           api,
           meta = Map(
             "If-None-Match" -> ifNoneMatch,
             "If-Match" -> ifMatch
           ).collectDefined
-        )
-      )
+        ).execute
 
-    override def remove[T: VPackDecoder](
-        waitForSync: Boolean,
-        returnOld: Boolean,
-        silent: Boolean,
-        ifMatch: Option[String]
-    ): F[ArangoResponse[Document[T]]] =
-      ArangoClient[F].execute(
-        ArangoRequest.DELETE(
+      override def remove[T: VPackDecoder](
+          waitForSync: Boolean,
+          returnOld: Boolean,
+          silent: Boolean,
+          ifMatch: Option[String]
+      ): F[ArangoResponse[Document[T]]] =
+        DELETE(
           database,
           api,
           Map(
@@ -135,81 +133,79 @@ object ArangoDocument {
           Map(
             "If-Match" -> ifMatch
           ).collectDefined
+        ).execute
+
+      override def update[T: VPackDecoder, P: VPackEncoder](
+          patch: P,
+          keepNull: Boolean,
+          mergeObjects: Boolean,
+          waitForSync: Boolean,
+          ignoreRevs: Boolean,
+          returnOld: Boolean,
+          returnNew: Boolean,
+          silent: Boolean,
+          ifMatch: Option[String]
+      ): F[ArangoResponse[Document[T]]] =
+        PATCH(
+          database,
+          api,
+          Map(
+            "keepNull" -> keepNull.toString,
+            "mergeObjects" -> mergeObjects.toString,
+            "waitForSync" -> waitForSync.toString,
+            "ignoreRevs" -> ignoreRevs.toString,
+            "returnOld" -> returnOld.toString,
+            "returnNew" -> returnNew.toString,
+            "silent" -> silent.toString,
+          ),
+          Map(
+            "If-Match" -> ifMatch
+          ).collectDefined
+        ).body(patch).execute
+
+      override def replace[T: VPackEncoder: VPackDecoder](
+          document: T,
+          waitForSync: Boolean,
+          ignoreRevs: Boolean,
+          returnOld: Boolean,
+          returnNew: Boolean,
+          silent: Boolean,
+          ifMatch: Option[String]
+      ): F[ArangoResponse[Document[T]]] =
+        ArangoClient[F].execute(
+          PUT(
+            database,
+            api,
+            Map(
+              "waitForSync" -> waitForSync.toString,
+              "ignoreRevs" -> ignoreRevs.toString,
+              "returnOld" -> returnOld.toString,
+              "returnNew" -> returnNew.toString,
+              "silent" -> silent.toString,
+            ),
+            Map(
+              "If-Match" -> ifMatch
+            ).collectDefined
+          ).body(document)
+        )(
+          implicitly[VPackEncoder[T]].mapObject(_.filter(Document.filterEmptyInternalAttributes)),
+          implicitly
         )
-      )
 
-    override def update[T: VPackDecoder, P: VPackEncoder](
-        patch: P,
-        keepNull: Boolean,
-        mergeObjects: Boolean,
-        waitForSync: Boolean,
-        ignoreRevs: Boolean,
-        returnOld: Boolean,
-        returnNew: Boolean,
-        silent: Boolean,
-        ifMatch: Option[String]
-    ): F[ArangoResponse[Document[T]]] =
-      ArangoClient[F].execute(
-        ArangoRequest
-          .PATCH(
-            database,
-            api,
-            Map(
-              "keepNull" -> keepNull.toString,
-              "mergeObjects" -> mergeObjects.toString,
-              "waitForSync" -> waitForSync.toString,
-              "ignoreRevs" -> ignoreRevs.toString,
-              "returnOld" -> returnOld.toString,
-              "returnNew" -> returnNew.toString,
-              "silent" -> silent.toString,
-            ),
-            Map(
-              "If-Match" -> ifMatch
-            ).collectDefined
+      override def upsert(obj: VObject): ArangoQuery[F, VObject] = {
+        val kvs = obj.values.keys
+          .map { key =>
+            s"$key:@$key"
+          }
+          .mkString(",")
+        ArangoQuery[F, VObject](
+          database,
+          Query(
+            s"UPSERT {_key:@_key} INSERT {_key:@_key,$kvs} UPDATE {$kvs} IN @@collection RETURN NEW",
+            obj.updated("@collection", handle.collection).updated("_key", handle.key)
           )
-          .body(patch)
-      )
-
-    override def replace[T: VPackEncoder: VPackDecoder](
-        document: T,
-        waitForSync: Boolean,
-        ignoreRevs: Boolean,
-        returnOld: Boolean,
-        returnNew: Boolean,
-        silent: Boolean,
-        ifMatch: Option[String]
-    ): F[ArangoResponse[Document[T]]] =
-      ArangoClient[F].execute(
-        ArangoRequest
-          .PUT(
-            database,
-            api,
-            Map(
-              "waitForSync" -> waitForSync.toString,
-              "ignoreRevs" -> ignoreRevs.toString,
-              "returnOld" -> returnOld.toString,
-              "returnNew" -> returnNew.toString,
-              "silent" -> silent.toString,
-            ),
-            Map(
-              "If-Match" -> ifMatch
-            ).collectDefined
-          )
-          .body(document)
-      )(
-        implicitly[VPackEncoder[T]].mapObject(_.filter(Document.filterEmptyInternalAttributes)),
-        implicitly
-      )
-
-    override def upsert(obj: VObject): ArangoQuery[F, VObject] = {
-      val kvs = obj.values.keys
-        .map { key => s"$key:@$key" }
-        .mkString(",")
-      ArangoQuery[F, VObject](database, Query(
-        s"UPSERT {_key:@_key} INSERT {_key:@_key,$kvs} UPDATE {$kvs} IN @@collection RETURN NEW",
-        obj.updated("@collection", handle.collection).updated("_key", handle.key)
-      ))
+        )
+      }
     }
-  }
 
 }

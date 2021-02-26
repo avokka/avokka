@@ -3,18 +3,22 @@ package protocol
 
 import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
-import shapeless.{HNil, ::}
+import shapeless.HNil
 
 final case class ArangoRequest[T](
     header: ArangoRequest.Header,
     body: T
-)
+) {
+  @inline def execute[F[_]: ArangoClient, O: VPackDecoder](implicit T: VPackEncoder[T]): F[ArangoResponse[O]] = ArangoClient[F].execute[T, O](this)
+}
 
 object ArangoRequest {
 
   sealed trait Header extends Product with Serializable {
     def version: Int = 1
     def `type`: MessageType
+
+    @inline def execute[F[_]: ArangoClient, O: VPackDecoder]: F[ArangoResponse[O]] = ArangoClient[F].execute[O](this)
   }
 
   sealed trait Request extends Header with Product with Serializable {

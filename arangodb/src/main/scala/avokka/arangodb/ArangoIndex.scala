@@ -15,18 +15,11 @@ object ArangoIndex {
 
     override def id: String = _id
 
-    override def read(): F[ArangoResponse[Index]] = ArangoClient[F].execute(
-      ArangoRequest.GET(
-        database,
-        s"/_api/index/$id"
-      )
-    )
+    override def read(): F[ArangoResponse[Index]] =
+      GET(database, s"/_api/index/$id").execute
 
-    override def delete(): F[ArangoResponse[DeleteResult]] = ArangoClient[F].execute(
-      ArangoRequest.DELETE(
-        database,
-        s"/_api/index/$id"
-      )
-    )
+    override def delete(): F[ArangoResponse[DeleteResult]] =
+      DELETE(database, s"/_api/index/$id").execute
+
   }
 }

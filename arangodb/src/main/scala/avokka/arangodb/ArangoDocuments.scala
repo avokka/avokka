@@ -1,7 +1,7 @@
 package avokka.arangodb
 
 import avokka.arangodb.api.Document
-import avokka.arangodb.protocol.{ArangoClient, ArangoRequest, ArangoResponse}
+import avokka.arangodb.protocol.{ArangoClient, ArangoResponse}
 import avokka.arangodb.types.{CollectionName, DatabaseName}
 import avokka.velocypack._
 
@@ -113,11 +113,11 @@ trait ArangoDocuments[F[_]] {
     * @tparam K          Key selector type
     */
   def remove[T: VPackDecoder, K: VPackEncoder](
-              keys: Seq[K],
-              waitForSync: Boolean = false,
-              returnOld: Boolean = false,
-              ignoreRevs: Boolean = true,
-            ): F[ArangoResponse[Seq[Document[T]]]]
+      keys: Seq[K],
+      waitForSync: Boolean = false,
+      returnOld: Boolean = false,
+      ignoreRevs: Boolean = true,
+  ): F[ArangoResponse[Seq[Document[T]]]]
 }
 
 object ArangoDocuments {
@@ -133,19 +133,17 @@ object ArangoDocuments {
           overwrite: Boolean
       ): F[ArangoResponse[Seq[Document[T]]]] =
         ArangoClient[F].execute(
-          ArangoRequest
-            .POST(
-              database,
-              s"/_api/document/$collection",
-              Map(
-                "waitForSync" -> waitForSync.toString,
-                "returnNew" -> returnNew.toString,
-                "returnOld" -> returnOld.toString,
-                "silent" -> silent.toString,
-                "overwrite" -> overwrite.toString,
-              )
+          POST(
+            database,
+            s"/_api/document/$collection",
+            Map(
+              "waitForSync" -> waitForSync.toString,
+              "returnNew" -> returnNew.toString,
+              "returnOld" -> returnOld.toString,
+              "silent" -> silent.toString,
+              "overwrite" -> overwrite.toString,
             )
-            .body(documents)
+          ).body(documents)
         )(
           VPackEncoder.seqEncoder(
             implicitly[VPackEncoder[T]].mapObject(_.filter(Document.filterEmptyInternalAttributes))
@@ -161,18 +159,16 @@ object ArangoDocuments {
           returnNew: Boolean
       ): F[ArangoResponse[Seq[Document[T]]]] =
         ArangoClient[F].execute(
-          ArangoRequest
-            .PUT(
-              database,
-              s"/_api/document/$collection",
-              Map(
-                "waitForSync" -> waitForSync.toString,
-                "ignoreRevs" -> ignoreRevs.toString,
-                "returnOld" -> returnOld.toString,
-                "returnNew" -> returnNew.toString,
-              )
+          PUT(
+            database,
+            s"/_api/document/$collection",
+            Map(
+              "waitForSync" -> waitForSync.toString,
+              "ignoreRevs" -> ignoreRevs.toString,
+              "returnOld" -> returnOld.toString,
+              "returnNew" -> returnNew.toString,
             )
-            .body(documents)
+          ).body(documents)
         )(
           VPackEncoder.seqEncoder(
             implicitly[VPackEncoder[T]].mapObject(_.filter(Document.filterEmptyInternalAttributes))
@@ -190,37 +186,36 @@ object ArangoDocuments {
           returnNew: Boolean
       ): F[ArangoResponse[Seq[Document[T]]]] =
         ArangoClient[F].execute(
-          ArangoRequest
-            .PATCH(
-              database,
-              s"/_api/document/$collection",
-              Map(
-                "keepNull" -> keepNull.toString,
-                "mergeObjects" -> mergeObjects.toString,
-                "waitForSync" -> waitForSync.toString,
-                "ignoreRevs" -> ignoreRevs.toString,
-                "returnOld" -> returnOld.toString,
-                "returnNew" -> returnNew.toString,
-              )
+          PATCH(
+            database,
+            s"/_api/document/$collection",
+            Map(
+              "keepNull" -> keepNull.toString,
+              "mergeObjects" -> mergeObjects.toString,
+              "waitForSync" -> waitForSync.toString,
+              "ignoreRevs" -> ignoreRevs.toString,
+              "returnOld" -> returnOld.toString,
+              "returnNew" -> returnNew.toString,
             )
-            .body(patch)
+          ).body(patch)
         )
 
       override def remove[T: VPackDecoder, K: VPackEncoder](
-                                               keys: Seq[K], waitForSync: Boolean, returnOld: Boolean, ignoreRevs: Boolean
-                                             ): F[ArangoResponse[Seq[Document[T]]]] =
+          keys: Seq[K],
+          waitForSync: Boolean,
+          returnOld: Boolean,
+          ignoreRevs: Boolean
+      ): F[ArangoResponse[Seq[Document[T]]]] =
         ArangoClient[F].execute(
-          ArangoRequest
-            .DELETE(
-              database,
-              s"/_api/document/$collection",
-              Map(
-                "waitForSync" -> waitForSync.toString,
-                "returnOld" -> returnOld.toString,
-                "ignoreRevs" -> ignoreRevs.toString,
-              )
+          DELETE(
+            database,
+            s"/_api/document/$collection",
+            Map(
+              "waitForSync" -> waitForSync.toString,
+              "returnOld" -> returnOld.toString,
+              "ignoreRevs" -> ignoreRevs.toString,
             )
-            .body(keys)
+          ).body(keys)
         )
     }
 }

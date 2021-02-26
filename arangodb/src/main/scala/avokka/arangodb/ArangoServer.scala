@@ -28,22 +28,14 @@ trait ArangoServer[F[_]] {
 object ArangoServer {
   def apply[F[_]: ArangoClient]: ArangoServer[F] = new ArangoServer[F] {
 
-    override def version(details: Boolean): F[ArangoResponse[Version]] = ArangoClient[F].execute(ArangoRequest.GET(
-      DatabaseName.system,
-      "/_api/version",
-      parameters = Map(
-        "details" -> details.toString
-      )
-    ))
+    override def version(details: Boolean): F[ArangoResponse[Version]] =
+      GET(DatabaseName.system, "/_api/version", parameters = Map("details" -> details.toString)).execute
 
-    override def engine(): F[ArangoResponse[Engine]] = ArangoClient[F].execute(ArangoRequest.GET(
-      DatabaseName.system,
-      "/_api/engine",
-    ))
+    override def engine(): F[ArangoResponse[Engine]] =
+      GET(DatabaseName.system, "/_api/engine").execute
 
-    override def databases(): F[ArangoResponse[DatabaseList]] = ArangoClient[F].execute(ArangoRequest.GET(
-      DatabaseName.system,
-      "/_api/database/user",
-    ))
+    override def databases(): F[ArangoResponse[DatabaseList]] =
+      GET(DatabaseName.system, "/_api/database/user").execute
+
   }
 }

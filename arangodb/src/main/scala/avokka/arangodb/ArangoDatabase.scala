@@ -46,42 +46,25 @@ object ArangoDatabase {
     override def query[V: VPackEncoder](query: Query[V]): ArangoQuery[F, V] = ArangoQuery(name, query)
 
     override def collections(excludeSystem: Boolean): F[ArangoResponse[CollectionList]] =
-      ArangoClient[F].execute(
-        ArangoRequest.GET(
-          name,
-          "/_api/collection",
-          Map(
-            "excludeSystem" -> excludeSystem.toString
-          )
-        ))
+      GET(name, "/_api/collection", Map("excludeSystem" -> excludeSystem.toString)).execute
 
-    override def create(users: DatabaseCreate.User*): F[ArangoResponse[DatabaseResult]] = {
-      ArangoClient[F].execute(
-        ArangoRequest
-          .POST(
-            DatabaseName.system,
-            "/_api/database"
-          )
-          .body(
-            VObject(
-              "name" -> name.toVPack,
-              "users" -> users.toVPack
-            ))
-      )
-    }
-
-    override def info(): F[ArangoResponse[DatabaseInfo]] = ArangoClient[F].execute(
-      ArangoRequest.GET(
-        name,
-        "/_api/database/current"
-      )
-    )
-
-    override def drop(): F[ArangoResponse[DatabaseResult]] = ArangoClient[F].execute(
-      ArangoRequest.DELETE(
+    override def create(users: DatabaseCreate.User*): F[ArangoResponse[DatabaseResult]] =
+      POST(
         DatabaseName.system,
-        s"/_api/database/$name"
+        "/_api/database"
       )
-    )
+      .body(
+        VObject(
+          "name" -> name.toVPack,
+          "users" -> users.toVPack
+        )
+      ).execute
+
+    override def info(): F[ArangoResponse[DatabaseInfo]] =
+      GET(name, "/_api/database/current").execute
+
+    override def drop(): F[ArangoResponse[DatabaseResult]] =
+      DELETE(DatabaseName.system, s"/_api/database/$name").execute
+
   }
 }

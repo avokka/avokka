@@ -26,18 +26,15 @@ object ArangoCursor {
     override def next(): F[ArangoCursor[F, T]] =
       ArangoClient[F]
         .execute[Cursor[T]](
-          ArangoRequest.PUT(
+          PUT(
             database,
             s"/_api/cursor/${body.id.get}"
           )
         )
         .map { apply(database, _) }
 
-    override def delete(): F[ArangoResponse[DeleteResult]] = ArangoClient[F].execute(
-      ArangoRequest.DELETE(
-        database,
-        s"/_api/cursor/${body.id.get}"
-      )
-    )
+    override def delete(): F[ArangoResponse[DeleteResult]] =
+      DELETE(database, s"/_api/cursor/${body.id.get}").execute
+
   }
 }

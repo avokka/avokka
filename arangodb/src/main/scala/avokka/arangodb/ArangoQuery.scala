@@ -1,7 +1,7 @@
 package avokka.arangodb
 
 import avokka.arangodb.api.{Cursor, Query}
-import avokka.arangodb.protocol.{ArangoClient, ArangoRequest, ArangoResponse}
+import avokka.arangodb.protocol.{ArangoClient, ArangoResponse}
 import avokka.arangodb.types.DatabaseName
 import avokka.velocypack.{VPackDecoder, VPackEncoder}
 import cats.Functor
@@ -56,9 +56,8 @@ object ArangoQuery {
 
     override def withQuery(f: Query[V] => Query[V]): ArangoQuery[F, V] = apply(database, f(query))
 
-    override def execute[T: VPackDecoder]: F[ArangoResponse[Cursor[T]]] = ArangoClient[F].execute(
-      ArangoRequest.POST(database, "/_api/cursor").body(query)
-    )
+    override def execute[T: VPackDecoder]: F[ArangoResponse[Cursor[T]]] =
+      POST(database, "/_api/cursor").body(query).execute
 
     override def cursor[T: VPackDecoder]: F[ArangoCursor[F, T]] = execute.map { resp =>
       ArangoCursor(database, resp)

@@ -54,7 +54,6 @@ trait ArangoCollection[F[_]] {
       withData: Boolean = false,
   ): F[ArangoResponse[CollectionChecksum]]
 
-
   def count(): F[ArangoResponse[CollectionCount]]
 
   def info(): F[ArangoResponse[CollectionInfo]]
@@ -121,11 +120,11 @@ trait ArangoCollection[F[_]] {
     * @param deduplicate if false, the deduplication of array values is turned off
     */
   def createIndexHash(
-                   fields: List[String],
-                   unique: Boolean = false,
-                   sparse: Boolean = false,
-                   deduplicate: Boolean = false,
-                 ): F[ArangoResponse[Index]]
+      fields: List[String],
+      unique: Boolean = false,
+      sparse: Boolean = false,
+      deduplicate: Boolean = false,
+  ): F[ArangoResponse[Index]]
 }
 
 object ArangoCollection {
@@ -135,7 +134,7 @@ object ArangoCollection {
       override def name: CollectionName = _name
 
       private val api: String = s"/_api/collection/$name"
-      
+
       override def document(key: DocumentKey): ArangoDocument[F] = ArangoDocument(database, DocumentHandle(name, key))
 
       override def documents: ArangoDocuments[F] = ArangoDocuments(database, _name)
@@ -143,75 +142,39 @@ object ArangoCollection {
       override def index(id: String): ArangoIndex[F] = ArangoIndex(database, id)
 
       override def checksum(withRevisions: Boolean, withData: Boolean): F[ArangoResponse[CollectionChecksum]] =
-        ArangoClient[F].execute(
-          ArangoRequest.GET(
+          GET(
             database,
             s"$api/checksum",
             Map(
               "withRevisions" -> withRevisions.toString,
               "withData" -> withData.toString,
             )
-          )
-        )
+          ).execute
 
       override def count(): F[ArangoResponse[CollectionCount]] =
-        ArangoClient[F].execute(
-          ArangoRequest.GET(database, s"$api/count")
-        )
+        GET(database, s"$api/count").execute
 
       override def info(): F[ArangoResponse[CollectionInfo]] =
-        ArangoClient[F].execute(
-          ArangoRequest.GET(database, api)
-        )
+        GET(database, api).execute
 
       override def revision(): F[ArangoResponse[CollectionRevision]] =
-        ArangoClient[F].execute(
-          ArangoRequest.GET(database, s"$api/revision")
-        )
+        GET(database, s"$api/revision").execute
 
       override def properties(): F[ArangoResponse[CollectionProperties]] =
-        ArangoClient[F].execute(
-          ArangoRequest.GET(database, s"$api/properties")
-        )
+        GET(database, s"$api/properties").execute
 
       override def truncate(): F[ArangoResponse[CollectionInfo]] =
-        ArangoClient[F].execute(
-          ArangoRequest.PUT(
-            database,
-            s"$api/truncate"
-          )
-        )
+        PUT(database, s"$api/truncate").execute
 
       override def unload(): F[ArangoResponse[CollectionInfo]] =
-        ArangoClient[F].execute(
-          ArangoRequest.PUT(
-            database,
-            s"$api/unload"
-          )
-        )
+        PUT(database, s"$api/unload").execute
 
       override def drop(isSystem: Boolean): F[ArangoResponse[DeleteResult]] =
-        ArangoClient[F].execute(
-          ArangoRequest.DELETE(
-            database,
-            api,
-            Map(
-              "isSystem" -> isSystem.toString
-            )
-          )
-        )
+        DELETE(database, api, Map("isSystem" -> isSystem.toString)).execute
 
       override def create(setup: CollectionCreate => CollectionCreate): F[ArangoResponse[CollectionInfo]] = {
         val options = setup(CollectionCreate(name))
-        ArangoClient[F].execute(
-          ArangoRequest
-            .POST(
-              database,
-              s"/_api/collection",
-              options.parameters
-            )
-            .body(options)
-        )
+        POST(database, s"/_api/collection", options.parameters).body(options).execute
       }
 
       override def insert[T: VPackEncoder: VPackDecoder](
@@ -223,53 +186,50 @@ object ArangoCollection {
           overwrite: Boolean
       ): F[ArangoResponse[Document[T]]] =
         ArangoClient[F].execute(
-          ArangoRequest
-            .POST(
-              database,
-              s"/_api/document/$name",
-              Map(
-                "waitForSync" -> waitForSync.toString,
-                "returnNew" -> returnNew.toString,
-                "returnOld" -> returnOld.toString,
-                "silent" -> silent.toString,
-                "overwrite" -> overwrite.toString,
-              )
+          POST(
+            database,
+            s"/_api/document/$name",
+            Map(
+              "waitForSync" -> waitForSync.toString,
+              "returnNew" -> returnNew.toString,
+              "returnOld" -> returnOld.toString,
+              "silent" -> silent.toString,
+              "overwrite" -> overwrite.toString,
             )
-            .body(document)
+          ).body(document)
         )(
           implicitly[VPackEncoder[T]].mapObject(_.filter(Document.filterEmptyInternalAttributes)),
           implicitly
         )
 
-      override def indexes(): F[ArangoResponse[IndexList]] = ArangoClient[F].execute(
-        ArangoRequest.GET(
+      override def indexes(): F[ArangoResponse[IndexList]] =
+        GET(database, "/_api/index", Map("collection" -> name.repr)).execute
+
+      override def createIndexHash(fields: List[String],
+                                   unique: Boolean,
+                                   sparse: Boolean,
+                                   deduplicate: Boolean): F[ArangoResponse[Index]] =
+        POST(
           database,
           "/_api/index",
           Map("collection" -> name.repr)
-        )
-      )
-
-      override def createIndexHash(fields: List[String], unique: Boolean, sparse: Boolean, deduplicate: Boolean): F[ArangoResponse[Index]] =
-        ArangoClient[F].execute(
-          ArangoRequest.POST(
-            database,
-            "/_api/index",
-            Map("collection" -> name.repr)
-          ).body(VObject(
+        ).body(
+          VObject(
             "type" -> "hash".toVPack,
             "fields" -> fields.toVPack,
             "unique" -> unique.toVPack,
             "sparse" -> sparse.toVPack,
             "deduplicate" -> deduplicate.toVPack
-          ))
-        )
+          )
+        ).execute
 
-      override def all: ArangoQuery[F, VObject] = ArangoQuery(database,
-        Query[VObject](
-          query = "FOR doc IN @@collection RETURN doc",
-          bindVars = VObject("@collection" -> name.toVPack)
-        )
-      )
+
+      override def all: ArangoQuery[F, VObject] =
+        ArangoQuery(database,
+                    Query[VObject](
+                      query = "FOR doc IN @@collection RETURN doc",
+                      bindVars = VObject("@collection" -> name.toVPack)
+                    ))
 
     }
 

@@ -91,6 +91,11 @@ trait ArangoDocument[F[_]] {
       ifMatch: Option[String] = None,
   ): F[ArangoResponse[Document[T]]]
 
+  /**
+    * build an UPSERT query at key with INSERT+UPDATE from obj
+    * @param obj vpack object
+    * @return query
+    */
   def upsert(obj: VObject): ArangoQuery[F, VObject]
 }
 

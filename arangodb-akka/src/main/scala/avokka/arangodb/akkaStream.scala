@@ -4,12 +4,12 @@ import akka.NotUsed
 import akka.stream.scaladsl.Source
 import avokka.velocypack.VPackDecoder
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 object akkaStream {
   type AkkaStream[_[_], T] = Source[T, NotUsed]
 
-  implicit def arangoStreamAkkaStream(implicit ec: ExecutionContext): ArangoStream.Aux[Future, AkkaStream] =
+  implicit val arangoStreamAkkaStream: ArangoStream.Aux[Future, AkkaStream] =
     new ArangoStream[Future] {
       type S[F[_], T] = AkkaStream[F, T]
 

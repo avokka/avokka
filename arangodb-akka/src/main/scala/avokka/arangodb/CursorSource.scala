@@ -9,7 +9,7 @@ import scala.util.{Failure, Success}
 
 final class CursorSource[V, T](
     query: ArangoQuery[Future, V],
-)(implicit decoder: VPackDecoder[T], executionContext: ExecutionContext)
+)(implicit decoder: VPackDecoder[T])
     extends GraphStage[SourceShape[T]] {
 
   val out: Outlet[T] = Outlet("CursorSource.out")
@@ -17,6 +17,8 @@ final class CursorSource[V, T](
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
     new GraphStageLogic(shape) with OutHandler {
+
+      implicit def ec: ExecutionContext = materializer.executionContext
 
       private var cursor: Option[ArangoCursor[Future, T]] = None
       private val responseHandler = getAsyncCallback[ArangoCursor[Future, T]](handleResponse)

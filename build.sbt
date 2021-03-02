@@ -1,7 +1,7 @@
 import Dependencies._
 
 val scala212Version = "2.12.13"
-val scala213Version = "2.13.4"
+val scala213Version = "2.13.5"
 
 ThisBuild / organization := "com.bicou"
 ThisBuild / crossScalaVersions := Seq(scala212Version, scala213Version)
@@ -135,7 +135,7 @@ lazy val avokkafs2 = (project in file("fs2"))
         pureconfigF % Test,
         logback % Test,
         scalaTest % Test,
-        "com.codecommit" %% "cats-effect-testing-scalatest" % "0.4.0" % Test,
+        "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.2" % Test,
       ),
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),

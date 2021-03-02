@@ -1,27 +1,27 @@
 import sbt._
 
 object Dependencies {
-  val scalaTest = "org.scalatest" %% "scalatest" % "3.1.1"
-  val scalaTestPlus = "org.scalatestplus" %% "scalacheck-1-14" % "3.1.1.1"
+  val scalaTest = "org.scalatest" %% "scalatest" % "3.2.5"
+  val scalaTestPlus = "org.scalatestplus" %% "scalacheck-1-14" % "3.2.2.0"
 //  val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.14.3"
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
   val testSuite = Seq(scalaTest, scalaTestPlus, logback).map(_ % Test)
 
   val dockerTest = Seq(
-    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.37.0"
+    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.39.3"
   ).map(_ % Test)
 
   val compatDeps = Seq(
-    "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.1"
+    "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.2"
   )
 
-  val cats = "org.typelevel" %% "cats-core" % "2.3.1"
-  val catsMtl = "org.typelevel" %% "cats-mtl" % "1.1.1"
-  val catsEffect = "org.typelevel" %% "cats-effect" % "2.3.1"
+  val cats = "org.typelevel" %% "cats-core" % "2.4.2"
+//  val catsMtl = "org.typelevel" %% "cats-mtl" % "1.1.1"
+  val catsEffect = "org.typelevel" %% "cats-effect" % "2.3.3"
   val catsRetry = "com.github.cb372" %% "cats-retry" % "2.1.0"
-  val fs2 = "co.fs2" %% "fs2-core" % "2.5.0"
-  val fs2IO = "co.fs2" %% "fs2-io" % "2.5.0"
+  val fs2 = "co.fs2" %% "fs2-core" % "2.5.3"
+  val fs2IO = "co.fs2" %% "fs2-io" % "2.5.3"
 
   val log4cats = "org.typelevel" %% "log4cats-core"    % "1.2.0"
   val log4catsSlf = "org.typelevel" %% "log4cats-slf4j" % "1.2.0"
@@ -41,9 +41,9 @@ object Dependencies {
   val logging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
 
   val scodec = Seq(
-    "org.scodec" %% "scodec-bits" % "1.1.23",
+    "org.scodec" %% "scodec-bits" % "1.1.24",
     "org.scodec" %% "scodec-core" % "1.11.7",
-    "org.scodec" %% "scodec-cats" % "1.1.0-M4",
+    "org.scodec" %% "scodec-cats" % "1.1.0-RC1",
   )
   val scodecStream = "org.scodec" %% "scodec-stream" % "2.0.0"
 
@@ -54,8 +54,8 @@ object Dependencies {
 
   val newtype = "io.estatico" %% "newtype" % "0.4.4"
 
-  val pureconfig = "com.github.pureconfig" %% "pureconfig" % "0.14.0"
-  val pureconfigF = "com.github.pureconfig" %% "pureconfig-cats-effect" % "0.14.0"
+  val pureconfig = "com.github.pureconfig" %% "pureconfig" % "0.14.1"
+  val pureconfigF = "com.github.pureconfig" %% "pureconfig-cats-effect" % "0.14.1"
 
   val kindProjector = "org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full
   val betterMonadicFor = "com.olegpy" %% "better-monadic-for" % "0.3.1"

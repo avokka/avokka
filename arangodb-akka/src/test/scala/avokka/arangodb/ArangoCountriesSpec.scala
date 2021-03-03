@@ -3,7 +3,6 @@ package avokka.arangodb
 import _root_.akka.actor.ActorSystem
 import _root_.akka.stream.scaladsl.Sink
 import _root_.akka.testkit.{TestKit, TestKitBase}
-import avokka.arangodb.akka.Arango
 import avokka.arangodb.protocol.MessageType
 import avokka.arangodb.types._
 import avokka.velocypack._

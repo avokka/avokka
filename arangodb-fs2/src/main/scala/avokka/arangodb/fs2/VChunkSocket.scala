@@ -1,4 +1,4 @@
-package avokka.arangodb
+package avokka.arangodb.fs2
 
 import avokka.velocystream._
 import cats.effect.Concurrent

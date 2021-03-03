@@ -1,6 +1,7 @@
 package avokka.arangodb
+package fs2
 
-import avokka.arangodb.protocol.ArangoClient
+import protocol.ArangoClient
 import avokka.velocystream._
 import cats.effect.concurrent.{Deferred, Ref}
 import cats.effect.syntax.bracket._
@@ -9,23 +10,23 @@ import cats.effect.{Blocker, Concurrent, ContextShift, Resource, Timer}
 import cats.syntax.apply._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import fs2.Pipe
-import fs2.concurrent.SignallingRef
-import fs2.io.tcp.SocketGroup
+import _root_.fs2.Pipe
+import _root_.fs2.concurrent.SignallingRef
+import _root_.fs2.io.tcp.SocketGroup
 import org.typelevel.log4cats.Logger
 import scodec.bits.ByteVector
 
 import java.net.InetSocketAddress
 
-trait Transport[F[_]] extends ArangoClient[F] {
+trait Arango[F[_]] extends ArangoClient[F] {
   def terminate: F[Unit]
 }
 
-object Transport {
+object Arango {
 
   def apply[F[_]: ContextShift: Timer](
     config: ArangoConfiguration,
-  )(implicit C: Concurrent[F], L: Logger[F]): F[Resource[F, Transport[F]]] = for {
+  )(implicit C: Concurrent[F], L: Logger[F]): F[Resource[F, Arango[F]]] = for {
       counter <- Ref.of(0L)
       responses <- FMap[F, Long, Deferred[F, ByteVector]]
       stateSignal <- SignallingRef[F, ConnectionState](ConnectionState.Disconnected)
@@ -73,7 +74,7 @@ object Transport {
 
       mkSocket.evalMap { socket =>
         socket.pump.start.map { fib =>
-          new ArangoClient.Impl[F](config) with Transport[F] {
+          new ArangoClient.Impl[F](config) with Arango[F] {
             override def send(data: ByteVector): F[ByteVector] =
               for {
                 id <- counter.updateAndGet(_ + 1)

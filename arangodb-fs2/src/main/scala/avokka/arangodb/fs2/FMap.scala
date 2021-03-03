@@ -1,4 +1,4 @@
-package avokka.arangodb
+package avokka.arangodb.fs2
 
 import cats.effect.Sync
 import cats.effect.concurrent.Ref

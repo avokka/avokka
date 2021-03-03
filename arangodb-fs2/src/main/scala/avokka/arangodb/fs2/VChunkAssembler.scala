@@ -1,4 +1,5 @@
 package avokka.arangodb
+package fs2
 
 import avokka.velocystream._
 import cats.data.{Chain, OptionT}

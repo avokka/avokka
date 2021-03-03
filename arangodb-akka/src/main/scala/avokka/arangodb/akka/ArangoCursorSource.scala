@@ -1,13 +1,14 @@
 package avokka.arangodb
+package akka
 
-import akka.stream.stage.{GraphStage, GraphStageLogic, OutHandler}
-import akka.stream.{Attributes, Outlet, SourceShape}
+import _root_.akka.stream.stage.{GraphStage, GraphStageLogic, OutHandler}
+import _root_.akka.stream.{Attributes, Outlet, SourceShape}
 import avokka.velocypack._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-final class CursorSource[V, T](
+final class ArangoCursorSource[V, T](
     query: ArangoQuery[Future, V],
 )(implicit decoder: VPackDecoder[T])
     extends GraphStage[SourceShape[T]] {

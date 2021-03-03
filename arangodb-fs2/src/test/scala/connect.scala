@@ -1,5 +1,5 @@
-import avokka.arangodb.{ArangoConfiguration, Transport}
-import avokka.arangodb.fs2Stream._
+import avokka.arangodb.ArangoConfiguration
+import avokka.arangodb.fs2._
 import avokka.arangodb.types.{CollectionName, DatabaseName, DocumentKey, DocumentRevision}
 import avokka.velocypack.{VPackDecoder, VPackEncoder}
 import cats.effect.{Blocker, ExitCode, IO, IOApp, Sync}
@@ -22,14 +22,14 @@ object connect extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = for {
     config <- Blocker[IO].use(ConfigSource.default.at("avokka").loadF[IO, ArangoConfiguration])
-    transport <- Transport(config)
-    _ <- transport.use { client =>
+    arango <- Arango(config)
+    _ <- arango.use { client =>
       for {
         v <- client.server.version()
         _ <- IO { println(v.body) }
       } yield ()
     }
-    _ <- transport.use { client =>
+    _ <- arango.use { client =>
       for {
         e <- client.server.engine()
         dbs <- client.server.databases()

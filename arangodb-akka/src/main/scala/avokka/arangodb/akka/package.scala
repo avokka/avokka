@@ -1,12 +1,12 @@
 package avokka.arangodb
 
-import akka.NotUsed
-import akka.stream.scaladsl.Source
+import _root_.akka.NotUsed
+import _root_.akka.stream.scaladsl.Source
 import avokka.velocypack.VPackDecoder
 
 import scala.concurrent.Future
 
-object akkaStream {
+package object akka {
   type AkkaStream[_[_], T] = Source[T, NotUsed]
 
   implicit val arangoStreamAkkaStream: ArangoStream.Aux[Future, AkkaStream] =
@@ -14,7 +14,7 @@ object akkaStream {
       type S[F[_], T] = AkkaStream[F, T]
 
       override def fromQuery[V, T: VPackDecoder](query: ArangoQuery[Future, V]): Source[T, NotUsed] = Source.fromGraph(
-        new CursorSource(query)
+        new ArangoCursorSource(query)
       )
     }
 }

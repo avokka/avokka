@@ -1,12 +1,12 @@
-package avokka.arangodb
+package avokka.arangodb.fs2
 
-import avokka.velocystream.{VStreamChunk, VStreamChunkHeader, VStreamChunkX, VStreamMessage}
+import avokka.velocystream._
 import cats.effect.IO
 import cats.effect.testing.scalatest.AsyncIOSpec
+import org.scalatest.OptionValues._
 import org.scalatest.freespec.AsyncFreeSpec
 import org.scalatest.matchers.should.Matchers
 import scodec.bits.ByteVector
-import org.scalatest.OptionValues._
 
 class VChunkAssemblerTest extends AsyncFreeSpec with AsyncIOSpec with Matchers {
   val singleC = VStreamChunk(VStreamChunkHeader(VStreamChunkX(first = true, index = 1), 1, 1), ByteVector(1))

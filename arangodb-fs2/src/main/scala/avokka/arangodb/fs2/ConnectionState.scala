@@ -1,4 +1,4 @@
-package avokka.arangodb
+package avokka.arangodb.fs2
 
 sealed trait ConnectionState extends Product with Serializable
 

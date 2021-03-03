@@ -1,8 +1,9 @@
 package avokka.arangodb
+package akka
 
-import akka.actor.ActorSystem
-import akka.pattern.ask
-import avokka.arangodb.protocol.{ArangoClient, ArangoRequest}
+import _root_.akka.actor.ActorSystem
+import _root_.akka.pattern.ask
+import avokka.arangodb.protocol._
 import avokka.velocypack._
 import avokka.velocystream._
 import cats.instances.future._
@@ -13,18 +14,18 @@ import scodec.bits.ByteVector
 import java.util.concurrent.atomic.AtomicLong
 import scala.concurrent.Future
 
-trait ArangoSession extends ArangoClient[Future] {
+trait Arango extends ArangoClient[Future] {
   def closeClient(): Unit
 }
 
-object ArangoSession {
+object Arango {
 
   private val vstClientId = new AtomicLong()
   private val vstMessageId = new AtomicLong()
 
   def apply(configuration: ArangoConfiguration)(
     implicit actorSystem: ActorSystem
-  ): ArangoSession = {
+  ): Arango = {
 
     import actorSystem.dispatcher
 
@@ -36,7 +37,7 @@ object ArangoSession {
       override def trace(message: => String): Future[Unit] = actorSystem.log.debug(message).pure
     }
 
-    new ArangoClient.Impl(configuration) with ArangoSession {
+    new ArangoClient.Impl(configuration) with Arango {
 
       val authRequest = ArangoRequest.Authentication(user = configuration.username, password = configuration.password)
         .toVPackBits

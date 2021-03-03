@@ -117,15 +117,16 @@ lazy val arangodbAkka = (project in file("arangodb-akka"))
     scalacOptions -= "-Xfatal-warnings"
   )
 
-lazy val avokkafs2 = (project in file("fs2"))
+lazy val arangodbFs2 = (project in file("arangodb-fs2"))
   .dependsOn(arangodb)
   .settings(
-    name := "avokka-fs2",
+    name := "avokka-arangodb-fs2",
     description := "ArangoDB with fs2",
     skip in publish := true,
     libraryDependencies ++=
       compatDeps ++ Seq(
-        log4catsSlf,
+        log4cats,
+        log4catsSlf % Test,
         scodecStream,
         catsRetry,
         catsEffect,
@@ -188,7 +189,7 @@ lazy val site = (project in file("site"))
   ).enablePlugins(MicrositesPlugin)
 
 lazy val avokka = (project in file("."))
-  .aggregate(velocypack, velocystream, arangodbTypes, arangodb, arangodbAkka, avokkafs2)
+  .aggregate(velocypack, velocystream, arangodbTypes, arangodb, arangodbAkka, arangodbFs2)
   .settings(
     publishArtifact := false,
     skip in publish := true

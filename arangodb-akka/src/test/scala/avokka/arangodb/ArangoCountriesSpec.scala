@@ -1,8 +1,9 @@
 package avokka.arangodb
 
-import akka.actor.ActorSystem
-import akka.stream.scaladsl.Sink
-import akka.testkit.{TestKit, TestKitBase}
+import _root_.akka.actor.ActorSystem
+import _root_.akka.stream.scaladsl.Sink
+import _root_.akka.testkit.{TestKit, TestKitBase}
+import avokka.arangodb.akka.Arango
 import avokka.arangodb.protocol.MessageType
 import avokka.arangodb.types._
 import avokka.velocypack._
@@ -11,7 +12,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.OptionValues._
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
-import avokka.arangodb.akkaStream._
+import akka._
 
 class ArangoCountriesSpec
     extends AsyncFlatSpec
@@ -27,7 +28,7 @@ class ArangoCountriesSpec
 
   val dbName = DatabaseName("test")
 
-  val arango: ArangoSession = ArangoSession(container.configuration.copy(database = dbName))
+  val arango: Arango = Arango(container.configuration.copy(database = dbName))
 
   val db = arango.db
 

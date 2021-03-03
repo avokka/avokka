@@ -1,7 +1,8 @@
 package avokka.arangodb
 
-import akka.actor.ActorSystem
-import akka.testkit.{TestKit, TestKitBase}
+import _root_.akka.actor.ActorSystem
+import _root_.akka.testkit.{TestKit, TestKitBase}
+import avokka.arangodb.akka.Arango
 import avokka.arangodb.protocol.ArangoError
 import avokka.arangodb.types._
 import com.dimafeng.testcontainers.ForAllTestContainer
@@ -9,7 +10,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class ArangoSessionSpec
+class ArangoSpec
     extends AsyncFlatSpec
     with TestKitBase
     with Matchers
@@ -20,7 +21,7 @@ class ArangoSessionSpec
 
   override val container = ArangodbContainer.Def().start()
 
-  val arango: ArangoSession = ArangoSession(container.configuration)
+  val arango: Arango = Arango(container.configuration)
   val client = arango.server
 
   it should "get version" in {

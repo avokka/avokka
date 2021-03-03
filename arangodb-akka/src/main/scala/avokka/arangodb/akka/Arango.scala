@@ -39,7 +39,8 @@ object Arango {
 
     new ArangoClient.Impl(configuration) with Arango {
 
-      val authRequest = ArangoRequest.Authentication(user = configuration.username, password = configuration.password)
+      private val authRequest = ArangoRequest
+        .Authentication(user = configuration.username, password = configuration.password)
         .toVPackBits
         .map { bits =>
           VStreamMessage(vstMessageId.incrementAndGet(), bits.bytes)

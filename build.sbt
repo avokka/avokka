@@ -95,7 +95,7 @@ lazy val arangodb = (project in file("arangodb"))
   )
 
 lazy val arangodbAkka = (project in file("arangodb-akka"))
-  .dependsOn(arangodb)
+  .dependsOn(arangodb, test)
   .settings(
     name := "avokka-arangodb-akka",
     description := "ArangoDB client (akka)",
@@ -104,7 +104,7 @@ lazy val arangodbAkka = (project in file("arangodb-akka"))
 //      pureconfig,
       logging,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
-    ) ++ testSuite ++ akkaTestKit ++ dockerTest ++
+    ) ++ testSuite ++ dockerTest.map(_ % Test) ++ akkaTestKit ++
       (CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, v)) if v <= 12 =>
           Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full))
@@ -142,6 +142,18 @@ lazy val arangodbFs2 = (project in file("arangodb-fs2"))
     addCompilerPlugin(betterMonadicFor),
     scalacOptions -= "-Xfatal-warnings"
   )
+
+lazy val test = (project in file("test"))
+  .dependsOn(arangodb)
+  .settings(
+    name := "avokka-test",
+    skip in publish := true,
+    libraryDependencies ++= testSuite ++ dockerTest ++ Seq(
+
+    ),
+    scalacOptions -= "-Xfatal-warnings"
+  )
+
 
 lazy val bench = (project in file("bench"))
   .dependsOn(velocypack)

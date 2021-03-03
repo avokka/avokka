@@ -9,6 +9,7 @@ import com.dimafeng.testcontainers.ForAllTestContainer
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
+import avokka.test._
 
 class ArangoSpec
     extends AsyncFlatSpec

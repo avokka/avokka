@@ -1,5 +1,6 @@
-package avokka.arangodb
+package avokka.test
 
+import avokka.arangodb.ArangoConfiguration
 import com.dimafeng.testcontainers.GenericContainer
 import org.testcontainers.containers.BindMode
 

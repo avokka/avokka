@@ -1,5 +1,6 @@
 package avokka.arangodb
 
+import avokka.test._
 import _root_.akka.actor.ActorSystem
 import _root_.akka.stream.scaladsl.Sink
 import _root_.akka.testkit.{TestKit, TestKitBase}

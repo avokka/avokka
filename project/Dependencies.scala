@@ -10,7 +10,7 @@ object Dependencies {
 
   val dockerTest = Seq(
     "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.39.3"
-  ).map(_ % Test)
+  )
 
   val compatDeps = Seq(
     "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.2"

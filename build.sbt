@@ -29,14 +29,21 @@ lazy val velocypack = (project in file("velocypack"))
   .settings(
     name := "avokka-velocypack",
     description := "velocypack codec (scodec, shapeless, cats)",
-    libraryDependencies ++= compatDeps ++ Seq(
+    libraryDependencies ++= Seq(
+      collectionCompat,
       cats,
+      scodecCore,
+      scodecBits,
+      scodecCats,
       shapeless,
       magnolia,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
-    ) ++
-      scodec ++
-      testSuite :+ arango % Test,
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
+    ) ++ Seq(
+      arango,
+      scalaTest,
+      scalaTestPlus,
+      logback,
+    ).map(_ % Test),
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
     logBuffered in Test := false,
@@ -48,9 +55,12 @@ lazy val velocystream = (project in file("velocystream"))
   .settings(
     name := "avokka-velocystream",
     description := "velocystream models",
-    libraryDependencies ++=
-      compatDeps ++
-      testSuite,
+    libraryDependencies ++= Seq(
+      collectionCompat
+    ) ++ Seq(
+      scalaTest,
+      logback,
+    ).map(_ % Test),
     logBuffered in Test := false,
     scalacOptions -= "-Xfatal-warnings"
   )
@@ -76,12 +86,12 @@ lazy val arangodb = (project in file("arangodb"))
   .settings(
     name := "avokka-arangodb",
     description := "ArangoDB core",
-    libraryDependencies ++= compatDeps ++ Seq(
-      //      enumeratum,
+    libraryDependencies ++= Seq(
+      collectionCompat,
       pureconfig,
       log4cats,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
-    ) ++ testSuite ++
+    ) ++
       (CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, v)) if v <= 12 =>
           Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full))
@@ -95,16 +105,21 @@ lazy val arangodb = (project in file("arangodb"))
   )
 
 lazy val arangodbAkka = (project in file("arangodb-akka"))
-  .dependsOn(arangodb, test)
+  .dependsOn(arangodb, test % "test->test")
   .settings(
     name := "avokka-arangodb-akka",
     description := "ArangoDB client (akka)",
-    libraryDependencies ++= compatDeps ++ akka ++ Seq(
-//      enumeratum,
-//      pureconfig,
+    libraryDependencies ++= Seq(
+      collectionCompat,
+      akkaActor,
+      akkaStream,
       logging,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
-    ) ++ testSuite ++ dockerTest.map(_ % Test) ++ akkaTestKit ++
+    ) ++ Seq(
+      scalaTest,
+      akkaTestKit,
+      logback,
+    ).map(_ % Test) ++
       (CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, v)) if v <= 12 =>
           Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full))
@@ -118,26 +133,28 @@ lazy val arangodbAkka = (project in file("arangodb-akka"))
   )
 
 lazy val arangodbFs2 = (project in file("arangodb-fs2"))
-  .dependsOn(arangodb)
+  .dependsOn(arangodb, test % "test->test")
   .settings(
     name := "avokka-arangodb-fs2",
     description := "ArangoDB with fs2",
     skip in publish := true,
-    libraryDependencies ++=
-      compatDeps ++ Seq(
-        log4cats,
-        log4catsSlf % Test,
-        scodecStream,
-        catsRetry,
-        catsEffect,
-        fs2,
-        fs2IO,
-        pureconfig,
-        pureconfigF % Test,
-        logback % Test,
-        scalaTest % Test,
-        "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.2" % Test,
-      ),
+    libraryDependencies ++= Seq(
+      collectionCompat,
+//      log4cats,
+      scodecStream,
+      catsRetry,
+      catsEffect,
+      fs2,
+      fs2IO,
+ //     pureconfig,
+    ) ++ Seq(
+      log4catsSlf,
+      pureconfigF,
+      logback,
+      scalaTest,
+      scalaTestPlus,
+      scalaTestCatsEffect,
+    ).map(_ % Test),
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
     scalacOptions -= "-Xfatal-warnings"
@@ -148,8 +165,8 @@ lazy val test = (project in file("test"))
   .settings(
     name := "avokka-test",
     skip in publish := true,
-    libraryDependencies ++= testSuite ++ dockerTest ++ Seq(
-
+    libraryDependencies ++= Seq(
+      testContainers
     ),
     scalacOptions -= "-Xfatal-warnings"
   )

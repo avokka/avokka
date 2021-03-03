@@ -3,18 +3,16 @@ import sbt._
 object Dependencies {
   val scalaTest = "org.scalatest" %% "scalatest" % "3.2.5"
   val scalaTestPlus = "org.scalatestplus" %% "scalacheck-1-14" % "3.2.2.0"
+  val scalaTestCatsEffect = "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.2"
 //  val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.14.3"
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
-  val testSuite = Seq(scalaTest, scalaTestPlus, logback).map(_ % Test)
+//  val testSuite = Seq(scalaTest, scalaTestPlus, logback)
 
-  val dockerTest = Seq(
-    "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.39.3"
-  )
+  val testContainers = "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.39.3"
 
-  val compatDeps = Seq(
-    "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.2"
-  )
+  val collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.2"
+
 
   val cats = "org.typelevel" %% "cats-core" % "2.4.2"
 //  val catsMtl = "org.typelevel" %% "cats-mtl" % "1.1.1"
@@ -29,22 +27,16 @@ object Dependencies {
   val shapeless = "com.chuusai" %% "shapeless" % "2.3.3"
 
   val akkaVersion = "2.6.10"
-  val akka = Seq(
-    "com.typesafe.akka" %% "akka-actor" % akkaVersion,
-    "com.typesafe.akka" %% "akka-stream" % akkaVersion,
-  )
+  val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
+  val akkaStream = "com.typesafe.akka" %% "akka-stream" % akkaVersion
 
-  val akkaTestKit = Seq(
-    "com.typesafe.akka" %% "akka-testkit" % akkaVersion
-  ).map(_ % Test)
+  val akkaTestKit = "com.typesafe.akka" %% "akka-testkit" % akkaVersion
 
   val logging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
 
-  val scodec = Seq(
-    "org.scodec" %% "scodec-bits" % "1.1.24",
-    "org.scodec" %% "scodec-core" % "1.11.7",
-    "org.scodec" %% "scodec-cats" % "1.1.0-RC1",
-  )
+  val scodecBits = "org.scodec" %% "scodec-bits" % "1.1.24"
+  val scodecCore = "org.scodec" %% "scodec-core" % "1.11.7"
+  val scodecCats = "org.scodec" %% "scodec-cats" % "1.1.0-RC1"
   val scodecStream = "org.scodec" %% "scodec-stream" % "2.0.0"
 
   val arango = "com.arangodb" % "arangodb-java-driver" % "6.4.1"

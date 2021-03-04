@@ -1,53 +1,51 @@
 package avokka.arangodb.fs2
 
+import avokka.arangodb.types.DatabaseName
 import avokka.test.ArangodbContainer
 import cats.effect._
-import cats.effect.testing.scalatest.AsyncIOSpec
+import cats.effect.testing.scalatest.{AsyncIOSpec, CatsResourceIO}
 import com.dimafeng.testcontainers.ForAllTestContainer
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.flatspec.AsyncFlatSpec
+import org.scalatest.flatspec.{AsyncFlatSpec, FixtureAsyncFlatSpec}
 import org.scalatest.matchers.should.Matchers
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 class ArangoSpec
-    extends AsyncFlatSpec
+    extends FixtureAsyncFlatSpec
     with AsyncIOSpec
+    with CatsResourceIO[Arango[IO]]
     with Matchers
-    with BeforeAndAfterAll
     with ForAllTestContainer {
 
   implicit val unsafeLogger: Logger[IO] = Slf4jLogger.getLogger[IO]
 
   override val container = ArangodbContainer.Def().start()
 
-  it should "get version" in {
-    Arango[IO](container.configuration).flatMap { arango =>
-      arango.use { client =>
-        client.server.version()
-      }
-    }.asserting { res =>
+  override def resource: Resource[IO, Arango[IO]] = Arango[IO](container.configuration)
+
+  it should "get version" in { arango =>
+    arango.server.version().asserting { res =>
       res.header.responseCode should be (200)
       res.body.version should startWith (container.version)
     }
   }
 
-  /*
-  it should "get version with details" in {
-    client.version(details = true).map { res =>
+  it should "get version with details" in { arango =>
+    arango.server.version(details = true).asserting { res =>
       res.header.responseCode should be (200)
       res.body.details should not be (empty)
     }
   }
 
-  it should "have a _system and test database" in {
-    client.databases().map { res =>
+  it should "have a _system and test database" in { arango =>
+    arango.server.databases().asserting { res =>
       res.header.responseCode should be (200)
       res.body.result should contain (DatabaseName.system)
       res.body.result should contain (DatabaseName("test"))
     }
   }
-
+/*
   val scratchName = DatabaseName("scratch")
   val scratch = arango.database(scratchName)
 
@@ -104,5 +102,4 @@ class ArangoSpec
     }
   }
 */
-
 }

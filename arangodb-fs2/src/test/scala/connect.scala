@@ -22,7 +22,7 @@ object connect extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = for {
     config <- Blocker[IO].use(ConfigSource.default.at("avokka").loadF[IO, ArangoConfiguration])
-    arango <- Arango(config)
+    arango = Arango(config)
     _ <- arango.use { client =>
       for {
         v <- client.server.version()

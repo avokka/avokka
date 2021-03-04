@@ -3,6 +3,8 @@ package protocol
 
 import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
+import cats.Show
+import cats.syntax.show._
 import shapeless.HNil
 
 final case class ArangoRequest[T](
@@ -99,6 +101,10 @@ object ArangoRequest {
     implicit val encoder: VPackEncoder[Request] = VPackGeneric[Request].cmap { r =>
       r.version :: r.`type` :: r.database :: r.requestType :: r.request :: r.parameters :: r.meta :: HNil
     }
+
+    implicit val show: Show[Request] = { r =>
+      show"${r.`type`}(v${r.version},database=${r.database.repr},type=${r.requestType},request=${r.request},parameters=${r.parameters},meta=${r.meta})"
+    }
   }
 
   final case class Authentication(
@@ -111,12 +117,21 @@ object ArangoRequest {
 
   object Authentication {
     implicit val encoder: VPackEncoder[Authentication] = VPackGeneric[Authentication].encoder
+
+    implicit val show: Show[Authentication] = { a =>
+      show"${a.`type`}(v${a.version},encryption=${a.encryption},user=${a.user},password=${a.password})"
+    }
   }
 
   object Header {
     implicit val encoder: VPackEncoder[Header] = {
       case r: Request        => Request.encoder.encode(r)
       case a: Authentication => Authentication.encoder.encode(a)
+    }
+
+    implicit val show: Show[Header] = {
+      case r: Request => r.show
+      case a: Authentication => a.show
     }
   }
 }

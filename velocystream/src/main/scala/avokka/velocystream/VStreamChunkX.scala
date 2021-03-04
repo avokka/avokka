@@ -1,5 +1,6 @@
 package avokka.velocystream
 
+import cats.Show
 import scodec.Codec
 import scodec.codecs.uint32L
 
@@ -61,4 +62,6 @@ object VStreamChunkX {
   }
 
   val codec: Codec[VStreamChunkX] = uint32L.xmap(new VStreamChunkX(_), _.x)
+
+  implicit val show: Show[VStreamChunkX] = Show.fromToString
 }

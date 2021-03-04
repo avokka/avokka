@@ -7,6 +7,7 @@ import cats.syntax.apply._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.foldable._
+import cats.syntax.show._
 import fs2.concurrent.{Queue, SignallingRef}
 import fs2.io.tcp.Socket
 import fs2.{Chunk, Pipe, Stream}
@@ -46,7 +47,7 @@ object VChunkSocket {
           val (head, remainder) = chunk.split(config.chunkLength)
           remainder.traverse_(chunks.enqueue1).as(head)
         }
-        .evalTap(msg => L.trace(s"${Console.BLUE}SEND${Console.RESET}: $msg"))
+        .evalTap(msg => L.trace(show"${Console.BLUE}SEND${Console.RESET} $msg"))
         .through(streamEncoder)
         .cons(handshake)
         .through(socket.writes())
@@ -54,7 +55,7 @@ object VChunkSocket {
       val incoming: Stream[F, Unit] = socket
         .reads(config.readBufferSize)
         .through(streamDecoder)
-        .evalTap(msg => L.trace(s"${Console.BLUE_B}${Console.WHITE}RECV${Console.RESET}: $msg"))
+        .evalTap(msg => L.trace(show"${Console.BLUE_B}${Console.WHITE}RECV${Console.RESET} $msg"))
         .evalMap(ch => assembler.push(ch).value).unNone
         .through(in)
 

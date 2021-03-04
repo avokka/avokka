@@ -1,6 +1,7 @@
 package avokka.arangodb.protocol
 
-import avokka.velocypack.{VPackDecoder, VPackEncoder, VPackError}
+import avokka.velocypack._
+import cats.Show
 
 sealed abstract class RequestType(val i: Int) extends Product with Serializable
 
@@ -24,5 +25,15 @@ object RequestType {
     case PATCH.i   => Right(PATCH)
     case OPTIONS.i => Right(OPTIONS)
     case i         => Left(VPackError.IllegalValue(s"unknown request type $i"))
+  }
+
+  implicit val show: Show[RequestType] = {
+    case DELETE => "DELETE"
+    case GET => "GET"
+    case POST => "POST"
+    case PUT => "PUT"
+    case HEAD => "HEAD"
+    case PATCH => "PATCH"
+    case OPTIONS => "OPTIONS"
   }
 }

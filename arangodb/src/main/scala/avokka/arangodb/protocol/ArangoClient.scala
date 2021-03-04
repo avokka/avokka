@@ -83,34 +83,37 @@ object ArangoClient {
 
     override def execute[O: VPackDecoder](header: ArangoRequest.Header): F[ArangoResponse[O]] =
       for {
+        _  <- L.trace(show"${Console.CYAN}REQ${Console.RESET} header $header")
         in <- F.fromEither(header.toVPackBits)
-        _  <- L.trace(s"REQ head ${in.asVPackValue.map(_.show)}")
+        _  <- L.trace(show"${Console.CYAN}REQ${Console.RESET} header ${in.asVPackValue}")
         out <- send(in.bytes)
         res <- handleResponse(out)
       } yield res
 
     override def execute[P: VPackEncoder, O: VPackDecoder](request: ArangoRequest[P]): F[ArangoResponse[O]] =
       for {
+        _   <- L.trace(show"${Console.CYAN}REQ${Console.RESET} header ${request.header}")
         inh <- F.fromEither(request.header.toVPackBits)
-        _   <- L.trace(s"REQ head ${inh.asVPackValue.map(_.show)}")
+        _   <- L.trace(show"${Console.CYAN}REQ${Console.RESET} header ${inh.asVPackValue}")
         inb <- F.fromEither(request.body.toVPackBits)
-        _   <- L.trace(s"REQ body ${inb.asVPackValue.map(_.show)}")
+        _   <- L.trace(show"${Console.CYAN}REQ${Console.RESET} body ${inb.asVPackValue}")
         out <- send((inh ++ inb).bytes)
         res <- handleResponse(out)
       } yield res
 
     protected def handleResponse[O: VPackDecoder](response: ByteVector): F[ArangoResponse[O]] =
       for {
-        _      <- L.trace(s"RES head ${response.bits.asVPackValue.map(_.show)}")
+        _      <- L.trace(show"${Console.CYAN_B}${Console.BLACK}RES${Console.RESET} header ${response.bits.asVPackValue}")
         header <- F.fromEither(response.bits.asVPack[ArangoResponse.Header])
+        _      <- L.trace(show"${Console.CYAN_B}${Console.BLACK}RES${Console.RESET} header ${header.value}")
         body <- if (header.remainder.isEmpty) {
           F.raiseError[DecodeResult[O]](ArangoError.Header(header.value))
         } else if (header.value.responseCode >= 300) {
-          L.trace(s"RES body ${header.remainder.asVPackValue.map(_.show)}") >>
+          L.trace(show"${Console.CYAN_B}${Console.BLACK}RES${Console.RESET} body ${header.remainder.asVPackValue}") >>
           F.fromEither(header.remainder.asVPack[ResponseError]) >>=
             (err => F.raiseError[DecodeResult[O]](ArangoError.Response(header.value, err.value)))
         } else {
-          L.trace(s"RES body ${header.remainder.asVPackValue.map(_.show)}") >>
+          L.trace(show"${Console.CYAN_B}${Console.BLACK}RES${Console.RESET} body ${header.remainder.asVPackValue}") >>
           F.fromEither(header.remainder.asVPack[O])
         }
       } yield ArangoResponse(header.value, body.value)

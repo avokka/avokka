@@ -1,8 +1,5 @@
 package avokka.velocystream
 
-import cats.Applicative
-import cats.syntax.applicative._
-import cats.syntax.functor._
 import scodec.Codec
 import scodec.bits.ByteVector
 import scodec.codecs.{bytes, fixedSizeBytes, uint32L}
@@ -19,16 +16,15 @@ final case class VStreamChunk
   data: ByteVector
 ) {
 
-  /** split chunk data at length bytes, do something with remainder and returns the chunk
+  /** split chunk data at length bytes
     *
     * @param length max number of bytes of data
-    * @param withRemainder what to do with data tail
-    * @tparam F applicative context
-    * @return
+    * @return chunk and optionally remainder
     */
-  def take[F[_]: Applicative](length: Long, withRemainder: VStreamChunk => F[Unit]): F[VStreamChunk] = {
+  def split(length: Long): (VStreamChunk, Option[VStreamChunk]) = {
     val (chunk, tail) = data.splitAt(length)
-    withRemainder(VStreamChunk(header.next, tail)).whenA(tail.nonEmpty).as(copy(data = chunk))
+    copy(data = chunk) -> Option.when(tail.nonEmpty)(VStreamChunk(header.next, tail))
+  //  withRemainder(VStreamChunk(header.next, tail)).whenA(tail.nonEmpty).as(copy(data = chunk))
   }
 }
 

@@ -63,8 +63,7 @@ object Arango {
       to = new InetSocketAddress(config.host, config.port)
       _ <- Resource.liftF(L.debug(s"open connection to $to"))
       client <- group.client(to)
-      arango <- Resource.make(impl(client))(_.terminate)
-      _ <- Resource.liftF(arango.login(config.username, config.password))
+      arango <- Resource.make(impl(client))(_.terminate).evalTap(_.login(config.username, config.password))
     } yield arango
   }
 

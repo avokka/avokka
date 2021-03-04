@@ -1,7 +1,8 @@
-package avokka.arangodb.fs2
+package avokka.arangodb
 
-import avokka.arangodb.protocol.ArangoError
-import avokka.arangodb.types.{CollectionName, DatabaseName}
+import protocol.ArangoError
+import types._
+import fs2._
 import avokka.test.ArangodbContainer
 import cats.effect._
 import cats.effect.testing.scalatest.{AsyncIOSpec, CatsResourceIO}

@@ -25,7 +25,7 @@ class AqlSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks {
     q.bindVars should be (a [VObject])
     q.bindVars.isEmpty should be (false)
     q.query should include ("@")
-    q.query should include (s"@${q.bindVars.values.head._1}")
+    q.query should include ("@" ++ q.bindVars.values.head._1)
     q.bindVars.values.head._2 should be (VFalse)
   }
 

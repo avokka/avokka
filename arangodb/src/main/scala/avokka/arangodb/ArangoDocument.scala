@@ -198,11 +198,7 @@ object ArangoDocument {
         )
 
       override def upsert(obj: VObject): ArangoQuery[F, VObject] = {
-        val kvs = obj.values.keys
-          .map { key =>
-            s"$key:@$key"
-          }
-          .mkString(",")
+        val kvs = obj.values.keys.map { key => key ++ ":@" ++ key }.mkString(",")
         ArangoQuery[F, VObject](
           database,
           Query(

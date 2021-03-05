@@ -133,7 +133,7 @@ object ArangoCollection {
     new ArangoCollection[F] {
       override def name: CollectionName = _name
 
-      private val api: String = s"/_api/collection/$name"
+      private val api: String = "/_api/collection/" + name.repr
 
       override def document(key: DocumentKey): ArangoDocument[F] = ArangoDocument(database, DocumentHandle(name, key))
 
@@ -144,7 +144,7 @@ object ArangoCollection {
       override def checksum(withRevisions: Boolean, withData: Boolean): F[ArangoResponse[CollectionChecksum]] =
           GET(
             database,
-            s"$api/checksum",
+            api + "/checksum",
             Map(
               "withRevisions" -> withRevisions.toString,
               "withData" -> withData.toString,
@@ -152,29 +152,29 @@ object ArangoCollection {
           ).execute
 
       override def count(): F[ArangoResponse[CollectionCount]] =
-        GET(database, s"$api/count").execute
+        GET(database, api + "/count").execute
 
       override def info(): F[ArangoResponse[CollectionInfo]] =
         GET(database, api).execute
 
       override def revision(): F[ArangoResponse[CollectionRevision]] =
-        GET(database, s"$api/revision").execute
+        GET(database, api + "/revision").execute
 
       override def properties(): F[ArangoResponse[CollectionProperties]] =
-        GET(database, s"$api/properties").execute
+        GET(database, api + "/properties").execute
 
       override def truncate(): F[ArangoResponse[CollectionInfo]] =
-        PUT(database, s"$api/truncate").execute
+        PUT(database, api + "/truncate").execute
 
       override def unload(): F[ArangoResponse[CollectionInfo]] =
-        PUT(database, s"$api/unload").execute
+        PUT(database, api + "/unload").execute
 
       override def drop(isSystem: Boolean): F[ArangoResponse[DeleteResult]] =
         DELETE(database, api, Map("isSystem" -> isSystem.toString)).execute
 
       override def create(setup: CollectionCreate => CollectionCreate): F[ArangoResponse[CollectionInfo]] = {
         val options = setup(CollectionCreate(name))
-        POST(database, s"/_api/collection", options.parameters).body(options).execute
+        POST(database, "/_api/collection", options.parameters).body(options).execute
       }
 
       override def insert[T: VPackEncoder: VPackDecoder](
@@ -188,7 +188,7 @@ object ArangoCollection {
         ArangoClient[F].execute(
           POST(
             database,
-            s"/_api/document/$name",
+            "/_api/document/" + name.repr,
             Map(
               "waitForSync" -> waitForSync.toString,
               "returnNew" -> returnNew.toString,

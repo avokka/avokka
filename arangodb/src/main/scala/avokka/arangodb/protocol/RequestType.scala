@@ -24,7 +24,7 @@ object RequestType {
     case HEAD.i    => Right(HEAD)
     case PATCH.i   => Right(PATCH)
     case OPTIONS.i => Right(OPTIONS)
-    case i         => Left(VPackError.IllegalValue(s"unknown request type $i"))
+    case i         => Left(VPackError.IllegalValue("unknown request type " + i))
   }
 
   implicit val show: Show[RequestType] = {

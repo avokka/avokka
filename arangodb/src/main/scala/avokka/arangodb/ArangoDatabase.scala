@@ -64,7 +64,7 @@ object ArangoDatabase {
       GET(name, "/_api/database/current").execute
 
     override def drop(): F[ArangoResponse[DatabaseResult]] =
-      DELETE(DatabaseName.system, s"/_api/database/$name").execute
+      DELETE(DatabaseName.system, "/_api/database/" + name).execute
 
   }
 }

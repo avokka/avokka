@@ -106,7 +106,7 @@ object ArangoDocument {
 
       override def handle: DocumentHandle = _handle
 
-      private val api: String = s"/_api/document/${handle.path}"
+      private val api: String = "/_api/document/" + handle.path
 
       override def read[T: VPackDecoder](
           ifNoneMatch: Option[String],
@@ -198,7 +198,7 @@ object ArangoDocument {
         )
 
       override def upsert(obj: VObject): ArangoQuery[F, VObject] = {
-        val kvs = obj.values.keys.map { key => key ++ ":@" ++ key }.mkString(",")
+        val kvs = obj.values.keys.map { key => key + ":@" + key }.mkString(",")
         ArangoQuery[F, VObject](
           database,
           Query(

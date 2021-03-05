@@ -124,6 +124,8 @@ object ArangoDocuments {
   def apply[F[_]: ArangoClient](database: DatabaseName, collection: CollectionName): ArangoDocuments[F] =
     new ArangoDocuments[F] {
 
+      private val api: String = "/_api/document/" + collection.repr
+
       override def create[T: VPackDecoder: VPackEncoder](
           documents: Seq[T],
           waitForSync: Boolean,
@@ -135,7 +137,7 @@ object ArangoDocuments {
         ArangoClient[F].execute(
           POST(
             database,
-            s"/_api/document/$collection",
+            api,
             Map(
               "waitForSync" -> waitForSync.toString,
               "returnNew" -> returnNew.toString,
@@ -161,7 +163,7 @@ object ArangoDocuments {
         ArangoClient[F].execute(
           PUT(
             database,
-            s"/_api/document/$collection",
+            api,
             Map(
               "waitForSync" -> waitForSync.toString,
               "ignoreRevs" -> ignoreRevs.toString,
@@ -188,7 +190,7 @@ object ArangoDocuments {
         ArangoClient[F].execute(
           PATCH(
             database,
-            s"/_api/document/$collection",
+            api,
             Map(
               "keepNull" -> keepNull.toString,
               "mergeObjects" -> mergeObjects.toString,
@@ -209,7 +211,7 @@ object ArangoDocuments {
         ArangoClient[F].execute(
           DELETE(
             database,
-            s"/_api/document/$collection",
+            api,
             Map(
               "waitForSync" -> waitForSync.toString,
               "returnOld" -> returnOld.toString,

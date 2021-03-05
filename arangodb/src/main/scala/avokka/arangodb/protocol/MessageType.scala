@@ -18,7 +18,7 @@ object MessageType {
     case ResponseFinal.i  => Right(ResponseFinal)
     case ResponseChunk.i  => Right(ResponseChunk)
     case Authentication.i => Right(Authentication)
-    case i                => Left(VPackError.IllegalValue(s"unknown message type $i"))
+    case i                => Left(VPackError.IllegalValue("unknown message type " + i))
   }
 
   implicit val show: Show[MessageType] = {

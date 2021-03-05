@@ -11,7 +11,8 @@ class AqlSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks {
   it should "build a query" in {
     val q = aql"FOR doc IN collection RETURN d"
 
-    q should be (a [Query[VObject]])
+    q should be (a [Query[_]])
+    q.bindVars should be (a [VObject])
     q.bindVars should be (VObject.empty)
     q.query should be ("FOR doc IN collection RETURN d")
   }
@@ -20,7 +21,8 @@ class AqlSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks {
     val attr = false
     val q = aql"FOR doc IN collection FILTER doc.attr = $attr RETURN d"
 
-    q should be (a [Query[VObject]])
+    q should be (a [Query[_]])
+    q.bindVars should be (a [VObject])
     q.bindVars.isEmpty should be (false)
     q.query should include ("@")
     q.query should include (s"@${q.bindVars.values.head._1}")
@@ -30,7 +32,8 @@ class AqlSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks {
   it should "allow to manually bind var" in {
     val q = aql"FOR doc IN collection FILTER doc.attr = @attr RETURN d".bind("attr", true)
 
-    q should be (a [Query[VObject]])
+    q should be (a [Query[_]])
+    q.bindVars should be (a [VObject])
     q.bindVars.isEmpty should be (false)
     q.bindVars.values.head._2 should be (VTrue)
   }

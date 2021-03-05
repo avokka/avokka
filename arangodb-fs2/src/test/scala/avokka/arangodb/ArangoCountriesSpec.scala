@@ -1,5 +1,6 @@
 package avokka.arangodb
 
+import aql._
 import fs2._
 import types._
 import avokka.test._
@@ -112,14 +113,11 @@ class ArangoCountriesSpec
   }
 
   it should "query with cursor batch size" in { arango =>
-    val collection = arango.db.collection(collName)
     for {
       cursor <- arango.db.query(
-        query = "FOR c IN @@col LIMIT @limit RETURN c",
-        bindVars = VObject(
-          "limit" -> 10.toVPack,
-          "@col" -> collName.toVPack
-        )
+        aql"FOR c IN @@col LIMIT @limit RETURN c"
+          .bind("@col", collName)
+          .bind("limit", 10)
       ).batchSize(6).cursor[Country]
       next <- cursor.next()
     } yield {

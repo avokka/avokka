@@ -9,8 +9,8 @@ package object aql {
   implicit final class AqlStringContextOps(private val sc: StringContext) extends AnyVal {
 
     def aql(args: AqlBindVar*): Query[VObject] = {
-      val placeholders = args.indices.map(i => s"@arg$i")
-      val query = sc.parts.alignCombine(placeholders).mkString
+      val placeholders = args.indices.map(i => s"@arg$i").toVector
+      val query = sc.parts.toVector.alignCombine(placeholders).mkString
       val bindVars = VObject(args.zipWithIndex.map {
         case (a, i) => s"arg$i" -> a.v
       }.toMap)

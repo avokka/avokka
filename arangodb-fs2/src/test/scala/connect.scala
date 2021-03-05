@@ -1,4 +1,5 @@
 import avokka.arangodb.ArangoConfiguration
+import avokka.arangodb.aql._
 import avokka.arangodb.fs2._
 import avokka.arangodb.types.{CollectionName, DatabaseName, DocumentKey, DocumentRevision}
 import avokka.velocypack.{VPackDecoder, VPackEncoder}
@@ -30,6 +31,8 @@ object connect extends IOApp {
       } yield ()
     }
     _ <- arango.use { client =>
+      val v10 = client.database(DatabaseName("v10"))
+      val cName = CollectionName("countries")
       for {
         e <- client.server.engine()
         dbs <- client.server.databases()
@@ -37,9 +40,8 @@ object connect extends IOApp {
           println(e.body)
           println(dbs.body)
         }
-        cns <- client
-          .database(DatabaseName("v10"))
-          .collection(CollectionName("countries"))
+        cns <- v10
+          .collection(cName)
           .all.batchSize(10)
           .stream[Country]
           .evalTap { c =>
@@ -48,6 +50,22 @@ object connect extends IOApp {
           .compile
           .toVector
         _ <- IO ( println(cns.length) )
+
+        // aql query with bound variable
+        code = "FR"
+        f <- v10.query(aql"FOR c IN countries FILTER c._key == $code RETURN c").execute[Country]
+        _ <- IO { println(f.body.result) }
+
+        // aql query with bound variable and aql param
+        code = "FR"
+        f <- v10.query(aql"FOR c IN countries FILTER c._key == $code OR CONTAINS(c.name, @name) RETURN c".bind("name", "Ital")).execute[Country]
+        _ <- IO { println(f.body.result) }
+
+        // aql query with bound variable and aql param
+        code = "FR"
+        f <- v10.query(aql"FOR c IN @@coll FILTER c._key == $code RETURN c".bind("@coll", cName)).execute[Country]
+        _ <- IO { println(f.body.result) }
+
       } yield ()
     }
   } yield ExitCode.Success

@@ -64,4 +64,8 @@ object Query {
 
   implicit def encoder[V: VPackEncoder]: VPackEncoder[Query[V]] = VPackEncoder.gen
 
+  implicit final class AvokkaQueryVObjectOps[F[_]](private val q: Query[VObject]) extends AnyVal {
+    def bind[V: VPackEncoder](key: String, value: V): Query[VObject] =
+      q.copy(bindVars = q.bindVars.updated(key, value))
+  }
 }

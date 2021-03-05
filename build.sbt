@@ -96,7 +96,11 @@ lazy val arangodb = (project in file("arangodb"))
         case Some((2, v)) if v <= 12 =>
           Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full))
         case _ => Nil
-      }),
+      }) ++ Seq(
+      scalaTest,
+      scalaTestPlus,
+      logback,
+    ).map(_ % Test),
     logBuffered in Test := false,
     parallelExecution in Test := false,
     addCompilerPlugin(kindProjector),

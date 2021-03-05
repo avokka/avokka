@@ -26,7 +26,7 @@ final case class VStreamChunk
     */
   def split(length: Long): (VStreamChunk, Option[VStreamChunk]) = {
     val (chunk, tail) = data.splitAt(length)
-    copy(data = chunk) -> Option.when(tail.nonEmpty)(VStreamChunk(header.next, tail))
+    copy(data = chunk) -> (if (tail.nonEmpty) Some(VStreamChunk(header.next, tail)) else None)
   //  withRemainder(VStreamChunk(header.next, tail)).whenA(tail.nonEmpty).as(copy(data = chunk))
   }
 }

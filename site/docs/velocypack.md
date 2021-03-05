@@ -7,7 +7,7 @@ permalink: velocypack
 
 # Velocypack
 
-Velocypack encoder and decoder in pure scala
+Velocypack encoder and decoder in pure scala à la circe
 
 - `VPackEncoder` encodes scala values to VPack values `T => VPack`
 - `VPackDecoder` decodes vpack values to scala values `VPack => Either[VPackError, T]`

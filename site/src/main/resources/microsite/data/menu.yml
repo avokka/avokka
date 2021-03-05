@@ -5,3 +5,15 @@ options:
 
   - title: Velocypack
     url: velocypack
+
+  - title: Velocystream
+    url: velocystream
+
+  - title: ArangoDB
+    url: arangodb
+
+  - title: Akka
+    url: arangodb-akka
+
+  - title: Fs2
+    url: arangodb-fs2

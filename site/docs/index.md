@@ -16,10 +16,18 @@ ArangoDB client written in pure scala
 
 [Velocypack](https://github.com/arangodb/velocypack) codec for scala built with scodec, shapeless and cats
 
-### avokka-velocystream
+### [avokka-velocystream]({% link velocystream.md %})
 
-[Velocystream](https://github.com/arangodb/velocystream) client (VST only) built with akka IO
+[Velocystream](https://github.com/arangodb/velocystream) base
 
-### avokka-arangodb
+### [avokka-arangodb]({% link arangodb.md %})
 
-[ArangoDB](https://github.com/arangodb/arangodb) client
+[ArangoDB](https://github.com/arangodb/arangodb) api
+
+### [avokka-arangodb-akka]({% link arangodb-akka.md %})
+
+ArangoDB client implementation for akka
+
+### [avokka-arangodb-fs2]({% link arangodb-akka.md %})
+
+ArangoDB client implementation for fs2

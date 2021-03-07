@@ -8,13 +8,20 @@ package object aql {
 
   implicit final class AqlStringContextOps(private val sc: StringContext) extends AnyVal {
 
+    /**
+      * tranforms a string with placeholders to an arango query with bound vpack values
+      * @param args vpack bound arguments
+      * @return arango query
+      */
     def aql(args: AqlBindVar*): Query[VObject] = {
-      val placeholders = args.indices.map(i => "@_arg" + i).toVector
+      // indexed variables with _arg$N key
+      val bindVars = args.toVector.zipWithIndex.map { case (arg, i) => "_arg" + i -> arg.value }
+      // placeholders with @ prefix
+      val placeholders = bindVars.map { case (k, _) => "@" + k }
+      // combine strings and placeholders to form query string
       val query = sc.parts.toVector.alignCombine(placeholders).mkString
-      val bindVars = VObject(args.zipWithIndex.map {
-        case (a, i) => "_arg" + i -> a.v
-      }.toMap)
-      Query(query, bindVars)
+      // query with bound variables
+      Query(query, VObject(bindVars.toMap))
     }
 
   }

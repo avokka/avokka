@@ -10,7 +10,7 @@ trait AqlBindVar {
   /**
     * @return vpack value
     */
-  def v: VPack
+  def value: VPack
 }
 
 object AqlBindVar {
@@ -22,6 +22,6 @@ object AqlBindVar {
     * @return bound var
     */
   implicit def from[T](t: T)(implicit e: VPackEncoder[T]): AqlBindVar = new AqlBindVar {
-    override val v: VPack = e.encode(t)
+    override val value: VPack = e.encode(t)
   }
 }

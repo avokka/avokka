@@ -20,7 +20,7 @@ package object aql {
       val placeholders = bindVars.map { case (k, _) => "@" + k }
       // combine strings and placeholders to form query string
       val query = sc.parts.toVector.alignCombine(placeholders).mkString
-      // query with bound variables
+      // query with bound variables as vpack object
       Query(query, VObject(bindVars.toMap))
     }
 

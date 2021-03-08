@@ -81,8 +81,8 @@ object ArangoClient {
       ArangoRequest.Authentication(user = username, password = password)
     )
 
-    private val traceREQ = Console.CYAN ++ "\u25b2REQ" ++ Console.RESET
-    private val traceRES = Console.CYAN_B ++ Console.BLACK ++ "\u25bcRES" ++ Console.RESET
+    private val traceREQ = Console.CYAN + "\u25b2REQ" + Console.RESET
+    private val traceRES = Console.CYAN_B + Console.BLACK + "\u25bcRES" + Console.RESET
 
     override def execute[O: VPackDecoder](header: ArangoRequest.Header): F[ArangoResponse[O]] =
       for {

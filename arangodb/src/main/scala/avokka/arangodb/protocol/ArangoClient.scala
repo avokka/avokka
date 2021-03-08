@@ -81,39 +81,42 @@ object ArangoClient {
       ArangoRequest.Authentication(user = username, password = password)
     )
 
+    private val traceREQ = Console.CYAN ++ "\u25b2REQ" ++ Console.RESET
+    private val traceRES = Console.CYAN_B ++ Console.BLACK ++ "\u25bcRES" ++ Console.RESET
+
     override def execute[O: VPackDecoder](header: ArangoRequest.Header): F[ArangoResponse[O]] =
       for {
-        _  <- L.trace(show"${Console.CYAN}REQ${Console.RESET} header $header")
+        _  <- L.trace(show"$traceREQ header $header")
         in <- F.fromEither(header.toVPackBits)
-        _  <- L.trace(show"${Console.CYAN}REQ${Console.RESET} header ${in.asVPackValue}")
+        _  <- L.trace(show"$traceREQ header ${in.asVPackValue}")
         out <- send(in.bytes)
         res <- handleResponse(out)
       } yield res
 
     override def execute[P: VPackEncoder, O: VPackDecoder](request: ArangoRequest[P]): F[ArangoResponse[O]] =
       for {
-        _   <- L.trace(show"${Console.CYAN}REQ${Console.RESET} header ${request.header}")
+        _   <- L.trace(show"$traceREQ header ${request.header}")
         inh <- F.fromEither(request.header.toVPackBits)
-        _   <- L.trace(show"${Console.CYAN}REQ${Console.RESET} header ${inh.asVPackValue}")
+        _   <- L.trace(show"$traceREQ header ${inh.asVPackValue}")
         inb <- F.fromEither(request.body.toVPackBits)
-        _   <- L.trace(show"${Console.CYAN}REQ${Console.RESET} body ${inb.asVPackValue}")
+        _   <- L.trace(show"$traceREQ body ${inb.asVPackValue}")
         out <- send((inh ++ inb).bytes)
         res <- handleResponse(out)
       } yield res
 
     protected def handleResponse[O: VPackDecoder](response: ByteVector): F[ArangoResponse[O]] =
       for {
-        _      <- L.trace(show"${Console.CYAN_B}${Console.BLACK}RES${Console.RESET} header ${response.bits.asVPackValue}")
+        _      <- L.trace(show"$traceRES header ${response.bits.asVPackValue}")
         header <- F.fromEither(response.bits.asVPack[ArangoResponse.Header])
-        _      <- L.trace(show"${Console.CYAN_B}${Console.BLACK}RES${Console.RESET} header ${header.value}")
+        _      <- L.trace(show"$traceRES header ${header.value}")
         body <- if (header.remainder.isEmpty) {
           F.raiseError[DecodeResult[O]](ArangoError.Header(header.value))
         } else if (header.value.responseCode >= 300) {
-          L.trace(show"${Console.CYAN_B}${Console.BLACK}RES${Console.RESET} body ${header.remainder.asVPackValue}") >>
+          L.trace(show"$traceRES body ${header.remainder.asVPackValue}") >>
           F.fromEither(header.remainder.asVPack[ResponseError]) >>=
             (err => F.raiseError[DecodeResult[O]](ArangoError.Response(header.value, err.value)))
         } else {
-          L.trace(show"${Console.CYAN_B}${Console.BLACK}RES${Console.RESET} body ${header.remainder.asVPackValue}") >>
+          L.trace(show"$traceRES body ${header.remainder.asVPackValue}") >>
           F.fromEither(header.remainder.asVPack[O])
         }
       } yield ArangoResponse(header.value, body.value)

@@ -23,14 +23,15 @@ trait ArangoDatabase[F[_]] { self =>
   def collections(excludeSystem: Boolean = false): F[ArangoResponse[api.CollectionList]]
 
   /**
-    * @param query contains the query string to be executed
+    * @param qs contains the query string to be executed
     * @param bindVars key/value pairs representing the bind parameters.
     */
   def query[V: VPackEncoder](
-      query: String,
+      qs: String,
       bindVars: V,
-  ): ArangoQuery[F, V] = self.query(Query(query, bindVars))
+  ): ArangoQuery[F, V] = self.query(Query(qs, bindVars))
 
+  def query(qs: String): ArangoQuery[F, VObject] = query(qs, VObject.empty)
   def query[V: VPackEncoder](query: Query[V]): ArangoQuery[F, V]
 }
 

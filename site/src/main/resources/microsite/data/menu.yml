@@ -5,6 +5,16 @@ options:
 
   - title: Velocypack
     url: velocypack
+    nested_options:
+
+      - title: Encoder
+        url: velocypack/encoder
+
+      - title: Decoder
+        url: velocypack/decoder
+
+      - title: Case class
+        url: velocypack/case-class
 
   - title: Velocystream
     url: velocystream

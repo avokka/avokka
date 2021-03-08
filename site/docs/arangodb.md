@@ -10,7 +10,7 @@ permalink: arangodb
 Package avokka-arangodb contains:
 
 - core models of the arangodb protocol 
-- arangodb dsl build with generic effect F[_]
+- arangodb dsl build with generic effect F[_] with constraints of cats
 - [an AQL custom string interpolator]({% link arangodb-aql.md %})
 
 You need to depends on the akka or the fs2 module to use the client.

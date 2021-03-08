@@ -1,6 +1,6 @@
 ---
 layout: docs
-title: ArangoDB AQL
+title: AQL
 permalink: arangodb/aql
 ---
 

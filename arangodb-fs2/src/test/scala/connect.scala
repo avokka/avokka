@@ -1,16 +1,15 @@
 import avokka.arangodb.ArangoConfiguration
 import avokka.arangodb.aql._
 import avokka.arangodb.fs2._
-import avokka.arangodb.types.{CollectionName, DatabaseName, DocumentKey, DocumentRevision}
-import avokka.velocypack.{VPackDecoder, VPackEncoder}
-import cats.effect.{Blocker, ExitCode, IO, IOApp, Sync}
+import avokka.arangodb.types._
+import avokka.velocypack._
+import cats.effect._
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import pureconfig.ConfigSource
 import pureconfig.module.catseffect.syntax._
 
 object connect extends IOApp {
-  implicit def unsafeLogger[F[_]: Sync]: Logger[F] = Slf4jLogger.getLogger[F]
 
   case class Country(
                       _key: DocumentKey = DocumentKey.empty,
@@ -22,6 +21,7 @@ object connect extends IOApp {
   implicit val countryDecoder: VPackDecoder[Country] = VPackDecoder.gen
 
   override def run(args: List[String]): IO[ExitCode] = for {
+    implicit0(logger: Logger[IO]) <- Slf4jLogger.create[IO]
     config <- Blocker[IO].use(ConfigSource.default.at("avokka").loadF[IO, ArangoConfiguration])
     arango = Arango(config)
     _ <- arango.use { client =>

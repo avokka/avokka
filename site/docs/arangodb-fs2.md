@@ -2,7 +2,7 @@
 layout: docs
 title: Fs2
 position: 6
-permalink: arangodb-fs2
+permalink: arangodb/fs2
 ---
 
 # ArangoDB in FS2
@@ -10,3 +10,10 @@ permalink: arangodb-fs2
 Implementation of ArangoDB with fs2
 
 Arango client database and query streaming is written with fs2 io
+
+### Usage
+
+```scala
+// add dependency to the arangodb client
+libraryDependencies += "com.bicou" %% "avokka-arangodb-fs2" % "@VERSION@"
+```

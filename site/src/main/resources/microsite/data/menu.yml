@@ -11,9 +11,13 @@ options:
 
   - title: ArangoDB
     url: arangodb
+    nested_options:
 
-  - title: Akka
-    url: arangodb-akka
+      - title: AQL
+        url: arangodb/aql
 
-  - title: Fs2
-    url: arangodb-fs2
+      - title: Akka
+        url: arangodb/akka
+
+      - title: Fs2
+        url: arangodb/fs2

@@ -189,7 +189,7 @@ lazy val bench = (project in file("bench"))
   ).enablePlugins(JmhPlugin)
 
 lazy val site = (project in file("site"))
-  .dependsOn(arangodb)
+  .dependsOn(arangodbAkka, arangodbFs2)
   .settings(
     name := "avokka-site",
     publishArtifact := false,

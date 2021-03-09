@@ -6,7 +6,6 @@ import avokka.velocypack._
 import cats.effect._
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import pureconfig.ConfigSource
 import pureconfig.module.catseffect.syntax._
 
 object connect extends IOApp {
@@ -22,7 +21,7 @@ object connect extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = for {
     implicit0(logger: Logger[IO]) <- Slf4jLogger.create[IO]
-    config <- Blocker[IO].use(ConfigSource.default.at("avokka").loadF[IO, ArangoConfiguration])
+    config <- Blocker[IO].use(ArangoConfiguration.at().loadF[IO, ArangoConfiguration])
     arango = Arango(config)
     _ <- arango.use { client =>
       for {

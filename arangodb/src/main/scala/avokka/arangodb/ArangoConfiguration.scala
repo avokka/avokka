@@ -2,7 +2,6 @@ package avokka.arangodb
 
 import avokka.arangodb.types.DatabaseName
 import avokka.velocystream.VStreamConfiguration
-import com.typesafe.config.{Config, ConfigFactory}
 import pureconfig._
 import pureconfig.generic.semiauto._
 
@@ -37,6 +36,7 @@ object ArangoConfiguration {
 
   implicit val arangoConfigurationReader: ConfigReader[ArangoConfiguration] = deriveReader
 
-  def load(config: Config = ConfigFactory.load()): ArangoConfiguration =
-    ConfigSource.fromConfig(config).at("avokka").loadOrThrow[ArangoConfiguration]
+  def load(conf: ConfigSource = ConfigSource.default): ArangoConfiguration = at(conf).loadOrThrow[ArangoConfiguration]
+
+  def at(conf: ConfigSource = ConfigSource.default): ConfigSource = conf.at("avokka")
 }

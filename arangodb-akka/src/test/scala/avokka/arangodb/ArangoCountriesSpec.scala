@@ -117,7 +117,7 @@ class ArangoCountriesSpec
   it should "query with cursor batch size" in {
     for {
       cursor <- db.query(
-        query = "FOR c IN @@col LIMIT @limit RETURN c",
+        "FOR c IN @@col LIMIT @limit RETURN c",
         bindVars = VObject(
           "limit" -> 10.toVPack,
           "@col" -> collName.toVPack

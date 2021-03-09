@@ -17,35 +17,34 @@ Arango client database is written with akka I/O TCP and query streaming with akk
 // add dependency to the arangodb client
 libraryDependencies += "com.bicou" %% "avokka-arangodb-akka" % "@VERSION@"
 ```
+
+## Usage
 ```scala mdoc:invisible
 import scala.concurrent._
 import scala.concurrent.duration._
-// import ExecutionContext.Implicits.global
 import akka.stream.scaladsl._
 import akka.NotUsed
 ```
 
-## Usage
-
-implicit akka actor system
+An implicit akka actor system
 
 ```scala mdoc:invisible
 import akka.actor.ActorSystem
-implicit val system: ActorSystem = ActorSystem("docs")
+implicit val actorSystem: ActorSystem = ActorSystem("docs")
 ```
 ```scala
 import akka.actor.ActorSystem
-implicit val system: ActorSystem = ???
+implicit def actorSystem: ActorSystem = ???
 ```
 
-default configuration
+and an arango configuration
 
 ```scala mdoc:silent
 import avokka.arangodb.ArangoConfiguration
 val configuration = ArangoConfiguration.load()
 ```
 
-arangodb client
+build an arangodb client
 
 ```scala mdoc:silent
 import avokka.arangodb.akka._
@@ -125,5 +124,5 @@ Await.result(countriesBind.runWith(Sink.head), 10.seconds)
 ```
 
 ```scala mdoc:invisible
-system.terminate()
+actorSystem.terminate()
 ```

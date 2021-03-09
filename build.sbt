@@ -194,7 +194,8 @@ lazy val site = (project in file("site"))
     libraryDependencies ++= Seq(
       log4catsNoop,
       log4catsSlf,
-      logback
+      logback,
+      pureconfigF,
     ),
     name := "avokka-site",
     publishArtifact := false,

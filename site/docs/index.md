@@ -6,8 +6,6 @@ position: 1
 
 # Avokka
 
-[![Build Status](https://travis-ci.org/avokka/avokka.svg?branch=master)](https://travis-ci.org/avokka/avokka)
-
 ArangoDB client written in scala
 
 ## Packages

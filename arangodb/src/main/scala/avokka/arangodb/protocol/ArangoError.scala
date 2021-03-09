@@ -1,7 +1,10 @@
 package avokka.arangodb
 package protocol
 
-sealed trait ArangoError extends RuntimeException with Product with Serializable
+sealed trait ArangoError extends RuntimeException with Product with Serializable {
+  def header: ArangoResponse.Header
+  def code: Int = header.responseCode
+}
 
 object ArangoError {
 
@@ -11,5 +14,7 @@ object ArangoError {
 
   final case class Response(header: ArangoResponse.Header, error: ResponseError)
       extends RuntimeException(error.errorMessage)
-      with ArangoError
+      with ArangoError {
+    def num: Long = error.errorNum
+  }
 }

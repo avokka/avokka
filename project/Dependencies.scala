@@ -23,6 +23,7 @@ object Dependencies {
 
   val log4cats = "org.typelevel" %% "log4cats-core"    % "1.2.0"
   val log4catsSlf = "org.typelevel" %% "log4cats-slf4j" % "1.2.0"
+  val log4catsNoop = "org.typelevel" %% "log4cats-noop" % "1.2.0"
 
   val shapeless = "com.chuusai" %% "shapeless" % "2.3.3"
 

@@ -191,6 +191,11 @@ lazy val bench = (project in file("bench"))
 lazy val site = (project in file("site"))
   .dependsOn(arangodbAkka, arangodbFs2)
   .settings(
+    libraryDependencies ++= Seq(
+      log4catsNoop,
+      log4catsSlf,
+      logback
+    ),
     name := "avokka-site",
     publishArtifact := false,
     skip in publish := true,

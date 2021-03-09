@@ -140,8 +140,7 @@ lazy val arangodbFs2 = (project in file("arangodb-fs2"))
   .dependsOn(arangodb, test % "test->test")
   .settings(
     name := "avokka-arangodb-fs2",
-    description := "ArangoDB with fs2",
-    skip in publish := true,
+    description := "ArangoDB client (fs2)",
     libraryDependencies ++= Seq(
       collectionCompat,
 //      log4cats,
@@ -168,7 +167,6 @@ lazy val test = (project in file("test"))
   .dependsOn(arangodb)
   .settings(
     name := "avokka-test",
-    skip in publish := true,
     libraryDependencies ++= Seq(
       testContainers
     ),
@@ -180,6 +178,7 @@ lazy val bench = (project in file("bench"))
   .dependsOn(velocypack)
   .settings(
     name := "avokka-bench",
+    publishArtifact := false,
     skip in publish := true,
     libraryDependencies ++= Seq(
       arango,

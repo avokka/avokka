@@ -11,11 +11,15 @@ jdk:
 services:
   - docker
 
-script:
-  - sbt ++$TRAVIS_SCALA_VERSION clean coverage test coverageReport
-
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+jobs:
+  include:
+    - stage: coverage
+      scala: 2.13.5
+      jdk: openjdk11
+      script:
+        - sbt ++$TRAVIS_SCALA_VERSION clean coverage test coverageReport
+      after_success:
+        - bash <(curl -s https://codecov.io/bash)
 
 cache:
   directories:

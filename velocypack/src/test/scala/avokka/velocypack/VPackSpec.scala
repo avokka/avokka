@@ -67,6 +67,18 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
     }
   }
 
+  "short" should "encode to smallint or long" in {
+    assertCodec(0.toShort, VSmallint(0))
+    assertCodec(100.toShort, VLong(100))
+    assertCodec(1000.toShort, VLong(1000))
+    assertRoundtrip(Short.MinValue)
+    assertRoundtrip(Short.MaxValue)
+
+    forAll { i: Short =>
+      assertRoundtrip(i)
+    }
+  }
+
   "int" should "encode to smallint or long" in {
     assertCodec(0, VSmallint(0))
     assertCodec(100, VLong(100))
@@ -128,5 +140,10 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
     forAll { i: BigDecimal =>
       assertRoundtrip(i)
     }
+  }
+
+  "option" should "encode and decode" in {
+    assertCodec(None: Option[String], VNull)
+    assertCodec(Option("data"), VString("data"))
   }
 }

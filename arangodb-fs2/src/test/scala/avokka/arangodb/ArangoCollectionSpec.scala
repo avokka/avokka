@@ -14,7 +14,7 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 class ArangoCollectionSpec
     extends FixtureAsyncFlatSpec
     with AsyncIOSpec
-    with CatsResourceIO[(Arango[IO], ArangoDatabase[IO], ArangoCollection[IO])]
+    with CatsResourceIO[Arango[IO]]
     with Matchers
     with ForAllTestContainer {
 
@@ -22,35 +22,36 @@ class ArangoCollectionSpec
 
   override val container = ArangodbContainer.Def().start()
 
-  override val resource = Arango[IO](container.configuration.copy(database = DatabaseName("test"))).map { arango =>
-    val db = arango.database(DatabaseName("test"))
-    val collection = db.collection(CollectionName("countries"))
-    (arango, db, collection)
-  }
+  val databaseName = DatabaseName("test")
+  val collectionName = CollectionName("countries")
 
-  it should "checksum" in { case (_, _, collection) =>
-    collection.checksum().map { res =>
+  override val resource = Arango[IO](container.configuration)
+
+  def collection(arango: Arango[IO]): ArangoCollection[IO] = arango.database(databaseName).collection(collectionName)
+
+  it should "checksum" in { arango =>
+    collection(arango).checksum().map { res =>
       res.header.responseCode should be (200)
       res.body.checksum should not be (empty)
     }
   }
 
-  it should "count" in { case (_, _, collection) =>
-    collection.count().map { res =>
+  it should "count" in { arango =>
+    collection(arango).count().map { res =>
       res.header.responseCode should be (200)
       res.body.count should be > 200L
     }
   }
 
-  it should "revision" in { case (_, _, collection) =>
-    collection.revision().map { res =>
+  it should "revision" in { arango =>
+    collection(arango).revision().map { res =>
       res.header.responseCode should be (200)
       res.body.revision should not be (empty)
     }
   }
 
-  it should "properties" in { case (_, _, collection) =>
-    collection.properties().map { res =>
+  it should "properties" in { arango =>
+    collection(arango).properties().map { res =>
       res.header.responseCode should be (200)
       res.body.name should be (CollectionName("countries"))
     }

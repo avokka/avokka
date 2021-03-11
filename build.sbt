@@ -206,7 +206,7 @@ lazy val site = (project in file("site"))
      "VERSION" -> version.value
     ),
     micrositeName := "Avokka",
-    micrositeDescription := "ArangoDB in pure scala",
+    micrositeDescription := "ArangoDB client in scala",
     micrositeAuthor := "Benjamin Viellard",
     micrositeGithubOwner := "avokka",
     micrositeGithubRepo := "avokka",

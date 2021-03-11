@@ -4,10 +4,6 @@ title: Home
 position: 1
 ---
 
-# Avokka
-
-ArangoDB client written in scala
-
 ## Packages
 
 ### [avokka-velocypack]({% link velocypack.md %})

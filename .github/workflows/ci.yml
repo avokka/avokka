@@ -39,7 +39,6 @@ jobs:
         uses: codecov/codecov-action@v1
         with:
           flags: scala-${{ matrix.scala }}
-          verbose: true
 
   release:
     if: github.event_name == 'push'

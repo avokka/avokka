@@ -11,7 +11,7 @@ import org.scalatest.matchers.should.Matchers
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
-class ArangoSpec
+class ArangoServerSpec
     extends FixtureAsyncFlatSpec
     with AsyncIOSpec
     with CatsResourceIO[Arango[IO]]
@@ -27,6 +27,13 @@ class ArangoSpec
     arango.server.version().map { res =>
       res.header.responseCode should be (200)
       res.body.version should startWith (container.version)
+    }
+  }
+
+  it should "role" in { arango =>
+    arango.server.role().map { res =>
+      res.header.responseCode should be (200)
+      res.body.role should be ("SINGLE")
     }
   }
 

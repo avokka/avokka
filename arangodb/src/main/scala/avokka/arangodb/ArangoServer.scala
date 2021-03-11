@@ -23,6 +23,8 @@ trait ArangoServer[F[_]] {
     * @return engine
     */
   def engine(): F[ArangoResponse[Engine]]
+
+  def role(): F[ArangoResponse[ServerRole]]
 }
 
 object ArangoServer {
@@ -36,6 +38,9 @@ object ArangoServer {
 
     override def databases(): F[ArangoResponse[DatabaseList]] =
       GET(DatabaseName.system, "/_api/database/user").execute
+
+    override def role(): F[ArangoResponse[ServerRole]] =
+      GET(DatabaseName.system, "/_admin/server/role").execute
 
   }
 }

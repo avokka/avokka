@@ -16,16 +16,6 @@ object RequestType {
   case object OPTIONS extends RequestType(6)
 
   implicit val encoder: VPackEncoder[RequestType] = VPackEncoder[Int].contramap(_.i)
-  implicit val decoder: VPackDecoder[RequestType] = VPackDecoder[Int].flatMap {
-    case DELETE.i  => Right(DELETE)
-    case GET.i     => Right(GET)
-    case POST.i    => Right(POST)
-    case PUT.i     => Right(PUT)
-    case HEAD.i    => Right(HEAD)
-    case PATCH.i   => Right(PATCH)
-    case OPTIONS.i => Right(OPTIONS)
-    case i         => Left(VPackError.IllegalValue("unknown request type " + i))
-  }
 
   implicit val show: Show[RequestType] = {
     case DELETE => "DELETE"

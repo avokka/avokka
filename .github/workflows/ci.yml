@@ -30,7 +30,16 @@ jobs:
         uses: coursier/cache-action@v6
 
       - name: Run tests
-        run: sbt ++${{ matrix.scala }} test
+        run: sbt ++${{ matrix.scala }} coverage test
+
+      - name: Coverage aggregation
+        run: sbt ++${{ matrix.scala }} coverageAggregate
+
+      - name: Coverage upload
+        uses: codecov/codecov-action@v1
+        with:
+          flags: scala-${{ matrix.scala }}
+          verbose: true
 
   release:
     if: github.event_name == 'push'

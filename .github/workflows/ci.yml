@@ -21,6 +21,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+
       - name: Setup Java and Scala
         uses: olafurpg/setup-scala@v10
         with:

@@ -1,11 +1,18 @@
 import Dependencies._
 
-val scala212Version = "2.12.13"
+val scala212Version = "2.12.12"
 val scala213Version = "2.13.5"
 
 ThisBuild / organization := "com.bicou"
 ThisBuild / crossScalaVersions := Seq(scala212Version, scala213Version)
 ThisBuild / scalaVersion := scala213Version
+
+ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
+  case Some((2, 13)) => Seq(
+    "-Ymacro-annotations"
+  )
+  case _ => Seq.empty
+})
 
 ThisBuild / javacOptions ++= Seq(
   "-source", "1.8",
@@ -17,13 +24,6 @@ ThisBuild / homepage := Some(url("https://github.com/avokka"))
 ThisBuild / developers := List(
   Developer(id="bicou", name="Benjamin VIELLARD", email="bicou@bicou.com", url = url("http://bicou.com/"))
 )
-
-ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
-  case Some((2, 13)) => Seq(
-    "-Ymacro-annotations"
-  )
-  case _ => Seq.empty
-})
 
 lazy val velocypack = (project in file("velocypack"))
   .settings(

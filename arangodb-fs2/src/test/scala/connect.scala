@@ -24,12 +24,6 @@ object connect extends IOApp {
     config <- Blocker[IO].use(ArangoConfiguration.at().loadF[IO, ArangoConfiguration])
     arango = Arango(config)
     _ <- arango.use { client =>
-      for {
-        v <- client.server.version()
-        _ <- IO { println(v.body) }
-      } yield ()
-    }
-    _ <- arango.use { client =>
       val v10 = client.database(DatabaseName("v10"))
       val cName = CollectionName("countries")
       for {

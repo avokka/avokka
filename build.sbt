@@ -50,6 +50,17 @@ lazy val velocypack = (project in file("velocypack"))
     scalacOptions -= "-Xfatal-warnings"
   )
 
+lazy val velocypackEnumeratum = (project in file("velocypack-enumeratum"))
+  .dependsOn(velocypack)
+  .settings(
+    name := "avokka-velocypack-enumeratum",
+    description := "velocypack support for enumeratum",
+    libraryDependencies ++= Seq(
+      enumeratum
+    ),
+    scalacOptions -= "-Xfatal-warnings"
+  )
+
 lazy val velocystream = (project in file("velocystream"))
   .dependsOn(velocypack)
   .settings(
@@ -82,7 +93,7 @@ lazy val arangodbTypes = (project in file("arangodb-types"))
   )
 
 lazy val arangodb = (project in file("arangodb"))
-  .dependsOn(velocystream, arangodbTypes)
+  .dependsOn(velocystream, arangodbTypes, velocypackEnumeratum)
   .settings(
     name := "avokka-arangodb",
     description := "ArangoDB core",
@@ -227,7 +238,7 @@ lazy val site = (project in file("site"))
   ).enablePlugins(MicrositesPlugin)
 
 lazy val avokka = (project in file("."))
-  .aggregate(velocypack, velocystream, arangodbTypes, arangodb, arangodbAkka, arangodbFs2)
+  .aggregate(velocypack, velocypackEnumeratum, velocystream, arangodbTypes, arangodb, arangodbAkka, arangodbFs2)
   .settings(
     publishArtifact := false,
     skip in publish := true

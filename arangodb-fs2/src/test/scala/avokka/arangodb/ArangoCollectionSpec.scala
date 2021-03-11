@@ -92,12 +92,34 @@ class ArangoCollectionSpec
       _ <- temp.create()
       _ <- temp.insert(VObject.empty, waitForSync = true)
       a <- temp.count()
-      _ <- temp.truncate()
+      t <- temp.truncate()
       b <- temp.count()
       _ <- temp.drop()
     } yield {
       a.body.count should be (1L)
+
+      t.header.responseCode should be (200)
+      t.body.name should be (tempName)
+
       b.body.count should be (0)
+    }
+  }
+
+  it should "unload" in { arango =>
+    val test = arango.database(databaseName)
+    val tempName = CollectionName("temp")
+    val temp = test.collection(tempName)
+
+    for {
+      _ <- temp.create()
+      u <- temp.unload()
+      i <- temp.info()
+      _ <- temp.drop()
+    } yield {
+      u.header.responseCode should be (200)
+      u.body.name should be (tempName)
+
+      i.body.status should be (CollectionStatus.Unloaded)
     }
   }
 }

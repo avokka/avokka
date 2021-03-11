@@ -53,7 +53,7 @@ class ArangoCollectionSpec
   it should "properties" in { arango =>
     collection(arango).properties().map { res =>
       res.header.responseCode should be (200)
-      res.body.name should be (CollectionName("countries"))
+      res.body.name should be (collectionName)
     }
   }
 }

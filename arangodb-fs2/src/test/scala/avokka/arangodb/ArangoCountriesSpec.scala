@@ -10,7 +10,7 @@ import cats.effect.IO
 import cats.effect.testing.scalatest.{AsyncIOSpec, CatsResourceIO}
 import com.dimafeng.testcontainers.ForAllTestContainer
 import org.scalatest.OptionValues._
-import org.scalatest.flatspec.{AsyncFlatSpec, FixtureAsyncFlatSpec}
+import org.scalatest.flatspec.FixtureAsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger

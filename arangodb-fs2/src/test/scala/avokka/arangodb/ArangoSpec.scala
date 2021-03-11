@@ -1,6 +1,5 @@
 package avokka.arangodb
 
-import protocol.ArangoError
 import types._
 import fs2._
 import avokka.test.ArangodbContainer
@@ -43,64 +42,6 @@ class ArangoSpec
       res.header.responseCode should be (200)
       res.body.result should contain (DatabaseName.system)
       res.body.result should contain (DatabaseName("test"))
-    }
-  }
-
-  it should "create, read and drop a database" in { arango =>
-    val scratchName = DatabaseName("scratch")
-    val scratch = arango.database(scratchName)
-
-    for {
-      created <- scratch.create()
-      listed  <- arango.server.databases()
-      info    <- scratch.info()
-      dropped <- scratch.drop()
-    } yield {
-      created.header.responseCode should be (201)
-      created.body.result should be (true)
-
-      listed.body.result should contain (scratchName)
-
-      info.header.responseCode should be (200)
-      info.body.result.name should be (scratchName)
-
-      dropped.header.responseCode should be(200)
-      dropped.body.result should be (true)
-    }
-  }
-
-  it should "fail creating database with invalid name" in { arango =>
-    arango.database(DatabaseName("@")).create().redeem({
-      case e: ArangoError.Response =>
-        e.header.responseCode should be (400)
-        e.error.errorNum should be (1229)
-      case e => fail(e)
-    }, { r =>
-      fail(s"Expected a ArangoError.Response but received: $r")
-    })
-  }
-
-  it should "create, read and drop a collection" in { arango =>
-    val test = arango.database(DatabaseName("test"))
-    val tempName = CollectionName("temp")
-    val temp = test.collection(tempName)
-
-    for {
-      created <- temp.create()
-      listed  <- test.collections()
-      info    <- temp.info()
-      dropped <- temp.drop()
-    } yield {
-      created.header.responseCode should be (200)
-      created.body.name should be (tempName)
-
-      listed.body.result.map(_.name) should contain (tempName)
-
-      info.header.responseCode should be (200)
-      info.body.name should be (tempName)
-
-      dropped.header.responseCode should be(200)
-      dropped.body.id should be (created.body.id)
     }
   }
 

@@ -1,6 +1,6 @@
 # Avokka
 
-[![Travis (.com) branch](https://img.shields.io/travis/com/avokka/avokka/master)](https://travis-ci.com/github/avokka/avokka)
+[![CI workflow](https://github.com/avokka/avokka/actions/workflows/ci.yml/badge.svg)](https://github.com/avokka/avokka/actions/workflows/ci.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/com.bicou/avokka-arangodb_2.12)](https://search.maven.org/search?q=g:com.bicou%20avokka)
 [![GitHub](https://img.shields.io/github/license/avokka/avokka)](LICENSE)
 [![CodeFactor](https://www.codefactor.io/repository/github/avokka/avokka/badge)](https://www.codefactor.io/repository/github/avokka/avokka)

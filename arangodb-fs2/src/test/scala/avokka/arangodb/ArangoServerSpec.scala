@@ -48,8 +48,8 @@ class ArangoServerSpec
   it should "have a _system and test database" in { arango =>
     arango.server.databases().map { res =>
       res.header.responseCode should be (200)
-      res.body.result should contain (DatabaseName.system)
-      res.body.result should contain (DatabaseName("test"))
+      res.body should contain (DatabaseName.system)
+      res.body should contain (DatabaseName("test"))
     }
   }
 

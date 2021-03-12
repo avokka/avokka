@@ -79,7 +79,7 @@ object ArangoClient {
   abstract class Impl[F[_]](configuration: ArangoConfiguration)(implicit F: MonadThrow[F], L: MessageLogger[F])
     extends ArangoClient[F] {
 
-    override def server: ArangoServer[F] = ArangoServer(this)
+    override def server: ArangoServer[F] = ArangoServer(this, F)
     override def database(name: DatabaseName): ArangoDatabase[F] = ArangoDatabase(name)(this, F)
     override def system: ArangoDatabase[F] = database(DatabaseName.system)
     override def db: ArangoDatabase[F] = database(configuration.database)

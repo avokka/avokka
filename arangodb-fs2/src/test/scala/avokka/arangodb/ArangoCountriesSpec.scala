@@ -34,7 +34,7 @@ class ArangoCountriesSpec
     arango.server.databases().map { res =>
       res.header.responseCode should be(200)
       res.header.`type` should be(MessageType.ResponseFinal)
-      res.body.result should contain(dbName)
+      res.body should contain(dbName)
     }
   }
 
@@ -42,7 +42,7 @@ class ArangoCountriesSpec
     arango.db.collections().map { res =>
       res.header.responseCode should be(200)
       res.header.`type` should be(MessageType.ResponseFinal)
-      res.body.result.map(_.name) should contain(collName)
+      res.body.map(_.name) should contain(collName)
     }
   }
 

@@ -42,8 +42,8 @@ class ArangoSpec
   it should "have a _system and test database" in {
     client.databases().map { res =>
       res.header.responseCode should be (200)
-      res.body.result should contain (DatabaseName.system)
-      res.body.result should contain (DatabaseName("test"))
+      res.body should contain (DatabaseName.system)
+      res.body should contain (DatabaseName("test"))
     }
   }
 
@@ -60,10 +60,10 @@ class ArangoSpec
       created.header.responseCode should be (201)
       created.body.result should be (true)
 
-      listed.body.result should contain (scratchName)
+      listed.body should contain (scratchName)
 
       info.header.responseCode should be (200)
-      info.body.result.name should be (scratchName)
+      info.body.name should be (scratchName)
 
       dropped.header.responseCode should be(200)
       dropped.body.result should be (true)
@@ -93,7 +93,7 @@ class ArangoSpec
       created.header.responseCode should be (200)
       created.body.name should be (tempName)
 
-      listed.body.result.map(_.name) should contain (tempName)
+      listed.body.map(_.name) should contain (tempName)
 
       info.header.responseCode should be (200)
       info.body.name should be (tempName)

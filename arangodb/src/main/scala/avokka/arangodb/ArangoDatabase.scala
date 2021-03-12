@@ -3,6 +3,7 @@ package avokka.arangodb
 import api._
 import avokka.velocypack._
 import cats.Functor
+import cats.syntax.functor._
 import protocol._
 import types._
 
@@ -20,7 +21,7 @@ trait ArangoDatabase[F[_]] { self =>
   def info(): F[ArangoResponse[DatabaseInfo]]
   def drop(): F[ArangoResponse[DatabaseResult]]
 
-  def collections(excludeSystem: Boolean = false): F[ArangoResponse[api.CollectionList]]
+  def collections(excludeSystem: Boolean = false): F[ArangoResponse[Vector[CollectionInfo]]]
 
   /**
     * @param qs contains the query string to be executed
@@ -46,8 +47,9 @@ object ArangoDatabase {
 
     override def query[V: VPackEncoder](query: Query[V]): ArangoQuery[F, V] = ArangoQuery(name, query)
 
-    override def collections(excludeSystem: Boolean): F[ArangoResponse[CollectionList]] =
-      GET(name, "/_api/collection", Map("excludeSystem" -> excludeSystem.toString)).execute
+    override def collections(excludeSystem: Boolean): F[ArangoResponse[Vector[CollectionInfo]]] =
+      GET(name, "/_api/collection", Map("excludeSystem" -> excludeSystem.toString))
+        .execute[F, Result[Vector[CollectionInfo]]].map(_.result)
 
     override def create(users: DatabaseCreate.User*): F[ArangoResponse[DatabaseResult]] =
       POST(
@@ -62,7 +64,7 @@ object ArangoDatabase {
       ).execute
 
     override def info(): F[ArangoResponse[DatabaseInfo]] =
-      GET(name, "/_api/database/current").execute
+      GET(name, "/_api/database/current").execute[F, Result[DatabaseInfo]].map(_.result)
 
     override def drop(): F[ArangoResponse[DatabaseResult]] =
       DELETE(DatabaseName.system, "/_api/database/" + name).execute

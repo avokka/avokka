@@ -45,7 +45,7 @@ class ArangoCollectionSpec
       created.header.responseCode should be (200)
       created.body.name should be (tempName)
 
-      listed.body.result.map(_.name) should contain (tempName)
+      listed.body.map(_.name) should contain (tempName)
 
       info.header.responseCode should be (200)
       info.body.name should be (tempName)

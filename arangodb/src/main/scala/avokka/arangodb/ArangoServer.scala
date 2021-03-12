@@ -4,6 +4,8 @@ import api._
 import admin.AdminLog
 import protocol._
 import types._
+import cats.Functor
+import cats.syntax.functor._
 
 import avokka.velocypack.enumeratum._
 
@@ -12,7 +14,7 @@ trait ArangoServer[F[_]] {
     * list databases
     * @return
     */
-  def databases(): F[ArangoResponse[DatabaseList]]
+  def databases(): F[ArangoResponse[Vector[DatabaseName]]]
 
   /**
     * server version
@@ -42,7 +44,7 @@ trait ArangoServer[F[_]] {
 }
 
 object ArangoServer {
-  def apply[F[_]: ArangoClient]: ArangoServer[F] = new ArangoServer[F] {
+  def apply[F[_]: ArangoClient : Functor]: ArangoServer[F] = new ArangoServer[F] {
 
     override def version(details: Boolean): F[ArangoResponse[Version]] =
       GET(DatabaseName.system, "/_api/version", parameters = Map("details" -> details.toString)).execute
@@ -50,8 +52,8 @@ object ArangoServer {
     override def engine(): F[ArangoResponse[Engine]] =
       GET(DatabaseName.system, "/_api/engine").execute
 
-    override def databases(): F[ArangoResponse[DatabaseList]] =
-      GET(DatabaseName.system, "/_api/database/user").execute
+    override def databases(): F[ArangoResponse[Vector[DatabaseName]]] =
+      GET(DatabaseName.system, "/_api/database/user").execute[F, Result[Vector[DatabaseName]]].map(_.result)
 
     override def role(): F[ArangoResponse[ServerRole]] =
       GET(DatabaseName.system, "/_admin/server/role").execute

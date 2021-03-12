@@ -1,5 +1,7 @@
-package avokka.arangodb.protocol
+package avokka.arangodb
+package protocol
 
+import api.Result
 import avokka.velocypack._
 import cats.Show
 import cats.syntax.show._
@@ -26,6 +28,11 @@ object ArangoResponse {
     implicit val show: Show[Header] = { h =>
       show"${h.`type`}(v${h.version},code=${h.responseCode},meta=${h.meta})"
     }
+  }
+
+  implicit final class ArangoResponseResultOps[T](private val r: ArangoResponse[Result[T]]) {
+    // extract result
+    def result: ArangoResponse[T] = r.copy(body = r.body.result)
   }
 
 }

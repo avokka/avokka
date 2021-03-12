@@ -31,8 +31,8 @@ class ArangoDatabaseSpec
   it should "info" in { arango =>
     arango.db.info().map { res =>
       res.header.responseCode should be (200)
-      res.body.result.name should be (databaseName)
-      res.body.result.id should not be (empty)
+      res.body.name should be (databaseName)
+      res.body.id should not be (empty)
     }
   }
 
@@ -50,15 +50,15 @@ class ArangoDatabaseSpec
       created.header.responseCode should be (201)
       created.body.result should be (true)
 
-      listed.body.result should contain (scratchName)
+      listed.body should contain (scratchName)
 
       info.header.responseCode should be (200)
-      info.body.result.name should be (scratchName)
+      info.body.name should be (scratchName)
 
       dropped.header.responseCode should be(200)
       dropped.body.result should be (true)
 
-      after.body.result should not contain (scratchName)
+      after.body should not contain (scratchName)
     }
   }
 

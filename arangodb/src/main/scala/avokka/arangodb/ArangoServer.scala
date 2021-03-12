@@ -29,7 +29,16 @@ trait ArangoServer[F[_]] {
 
   def role(): F[ArangoResponse[ServerRole]]
 
-  def logLevel(): F[ArangoResponse[Map[String, AdminLog.Level]]]
+  /**
+    * current log level settings
+    * @return map of log topic to log level
+    */
+  def logLevel(): F[ArangoResponse[AdminLog.Levels]]
+
+  /**
+    * modifies the current log level settings
+    */
+  def logLevel(levels: AdminLog.Levels): F[ArangoResponse[AdminLog.Levels]]
 }
 
 object ArangoServer {
@@ -47,8 +56,10 @@ object ArangoServer {
     override def role(): F[ArangoResponse[ServerRole]] =
       GET(DatabaseName.system, "/_admin/server/role").execute
 
-    override def logLevel(): F[ArangoResponse[Map[String, AdminLog.Level]]] =
+    override def logLevel(): F[ArangoResponse[AdminLog.Levels]] =
       GET(DatabaseName.system, "/_admin/log/level").execute
 
+    override def logLevel(levels: AdminLog.Levels): F[ArangoResponse[AdminLog.Levels]] =
+      PUT(DatabaseName.system, "/_admin/log/level").body(levels).execute
   }
 }

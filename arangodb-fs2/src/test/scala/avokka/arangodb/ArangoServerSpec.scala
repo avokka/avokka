@@ -1,5 +1,6 @@
 package avokka.arangodb
 
+import avokka.arangodb.api.admin.AdminLog
 import types._
 import fs2._
 import avokka.test.ArangodbContainer
@@ -52,4 +53,10 @@ class ArangoServerSpec
     }
   }
 
+  it should "get log levels" in { arango =>
+    arango.server.logLevel().map { res =>
+      res.header.responseCode should be (200)
+      res.body.get(AdminLog.Topic.general) should not be (empty)
+    }
+  }
 }

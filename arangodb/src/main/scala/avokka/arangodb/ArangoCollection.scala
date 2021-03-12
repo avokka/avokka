@@ -68,6 +68,8 @@ trait ArangoCollection[F[_]] {
 
   def drop(isSystem: Boolean = false): F[ArangoResponse[DeleteResult]]
 
+  def rename(newName: CollectionName): F[ArangoResponse[CollectionInfo]]
+
   /**
     * Create a document
     * @param document document value
@@ -171,6 +173,9 @@ object ArangoCollection {
 
       override def drop(isSystem: Boolean): F[ArangoResponse[DeleteResult]] =
         DELETE(database, api, Map("isSystem" -> isSystem.toString)).execute
+
+      override def rename(newName: CollectionName): F[ArangoResponse[CollectionInfo]] =
+        PUT(database, api + "/rename").body(VObject("name" -> newName.toVPack)).execute
 
       override def create(setup: CollectionCreate => CollectionCreate): F[ArangoResponse[CollectionInfo]] = {
         val options = setup(CollectionCreate(name))

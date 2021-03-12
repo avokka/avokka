@@ -122,4 +122,21 @@ class ArangoCollectionSpec
       i.body.status should be (CollectionStatus.Unloaded)
     }
   }
+
+  it should "rename" in { arango =>
+    val test = arango.database(databaseName)
+    val tempName = CollectionName("temp")
+    val temp = test.collection(tempName)
+    val temp2Name = CollectionName("temp2")
+    val temp2 = test.collection(temp2Name)
+
+    for {
+      _ <- temp.create()
+      r <- temp.rename(temp2Name)
+      _ <- temp2.drop()
+    } yield {
+      r.header.responseCode should be (200)
+      r.body.name should be (temp2Name)
+    }
+  }
 }

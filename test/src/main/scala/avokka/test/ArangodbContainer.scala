@@ -29,7 +29,7 @@ object ArangodbContainer {
   val port: Int = 8529
 
   object Defaults {
-    val version: String = "3.7"
+    val version: String = System.getProperty("test.arangodb.version", "latest")
     val password: String = Random.nextLong().toHexString
   }
 

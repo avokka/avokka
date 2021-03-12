@@ -12,8 +12,9 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-20.04]
-        scala: [2.12.12, 2.13.5]
         java: [adopt@1.8, adopt@1.11]
+        scala: [2.12.12, 2.13.5]
+        arangodb: [3.6.12, 3.7.9]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -33,7 +34,7 @@ jobs:
         uses: coursier/cache-action@v6
 
       - name: Run tests
-        run: sbt ++${{ matrix.scala }} coverage test
+        run: sbt ++${{ matrix.scala }} -Dtest.arangodb.version=${{ matrix.arangodb }} coverage test
 
       - name: Coverage aggregation
         run: sbt ++${{ matrix.scala }} coverageAggregate

@@ -3,6 +3,7 @@ package api
 package admin
 
 import avokka.velocypack._
+import _root_.enumeratum._
 
 object AdminLog { self =>
 
@@ -24,6 +25,19 @@ object AdminLog { self =>
   )
   object Response {
     implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
+  }
+
+  sealed trait Level extends EnumEntry
+  object Level extends Enum[Level] {
+    val values = findValues
+
+    case object FATAL extends Level
+    case object ERROR extends Level
+    case object WARNING extends Level
+    case object INFO extends Level
+    case object DEBUG extends Level
+    case object TRACE extends Level
+    case object DEFAULT extends Level
   }
 
 /*  implicit val api: Api.EmptyBody.Aux[ArangoSession, AdminLog.type, Response] = new Api.EmptyBody[ArangoSession, AdminLog.type] {

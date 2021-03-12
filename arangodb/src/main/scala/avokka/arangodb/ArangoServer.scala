@@ -1,8 +1,11 @@
 package avokka.arangodb
 
 import api._
+import admin.AdminLog
 import protocol._
 import types._
+
+import avokka.velocypack.enumeratum._
 
 trait ArangoServer[F[_]] {
   /**
@@ -25,6 +28,8 @@ trait ArangoServer[F[_]] {
   def engine(): F[ArangoResponse[Engine]]
 
   def role(): F[ArangoResponse[ServerRole]]
+
+  def logLevel(): F[ArangoResponse[Map[String, AdminLog.Level]]]
 }
 
 object ArangoServer {
@@ -41,6 +46,9 @@ object ArangoServer {
 
     override def role(): F[ArangoResponse[ServerRole]] =
       GET(DatabaseName.system, "/_admin/server/role").execute
+
+    override def logLevel(): F[ArangoResponse[Map[String, AdminLog.Level]]] =
+      GET(DatabaseName.system, "/_admin/log/level").execute
 
   }
 }

@@ -67,6 +67,7 @@ object AdminLog { self =>
     case object flush extends Topic
     case object general extends Topic
     case object graphs extends Topic
+    case object handler extends Topic
     case object heartbeat extends Topic
     case object httpclient extends Topic
     case object libiresearch extends Topic

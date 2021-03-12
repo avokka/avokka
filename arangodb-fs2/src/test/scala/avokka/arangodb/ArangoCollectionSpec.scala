@@ -113,13 +113,11 @@ class ArangoCollectionSpec
     for {
       _ <- temp.create()
       u <- temp.unload()
-      i <- temp.info()
       _ <- temp.drop()
     } yield {
       u.header.responseCode should be (200)
       u.body.name should be (tempName)
-
-      i.body.status should be (CollectionStatus.Unloaded)
+      u.body.status should be (CollectionStatus.Unloaded)
     }
   }
 

@@ -3,8 +3,10 @@ package avokka.velocypack
 import scala.annotation.implicitNotFound
 
 @implicitNotFound("Cannot find a velocypack key encoder for ${T}")
-trait VPackKeyEncoder[T] {
+trait VPackKeyEncoder[T] { self =>
   def encode(t: T): String
+
+  def contramap[U](f: U => T): VPackKeyEncoder[U] = (u: U) => self.encode(f(u))
 }
 
 object VPackKeyEncoder {

@@ -170,11 +170,15 @@ object VArray {
 final case class VObject(values: Map[String, VPack]) extends AnyVal with VPack {
   override def isEmpty: Boolean = values.isEmpty
   override def name: String = "object"
-  def updated[T: VPackEncoder](key: String, value: T): VObject = copy(values = values.updated(key, value.toVPack))
+  def updated[K: VPackKeyEncoder, T: VPackEncoder](key: K, value: T): VObject = copy(
+    values = values.updated(VPackKeyEncoder[K].encode(key), value.toVPack)
+  )
   def filter(p: ((String, VPack)) => Boolean): VObject = copy(values = values.filter(p))
 }
 object VObject {
-  def apply(values: (String, VPack)*): VObject = VObject(values.toMap)
-  val empty: VObject = VObject()
+  def apply[K](values: (K, VPack)*)(implicit K: VPackKeyEncoder[K]): VObject =
+    VObject(values.map { case (k, v) => (K.encode(k), v) }.toMap)
+
+  val empty: VObject = VObject(Map.empty[String, VPack])
 }
 

@@ -43,10 +43,14 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
 
   "map" should "encode to objects" in {
     assertCodec(Map("z" -> 1, "a" -> 2), VObject(Map("z" -> VSmallint(1), "a" -> VSmallint(2))))
+
+    assertCodec(Map(Symbol("z") -> 1, Symbol("a") -> 2), VObject(Map("z" -> VSmallint(1), "a" -> VSmallint(2))))
   }
 
   "object syntax" should "allow simple object creation" in {
     VObject("a" -> true.toVPack, "b" -> 1.toVPack) should be (VObject(Map("a" -> VTrue, "b" -> VSmallint(1))))
+
+    VObject(Symbol("a") -> true.toVPack) should be (VObject(Map("a" -> VTrue)))
   }
 
   "empty string" should "decode to empty bytevector" in {

@@ -159,17 +159,17 @@ object VPackDecoder {
     case v         => Left(VPackError.WrongType(v))
   }
 
-  implicit def listDecoder[F[_], T](implicit d: VPackDecoder[T]): VPackDecoder[List[T]] = {
+  implicit def listDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[List[T]] = {
     case VArray(a) => a.traverse(d.decode).map(_.toList)
     case v         => Left(VPackError.WrongType(v))
   }
 
-  implicit def seqDecoder[F[_], T](implicit d: VPackDecoder[T]): VPackDecoder[Seq[T]] = {
+  implicit def seqDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Seq[T]] = {
     case VArray(a) => a.traverse(d.decode).map(_.toSeq) //.map(_.toVector)
     case v         => Left(VPackError.WrongType(v))
   }
 
-  implicit def setDecoder[F[_], T](implicit d: VPackDecoder[T]): VPackDecoder[Set[T]] = {
+  implicit def setDecoder[T](implicit d: VPackDecoder[T]): VPackDecoder[Set[T]] = {
     case VArray(a) => a.traverse(d.decode).map(_.toSet)
     case v         => Left(VPackError.WrongType(v))
   }
@@ -177,13 +177,13 @@ object VPackDecoder {
   implicit def genericDecoder[T <: HList](implicit a: VPackGeneric.Decoder[T]): VPackDecoder[T] =
     VPackGeneric.Decoder(a)
 
-  implicit def mapDecoder[F[_], T](implicit d: VPackDecoder[T]): VPackDecoder[Map[String, T]] = {
+  implicit def mapDecoder[K, T](implicit kd: VPackKeyDecoder[K], td: VPackDecoder[T]): VPackDecoder[Map[K, T]] = {
     case VObject(o) => {
       o.toVector
         .traverse({
-          case (key, v) => d.decode(v)
+          case (key, v) => (kd.decode(key), td.decode(v))
+            .tupled
             .leftMap(_.historyAdd(key))
-            .map(key -> _)
         })
         .map(_.toMap)
     }

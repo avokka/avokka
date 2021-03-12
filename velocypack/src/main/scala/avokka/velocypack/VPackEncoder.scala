@@ -119,8 +119,8 @@ object VPackEncoder {
   implicit def genericEncoder[T <: HList](implicit a: VPackGeneric.Encoder[T]): VPackEncoder[T] =
     VPackGeneric.Encoder(a)
 
-  implicit def mapEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Map[String, T]] =
-    a => VObject(a.view.mapValues(e.encode).toMap)
+  implicit def mapEncoder[K, T](implicit ke: VPackKeyEncoder[K], te: VPackEncoder[T]): VPackEncoder[Map[K, T]] =
+    a => VObject(a.map { case (k, t) => (ke.encode(k), te.encode(t)) })
 
   implicit val unitEncoder: VPackEncoder[Unit] = _ => VNone
 

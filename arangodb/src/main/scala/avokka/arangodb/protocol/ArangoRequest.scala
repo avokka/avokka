@@ -77,6 +77,7 @@ object ArangoRequest {
       meta: Map[String, String] = Map.empty
   ) extends Request {
     override def requestType: RequestType = RequestType.HEAD
+    @inline def execute[F[_]: ArangoClient]: F[ArangoResponse.Header] = ArangoClient[F].execute(this)
   }
 
   final case class PATCH(

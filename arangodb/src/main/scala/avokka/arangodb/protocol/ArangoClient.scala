@@ -21,7 +21,14 @@ trait ArangoClient[F[_]] {
   protected def send(message: ByteVector): F[ByteVector]
 
   /**
-    * send a arangodb request without body and receive arango response
+    * send a arangodb request without body and receive a arangodb response without body (HEAD)
+    * @param header arango request header
+    * @return arango header
+    */
+  def execute(header: ArangoRequest.Header): F[ArangoResponse.Header]
+
+  /**
+    * send a arangodb request without body and receive arangodb response
     * @param header arango header
     * @tparam O output body type
     * @return arango response
@@ -29,7 +36,7 @@ trait ArangoClient[F[_]] {
   def execute[O: VPackDecoder](header: ArangoRequest.Header): F[ArangoResponse[O]]
 
   /**
-    * send a arangodb request with a body payload and receive arango response
+    * send a arangodb request with a body payload and receive arangodb response
     * @param request arango request
     * @tparam P payload body type
     * @tparam O output body type
@@ -83,6 +90,21 @@ object ArangoClient {
 
     private val traceREQ = Console.CYAN + "\u25b2REQ" + Console.RESET
     private val traceRES = Console.CYAN_B + Console.BLACK + "\u25bcRES" + Console.RESET
+
+    override def execute(header: ArangoRequest.Header): F[ArangoResponse.Header] = for {
+      _      <- L.trace(show"$traceREQ header $header")
+      in     <- F.fromEither(header.toVPackBits)
+      _      <- L.trace(show"$traceREQ header ${in.asVPackValue}")
+      out    <- send(in.bytes)
+      _      <- L.trace(show"$traceRES header ${out.bits.asVPackValue}")
+      header <- F.fromEither(out.bits.asVPack[ArangoResponse.Header])
+      _      <- L.trace(show"$traceRES header ${header.value}")
+      res    <- if (header.value.responseCode >= 300) {
+        F.raiseError(ArangoError.Header(header.value))
+      } else {
+        F.pure(header.value)
+      }
+    } yield res
 
     override def execute[O: VPackDecoder](header: ArangoRequest.Header): F[ArangoResponse[O]] =
       for {

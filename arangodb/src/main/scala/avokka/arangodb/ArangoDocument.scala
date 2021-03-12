@@ -3,7 +3,7 @@ package avokka.arangodb
 import avokka.arangodb.api._
 import avokka.arangodb.protocol.{ArangoClient, ArangoResponse}
 import avokka.arangodb.types.{DatabaseName, DocumentHandle}
-import avokka.velocypack.{VObject, VPackDecoder, VPackEncoder}
+import avokka.velocypack._
 import cats.Functor
 
 trait ArangoDocument[F[_]] {
@@ -26,6 +26,17 @@ trait ArangoDocument[F[_]] {
       ifNoneMatch: Option[String] = None,
       ifMatch: Option[String] = None,
   ): F[ArangoResponse[T]]
+
+  /**
+    * Like read, but only returns the header fields and not the body. You can use this call to get the current revision of a document or check if the document was deleted.
+    *
+    * @param ifNoneMatch  If the “If-None-Match” header is given, then it must contain exactly one Etag. If the current document revision is not equal to the specified Etag, an HTTP 200 response is returned. If the current document revision is identical to the specified Etag, then an HTTP 304 is returned.
+    * @param ifMatch      If the “If-Match” header is given, then it must contain exactly one Etag. The document is returned, if it has the same revision as the given Etag. Otherwise a HTTP 412 is returned.
+    */
+  def head(
+            ifNoneMatch: Option[String] = None,
+            ifMatch: Option[String] = None,
+          ): F[ArangoResponse.Header]
 
   /**
     * Removes a document
@@ -113,6 +124,19 @@ object ArangoDocument {
           ifMatch: Option[String]
       ): F[ArangoResponse[T]] =
         GET(
+          database,
+          api,
+          meta = Map(
+            "If-None-Match" -> ifNoneMatch,
+            "If-Match" -> ifMatch
+          ).collectDefined
+        ).execute
+
+      override def head(
+                         ifNoneMatch: Option[String],
+                         ifMatch: Option[String]
+                       ): F[ArangoResponse.Header] =
+        HEAD(
           database,
           api,
           meta = Map(

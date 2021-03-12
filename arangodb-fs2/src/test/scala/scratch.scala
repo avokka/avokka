@@ -1,6 +1,8 @@
 import avokka.arangodb.ArangoConfiguration
+import avokka.arangodb.api.admin.AdminLog
 import avokka.arangodb.aql._
 import avokka.arangodb.fs2._
+import avokka.arangodb.protocol.ArangoError
 import avokka.arangodb.types._
 import avokka.velocypack._
 import cats.effect._
@@ -24,9 +26,11 @@ object scratch extends IOApp {
     config <- Blocker[IO].use(ArangoConfiguration.at().loadF[IO, ArangoConfiguration])
     arango = Arango(config)
     _ <- arango.use { client =>
+      val v10 = client.database(DatabaseName("v10"))
+      val countries = v10.collection(CollectionName("countries"))
       for {
-        v <- client.server.logLevel()
-        _ <- IO { println(v.body) }
+        t <- v10.begin()
+        c <- t.commit()
       } yield ()
     }
   } yield ExitCode.Success

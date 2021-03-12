@@ -34,10 +34,24 @@ trait ArangoDatabase[F[_]] { self =>
 
   def query(qs: String): ArangoQuery[F, VObject] = query(qs, VObject.empty)
   def query[V: VPackEncoder](query: Query[V]): ArangoQuery[F, V]
+
+  /**
+    * begin a server-side transaction
+    *
+    * @param read
+    * @param write
+    * @param exclusive
+    * @return
+    */
+  def begin(
+      read: Seq[CollectionName] = Seq.empty,
+      write: Seq[CollectionName] = Seq.empty,
+      exclusive: Seq[CollectionName] = Seq.empty,
+  ): F[ArangoTransaction[F]]
 }
 
 object ArangoDatabase {
-  def apply[F[_]: ArangoClient : Functor](_name: DatabaseName): ArangoDatabase[F] = new ArangoDatabase[F] {
+  def apply[F[_]: ArangoClient: Functor](_name: DatabaseName): ArangoDatabase[F] = new ArangoDatabase[F] {
 
     override def name: DatabaseName = _name
 
@@ -49,19 +63,20 @@ object ArangoDatabase {
 
     override def collections(excludeSystem: Boolean): F[ArangoResponse[Vector[CollectionInfo]]] =
       GET(name, "/_api/collection", Map("excludeSystem" -> excludeSystem.toString))
-        .execute[F, Result[Vector[CollectionInfo]]].map(_.result)
+        .execute[F, Result[Vector[CollectionInfo]]]
+        .map(_.result)
 
     override def create(users: DatabaseCreate.User*): F[ArangoResponse[DatabaseResult]] =
       POST(
         DatabaseName.system,
         "/_api/database"
-      )
-      .body(
-        VObject(
-          "name" -> name.toVPack,
-          "users" -> users.toVPack
+      ).body(
+          VObject(
+            "name" -> name.toVPack,
+            "users" -> users.toVPack
+          )
         )
-      ).execute
+        .execute
 
     override def info(): F[ArangoResponse[DatabaseInfo]] =
       GET(name, "/_api/database/current").execute[F, Result[DatabaseInfo]].map(_.result)
@@ -69,5 +84,22 @@ object ArangoDatabase {
     override def drop(): F[ArangoResponse[DatabaseResult]] =
       DELETE(DatabaseName.system, "/_api/database/" + name).execute
 
+    override def begin(read: Seq[CollectionName],
+                       write: Seq[CollectionName],
+                       exclusive: Seq[CollectionName]): F[ArangoTransaction[F]] =
+      POST(name, "/_api/transaction/begin")
+        .body(
+          VObject(
+            "collections" -> VObject(
+              "read" -> read.toVPack,
+              "write" -> write.toVPack,
+              "exclusive" -> exclusive.toVPack
+            )
+          )
+        )
+        .execute[F, Result[Transaction]]
+        .map { t =>
+          ArangoTransaction(name, t.body.result.id)
+        }
   }
 }

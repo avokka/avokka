@@ -16,10 +16,10 @@ trait ArangoDatabase[F[_]] { self =>
   /**
     * @param users Has to be an array of user objects to initially create for the new database. User information will not be changed for users that already exist. If *users* is not specified or does not contain any users, a default user *root* will be created with an empty string password. This ensures that the new database will be accessible after it is created. Each user object can contain the following attributes:
     */
-  def create(users: DatabaseCreate.User*): F[ArangoResponse[DatabaseResult]]
+  def create(users: DatabaseCreate.User*): F[ArangoResponse[Boolean]]
 
   def info(): F[ArangoResponse[DatabaseInfo]]
-  def drop(): F[ArangoResponse[DatabaseResult]]
+  def drop(): F[ArangoResponse[Boolean]]
 
   def collections(excludeSystem: Boolean = false): F[ArangoResponse[Vector[CollectionInfo]]]
 
@@ -66,7 +66,7 @@ object ArangoDatabase {
         .execute[F, Result[Vector[CollectionInfo]]]
         .map(_.result)
 
-    override def create(users: DatabaseCreate.User*): F[ArangoResponse[DatabaseResult]] =
+    override def create(users: DatabaseCreate.User*): F[ArangoResponse[Boolean]] =
       POST(
         DatabaseName.system,
         "/_api/database"
@@ -76,13 +76,14 @@ object ArangoDatabase {
             "users" -> users.toVPack
           )
         )
-        .execute
+        .execute[F, Result[Boolean]]
+        .map(_.result)
 
     override def info(): F[ArangoResponse[DatabaseInfo]] =
       GET(name, "/_api/database/current").execute[F, Result[DatabaseInfo]].map(_.result)
 
-    override def drop(): F[ArangoResponse[DatabaseResult]] =
-      DELETE(DatabaseName.system, "/_api/database/" + name).execute
+    override def drop(): F[ArangoResponse[Boolean]] =
+      DELETE(DatabaseName.system, "/_api/database/" + name).execute[F, Result[Boolean]].map(_.result)
 
     override def begin(read: Seq[CollectionName],
                        write: Seq[CollectionName],

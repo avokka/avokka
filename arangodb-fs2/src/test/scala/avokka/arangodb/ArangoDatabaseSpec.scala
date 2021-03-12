@@ -48,7 +48,7 @@ class ArangoDatabaseSpec
       after   <- arango.server.databases()
     } yield {
       created.header.responseCode should be (201)
-      created.body.result should be (true)
+      created.body should be (true)
 
       listed.body should contain (scratchName)
 
@@ -56,7 +56,7 @@ class ArangoDatabaseSpec
       info.body.name should be (scratchName)
 
       dropped.header.responseCode should be(200)
-      dropped.body.result should be (true)
+      dropped.body should be (true)
 
       after.body should not contain (scratchName)
     }

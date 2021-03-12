@@ -40,7 +40,7 @@ object Dependencies {
   val scodecCats = "org.scodec" %% "scodec-cats" % "1.1.0-RC1"
   val scodecStream = "org.scodec" %% "scodec-stream" % "2.0.0"
 
-  val arango = "com.arangodb" % "arangodb-java-driver" % "6.4.1"
+  val arango = "com.arangodb" % "arangodb-java-driver" % "6.9.0"
 
   val enumeratumVersion = "1.6.1"
   val enumeratum = "com.beachape" %% "enumeratum" % enumeratumVersion

@@ -1,6 +1,7 @@
 package avokka.arangodb
 package api
 
+import avokka.arangodb.types.TransactionId
 import avokka.velocypack._
 
 /**
@@ -10,11 +11,13 @@ import avokka.velocypack._
   * @param status status of the transaction “running”, “committed” or “aborted”
   */
 case class Transaction(
-    id: String,
+    id: TransactionId,
     status: String
 )
 
 object Transaction {
   implicit val decoder: VPackDecoder[Transaction] = VPackDecoder.gen
+
+  val KEY: String = "x-arango-trx-id"
 }
 

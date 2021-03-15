@@ -54,7 +54,13 @@ trait ArangoCollection[F[_]] {
       withData: Boolean = false,
   ): F[ArangoResponse[CollectionChecksum]]
 
-  def count(): F[ArangoResponse[CollectionCount]]
+  /**
+    * Counts the documents in a collection
+    * @return
+    */
+  def count(
+      transactionId: Option[TransactionId] = None
+           ): F[ArangoResponse[CollectionCount]]
 
   def info(): F[ArangoResponse[CollectionInfo]]
 
@@ -153,8 +159,16 @@ object ArangoCollection {
             )
           ).execute
 
-      override def count(): F[ArangoResponse[CollectionCount]] =
-        GET(database, api + "/count").execute
+      override def count(
+          transactionId: Option[TransactionId]
+                        ): F[ArangoResponse[CollectionCount]] =
+        GET(
+          database,
+          api + "/count",
+          meta = Map(
+            Transaction.KEY -> transactionId.map(_.repr)
+          ).collectDefined
+        ).execute
 
       override def info(): F[ArangoResponse[CollectionInfo]] =
         GET(database, api).execute

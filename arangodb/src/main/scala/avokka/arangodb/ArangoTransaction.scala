@@ -7,7 +7,7 @@ import cats.syntax.functor._
 import protocol._
 
 trait ArangoTransaction[F[_]] {
-  def id: String
+  def id: TransactionId
 
   /**
     * Fetch status of a server-side transaction
@@ -27,9 +27,9 @@ trait ArangoTransaction[F[_]] {
 }
 
 object ArangoTransaction {
-  def apply[F[_] : ArangoClient : Functor](database: DatabaseName, _id: String): ArangoTransaction[F] = new ArangoTransaction[F] {
-    override def id: String = _id
-    private val api: String = "/_api/transaction/" + id
+  def apply[F[_] : ArangoClient : Functor](database: DatabaseName, _id: TransactionId): ArangoTransaction[F] = new ArangoTransaction[F] {
+    override def id: TransactionId = _id
+    private val api: String = "/_api/transaction/" + id.repr
 
     override def status(): F[ArangoResponse[Transaction]] =
       GET(database, api).execute

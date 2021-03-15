@@ -2,7 +2,7 @@ package avokka.arangodb
 
 import avokka.arangodb.api._
 import avokka.arangodb.protocol._
-import avokka.arangodb.types.DatabaseName
+import avokka.arangodb.types.{DatabaseName, TransactionId}
 import avokka.velocypack.VPackDecoder
 import cats.Functor
 import cats.syntax.functor._
@@ -15,9 +15,11 @@ trait ArangoCursor[F[_], T] {
 }
 
 object ArangoCursor {
+
   def apply[F[_]: ArangoClient: Functor, T: VPackDecoder](
       database: DatabaseName,
-      response: ArangoResponse[Cursor[T]]
+      response: ArangoResponse[Cursor[T]],
+      options: ArangoQuery.Options
   ): ArangoCursor[F, T] = new ArangoCursor[F, T] {
 
     override def header: ArangoResponse.Header = response.header
@@ -28,13 +30,22 @@ object ArangoCursor {
         .execute[Cursor[T]](
           PUT(
             database,
-            s"/_api/cursor/${body.id.get}"
+            s"/_api/cursor/${body.id.get}",
+            meta = Map(
+              Transaction.KEY -> options.transaction.map(_.repr)
+            ).collectDefined
           )
         )
-        .map { apply(database, _) }
+        .map { apply(database, _, options) }
 
     override def delete(): F[ArangoResponse[DeleteResult]] =
-      DELETE(database, s"/_api/cursor/${body.id.get}").execute
+      DELETE(
+        database,
+        s"/_api/cursor/${body.id.get}",
+        meta = Map(
+          Transaction.KEY -> options.transaction.map(_.repr)
+        ).collectDefined
+      ).execute
 
   }
 }

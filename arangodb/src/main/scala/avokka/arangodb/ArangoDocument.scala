@@ -2,7 +2,7 @@ package avokka.arangodb
 
 import avokka.arangodb.api._
 import avokka.arangodb.protocol.{ArangoClient, ArangoResponse}
-import avokka.arangodb.types.{DatabaseName, DocumentHandle}
+import avokka.arangodb.types.{DatabaseName, DocumentHandle, TransactionId}
 import avokka.velocypack._
 import cats.Functor
 
@@ -25,6 +25,7 @@ trait ArangoDocument[F[_]] {
   def read[T: VPackDecoder](
       ifNoneMatch: Option[String] = None,
       ifMatch: Option[String] = None,
+      transaction: Option[TransactionId] = None,
   ): F[ArangoResponse[T]]
 
   /**
@@ -36,6 +37,7 @@ trait ArangoDocument[F[_]] {
   def head(
             ifNoneMatch: Option[String] = None,
             ifMatch: Option[String] = None,
+            transaction: Option[TransactionId] = None,
           ): F[ArangoResponse.Header]
 
   /**
@@ -55,7 +57,8 @@ trait ArangoDocument[F[_]] {
       returnOld: Boolean = false,
       silent: Boolean = false,
       ifMatch: Option[String] = None,
-  ): F[ArangoResponse[Document[T]]]
+      transaction: Option[TransactionId] = None,
+                             ): F[ArangoResponse[Document[T]]]
 
   /**
     * @param patch representation of a document update as an object
@@ -80,7 +83,8 @@ trait ArangoDocument[F[_]] {
       returnNew: Boolean = false,
       silent: Boolean = false,
       ifMatch: Option[String] = None,
-  ): F[ArangoResponse[Document[T]]]
+      transaction: Option[TransactionId] = None,
+                                              ): F[ArangoResponse[Document[T]]]
 
   /**
     * @param document representation of a document update as an object
@@ -100,7 +104,8 @@ trait ArangoDocument[F[_]] {
       returnNew: Boolean = false,
       silent: Boolean = false,
       ifMatch: Option[String] = None,
-  ): F[ArangoResponse[Document[T]]]
+      transaction: Option[TransactionId] = None,
+                                            ): F[ArangoResponse[Document[T]]]
 
   /**
     * build an UPSERT query at key with INSERT+UPDATE from obj
@@ -121,27 +126,31 @@ object ArangoDocument {
 
       override def read[T: VPackDecoder](
           ifNoneMatch: Option[String],
-          ifMatch: Option[String]
+          ifMatch: Option[String],
+          transaction: Option[TransactionId],
       ): F[ArangoResponse[T]] =
         GET(
           database,
           api,
           meta = Map(
             "If-None-Match" -> ifNoneMatch,
-            "If-Match" -> ifMatch
+            "If-Match" -> ifMatch,
+            Transaction.KEY -> transaction.map(_.repr)
           ).collectDefined
         ).execute
 
       override def head(
                          ifNoneMatch: Option[String],
-                         ifMatch: Option[String]
-                       ): F[ArangoResponse.Header] =
+                         ifMatch: Option[String],
+                         transaction: Option[TransactionId],
+      ): F[ArangoResponse.Header] =
         HEAD(
           database,
           api,
           meta = Map(
             "If-None-Match" -> ifNoneMatch,
-            "If-Match" -> ifMatch
+            "If-Match" -> ifMatch,
+            Transaction.KEY -> transaction.map(_.repr)
           ).collectDefined
         ).execute
 
@@ -149,7 +158,8 @@ object ArangoDocument {
           waitForSync: Boolean,
           returnOld: Boolean,
           silent: Boolean,
-          ifMatch: Option[String]
+          ifMatch: Option[String],
+          transaction: Option[TransactionId],
       ): F[ArangoResponse[Document[T]]] =
         DELETE(
           database,
@@ -160,7 +170,8 @@ object ArangoDocument {
             "silent" -> silent.toString,
           ),
           Map(
-            "If-Match" -> ifMatch
+            "If-Match" -> ifMatch,
+            Transaction.KEY -> transaction.map(_.repr)
           ).collectDefined
         ).execute
 
@@ -173,8 +184,9 @@ object ArangoDocument {
           returnOld: Boolean,
           returnNew: Boolean,
           silent: Boolean,
-          ifMatch: Option[String]
-      ): F[ArangoResponse[Document[T]]] =
+          ifMatch: Option[String],
+          transaction: Option[TransactionId],
+                                                           ): F[ArangoResponse[Document[T]]] =
         PATCH(
           database,
           api,
@@ -188,7 +200,8 @@ object ArangoDocument {
             "silent" -> silent.toString,
           ),
           Map(
-            "If-Match" -> ifMatch
+            "If-Match" -> ifMatch,
+            Transaction.KEY -> transaction.map(_.repr)
           ).collectDefined
         ).body(patch).execute
 
@@ -199,8 +212,9 @@ object ArangoDocument {
           returnOld: Boolean,
           returnNew: Boolean,
           silent: Boolean,
-          ifMatch: Option[String]
-      ): F[ArangoResponse[Document[T]]] =
+          ifMatch: Option[String],
+          transaction: Option[TransactionId],
+                                                         ): F[ArangoResponse[Document[T]]] =
         ArangoClient[F].execute(
           PUT(
             database,
@@ -213,7 +227,8 @@ object ArangoDocument {
               "silent" -> silent.toString,
             ),
             Map(
-              "If-Match" -> ifMatch
+              "If-Match" -> ifMatch,
+              Transaction.KEY -> transaction.map(_.repr)
             ).collectDefined
           ).body(document)
         )(

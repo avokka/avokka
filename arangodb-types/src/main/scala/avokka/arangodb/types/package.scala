@@ -82,4 +82,10 @@ package object types {
     val empty = apply("")
   }
 
+  @newtype case class TransactionId(repr: String)
+
+  object TransactionId {
+    implicit val encoder: VPackEncoder[TransactionId] = deriving
+    implicit val decoder: VPackDecoder[TransactionId] = deriving
+  }
 }

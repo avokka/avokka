@@ -63,7 +63,7 @@ class ArangoCollectionSpec
   }
 
   it should "count" in { arango =>
-    collection(arango).count().map { res =>
+    collection(arango).documents.count().map { res =>
       res.header.responseCode should be (200)
       res.body.count should be > 200L
     }
@@ -90,10 +90,10 @@ class ArangoCollectionSpec
 
     for {
       _ <- temp.create()
-      _ <- temp.insert(VObject.empty, waitForSync = true)
-      a <- temp.count()
+      _ <- temp.documents.insert(VObject.empty, waitForSync = true)
+      a <- temp.documents.count()
       t <- temp.truncate()
-      b <- temp.count()
+      b <- temp.documents.count()
       _ <- temp.drop()
     } yield {
       a.body.count should be (1L)

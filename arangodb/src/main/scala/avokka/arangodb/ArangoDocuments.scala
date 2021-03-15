@@ -1,11 +1,39 @@
 package avokka.arangodb
 
-import avokka.arangodb.api.Document
+import avokka.arangodb.api.{CollectionCount, Document, Transaction}
 import avokka.arangodb.protocol.{ArangoClient, ArangoResponse}
-import avokka.arangodb.types.{CollectionName, DatabaseName}
+import avokka.arangodb.types.{CollectionName, DatabaseName, TransactionId}
 import avokka.velocypack._
 
 trait ArangoDocuments[F[_]] {
+
+  /**
+    * Counts the documents in a collection
+    * @return
+    */
+  def count(
+      transactionId: Option[TransactionId] = None
+  ): F[ArangoResponse[CollectionCount]]
+
+  /**
+    * Create a document
+    * @param document document value
+    * @param waitForSync Wait until document has been synced to disk.   (optional)
+    * @param returnNew Additionally return the complete new document under the attribute *new* in the result.   (optional)
+    * @param returnOld Additionally return the complete old document under the attribute *old* in the result. Only available if the overwrite option is used.   (optional)
+    * @param silent If set to *true*, an empty object will be returned as response. No meta-data  will be returned for the created document. This option can be used to save some network traffic.   (optional)
+    * @param overwrite If set to *true*, the insert becomes a replace-insert. If a document with the same *_key* already exists the new document is not rejected with unique constraint violated but will replace the old document.   (optional)
+    * @tparam T document type
+    */
+  def insert[T: VPackEncoder: VPackDecoder](
+      document: T,
+      waitForSync: Boolean = false,
+      returnNew: Boolean = false,
+      returnOld: Boolean = false,
+      silent: Boolean = false,
+      overwrite: Boolean = false,
+      transaction: Option[TransactionId] = None
+  ): F[ArangoResponse[Document[T]]]
 
   /**
     * Create documents
@@ -24,6 +52,7 @@ trait ArangoDocuments[F[_]] {
       returnOld: Boolean = false,
       silent: Boolean = false,
       overwrite: Boolean = false,
+      transaction: Option[TransactionId] = None
   ): F[ArangoResponse[Seq[Document[T]]]]
 
   /**
@@ -50,6 +79,7 @@ trait ArangoDocuments[F[_]] {
       ignoreRevs: Boolean = true,
       returnOld: Boolean = false,
       returnNew: Boolean = false,
+      transaction: Option[TransactionId] = None
   ): F[ArangoResponse[Seq[Document[T]]]]
 
   /**
@@ -92,6 +122,7 @@ trait ArangoDocuments[F[_]] {
       ignoreRevs: Boolean = true,
       returnOld: Boolean = false,
       returnNew: Boolean = false,
+      transaction: Option[TransactionId] = None
   ): F[ArangoResponse[Seq[Document[T]]]]
 
   /**
@@ -117,6 +148,7 @@ trait ArangoDocuments[F[_]] {
       waitForSync: Boolean = false,
       returnOld: Boolean = false,
       ignoreRevs: Boolean = true,
+      transaction: Option[TransactionId] = None
   ): F[ArangoResponse[Seq[Document[T]]]]
 }
 
@@ -126,13 +158,54 @@ object ArangoDocuments {
 
       private val api: String = "/_api/document/" + collection.repr
 
+      override def count(
+          transactionId: Option[TransactionId]
+      ): F[ArangoResponse[CollectionCount]] =
+        GET(
+          database,
+          "/_api/collection/" + collection.repr + "/count",
+          meta = Map(
+            Transaction.KEY -> transactionId.map(_.repr)
+          ).collectDefined
+        ).execute
+
+      override def insert[T: VPackEncoder: VPackDecoder](
+          document: T,
+          waitForSync: Boolean,
+          returnNew: Boolean,
+          returnOld: Boolean,
+          silent: Boolean,
+          overwrite: Boolean,
+          transaction: Option[TransactionId]
+      ): F[ArangoResponse[Document[T]]] =
+        ArangoClient[F].execute(
+          POST(
+            database,
+            api,
+            Map(
+              "waitForSync" -> waitForSync.toString,
+              "returnNew" -> returnNew.toString,
+              "returnOld" -> returnOld.toString,
+              "silent" -> silent.toString,
+              "overwrite" -> overwrite.toString,
+            ),
+            Map(
+              Transaction.KEY -> transaction.map(_.repr)
+            ).collectDefined
+          ).body(document)
+        )(
+          implicitly[VPackEncoder[T]].mapObject(_.filter(Document.filterEmptyInternalAttributes)),
+          implicitly
+        )
+
       override def create[T: VPackDecoder: VPackEncoder](
           documents: Seq[T],
           waitForSync: Boolean,
           returnNew: Boolean,
           returnOld: Boolean,
           silent: Boolean,
-          overwrite: Boolean
+          overwrite: Boolean,
+          transaction: Option[TransactionId]
       ): F[ArangoResponse[Seq[Document[T]]]] =
         ArangoClient[F].execute(
           POST(
@@ -144,7 +217,10 @@ object ArangoDocuments {
               "returnOld" -> returnOld.toString,
               "silent" -> silent.toString,
               "overwrite" -> overwrite.toString,
-            )
+            ),
+            Map(
+              Transaction.KEY -> transaction.map(_.repr)
+            ).collectDefined
           ).body(documents)
         )(
           VPackEncoder.seqEncoder(
@@ -158,7 +234,8 @@ object ArangoDocuments {
           waitForSync: Boolean,
           ignoreRevs: Boolean,
           returnOld: Boolean,
-          returnNew: Boolean
+          returnNew: Boolean,
+          transaction: Option[TransactionId]
       ): F[ArangoResponse[Seq[Document[T]]]] =
         ArangoClient[F].execute(
           PUT(
@@ -169,7 +246,10 @@ object ArangoDocuments {
               "ignoreRevs" -> ignoreRevs.toString,
               "returnOld" -> returnOld.toString,
               "returnNew" -> returnNew.toString,
-            )
+            ),
+            Map(
+              Transaction.KEY -> transaction.map(_.repr)
+            ).collectDefined
           ).body(documents)
         )(
           VPackEncoder.seqEncoder(
@@ -185,7 +265,8 @@ object ArangoDocuments {
           waitForSync: Boolean,
           ignoreRevs: Boolean,
           returnOld: Boolean,
-          returnNew: Boolean
+          returnNew: Boolean,
+          transaction: Option[TransactionId]
       ): F[ArangoResponse[Seq[Document[T]]]] =
         ArangoClient[F].execute(
           PATCH(
@@ -198,7 +279,10 @@ object ArangoDocuments {
               "ignoreRevs" -> ignoreRevs.toString,
               "returnOld" -> returnOld.toString,
               "returnNew" -> returnNew.toString,
-            )
+            ),
+            Map(
+              Transaction.KEY -> transaction.map(_.repr)
+            ).collectDefined
           ).body(patch)
         )
 
@@ -206,7 +290,8 @@ object ArangoDocuments {
           keys: Seq[K],
           waitForSync: Boolean,
           returnOld: Boolean,
-          ignoreRevs: Boolean
+          ignoreRevs: Boolean,
+          transaction: Option[TransactionId]
       ): F[ArangoResponse[Seq[Document[T]]]] =
         ArangoClient[F].execute(
           DELETE(
@@ -216,7 +301,10 @@ object ArangoDocuments {
               "waitForSync" -> waitForSync.toString,
               "returnOld" -> returnOld.toString,
               "ignoreRevs" -> ignoreRevs.toString,
-            )
+            ),
+            Map(
+              Transaction.KEY -> transaction.map(_.repr)
+            ).collectDefined
           ).body(keys)
         )
     }

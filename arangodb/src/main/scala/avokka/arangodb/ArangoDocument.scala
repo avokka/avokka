@@ -35,10 +35,10 @@ trait ArangoDocument[F[_]] {
     * @param ifMatch      If the “If-Match” header is given, then it must contain exactly one Etag. The document is returned, if it has the same revision as the given Etag. Otherwise a HTTP 412 is returned.
     */
   def head(
-            ifNoneMatch: Option[String] = None,
-            ifMatch: Option[String] = None,
-            transaction: Option[TransactionId] = None,
-          ): F[ArangoResponse.Header]
+      ifNoneMatch: Option[String] = None,
+      ifMatch: Option[String] = None,
+      transaction: Option[TransactionId] = None,
+  ): F[ArangoResponse.Header]
 
   /**
     * Removes a document
@@ -58,7 +58,7 @@ trait ArangoDocument[F[_]] {
       silent: Boolean = false,
       ifMatch: Option[String] = None,
       transaction: Option[TransactionId] = None,
-                             ): F[ArangoResponse[Document[T]]]
+  ): F[ArangoResponse[Document[T]]]
 
   /**
     * @param patch representation of a document update as an object
@@ -84,7 +84,7 @@ trait ArangoDocument[F[_]] {
       silent: Boolean = false,
       ifMatch: Option[String] = None,
       transaction: Option[TransactionId] = None,
-                                              ): F[ArangoResponse[Document[T]]]
+  ): F[ArangoResponse[Document[T]]]
 
   /**
     * @param document representation of a document update as an object
@@ -105,7 +105,7 @@ trait ArangoDocument[F[_]] {
       silent: Boolean = false,
       ifMatch: Option[String] = None,
       transaction: Option[TransactionId] = None,
-                                            ): F[ArangoResponse[Document[T]]]
+  ): F[ArangoResponse[Document[T]]]
 
   /**
     * build an UPSERT query at key with INSERT+UPDATE from obj
@@ -140,9 +140,9 @@ object ArangoDocument {
         ).execute
 
       override def head(
-                         ifNoneMatch: Option[String],
-                         ifMatch: Option[String],
-                         transaction: Option[TransactionId],
+          ifNoneMatch: Option[String],
+          ifMatch: Option[String],
+          transaction: Option[TransactionId],
       ): F[ArangoResponse.Header] =
         HEAD(
           database,
@@ -186,7 +186,7 @@ object ArangoDocument {
           silent: Boolean,
           ifMatch: Option[String],
           transaction: Option[TransactionId],
-                                                           ): F[ArangoResponse[Document[T]]] =
+      ): F[ArangoResponse[Document[T]]] =
         PATCH(
           database,
           api,
@@ -214,7 +214,7 @@ object ArangoDocument {
           silent: Boolean,
           ifMatch: Option[String],
           transaction: Option[TransactionId],
-                                                         ): F[ArangoResponse[Document[T]]] =
+      ): F[ArangoResponse[Document[T]]] =
         ArangoClient[F].execute(
           PUT(
             database,
@@ -237,7 +237,11 @@ object ArangoDocument {
         )
 
       override def upsert(obj: VObject): ArangoQuery[F, VObject] = {
-        val kvs = obj.values.keys.map { key => key + ":@" + key }.mkString(",")
+        val kvs = obj.values.keys
+          .map { key =>
+            key + ":@" + key
+          }
+          .mkString(",")
         ArangoQuery[F, VObject](
           database,
           Query(

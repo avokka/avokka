@@ -66,7 +66,7 @@ class ArangoCountriesSpec
     val collection = arango.db.collection(collName)
     val key = DocumentKey("XX")
     for {
-      c <- collection.insert(Country(key, name = "country name"), returnNew = true)
+      c <- collection.documents.insert(Country(key, name = "country name"), returnNew = true)
       r <- collection.document(key).read[Country]()
       u <- collection.document(key).update[Country, VObject](VObject("name" -> "updated name".toVPack))
       d <- collection.document(key).remove[Country]()

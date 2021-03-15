@@ -7,6 +7,12 @@ import types._
 import protocol._
 
 trait ArangoIndexes[F[_]] {
+
+  /**
+    * Returns an object with an attribute indexes containing an array of all index descriptions for the given collection. The same information is also available in the identifiers as an object with the index handles as keys.
+    *
+    * @return all indexes of a collection
+    */
   def list(): F[ArangoResponse[IndexList]]
 
   /**
@@ -36,6 +42,7 @@ trait ArangoIndexes[F[_]] {
       unique: Boolean = false,
       sparse: Boolean = false,
       deduplicate: Boolean = false,
+      name: Option[String] = None,
   ): F[ArangoResponse[Index]]
 
   /**
@@ -57,6 +64,7 @@ trait ArangoIndexes[F[_]] {
       unique: Boolean = false,
       sparse: Boolean = false,
       deduplicate: Boolean = false,
+      name: Option[String] = None,
   ): F[ArangoResponse[Index]]
 
   /**
@@ -76,6 +84,7 @@ trait ArangoIndexes[F[_]] {
       fields: List[String],
       unique: Boolean = false,
       sparse: Boolean = false,
+      name: Option[String] = None,
   ): F[ArangoResponse[Index]]
 
   /**
@@ -91,6 +100,7 @@ trait ArangoIndexes[F[_]] {
   def createGeo(
       fields: List[String],
       geoJson: Boolean = false,
+      name: Option[String] = None,
   ): F[ArangoResponse[Index]]
 
   /**
@@ -102,6 +112,7 @@ trait ArangoIndexes[F[_]] {
   def createFullText(
       fields: List[String],
       minLength: Option[Int] = None,
+      name: Option[String] = None,
   ): F[ArangoResponse[Index]]
 
   /**
@@ -113,6 +124,7 @@ trait ArangoIndexes[F[_]] {
   def createTtl(
       fields: List[String],
       expireAfter: Int,
+      name: Option[String] = None,
   ): F[ArangoResponse[Index]]
 }
 
@@ -133,7 +145,8 @@ object ArangoIndexes {
           fields: List[String],
           unique: Boolean,
           sparse: Boolean,
-          deduplicate: Boolean
+          deduplicate: Boolean,
+          name: Option[String],
       ): F[ArangoResponse[Index]] =
         POST(
           database,
@@ -141,11 +154,12 @@ object ArangoIndexes {
           Map("collection" -> collection.repr)
         ).body(
             VObject(
+              "name" -> name.toVPack,
               "type" -> Index.Type.hash.toVPack,
               "fields" -> fields.toVPack,
               "unique" -> unique.toVPack,
               "sparse" -> sparse.toVPack,
-              "deduplicate" -> deduplicate.toVPack
+              "deduplicate" -> deduplicate.toVPack,
             )
           )
           .execute
@@ -154,7 +168,8 @@ object ArangoIndexes {
           fields: List[String],
           unique: Boolean,
           sparse: Boolean,
-          deduplicate: Boolean
+          deduplicate: Boolean,
+          name: Option[String],
       ): F[ArangoResponse[Index]] =
         POST(
           database,
@@ -162,6 +177,7 @@ object ArangoIndexes {
           Map("collection" -> collection.repr)
         ).body(
             VObject(
+              "name" -> name.toVPack,
               "type" -> Index.Type.skiplist.toVPack,
               "fields" -> fields.toVPack,
               "unique" -> unique.toVPack,
@@ -174,7 +190,8 @@ object ArangoIndexes {
       override def createPersistent(
           fields: List[String],
           unique: Boolean,
-          sparse: Boolean
+          sparse: Boolean,
+          name: Option[String],
       ): F[ArangoResponse[Index]] =
         POST(
           database,
@@ -182,6 +199,7 @@ object ArangoIndexes {
           Map("collection" -> collection.repr)
         ).body(
             VObject(
+              "name" -> name.toVPack,
               "type" -> Index.Type.persistent.toVPack,
               "fields" -> fields.toVPack,
               "unique" -> unique.toVPack,
@@ -193,6 +211,7 @@ object ArangoIndexes {
       override def createGeo(
           fields: List[String],
           geoJson: Boolean,
+          name: Option[String],
       ): F[ArangoResponse[Index]] =
         POST(
           database,
@@ -200,6 +219,7 @@ object ArangoIndexes {
           Map("collection" -> collection.repr)
         ).body(
             VObject(
+              "name" -> name.toVPack,
               "type" -> Index.Type.geo.toVPack,
               "fields" -> fields.toVPack,
               "geoJson" -> geoJson.toVPack,
@@ -210,6 +230,7 @@ object ArangoIndexes {
       override def createFullText(
           fields: List[String],
           minLength: Option[Int],
+          name: Option[String],
       ): F[ArangoResponse[Index]] =
         POST(
           database,
@@ -217,6 +238,7 @@ object ArangoIndexes {
           Map("collection" -> collection.repr)
         ).body(
             VObject(
+              "name" -> name.toVPack,
               "type" -> Index.Type.fulltext.toVPack,
               "fields" -> fields.toVPack,
               "minLength" -> minLength.toVPack,
@@ -227,6 +249,7 @@ object ArangoIndexes {
       override def createTtl(
           fields: List[String],
           expireAfter: Int,
+          name: Option[String],
       ): F[ArangoResponse[Index]] =
         POST(
           database,
@@ -234,6 +257,7 @@ object ArangoIndexes {
           Map("collection" -> collection.repr)
         ).body(
             VObject(
+              "name" -> name.toVPack,
               "type" -> Index.Type.ttl.toVPack,
               "fields" -> fields.toVPack,
               "expireAfter" -> expireAfter.toVPack,

@@ -32,7 +32,7 @@ object ArangoTransaction {
     private val api: String = "/_api/transaction/" + id.repr
 
     override def status(): F[ArangoResponse[Transaction]] =
-      GET(database, api).execute
+      GET(database, api).execute[F, Result[Transaction]].map(_.result)
 
     override def commit(): F[ArangoResponse[Transaction]] =
       PUT(database, api).execute[F, Result[Transaction]].map(_.result)

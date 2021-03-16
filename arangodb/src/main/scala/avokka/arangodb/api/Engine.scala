@@ -2,6 +2,8 @@ package avokka.arangodb
 package api
 
 import avokka.velocypack._
+import enumeratum._
+import _root_.enumeratum._
 
 /**
   * the storage engine the server is configured to use
@@ -10,11 +12,18 @@ import avokka.velocypack._
   * @param supports what the engine supports
   */
 case class Engine(
-    name: String,
+    name: Engine.Name,
     supports: Engine.Supports
 )
 
 object Engine {
+
+  sealed trait Name extends EnumEntry
+  object Name extends Enum[Name] {
+    val values = findValues
+    case object mmfiles extends Name
+    case object rocksdb extends Name
+  }
 
   final case class Supports(
       dfdb: Boolean,

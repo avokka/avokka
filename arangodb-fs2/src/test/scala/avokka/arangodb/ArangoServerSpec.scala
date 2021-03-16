@@ -1,5 +1,6 @@
 package avokka.arangodb
 
+import avokka.arangodb.api.Engine
 import avokka.arangodb.api.admin.AdminLog
 import types._
 import fs2._
@@ -34,7 +35,7 @@ class ArangoServerSpec
   it should "engine" in { arango =>
     arango.server.engine().map { res =>
       res.header.responseCode should be (200)
-      res.body.name should be ("rocksdb")
+      res.body.name should be (Engine.Name.rocksdb)
     }
   }
 

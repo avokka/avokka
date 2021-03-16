@@ -76,29 +76,14 @@ lazy val velocystream = (project in file("velocystream"))
     scalacOptions -= "-Xfatal-warnings"
   )
 
-lazy val arangodbTypes = (project in file("arangodb-types"))
-  .dependsOn(velocypack)
-  .settings(
-    name := "avokka-arangodb-types",
-    description := "ArangoDB model types",
-    libraryDependencies ++= Seq(
-      newtype,
-    ) ++
-      (CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, v)) if v <= 12 =>
-          Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full))
-        case _ => Nil
-      }),
-    scalacOptions -= "-Xfatal-warnings"
-  )
-
 lazy val arangodb = (project in file("arangodb"))
-  .dependsOn(velocystream, arangodbTypes, velocypackEnumeratum)
+  .dependsOn(velocystream, velocypackEnumeratum)
   .settings(
     name := "avokka-arangodb",
     description := "ArangoDB core",
     libraryDependencies ++= Seq(
       collectionCompat,
+      newtype,
       pureconfig,
       log4cats,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
@@ -238,7 +223,7 @@ lazy val site = (project in file("site"))
   ).enablePlugins(MicrositesPlugin)
 
 lazy val avokka = (project in file("."))
-  .aggregate(velocypack, velocypackEnumeratum, velocystream, arangodbTypes, arangodb, arangodbAkka, arangodbFs2)
+  .aggregate(velocypack, velocypackEnumeratum, velocystream, arangodb, arangodbAkka, arangodbFs2)
   .settings(
     publishArtifact := false,
     skip in publish := true

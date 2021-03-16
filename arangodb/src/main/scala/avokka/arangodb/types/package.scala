@@ -8,8 +8,6 @@ import io.estatico.newtype.macros.newtype
 
 package object types {
 
-  private[types] type Result[T] = Either[Throwable, T]
-
   @newtype case class DatabaseName(repr: String)
 
   object DatabaseName {

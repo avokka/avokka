@@ -2,7 +2,6 @@ package avokka.arangodb
 
 import api._
 import avokka.velocypack._
-import enumeratum._
 import types._
 import protocol._
 
@@ -155,7 +154,7 @@ object ArangoIndexes {
         ).body(
             VObject(
               "name" -> name.toVPack,
-              "type" -> Index.Type.hash.toVPack,
+              "type" -> (Index.Type.hash: Index.Type).toVPack,
               "fields" -> fields.toVPack,
               "unique" -> unique.toVPack,
               "sparse" -> sparse.toVPack,
@@ -178,7 +177,7 @@ object ArangoIndexes {
         ).body(
             VObject(
               "name" -> name.toVPack,
-              "type" -> Index.Type.skiplist.toVPack,
+              "type" -> (Index.Type.skiplist: Index.Type).toVPack,
               "fields" -> fields.toVPack,
               "unique" -> unique.toVPack,
               "sparse" -> sparse.toVPack,
@@ -200,7 +199,7 @@ object ArangoIndexes {
         ).body(
             VObject(
               "name" -> name.toVPack,
-              "type" -> Index.Type.persistent.toVPack,
+              "type" -> (Index.Type.persistent: Index.Type).toVPack,
               "fields" -> fields.toVPack,
               "unique" -> unique.toVPack,
               "sparse" -> sparse.toVPack,
@@ -220,7 +219,7 @@ object ArangoIndexes {
         ).body(
             VObject(
               "name" -> name.toVPack,
-              "type" -> Index.Type.geo.toVPack,
+              "type" -> (Index.Type.geo: Index.Type).toVPack,
               "fields" -> fields.toVPack,
               "geoJson" -> geoJson.toVPack,
             )
@@ -239,7 +238,7 @@ object ArangoIndexes {
         ).body(
             VObject(
               "name" -> name.toVPack,
-              "type" -> Index.Type.fulltext.toVPack,
+              "type" -> (Index.Type.fulltext: Index.Type).toVPack,
               "fields" -> fields.toVPack,
               "minLength" -> minLength.toVPack,
             )
@@ -258,7 +257,7 @@ object ArangoIndexes {
         ).body(
             VObject(
               "name" -> name.toVPack,
-              "type" -> Index.Type.ttl.toVPack,
+              "type" -> (Index.Type.ttl: Index.Type).toVPack,
               "fields" -> fields.toVPack,
               "expireAfter" -> expireAfter.toVPack,
             )

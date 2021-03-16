@@ -3,7 +3,7 @@ package api
 package admin
 
 import avokka.velocypack._
-import _root_.enumeratum._
+import enumeratum._
 
 object AdminLog { self =>
 
@@ -28,7 +28,7 @@ object AdminLog { self =>
   }
 
   sealed trait Level extends EnumEntry
-  object Level extends Enum[Level] {
+  object Level extends Enum[Level] with VPackEnum[Level] {
     val values = findValues
 
     case object FATAL extends Level
@@ -41,7 +41,7 @@ object AdminLog { self =>
   }
 
   sealed trait Topic extends EnumEntry
-  object Topic extends Enum[Topic] {
+  object Topic extends Enum[Topic] with VPackEnum[Topic] {
     val values = findValues
     
     case object agencycomm extends Topic

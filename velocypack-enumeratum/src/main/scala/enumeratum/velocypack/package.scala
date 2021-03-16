@@ -1,9 +1,9 @@
-package avokka.velocypack
+package enumeratum
 
-import _root_.enumeratum._
+import avokka.velocypack._
 import cats.syntax.either._
 
-package object enumeratum {
+package object velocypack {
 
   implicit def enumeratumVPackEncoder[T <: EnumEntry]: VPackEncoder[T] =
     VPackEncoder[String].contramap(_.entryName)

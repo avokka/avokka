@@ -7,8 +7,6 @@ import types._
 import cats.Functor
 import cats.syntax.functor._
 
-import avokka.velocypack.enumeratum._
-
 trait ArangoServer[F[_]] {
   /**
     * list databases

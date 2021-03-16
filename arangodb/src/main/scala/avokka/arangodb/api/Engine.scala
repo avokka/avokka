@@ -3,7 +3,6 @@ package api
 
 import avokka.velocypack._
 import enumeratum._
-import _root_.enumeratum._
 
 /**
   * the storage engine the server is configured to use
@@ -19,7 +18,7 @@ case class Engine(
 object Engine {
 
   sealed trait Name extends EnumEntry
-  object Name extends Enum[Name] {
+  object Name extends Enum[Name] with VPackEnum[Name] {
     val values = findValues
     case object mmfiles extends Name
     case object rocksdb extends Name

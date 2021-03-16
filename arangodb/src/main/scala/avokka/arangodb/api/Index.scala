@@ -4,8 +4,6 @@ package api
 import avokka.velocypack._
 import enumeratum._
 
-import _root_.enumeratum._
-
 final case class Index(
     fields: List[String],
     id: String,
@@ -22,7 +20,7 @@ object Index {
   implicit val decoder: VPackDecoder[Index] = VPackDecoder.gen
 
   sealed trait Type extends EnumEntry
-  object Type extends Enum[Type] {
+  object Type extends Enum[Type] with VPackEnum[Type] {
     override val values = findValues
 
     case object primary extends Type

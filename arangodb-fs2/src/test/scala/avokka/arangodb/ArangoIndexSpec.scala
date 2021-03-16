@@ -32,6 +32,7 @@ class ArangoIndexSpec
     for {
       created <- collection.indexes.createHash(List("name"))
       ls      <- collection.indexes.list()
+      idx     <- collection.index(created.body.id).read()
       deleted <- collection.index(created.body.id).delete()
       ls2     <- collection.indexes.list()
     } yield {
@@ -40,6 +41,10 @@ class ArangoIndexSpec
       created.body.isNewlyCreated should be (true)
 
       ls.body.indexes.map(_.`type`) should contain (Index.Type.hash)
+
+      idx.header.responseCode should be (200)
+      idx.body.`type` should be (Index.Type.hash)
+      idx.body.isNewlyCreated should be (false)
 
       deleted.header.responseCode should be (200)
       deleted.body.id should be (created.body.id)

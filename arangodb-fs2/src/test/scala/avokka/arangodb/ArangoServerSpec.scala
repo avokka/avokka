@@ -31,6 +31,13 @@ class ArangoServerSpec
     }
   }
 
+  it should "engine" in { arango =>
+    arango.server.engine().map { res =>
+      res.header.responseCode should be (200)
+      res.body.name should be ("rocksdb")
+    }
+  }
+
   it should "role" in { arango =>
     arango.server.role().map { res =>
       res.header.responseCode should be (200)

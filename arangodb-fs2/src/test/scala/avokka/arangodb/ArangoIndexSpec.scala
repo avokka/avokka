@@ -1,10 +1,9 @@
 package avokka.arangodb
 
-import avokka.arangodb.api.{CollectionStatus, Index}
+import avokka.arangodb.api.Index
 import avokka.arangodb.fs2._
 import avokka.arangodb.types._
 import avokka.test.ArangodbContainer
-import avokka.velocypack.VObject
 import cats.effect._
 import cats.effect.testing.scalatest.{AsyncIOSpec, CatsResourceIO}
 import com.dimafeng.testcontainers.ForAllTestContainer
@@ -23,17 +22,12 @@ class ArangoIndexSpec
   implicit val unsafeLogger: Logger[IO] = Slf4jLogger.getLogger[IO]
 
   override val container = ArangodbContainer.Def().start()
-
-  val databaseName = DatabaseName("test")
-  val collectionName = CollectionName("countries")
-
   override val resource = Arango[IO](container.configuration)
 
-  def collection(arango: Arango[IO]): ArangoCollection[IO] = arango.database(databaseName).collection(collectionName)
+  val collectionName = CollectionName("countries")
 
   it should "create, read, delete" in { arango =>
-    val test = arango.database(databaseName)
-    val collection = test.collection(collectionName)
+    val collection = arango.db.collection(collectionName)
 
     for {
       created <- collection.indexes.createHash(List("name"))
@@ -55,8 +49,7 @@ class ArangoIndexSpec
   }
 
   it should "create named" in { arango =>
-    val test = arango.database(databaseName)
-    val collection = test.collection(collectionName)
+    val collection = arango.db.collection(collectionName)
 
     for {
       created <- collection.indexes.createHash(List("name"), name = Some("indextest"))
@@ -75,4 +68,63 @@ class ArangoIndexSpec
     }
   }
 
+  it should "skiplist" in { arango =>
+    val collection = arango.db.collection(collectionName)
+
+    for {
+      created <- collection.indexes.createSkipList(List("name"))
+      _       <- collection.index(created.body.id).delete()
+    } yield {
+      created.header.responseCode should be (201)
+      created.body.`type` should be (Index.Type.skiplist)
+    }
+  }
+
+  it should "persistent" in { arango =>
+    val collection = arango.db.collection(collectionName)
+
+    for {
+      created <- collection.indexes.createPersistent(List("name"))
+      _       <- collection.index(created.body.id).delete()
+    } yield {
+      created.header.responseCode should be (201)
+      created.body.`type` should be (Index.Type.persistent)
+    }
+  }
+
+  it should "geo" in { arango =>
+    val collection = arango.db.collection(collectionName)
+
+    for {
+      created <- collection.indexes.createGeo(List("name"))
+      _       <- collection.index(created.body.id).delete()
+    } yield {
+      created.header.responseCode should be (201)
+      created.body.`type` should be (Index.Type.geo)
+    }
+  }
+
+  it should "fulltext" in { arango =>
+    val collection = arango.db.collection(collectionName)
+
+    for {
+      created <- collection.indexes.createFullText(List("name"))
+      _       <- collection.index(created.body.id).delete()
+    } yield {
+      created.header.responseCode should be (201)
+      created.body.`type` should be (Index.Type.fulltext)
+    }
+  }
+
+  it should "ttl" in { arango =>
+    val collection = arango.db.collection(collectionName)
+
+    for {
+      created <- collection.indexes.createTtl(List("name"), expireAfter = 60)
+      _       <- collection.index(created.body.id).delete()
+    } yield {
+      created.header.responseCode should be (201)
+      created.body.`type` should be (Index.Type.ttl)
+    }
+  }
 }

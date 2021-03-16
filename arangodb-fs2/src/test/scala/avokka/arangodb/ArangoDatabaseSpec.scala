@@ -22,11 +22,10 @@ class ArangoDatabaseSpec
   implicit val unsafeLogger: Logger[IO] = Slf4jLogger.getLogger[IO]
 
   override val container = ArangodbContainer.Def().start()
+  override val resource = Arango[IO](container.configuration)
 
   val databaseName = DatabaseName("test")
   val collectionName = CollectionName("countries")
-
-  override val resource = Arango[IO](container.configuration.copy(database = databaseName))
 
   it should "info" in { arango =>
     arango.db.info().map { res =>

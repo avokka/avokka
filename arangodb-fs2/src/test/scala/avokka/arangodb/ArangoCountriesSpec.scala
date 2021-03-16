@@ -25,7 +25,7 @@ class ArangoCountriesSpec
   implicit val unsafeLogger: Logger[IO] = Slf4jLogger.getLogger[IO]
 
   override val container = ArangodbContainer.Def().start()
-  override lazy val resource = Arango[IO](container.configuration.copy(database = dbName))
+  override val resource = Arango[IO](container.configuration)
 
   val dbName = DatabaseName("test")
   val collName = CollectionName("countries")

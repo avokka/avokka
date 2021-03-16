@@ -1,6 +1,7 @@
 package avokka.test
 
 import avokka.arangodb.ArangoConfiguration
+import avokka.arangodb.types.DatabaseName
 import com.dimafeng.testcontainers.GenericContainer
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy
@@ -18,7 +19,8 @@ class ArangodbContainer(val password: String,
     host = containerIpAddress,
     port = mappedPort(port),
     username = "root",
-    password = password
+    password = password,
+    database = DatabaseName("test")
   )
 
   def endpoint: String = "http://%s:%d".format(containerIpAddress, mappedPort(port))

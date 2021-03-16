@@ -2,7 +2,7 @@ package avokka.arangodb
 
 import avokka.arangodb.api._
 import avokka.arangodb.protocol._
-import avokka.arangodb.types.{DatabaseName, TransactionId}
+import avokka.arangodb.types.DatabaseName
 import avokka.velocypack.VPackDecoder
 import cats.Functor
 import cats.syntax.functor._

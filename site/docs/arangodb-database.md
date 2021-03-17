@@ -10,24 +10,40 @@ import cats.effect._
 import org.typelevel.log4cats._
 import avokka.arangodb.ArangoConfiguration
 import avokka.arangodb.fs2._
+import avokka.arangodb.types._
 
 implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.Implicits.global)
 implicit val timer: Timer[IO] = IO.timer(ExecutionContext.Implicits.global)
 implicit val logger: Logger[IO] = noop.NoOpLogger[IO]
 
-val arango = Arango(ArangoConfiguration.load())
+val (arango, close) = Arango(ArangoConfiguration.load()).allocated.unsafeRunSync()
+
+arango.database(DatabaseName("temp")).drop().unsafeRunSync()
 ```
 
 # Database API
 
-The examples assume `arango` is a fs2 ̀`Resource[IO, Arango[IO]]`.
+The examples assume `arango` is a ̀`ArangoClient[IO]`.
 
-Property `db` or `client` is an instance of [`ArangoDatabase[F]`](/avokka/api/avokka/arangodb/ArangoDatabase.html) for the database configured in `ArangoConfiguration.database`  
+* list server databases
 
-* list collections
+```scala mdoc:height=15
+arango.server.databases().unsafeRunSync()
+```
 
-```scala mdoc:nest:height=15
-arango.use { client =>
-  client.db.collections()
-}.unsafeRunSync()
+* create database
+
+```scala mdoc:height=15
+arango.database(DatabaseName("temp")).create().unsafeRunSync()
+```
+
+* get database information
+
+```scala mdoc:height=15
+arango.db.info().unsafeRunSync()
+```
+
+
+```scala mdoc:invisible
+close.unsafeRunSync()
 ```

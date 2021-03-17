@@ -44,16 +44,21 @@ val configuration = ArangoConfiguration.load()
 
 ### Implementation
 
-ArangoDB client can use akka or fs2 implementation
+ArangoDB client can use akka or fs2 implementation :
 
 - [Akka]({% link arangodb-akka.md %})
 - [FS2]({% link arangodb-fs2.md %})
 
-Refer to the documentation of each module
+Refer to the documentation of each module for usage.
 
 ### Usage
+
+The common entry class is a [`ArangoClient[F]`](/avokka/api/avokka/arangodb/protocol/ArangoClient.html).
+
+Property `client.db` is an instance of [`ArangoDatabase[F]`](/avokka/api/avokka/arangodb/ArangoDatabase.html) for the database configured in `ArangoConfiguration.database`
 
 The majority of API calls return an instance of [`ArangoResponse[T]`](/avokka/api/avokka/arangodb/protocol/ArangoResponse.html), with a `header` property and a `body: T` property.
 
 * [Server API]({% link arangodb-server.md %})
 * [Database API]({% link arangodb-database.md %})
+* [Collection API]({% link arangodb-collection.md %})

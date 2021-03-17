@@ -1,7 +1,7 @@
 ---
 layout: docs
-title: Server API
-permalink: arangodb/server
+title: Collection API
+permalink: arangodb/collection
 ---
 
 ```scala mdoc:invisible
@@ -10,6 +10,7 @@ import cats.effect._
 import org.typelevel.log4cats._
 import avokka.arangodb.ArangoConfiguration
 import avokka.arangodb.fs2._
+import avokka.arangodb.types._
 
 implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.Implicits.global)
 implicit val timer: Timer[IO] = IO.timer(ExecutionContext.Implicits.global)
@@ -18,20 +19,20 @@ implicit val logger: Logger[IO] = noop.NoOpLogger[IO]
 val (arango, close) = Arango(ArangoConfiguration.load()).allocated.unsafeRunSync()
 ```
 
-# Server API
+# Collection API
 
 The examples assume `arango` is a ̀`ArangoClient[IO]`.
 
-* get version
+* list collections
 
 ```scala mdoc:nest:height=15
-arango.server.version().unsafeRunSync()
+arango.db.collections().unsafeRunSync()
 ```
 
-* get engine
+* get info
 
-```scala mdoc:nest:height=15
-arango.server.engine().unsafeRunSync()
+```scala mdoc:nest:height=20
+arango.db.collection(CollectionName("countries")).info().unsafeRunSync()
 ```
 
 ```scala mdoc:invisible

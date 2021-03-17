@@ -35,6 +35,9 @@ options:
       - title: Database API
         url: arangodb/database
 
+      - title: Collection API
+        url: arangodb/collection
+
       - title: AQL
         url: arangodb/aql
 

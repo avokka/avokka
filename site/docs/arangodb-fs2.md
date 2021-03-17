@@ -66,7 +66,7 @@ import avokka.arangodb.fs2._
 val arango = Arango(configuration)
 ```
 
-Call `.use` on resource to obtain an instance of [`ArangoClient[IO]`](/avokka/api/avokka/arangodb/protocol/ArangoClient.html)
+We `.use` the resource to obtain an instance of [`ArangoClient[IO]`](/avokka/api/avokka/arangodb/protocol/ArangoClient.html)
 
 ```scala mdoc:nest:height=15
 arango.use { client =>

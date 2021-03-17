@@ -25,6 +25,8 @@ jobs:
 
       - name: Setup Java and Scala
         uses: olafurpg/setup-scala@v10
+        with:
+          java-version: adopt@1.11
 
       - name: Cache scala dependencies
         uses: coursier/cache-action@v6
@@ -32,8 +34,7 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 2.6
-          bundler-cache: true
+          ruby-version: 2.7
 
       - name: Install jekyll
         run: gem install jekyll

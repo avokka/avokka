@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+
+  arangodb:
+    image: arangodb:3.7.9
+    ports:
+      - 8530:8529
+    environment:
+      ARANGO_ROOT_PASSWORD: doc
+    volumes:
+      - ./docker-initdb.d/:/docker-entrypoint-initdb.d/:ro

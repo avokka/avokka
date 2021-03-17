@@ -80,8 +80,8 @@ import avokka.arangodb.types._
 val r = arango.use { client =>
   for {
     info    <- client.system.info()
-    _       <- IO { println(s"database '${client.system.name}' is system = ${info.body.result.isSystem}") }
-    cCount  <- client.db.collection(CollectionName("countries")).count() 
+    _       <- IO { println(s"database '${client.system.name}' is system = ${info.body.isSystem}") }
+    cCount  <- client.db.collection(CollectionName("countries")).documents.count() 
   } yield cCount.body.count 
 }
 

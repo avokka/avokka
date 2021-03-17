@@ -18,7 +18,7 @@ addSbtPlugin("com.jsuereth"       % "sbt-pgp"     % "2.1.1")
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.0")
 
 // docs
-addSbtPlugin("com.47deg"  % "sbt-microsites" % "1.3.2")
+addSbtPlugin("com.47deg" % "sbt-microsites" % "1.3.2")
 
 /*
 addSbtPlugin("com.lightbend.paradox"  % "sbt-paradox"                 % "0.9.1")

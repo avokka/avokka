@@ -2,9 +2,13 @@ name: CI
 
 on:
   pull_request:
+    paths-ignore:
+      - site/**
   push:
     branches: [master, main]
     tags: ["*"]
+    paths-ignore:
+      - site/**
 
 jobs:
 

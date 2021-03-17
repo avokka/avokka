@@ -23,11 +23,20 @@ options:
     url: arangodb
     nested_options:
 
-      - title: AQL
-        url: arangodb/aql
-
       - title: Akka
         url: arangodb/akka
 
       - title: Fs2
         url: arangodb/fs2
+
+      - title: Server API
+        url: arangodb/server
+
+      - title: Database API
+        url: arangodb/database
+
+      - title: AQL
+        url: arangodb/aql
+
+  - title: Scaladoc
+    url: api/avokka

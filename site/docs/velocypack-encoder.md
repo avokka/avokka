@@ -6,7 +6,7 @@ permalink: velocypack/encoder
 
 # Velocypack encoder
 
-`VPackEncoder[T]` encodes scala values to VPack values `T => VPack`
+[`VPackEncoder[T]`](/avokka/api/avokka/velocypack/VPackEncoder.html) encodes scala values to VPack values `T => VPack`
 
 By importing `avokka.velocypack._` you bring `toVPack` and `toVPackBits` to all types `T` having an implicit `VPackEncoder[T]` :
 

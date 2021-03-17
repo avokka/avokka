@@ -51,25 +51,12 @@ import avokka.arangodb.akka._
 val arango = Arango(configuration)
 ```
 
-### server api
+`arango` is an instance of [`ArangoClient[Future]`](/avokka/api/avokka/arangodb/protocol/ArangoClient.html)
 
-query server version
 
-```scala mdoc
-Await.result(arango.server.version(), 10.seconds)
-```
+### Query result streaming with akka streams
 
-### database api
-
-query collections
-
-```scala mdoc:height=20
-Await.result(arango.db.collections(), 10.seconds)
-```
-
-### query result streaming
-
-model of arangodb document with a generated velocypack decoder
+Model of arangodb document with a generated velocypack decoder :
 
 ```scala mdoc
 import avokka.arangodb.types._

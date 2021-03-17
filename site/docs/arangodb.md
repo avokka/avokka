@@ -17,7 +17,7 @@ You need to depends on the akka or the fs2 module to use the client.
 
 ### Configuration
 
-An instance of `ArangoConfiguration` is needed to get an arangodb client.
+An instance of [`ArangoConfiguration`](/avokka/api/avokka/arangodb/ArangoConfiguration.html) is needed to get an arangodb client.
 
 A typesafe config reference is included :
 
@@ -41,3 +41,19 @@ import avokka.arangodb.ArangoConfiguration
 // load configuration from defaults
 val configuration = ArangoConfiguration.load()
 ```
+
+### Implementation
+
+ArangoDB client can use akka or fs2 implementation
+
+- [Akka]({% link arangodb-akka.md %})
+- [FS2]({% link arangodb-fs2.md %})
+
+Refer to the documentation of each module
+
+### Usage
+
+The majority of API calls return an instance of [`ArangoResponse[T]`](/avokka/api/avokka/arangodb/protocol/ArangoResponse.html), with a `header` property and a `body: T` property.
+
+* [Server API]({% link arangodb-server.md %})
+* [Database API]({% link arangodb-database.md %})

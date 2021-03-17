@@ -66,13 +66,15 @@ import avokka.arangodb.fs2._
 val arango = Arango(configuration)
 ```
 
-Request server version
+Call `.use` on resource to obtain an instance of [`ArangoClient[IO]`](/avokka/api/avokka/arangodb/protocol/ArangoClient.html)
 
 ```scala mdoc:nest:height=15
 arango.use { client =>
   client.server.version()
 }.unsafeRunSync()
 ```
+
+Example in a for comprehension
 
 ```scala mdoc:nest:height=10
 import avokka.arangodb.types._
@@ -88,19 +90,16 @@ val r = arango.use { client =>
 r.unsafeRunSync()
 ```
 
-### FS2 streaming
+### Query result streaming with FS2 streams
 
-Query results as fs2 Stream
+Call `.stream[T]` on a `ArangoQuery[F]` to transform it to a `fs2.Stream[F, T]`
 
 ```scala mdoc:nest:height=15
-import avokka.arangodb.aql._
-
 arango.use { client =>
   client.db
-    .query(aql"FOR c IN countries RETURN c.name")
+    .query("FOR c IN countries RETURN c.name")
     .batchSize(100)
     .stream[String]
-    // .evalTap { name => IO { println(name) } }
     .compile
     .toVector
 }.unsafeRunSync()

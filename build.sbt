@@ -205,7 +205,6 @@ lazy val site = (project in file("site"))
     micrositeDescription := "ArangoDB client in scala",
     micrositeAuthor := "Benjamin Viellard",
 //    micrositeUrl := "https://avokka.github.io/avokka",
-    // micrositeDocumentationUrl := "docs",
     micrositeBaseUrl := "/avokka",
     micrositeGitterChannel := false,
     micrositeSearchEnabled := false,
@@ -220,7 +219,12 @@ lazy val site = (project in file("site"))
     micrositeGithubRepo := "avokka",
     micrositeGithubToken := sys.env.get("GITHUB_TOKEN"),
     micrositePushSiteWith := GitHub4s,
-  ).enablePlugins(MicrositesPlugin)
+    micrositeDocumentationLabelDescription := "Scaladoc",
+    micrositeDocumentationUrl := "api/avokka",
+    siteSubdirName in ScalaUnidoc := "api",
+    addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), siteSubdirName in ScalaUnidoc),
+    unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(velocypack, velocystream, arangodb, arangodbAkka, arangodbFs2)
+  ).enablePlugins(MicrositesPlugin, ScalaUnidocPlugin)
 
 lazy val avokka = (project in file("."))
   .aggregate(velocypack, velocypackEnumeratum, velocystream, arangodb, arangodbAkka, arangodbFs2)

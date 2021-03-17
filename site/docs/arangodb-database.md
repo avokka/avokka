@@ -37,6 +37,12 @@ arango.server.databases().unsafeRunSync()
 arango.database(DatabaseName("temp")).create().unsafeRunSync()
 ```
 
+* delete database
+
+```scala mdoc:height=15
+arango.database(DatabaseName("temp")).drop().unsafeRunSync()
+```
+
 * get database information
 
 ```scala mdoc:height=15

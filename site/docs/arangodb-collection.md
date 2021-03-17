@@ -17,6 +17,8 @@ implicit val timer: Timer[IO] = IO.timer(ExecutionContext.Implicits.global)
 implicit val logger: Logger[IO] = noop.NoOpLogger[IO]
 
 val (arango, close) = Arango(ArangoConfiguration.load()).allocated.unsafeRunSync()
+
+arango.db.collection(CollectionName("temp")).drop().attempt.unsafeRunSync()
 ```
 
 # Collection API
@@ -25,13 +27,25 @@ The examples assume `arango` is a ̀`ArangoClient[IO]`.
 
 * list collections
 
-```scala mdoc:nest:height=15
+```scala mdoc:height=15
 arango.db.collections().unsafeRunSync()
+```
+
+* create collection
+
+```scala mdoc:height=20
+arango.db.collection(CollectionName("temp")).create().unsafeRunSync()
+```
+
+* delete collection
+
+```scala mdoc:height=20
+arango.db.collection(CollectionName("temp")).drop().unsafeRunSync()
 ```
 
 * get info
 
-```scala mdoc:nest:height=20
+```scala mdoc:height=20
 arango.db.collection(CollectionName("countries")).info().unsafeRunSync()
 ```
 

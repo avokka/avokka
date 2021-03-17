@@ -28,17 +28,16 @@ object scratch extends IOApp {
     config <- Blocker[IO].use(ArangoConfiguration.at().loadF[IO, ArangoConfiguration])
     arango = Arango(config)
     _ <- arango.use { client =>
-      val v10 = client.database(DatabaseName("v10"))
-      val countries = v10.collection(CollectionName("countries"))
+      val countries = client.db.collection(CollectionName("countries"))
       for {
-        t <- v10.transactions.begin()
-        l <- v10.query(
+        t <- client.db.transactions.begin()
+        l <- client.db.query(
             aql"FOR c IN countries FILTER c.name LIKE @name RETURN c".bind("name", "France%")
         ).batchSize(1).transaction(t.id).stream[Country].compile.toVector
-        _ <- v10.transactions.list() >>= (ls => IO(println(ls)))
+        _ <- client.db.transactions.list() >>= (ls => IO(println(ls)))
         _ <- t.status() >>= (ls => IO(println(ls)))
         c <- t.commit()
-        _ <- v10.transactions.list() >>= (ls => IO(println(ls)))
+        _ <- client.db.transactions.list() >>= (ls => IO(println(ls)))
       _ <- IO { println(l) }
       } yield ()
     }

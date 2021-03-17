@@ -24,7 +24,6 @@ object connect extends IOApp {
     config <- Blocker[IO].use(ArangoConfiguration.at().loadF[IO, ArangoConfiguration])
     arango = Arango(config)
     _ <- arango.use { client =>
-      val v10 = client.database(DatabaseName("v10"))
       val cName = CollectionName("countries")
       for {
         e <- client.server.engine()
@@ -33,7 +32,7 @@ object connect extends IOApp {
           println(e.body)
           println(dbs.body)
         }
-        cns <- v10
+        cns <- client.db
           .collection(cName)
           .all.batchSize(10)
           .stream[Country]
@@ -46,17 +45,17 @@ object connect extends IOApp {
 
         // aql query with bound variable
         code = "FR"
-        f <- v10.query(aql"FOR c IN countries FILTER c._key == $code RETURN c").execute[Country]
+        f <- client.db.query(aql"FOR c IN countries FILTER c._key == $code RETURN c").execute[Country]
         _ <- IO { println(f.body.result) }
 
         // aql query with bound variable and aql param
         code = "FR"
-        f <- v10.query(aql"FOR c IN countries FILTER c._key == $code OR CONTAINS(c.name, @name) RETURN c".bind("name", "Ital")).execute[Country]
+        f <- client.db.query(aql"FOR c IN countries FILTER c._key == $code OR CONTAINS(c.name, @name) RETURN c".bind("name", "Ital")).execute[Country]
         _ <- IO { println(f.body.result) }
 
         // aql query with bound variable and aql param
         code = "FR"
-        f <- v10.query(aql"FOR c IN @@coll FILTER c._key == $code RETURN c".bind("@coll", cName)).execute[Country]
+        f <- client.db.query(aql"FOR c IN @@coll FILTER c._key == $code RETURN c".bind("@coll", cName)).execute[Country]
         _ <- IO { println(f.body.result) }
 
       } yield ()

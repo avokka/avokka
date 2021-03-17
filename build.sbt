@@ -220,6 +220,8 @@ lazy val site = (project in file("site"))
     // micrositeDocumentationUrl := "documentation",
     micrositeTheme := "light",
     // micrositeDocumentationUrl := "docs",
+    micrositeGithubToken := sys.env.get("GITHUB_TOKEN"),
+    micrositePushSiteWith := GitHub4s,
   ).enablePlugins(MicrositesPlugin)
 
 lazy val avokka = (project in file("."))

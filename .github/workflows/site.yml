@@ -35,6 +35,9 @@ jobs:
           ruby-version: 2.6
           bundler-cache: true
 
+      - name: Install jekyll
+        run: gem install jekyll
+
       - name: Compose up
         run: docker-compose -f site/docker-compose.yml up -d
 

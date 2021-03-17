@@ -11,3 +11,4 @@ project/plugins/project/
 .lib/
 *.class
 *.log
+/Gemfile.lock

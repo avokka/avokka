@@ -1,7 +1,7 @@
 package avokka.arangodb
 
-import avokka.arangodb.api.Engine
-import avokka.arangodb.api.admin.AdminLog
+import avokka.arangodb.models.Engine
+import avokka.arangodb.models.admin.AdminLog
 import types._
 import fs2._
 import avokka.test.ArangodbContainer

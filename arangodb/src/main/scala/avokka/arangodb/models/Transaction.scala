@@ -1,5 +1,5 @@
 package avokka.arangodb
-package api
+package models
 
 import avokka.arangodb.types.TransactionId
 import avokka.velocypack._

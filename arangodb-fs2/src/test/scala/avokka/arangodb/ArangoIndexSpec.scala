@@ -1,6 +1,6 @@
 package avokka.arangodb
 
-import avokka.arangodb.api.Index
+import avokka.arangodb.models.Index
 import avokka.arangodb.fs2._
 import avokka.arangodb.types._
 import avokka.test.ArangodbContainer

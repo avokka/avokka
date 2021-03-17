@@ -1,12 +1,17 @@
 package avokka.arangodb
 
-import api._
+import models._
 import admin.AdminLog
 import protocol._
 import types._
 import cats.Functor
 import cats.syntax.functor._
 
+/**
+  * ArangoDB server API
+  *
+  * @tparam F effect type
+  */
 trait ArangoServer[F[_]] {
   /**
     * list databases
@@ -27,6 +32,10 @@ trait ArangoServer[F[_]] {
     */
   def engine(): F[ArangoResponse[Engine]]
 
+  /**
+    * server role
+    * @return role
+    */
   def role(): F[ArangoResponse[ServerRole]]
 
   /**

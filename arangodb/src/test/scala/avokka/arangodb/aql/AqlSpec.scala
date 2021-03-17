@@ -1,6 +1,6 @@
 package avokka.arangodb.aql
 
-import avokka.arangodb.api.Query
+import avokka.arangodb.models.Query
 import avokka.velocypack._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

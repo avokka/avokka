@@ -1,6 +1,6 @@
 package avokka.arangodb
 
-import api.Query
+import models.Query
 import avokka.velocypack._
 import cats.syntax.align._
 

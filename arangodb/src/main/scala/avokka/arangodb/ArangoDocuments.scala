@@ -1,6 +1,6 @@
 package avokka.arangodb
 
-import avokka.arangodb.api.{CollectionCount, Document, Transaction}
+import avokka.arangodb.models.{CollectionCount, Document, Transaction}
 import avokka.arangodb.protocol.{ArangoClient, ArangoResponse}
 import avokka.arangodb.types.{CollectionName, DatabaseName, TransactionId}
 import avokka.velocypack._

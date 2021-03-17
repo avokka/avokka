@@ -1,7 +1,7 @@
 package avokka.arangodb
 package protocol
 
-import api.Result
+import models.Result
 import avokka.velocypack._
 import cats.Show
 import cats.syntax.show._

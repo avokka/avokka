@@ -1,5 +1,5 @@
 package avokka.arangodb
-package api
+package models
 package admin
 
 import avokka.velocypack._

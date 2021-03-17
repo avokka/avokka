@@ -1,6 +1,6 @@
 package avokka.arangodb
 
-import api._
+import models._
 import types._
 import cats.Functor
 import cats.syntax.functor._

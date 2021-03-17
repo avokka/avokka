@@ -1,5 +1,5 @@
 import avokka.arangodb.ArangoConfiguration
-import avokka.arangodb.api.admin.AdminLog
+import avokka.arangodb.models.admin.AdminLog
 import avokka.arangodb.aql._
 import avokka.arangodb.fs2._
 import avokka.arangodb.protocol.ArangoError

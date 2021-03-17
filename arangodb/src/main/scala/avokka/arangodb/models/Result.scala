@@ -1,4 +1,4 @@
-package avokka.arangodb.api
+package avokka.arangodb.models
 
 import avokka.velocypack.VPackDecoder
 

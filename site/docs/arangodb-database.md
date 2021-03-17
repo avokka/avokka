@@ -22,7 +22,7 @@ val arango = Arango(ArangoConfiguration.load())
 
 The examples assume `arango` is a fs2 ̀`Resource[IO, Arango[IO]]`.
 
-Property `db` or `client` is an instance of `ArangoDatabase[F]` for the database configured in `ArangoConfiguration.database`  
+Property `db` or `client` is an instance of [`ArangoDatabase[F]`](/avokka/api/avokka/arangodb/ArangoDatabase.html) for the database configured in `ArangoConfiguration.database`  
 
 * list collections
 

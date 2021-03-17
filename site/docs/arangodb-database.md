@@ -18,7 +18,7 @@ implicit val logger: Logger[IO] = noop.NoOpLogger[IO]
 
 val (arango, close) = Arango(ArangoConfiguration.load()).allocated.unsafeRunSync()
 
-arango.database(DatabaseName("temp")).drop().unsafeRunSync()
+arango.database(DatabaseName("temp")).drop().attempt.unsafeRunSync()
 ```
 
 # Database API

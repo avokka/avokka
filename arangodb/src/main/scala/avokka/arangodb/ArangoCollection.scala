@@ -9,7 +9,7 @@ import types._
 /**
   * ArangoDB collection API
   *
-  * @see https://www.arangodb.com/docs/stable/http/collection.html
+  * @see [[https://www.arangodb.com/docs/stable/http/collection.html]]
   * @tparam F effect
   */
 trait ArangoCollection[F[_]] {

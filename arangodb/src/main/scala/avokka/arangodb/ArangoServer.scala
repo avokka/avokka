@@ -10,7 +10,7 @@ import cats.syntax.functor._
 /**
   * ArangoDB server API
   *
-  * @see https://www.arangodb.com/docs/stable/http/miscellaneous-functions.html
+  * @see [[https://www.arangodb.com/docs/stable/http/miscellaneous-functions.html]]
   * @tparam F effect
   */
 trait ArangoServer[F[_]] {

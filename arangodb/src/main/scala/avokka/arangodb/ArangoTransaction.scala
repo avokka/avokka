@@ -9,7 +9,7 @@ import protocol._
 /**
   * ArangoDB stream transaction API
   *
-  * @see https://www.arangodb.com/docs/stable/http/transaction-stream-transaction.html
+  * @see [[https://www.arangodb.com/docs/stable/http/transaction-stream-transaction.html]]
   * @tparam F effect
   */
 trait ArangoTransaction[F[_]] {

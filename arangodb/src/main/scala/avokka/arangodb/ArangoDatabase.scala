@@ -10,7 +10,7 @@ import types._
 /**
   * ArangoDB database API
   *
-  * @see https://www.arangodb.com/docs/stable/http/database-database-management.html
+  * @see [[https://www.arangodb.com/docs/stable/http/database-database-management.html]]
   * @tparam F effect
   */
 trait ArangoDatabase[F[_]] { self =>

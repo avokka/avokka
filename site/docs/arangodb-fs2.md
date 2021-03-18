@@ -9,7 +9,7 @@ permalink: arangodb/fs2
 
 Implementation of ArangoDB with fs2
 
-Arango client database and query streaming is written with fs2 io
+Arango client database is written with [fs2 I/O](https://fs2.io/#/io) and query streaming with [fs2 stream](https://fs2.io/#/)
 
 ## Installation
 

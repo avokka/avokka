@@ -9,7 +9,7 @@ permalink: arangodb/akka
 
 Implementation of ArangoDB with Akka
 
-Arango client database is written with akka I/O TCP and query streaming with akka streams
+Arango client database is written with [akka I/O TCP](https://doc.akka.io/docs/akka/current/io-tcp.html) and query streaming with [akka streams](https://doc.akka.io/docs/akka/current/stream/index.html)
 
 ## Installation
 

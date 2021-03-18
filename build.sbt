@@ -107,21 +107,16 @@ lazy val arangodb = (project in file("arangodb"))
 
       val reader = CSVReader.open((Compile / baseDirectory).value / "errors.dat")
       val errors = reader.all().map {
-        case name :: code :: _ :: description :: Nil => s"""/** #$code: $description */
-           |case object ${name.stripPrefix("ERROR_")} extends ArangoErrorNum(${code}L)
+        case name :: code :: _ :: description :: Nil => s"""/** $description */
+           |val ${name.stripPrefix("ERROR_")}: Long = ${code}L
            |""".stripMargin
         case _ => ""
       }.mkString
       val contents =
         s"""package avokka.arangodb.protocol
-          |import _root_.enumeratum._
-          |import _root_.enumeratum.values._
           |
-          |sealed abstract class ArangoErrorNum(val value: Long) extends LongEnumEntry
-          |
-          |object ArangoErrorNum extends LongEnum[ArangoErrorNum] with VPackValueEnum[Long, ArangoErrorNum] {
-          | $errors
-          | override val values = findValues
+          |object ArangoErrorNum {
+          |$errors
           |}
           |""".stripMargin
 

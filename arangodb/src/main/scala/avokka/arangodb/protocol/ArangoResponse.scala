@@ -39,7 +39,7 @@ object ArangoResponse {
   (
     code: Long,
     error: Boolean,
-    errorNum: ArangoErrorNum,
+    errorNum: Long,
     errorMessage: String = "",
   )
 

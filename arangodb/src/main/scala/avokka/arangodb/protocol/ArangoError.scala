@@ -12,7 +12,7 @@ object ArangoError {
       extends RuntimeException("header error " + header.responseCode)
       with ArangoError
 
-  final case class Response(header: ArangoResponse.Header, error: ResponseError)
+  final case class Response(header: ArangoResponse.Header, error: ArangoResponse.Error)
       extends RuntimeException(error.errorMessage)
       with ArangoError {
     def num: Long = error.errorNum

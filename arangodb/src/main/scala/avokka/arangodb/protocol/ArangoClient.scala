@@ -44,7 +44,7 @@ trait ArangoClient[F[_]] {
     */
   def execute[P: VPackEncoder, O: VPackDecoder](request: ArangoRequest[P]): F[ArangoResponse[O]]
 
-  def login(username: String, password: String): F[ArangoResponse[ResponseError]]
+  def login(username: String, password: String): F[ArangoResponse[ArangoResponse.Error]]
 
   /**
     * arangodb client api to server
@@ -84,7 +84,7 @@ object ArangoClient {
     override def system: ArangoDatabase[F] = database(DatabaseName.system)
     override def db: ArangoDatabase[F] = database(configuration.database)
 
-    override def login(username: String, password: String): F[ArangoResponse[ResponseError]] = execute(
+    override def login(username: String, password: String): F[ArangoResponse[ArangoResponse.Error]] = execute(
       ArangoRequest.Authentication(user = username, password = password)
     )
 
@@ -135,7 +135,7 @@ object ArangoClient {
           F.raiseError[DecodeResult[O]](ArangoError.Header(header.value))
         } else if (header.value.responseCode >= 300) {
           L.trace(show"$traceRES body ${header.remainder.asVPackValue}") >>
-          F.fromEither(header.remainder.asVPack[ResponseError]) >>=
+          F.fromEither(header.remainder.asVPack[ArangoResponse.Error]) >>=
             (err => F.raiseError[DecodeResult[O]](ArangoError.Response(header.value, err.value)))
         } else {
           L.trace(show"$traceRES body ${header.remainder.asVPackValue}") >>

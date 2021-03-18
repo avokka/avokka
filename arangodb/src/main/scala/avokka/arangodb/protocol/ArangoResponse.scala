@@ -35,4 +35,15 @@ object ArangoResponse {
     def result: ArangoResponse[T] = r.copy(body = r.body.result)
   }
 
+  final case class Error
+  (
+    code: Long,
+    error: Boolean,
+    errorNum: Long,
+    errorMessage: String = "",
+  )
+
+  object Error {
+    implicit val decoder: VPackDecoder[Error] = VPackDecoder.gen
+  }
 }

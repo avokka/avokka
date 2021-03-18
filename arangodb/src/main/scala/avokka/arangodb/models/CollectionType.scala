@@ -1,20 +1,15 @@
 package avokka.arangodb.models
 
-import avokka.velocypack.{VPackDecoder, VPackEncoder, VPackError}
+import enumeratum._
+import enumeratum.values._
 
-sealed abstract class CollectionType(val i: Int) extends Product with Serializable
+sealed abstract class CollectionType(val value: Int) extends IntEnumEntry
 
-object CollectionType {
+object CollectionType extends IntEnum[CollectionType] with VPackValueEnum[Int, CollectionType] {
 
   case object Unknown extends CollectionType(0)
   case object Document extends CollectionType(2)
   case object Edge extends CollectionType(3)
 
-  implicit val encoder: VPackEncoder[CollectionType] = VPackEncoder[Int].contramap(_.i)
-  implicit val decoder: VPackDecoder[CollectionType] = VPackDecoder[Int].flatMap {
-    case Unknown.i  => Right(Unknown)
-    case Document.i => Right(Document)
-    case Edge.i     => Right(Edge)
-    case i          => Left(VPackError.IllegalValue(s"unknown collection type $i"))
-  }
+  val values = findValues
 }

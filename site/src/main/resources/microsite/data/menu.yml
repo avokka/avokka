@@ -1,8 +1,5 @@
 options:
 
-  - title: Installation
-    url: installation
-
   - title: Velocypack
     url: velocypack
     nested_options:
@@ -15,9 +12,6 @@ options:
 
       - title: Case class
         url: velocypack/case-class
-
-  - title: Velocystream
-    url: velocystream
 
   - title: ArangoDB
     url: arangodb

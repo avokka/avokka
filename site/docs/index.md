@@ -10,9 +10,9 @@ position: 1
 
 [Velocypack](https://github.com/arangodb/velocypack) codec for scala built with scodec, shapeless and cats
 
-### [avokka-velocystream]({% link velocystream.md %})
+### avokka-velocystream
 
-[Velocystream](https://github.com/arangodb/velocystream) base
+[Velocystream](https://github.com/arangodb/velocystream) models for the VST protocol
 
 ### [avokka-arangodb]({% link arangodb.md %})
 

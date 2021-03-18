@@ -14,34 +14,74 @@ import types._
   * @tparam F effect
   */
 trait ArangoDatabase[F[_]] { self =>
+
+  /** database name */
   def name: DatabaseName
 
+  /** collection api */
   def collection(name: CollectionName): ArangoCollection[F]
+
+  /** document api */
   def document(handle: DocumentHandle): ArangoDocument[F]
 
+  /** transaction api */
+  def transactions: ArangoTransactions[F]
+
   /**
+    * Creates a new database
+    *
     * @param users Has to be an array of user objects to initially create for the new database. User information will not be changed for users that already exist. If *users* is not specified or does not contain any users, a default user *root* will be created with an empty string password. This ensures that the new database will be accessible after it is created. Each user object can contain the following attributes:
     */
   def create(users: DatabaseCreate.User*): F[ArangoResponse[Boolean]]
 
+  /**
+    * Retrieves the properties of the current database
+    *
+    * @return database information
+    */
   def info(): F[ArangoResponse[DatabaseInfo]]
+
+  /**
+    * Drops the database along with all data stored in it.
+    *
+    * @note dropping a database is only possible from within the _system database. The _system database itself cannot be dropped.
+    * @return result
+    */
   def drop(): F[ArangoResponse[Boolean]]
 
+  /**
+    * Returns all collections
+    *
+    * @param excludeSystem Whether or not system collections should be excluded from the result
+    * @return array of collection informations
+    */
   def collections(excludeSystem: Boolean = false): F[ArangoResponse[Vector[CollectionInfo]]]
 
   /**
-    * @param qs contains the query string to be executed
-    * @param bindVars key/value pairs representing the bind parameters.
+    * Builds a AQL query
+    *
+    * @param query query
+    * @tparam V bind type
+    * @return query api
     */
-  def query[V: VPackEncoder](
-      qs: String,
-      bindVars: V,
-  ): ArangoQuery[F, V] = self.query(Query(qs, bindVars))
-
-  def query(qs: String): ArangoQuery[F, VObject] = query(qs, VObject.empty)
   def query[V: VPackEncoder](query: Query[V]): ArangoQuery[F, V]
 
-  def transactions: ArangoTransactions[F]
+  /**
+    * Builds a AQL query with bind parameters
+    *
+    * @param qs the query string to be executed
+    * @param bindVars key/value pairs representing the bind parameters.
+    * @tparam V bind type
+    * @return query api
+    */
+  def query[V: VPackEncoder](qs: String, bindVars: V): ArangoQuery[F, V] = self.query(Query(qs, bindVars))
+
+  /**
+    * Build a AQL query with empty bind parameters
+    * @param qs the query string to be executed
+    * @return query api
+    */
+  def query(qs: String): ArangoQuery[F, VObject] = self.query(qs, VObject.empty)
 }
 
 object ArangoDatabase {

@@ -14,10 +14,7 @@ import protocol._
   */
 trait ArangoTransaction[F[_]] {
 
-  /**
-    * transaction id
-    * @return identifier of the transaction
-    */
+  /** identifier of the transaction */
   def id: TransactionId
 
   /**

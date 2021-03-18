@@ -7,6 +7,8 @@ import avokka.velocypack._
 import cats.Functor
 
 trait ArangoDocument[F[_]] {
+
+  /** document handle */
   def handle: DocumentHandle
 
   /**

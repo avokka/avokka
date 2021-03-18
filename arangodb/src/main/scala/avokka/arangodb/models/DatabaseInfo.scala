@@ -4,6 +4,13 @@ package models
 import avokka.velocypack._
 import types._
 
+/** database information
+  *
+  * @param name database name
+  * @param id database id
+  * @param path filesystem path
+  * @param isSystem whether or not the current database is the _system database
+  */
 case class DatabaseInfo(
     name: DatabaseName,
     id: String,
@@ -12,7 +19,5 @@ case class DatabaseInfo(
 )
 
 object DatabaseInfo {
-
   implicit val decoder: VPackDecoder[DatabaseInfo] = VPackDecoder.gen
-
 }

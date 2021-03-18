@@ -14,41 +14,19 @@ import types._
   */
 trait ArangoCollection[F[_]] {
 
-  /**
-    * collection name
-    *
-    * @return collection name
-    */
+  /** collection name */
   def name: CollectionName
 
-  /**
-    * documents api
-    *
-    * @return documents api
-    */
+  /** documents api */
   def documents: ArangoDocuments[F]
 
-  /**
-    * existing document api
-    *
-    * @param key document key
-    * @return document api
-    */
+  /** existing document api */
   def document(key: DocumentKey): ArangoDocument[F]
 
-  /**
-    * indexes api
-    *
-    * @return indexes api
-    */
+  /** indexes api */
   def indexes: ArangoIndexes[F]
 
-  /**
-    * existing index api
-    *
-    * @param id index id
-    * @return index api
-    */
+  /** existing index api */
   def index(id: String): ArangoIndex[F]
 
   /**

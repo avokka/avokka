@@ -2,7 +2,7 @@
 
 <p>Implementation of ArangoDB with Akka</p>
 
-<p>Arango client database is written with akka I/O TCP and query streaming with akka streams</p>
+<p>Arango client database is written with <a href="https://doc.akka.io/docs/akka/current/io-tcp.html">akka I/O TCP</a> and query streaming with <a href="https://doc.akka.io/docs/akka/current/stream/index.html">akka streams</a></p>
 
 <h2 id="installation">Installation</h2>
 
@@ -50,7 +50,7 @@
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">val</span> <span class="nv">countries</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">Country</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span> <span class="nv">arango</span><span class="o">.</span><span class="py">db</span><span class="o">.</span><span class="py">query</span><span class="o">(</span>
   <span class="s">"FOR c IN countries RETURN c"</span>
 <span class="o">).</span><span class="py">stream</span><span class="o">[</span><span class="kt">Country</span><span class="o">]</span>
-<span class="c1">// countries: Source[Country, NotUsed] = Source(SourceShape(CursorSource.out(1420206434)))</span>
+<span class="c1">// countries: Source[Country, NotUsed] = Source(SourceShape(CursorSource.out(1330920660)))</span>
 
 <span class="nv">Await</span><span class="o">.</span><span class="py">result</span><span class="o">(</span><span class="nv">countries</span><span class="o">.</span><span class="py">runWith</span><span class="o">(</span><span class="nv">Sink</span><span class="o">.</span><span class="py">seq</span><span class="o">),</span> <span class="mf">10.</span><span class="n">seconds</span><span class="o">)</span>
 <span class="c1">// res0: Seq[Country] = Vector(</span>
@@ -70,7 +70,7 @@
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">val</span> <span class="nv">countriesArg</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">Country</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span> <span class="nv">arango</span><span class="o">.</span><span class="py">db</span><span class="o">.</span><span class="py">query</span><span class="o">(</span>
   <span class="s">"FOR c IN countries FILTER CONTAINS(c.name, @name) RETURN c"</span><span class="o">,</span> <span class="nc">VObject</span><span class="o">(</span><span class="s">"name"</span> <span class="o">-&gt;</span> <span class="s">"Fra"</span><span class="o">.</span><span class="py">toVPack</span><span class="o">)</span>
 <span class="o">).</span><span class="py">stream</span><span class="o">[</span><span class="kt">Country</span><span class="o">]</span>
-<span class="c1">// countriesArg: Source[Country, NotUsed] = Source(SourceShape(CursorSource.out(1984341017)))</span>
+<span class="c1">// countriesArg: Source[Country, NotUsed] = Source(SourceShape(CursorSource.out(1143115150)))</span>
 
 <span class="nv">Await</span><span class="o">.</span><span class="py">result</span><span class="o">(</span><span class="nv">countriesArg</span><span class="o">.</span><span class="py">runWith</span><span class="o">(</span><span class="nv">Sink</span><span class="o">.</span><span class="py">head</span><span class="o">),</span> <span class="mf">10.</span><span class="n">seconds</span><span class="o">)</span>
 <span class="c1">// res1: Country = Country(_key = "FR", name = "France")</span>
@@ -84,7 +84,7 @@
 <span class="k">val</span> <span class="nv">countriesAql</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">Country</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span> <span class="nv">arango</span><span class="o">.</span><span class="py">db</span><span class="o">.</span><span class="py">query</span><span class="o">(</span>
   <span class="n">aql</span><span class="s">"FOR c IN countries FILTER CONTAINS(c.name, $name) RETURN c"</span>
 <span class="o">).</span><span class="py">stream</span><span class="o">[</span><span class="kt">Country</span><span class="o">]</span>
-<span class="c1">// countriesAql: Source[Country, NotUsed] = Source(SourceShape(CursorSource.out(1476757766)))</span>
+<span class="c1">// countriesAql: Source[Country, NotUsed] = Source(SourceShape(CursorSource.out(278021988)))</span>
 
 <span class="nv">Await</span><span class="o">.</span><span class="py">result</span><span class="o">(</span><span class="nv">countriesAql</span><span class="o">.</span><span class="py">runWith</span><span class="o">(</span><span class="nv">Sink</span><span class="o">.</span><span class="py">head</span><span class="o">),</span> <span class="mf">10.</span><span class="n">seconds</span><span class="o">)</span>
 <span class="c1">// res2: Country = Country(_key = "FR", name = "France")</span>
@@ -95,7 +95,7 @@
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">val</span> <span class="nv">countriesBind</span><span class="k">:</span> <span class="kt">Source</span><span class="o">[</span><span class="kt">Country</span>, <span class="kt">NotUsed</span><span class="o">]</span> <span class="k">=</span> <span class="nv">arango</span><span class="o">.</span><span class="py">db</span><span class="o">.</span><span class="py">query</span><span class="o">(</span>
   <span class="n">aql</span><span class="s">"FOR c IN countries FILTER CONTAINS(c.name, @name) RETURN c"</span><span class="o">.</span><span class="py">bind</span><span class="o">(</span><span class="s">"name"</span><span class="o">,</span> <span class="n">name</span><span class="o">)</span>
 <span class="o">).</span><span class="py">stream</span><span class="o">[</span><span class="kt">Country</span><span class="o">]</span>
-<span class="c1">// countriesBind: Source[Country, NotUsed] = Source(SourceShape(CursorSource.out(1357610836)))</span>
+<span class="c1">// countriesBind: Source[Country, NotUsed] = Source(SourceShape(CursorSource.out(779629258)))</span>
 
 <span class="nv">Await</span><span class="o">.</span><span class="py">result</span><span class="o">(</span><span class="nv">countriesBind</span><span class="o">.</span><span class="py">runWith</span><span class="o">(</span><span class="nv">Sink</span><span class="o">.</span><span class="py">head</span><span class="o">),</span> <span class="mf">10.</span><span class="n">seconds</span><span class="o">)</span>
 <span class="c1">// res3: Country = Country(_key = "FR", name = "France")</span>

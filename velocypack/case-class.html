@@ -7,9 +7,9 @@
 
 <span class="k">case</span> <span class="k">class</span> <span class="nc">Test</span><span class="o">(</span><span class="n">b</span><span class="k">:</span> <span class="kt">Boolean</span><span class="o">)</span>
 <span class="k">implicit</span> <span class="k">val</span> <span class="nv">testEncoder</span><span class="k">:</span> <span class="kt">VPackEncoder</span><span class="o">[</span><span class="kt">Test</span><span class="o">]</span> <span class="k">=</span> <span class="nv">VPackEncoder</span><span class="o">.</span><span class="py">gen</span>
-<span class="c1">// testEncoder: VPackEncoder[Test] = avokka.velocypack.VPackEncoder$$anon$2@109db9a</span>
+<span class="c1">// testEncoder: VPackEncoder[Test] = avokka.velocypack.VPackEncoder$$anon$2@d1512fb</span>
 <span class="k">implicit</span> <span class="k">val</span> <span class="nv">testDecoder</span><span class="k">:</span> <span class="kt">VPackDecoder</span><span class="o">[</span><span class="kt">Test</span><span class="o">]</span> <span class="k">=</span> <span class="nv">VPackDecoder</span><span class="o">.</span><span class="py">gen</span>
-<span class="c1">// testDecoder: VPackDecoder[Test] = avokka.velocypack.VPackDecoder$$anon$1@5af026fe</span>
+<span class="c1">// testDecoder: VPackDecoder[Test] = avokka.velocypack.VPackDecoder$$anon$1@6599d1b4</span>
 </code></pre></div></div>
 
 <p>Encoding :</p>
@@ -36,7 +36,7 @@
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">case</span> <span class="k">class</span> <span class="nc">TestTrue</span><span class="o">(</span><span class="n">b</span><span class="k">:</span> <span class="kt">Boolean</span> <span class="o">=</span> <span class="kc">true</span><span class="o">)</span>                
 
 <span class="k">implicit</span> <span class="k">val</span> <span class="nv">testTrueDecoder</span><span class="k">:</span> <span class="kt">VPackDecoder</span><span class="o">[</span><span class="kt">TestTrue</span><span class="o">]</span> <span class="k">=</span> <span class="nv">VPackDecoder</span><span class="o">.</span><span class="py">gen</span>
-<span class="c1">// testTrueDecoder: VPackDecoder[TestTrue] = avokka.velocypack.VPackDecoder$$anon$1@76525cd5</span>
+<span class="c1">// testTrueDecoder: VPackDecoder[TestTrue] = avokka.velocypack.VPackDecoder$$anon$1@3c88627c</span>
 
 <span class="n">hex</span><span class="s">"0b070141621903"</span><span class="o">.</span><span class="py">bits</span><span class="o">.</span><span class="py">asVPack</span><span class="o">[</span><span class="kt">TestTrue</span><span class="o">]</span>            
 <span class="c1">// res4: VPackResult[scodec.DecodeResult[TestTrue]] = Right(DecodeResult(TestTrue(false),BitVector(empty)))            </span>

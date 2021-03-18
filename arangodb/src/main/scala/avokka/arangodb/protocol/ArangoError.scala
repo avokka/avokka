@@ -15,6 +15,6 @@ object ArangoError {
   final case class Response(header: ArangoResponse.Header, error: ArangoResponse.Error)
       extends RuntimeException(error.errorMessage)
       with ArangoError {
-    def num: Long = error.errorNum
+    def num: ArangoErrorNum = error.errorNum
   }
 }

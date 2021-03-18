@@ -101,7 +101,34 @@ lazy val arangodb = (project in file("arangodb"))
     parallelExecution in Test := false,
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
-    scalacOptions -= "-Xfatal-warnings"
+    scalacOptions -= "-Xfatal-warnings",
+    Compile / sourceGenerators += Def.task {
+      import com.github.tototoshi.csv._
+
+      val reader = CSVReader.open((Compile / baseDirectory).value / "errors.dat")
+      val errors = reader.all().map {
+        case name :: code :: _ :: description :: Nil => s"""/** #$code: $description */
+           |case object ${name.stripPrefix("ERROR_")} extends ArangoErrorNum(${code}L)
+           |""".stripMargin
+        case _ => ""
+      }.mkString
+      val contents =
+        s"""package avokka.arangodb.protocol
+          |import _root_.enumeratum._
+          |import _root_.enumeratum.values._
+          |
+          |sealed abstract class ArangoErrorNum(val value: Long) extends LongEnumEntry
+          |
+          |object ArangoErrorNum extends LongEnum[ArangoErrorNum] with VPackValueEnum[Long, ArangoErrorNum] {
+          | $errors
+          | override val values = findValues
+          |}
+          |""".stripMargin
+
+      val file = (Compile / sourceManaged).value / "avokka" / "arangodb" / "protocol" / "ArangoErrorNum.scala"
+      IO.write(file, contents)
+      Seq(file)
+    }.taskValue
   )
 
 lazy val arangodbAkka = (project in file("arangodb-akka"))

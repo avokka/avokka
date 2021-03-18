@@ -1,7 +1,7 @@
 package avokka.arangodb
 
 import avokka.arangodb.fs2._
-import avokka.arangodb.protocol.ArangoError
+import avokka.arangodb.protocol.{ArangoError, ArangoErrorNum}
 import avokka.arangodb.types._
 import avokka.test.ArangodbContainer
 import cats.effect._
@@ -65,7 +65,7 @@ class ArangoDatabaseSpec
     arango.database(DatabaseName("@")).create().redeem({
       case e: ArangoError.Response =>
         e.code should be (400)
-        e.num should be (1229)
+        e.num should be (ArangoErrorNum.ARANGO_DATABASE_NAME_INVALID)
       case e => fail(e)
     }, { r =>
       fail(s"Expected a ArangoError.Response but received: $r")

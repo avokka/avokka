@@ -31,3 +31,5 @@ addSbtPlugin("org.scalameta"          % "sbt-mdoc"                    % "2.2.17"
 
 // coverage
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
+
+libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.7"

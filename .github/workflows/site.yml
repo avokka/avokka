@@ -47,7 +47,13 @@ jobs:
         run: docker-compose -f site/docker-compose.yml up -d
 
       - name: Build site
-        run: sbt site/publishMicrosite
+        run: sbt site/makeMicrosite
 
       - name: Compose down
         run: docker-compose -f site/docker-compose.yml down
+
+      - name: Deploy site
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site/target/site

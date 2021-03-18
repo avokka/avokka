@@ -15,13 +15,13 @@ object ArangoIndex {
 
     override def id: String = _id
 
-    private val api: String = "/_api/index/" + id
+    private val path: String = "/_api/index/" + id
 
     override def read(): F[ArangoResponse[Index]] =
-      GET(database, api).execute
+      GET(database, path).execute
 
     override def delete(): F[ArangoResponse[DeleteResult]] =
-      DELETE(database, api).execute
+      DELETE(database, path).execute
 
   }
 }

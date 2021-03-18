@@ -7,8 +7,19 @@ import cats.syntax.functor._
 import types._
 import protocol._
 
+/**
+  * ArangoDB stream transactions API
+  *
+  * @see https://www.arangodb.com/docs/stable/http/transaction-stream-transaction.html
+  * @tparam F effect
+  */
 trait ArangoTransactions[F[_]] {
 
+  /**
+    * Return the currently running server-side transactions
+    *
+    * @return an object with the attribute transactions, which contains an array of transactions. In a cluster the array will contain the transactions from all Coordinators.
+    */
   def list(): F[ArangoResponse[TransactionList]]
 
   /**
@@ -23,17 +34,17 @@ trait ArangoTransactions[F[_]] {
     * @param allowImplicit Allow reading from undeclared collections.
     * @param lockTimeout an optional numeric value that can be used to set a timeout for waiting on collection locks. If not specified, a default value will be used. Setting lockTimeout to 0 will make ArangoDB not time out waiting for a lock.
     * @param maxTransactionSize Transaction size limit in bytes. Honored by the RocksDB storage engine only.
-    * @return
+    * @return transaction api
     */
   def begin(
-             read: Seq[CollectionName] = Seq.empty,
-             write: Seq[CollectionName] = Seq.empty,
-             exclusive: Seq[CollectionName] = Seq.empty,
-             waitForSync: Boolean = false,
-             allowImplicit: Option[Boolean] = None,
-             lockTimeout: Option[Int] = None,
-             maxTransactionSize: Option[Long] = None,
-           ): F[ArangoTransaction[F]]
+      read: Seq[CollectionName] = Seq.empty,
+      write: Seq[CollectionName] = Seq.empty,
+      exclusive: Seq[CollectionName] = Seq.empty,
+      waitForSync: Boolean = false,
+      allowImplicit: Option[Boolean] = None,
+      lockTimeout: Option[Int] = None,
+      maxTransactionSize: Option[Long] = None,
+  ): F[ArangoTransaction[F]]
 }
 
 object ArangoTransactions {
@@ -44,14 +55,14 @@ object ArangoTransactions {
       GET(database, "/_api/transaction").execute
 
     override def begin(
-                        read: Seq[CollectionName],
-                        write: Seq[CollectionName],
-                        exclusive: Seq[CollectionName],
-                        waitForSync: Boolean,
-                        allowImplicit: Option[Boolean],
-                        lockTimeout: Option[Int],
-                        maxTransactionSize: Option[Long],
-                      ): F[ArangoTransaction[F]] =
+        read: Seq[CollectionName],
+        write: Seq[CollectionName],
+        exclusive: Seq[CollectionName],
+        waitForSync: Boolean,
+        allowImplicit: Option[Boolean],
+        lockTimeout: Option[Int],
+        maxTransactionSize: Option[Long],
+    ): F[ArangoTransaction[F]] =
       POST(database, "/_api/transaction/begin")
         .body(
           VObject(

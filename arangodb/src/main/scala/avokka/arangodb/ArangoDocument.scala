@@ -122,7 +122,7 @@ object ArangoDocument {
 
       override def handle: DocumentHandle = _handle
 
-      private val api: String = "/_api/document/" + handle.path
+      private val path: String = "/_api/document/" + handle.path
 
       override def read[T: VPackDecoder](
           ifNoneMatch: Option[String],
@@ -131,7 +131,7 @@ object ArangoDocument {
       ): F[ArangoResponse[T]] =
         GET(
           database,
-          api,
+          path,
           meta = Map(
             "If-None-Match" -> ifNoneMatch,
             "If-Match" -> ifMatch,
@@ -146,7 +146,7 @@ object ArangoDocument {
       ): F[ArangoResponse.Header] =
         HEAD(
           database,
-          api,
+          path,
           meta = Map(
             "If-None-Match" -> ifNoneMatch,
             "If-Match" -> ifMatch,
@@ -163,7 +163,7 @@ object ArangoDocument {
       ): F[ArangoResponse[Document[T]]] =
         DELETE(
           database,
-          api,
+          path,
           Map(
             "waitForSync" -> waitForSync.toString,
             "returnOld" -> returnOld.toString,
@@ -189,7 +189,7 @@ object ArangoDocument {
       ): F[ArangoResponse[Document[T]]] =
         PATCH(
           database,
-          api,
+          path,
           Map(
             "keepNull" -> keepNull.toString,
             "mergeObjects" -> mergeObjects.toString,
@@ -218,7 +218,7 @@ object ArangoDocument {
         ArangoClient[F].execute(
           PUT(
             database,
-            api,
+            path,
             Map(
               "waitForSync" -> waitForSync.toString,
               "ignoreRevs" -> ignoreRevs.toString,

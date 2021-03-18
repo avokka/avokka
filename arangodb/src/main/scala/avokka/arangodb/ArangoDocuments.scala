@@ -156,7 +156,7 @@ object ArangoDocuments {
   def apply[F[_]: ArangoClient](database: DatabaseName, collection: CollectionName): ArangoDocuments[F] =
     new ArangoDocuments[F] {
 
-      private val api: String = "/_api/document/" + collection.repr
+      private val path: String = "/_api/document/" + collection.repr
 
       override def count(
           transactionId: Option[TransactionId]
@@ -181,7 +181,7 @@ object ArangoDocuments {
         ArangoClient[F].execute(
           POST(
             database,
-            api,
+            path,
             Map(
               "waitForSync" -> waitForSync.toString,
               "returnNew" -> returnNew.toString,
@@ -210,7 +210,7 @@ object ArangoDocuments {
         ArangoClient[F].execute(
           POST(
             database,
-            api,
+            path,
             Map(
               "waitForSync" -> waitForSync.toString,
               "returnNew" -> returnNew.toString,
@@ -240,7 +240,7 @@ object ArangoDocuments {
         ArangoClient[F].execute(
           PUT(
             database,
-            api,
+            path,
             Map(
               "waitForSync" -> waitForSync.toString,
               "ignoreRevs" -> ignoreRevs.toString,
@@ -271,7 +271,7 @@ object ArangoDocuments {
         ArangoClient[F].execute(
           PATCH(
             database,
-            api,
+            path,
             Map(
               "keepNull" -> keepNull.toString,
               "mergeObjects" -> mergeObjects.toString,
@@ -296,7 +296,7 @@ object ArangoDocuments {
         ArangoClient[F].execute(
           DELETE(
             database,
-            api,
+            path,
             Map(
               "waitForSync" -> waitForSync.toString,
               "returnOld" -> returnOld.toString,

@@ -104,7 +104,7 @@ class ArangoCollectionSpec
     }
   }
 
-  it should "unload" in { arango =>
+  it should "unload, load" in { arango =>
     val test = arango.database(databaseName)
     val tempName = CollectionName("temp")
     val temp = test.collection(tempName)
@@ -112,11 +112,16 @@ class ArangoCollectionSpec
     for {
       _ <- temp.create()
       u <- temp.unload()
+      l <- temp.load()
       _ <- temp.drop()
     } yield {
       u.header.responseCode should be (200)
       u.body.name should be (tempName)
       u.body.status should be (CollectionStatus.Unloaded)
+
+      l.header.responseCode should be (200)
+      l.body.name should be (tempName)
+      l.body.status should be (CollectionStatus.Loaded)
     }
   }
 

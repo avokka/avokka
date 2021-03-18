@@ -6,28 +6,54 @@ import cats.Functor
 import protocol._
 import types._
 
+/**
+  * ArangoDB collection API
+  *
+  * @see https://www.arangodb.com/docs/stable/http/collection.html
+  * @tparam F effect
+  */
 trait ArangoCollection[F[_]] {
 
   /**
+    * collection name
+    *
     * @return collection name
     */
   def name: CollectionName
 
   /**
+    * documents api
+    *
+    * @return documents api
+    */
+  def documents: ArangoDocuments[F]
+
+  /**
     * existing document api
+    *
     * @param key document key
     * @return document api
     */
   def document(key: DocumentKey): ArangoDocument[F]
 
   /**
-    * documents api
-    * @return documents api
+    * indexes api
+    *
+    * @return indexes api
     */
-  def documents: ArangoDocuments[F]
+  def indexes: ArangoIndexes[F]
 
   /**
-    * create the collection
+    * existing index api
+    *
+    * @param id index id
+    * @return index api
+    */
+  def index(id: String): ArangoIndex[F]
+
+  /**
+    * Create the collection
+    *
     * @param setup modify creation options
     * @return collection information
     */
@@ -54,18 +80,65 @@ trait ArangoCollection[F[_]] {
       withData: Boolean = false,
   ): F[ArangoResponse[CollectionChecksum]]
 
+  /**
+    * Return information about collection
+    *
+    * @return collection information
+    */
   def info(): F[ArangoResponse[CollectionInfo]]
 
+  /**
+    * Return collection revision id
+    *
+    * The revision is a server-generated string that clients can use to check whether data in a collection has changed since the last revision check.
+    *
+    * @return collection revision
+    */
   def revision(): F[ArangoResponse[CollectionRevision]]
 
+  /**
+    * Read properties of collection
+    *
+    * @return collection properties
+    */
   def properties(): F[ArangoResponse[CollectionProperties]]
 
+  /**
+    * Load collection
+    *
+    * @return collection information
+    */
+  def load(): F[ArangoResponse[CollectionInfo]]
+
+  /**
+    * Unload collection
+    *
+    * @return collection information
+    */
   def unload(): F[ArangoResponse[CollectionInfo]]
 
-  def truncate(): F[ArangoResponse[CollectionInfo]]
+  /**
+    * Truncate collection
+    *
+    * @param waitForSync If true then the data is synchronized to disk before returning from the truncate operation
+    * @param compact  If true then the storage engine is told to start a compaction in order to free up disk space. This can be resource intensive. If the only intention is to start over with an empty collection, specify false.
+    * @return collection information
+    */
+  def truncate(waitForSync: Boolean = false, compact: Boolean = true): F[ArangoResponse[CollectionInfo]]
 
+  /**
+    * Drop collection
+    *
+    * @param isSystem Whether or not the collection to drop is a system collection. This parameter must be set to true in order to drop a system collection.
+    * @return identifier of the dropped collection
+    */
   def drop(isSystem: Boolean = false): F[ArangoResponse[DeleteResult]]
 
+  /**
+    * Rename collection
+    * @param newName
+    * @return
+    */
   def rename(newName: CollectionName): F[ArangoResponse[CollectionInfo]]
 
   /**
@@ -73,9 +146,6 @@ trait ArangoCollection[F[_]] {
     * @return query
     */
   def all: ArangoQuery[F, VObject]
-
-  def indexes: ArangoIndexes[F]
-  def index(id: String): ArangoIndex[F]
 }
 
 object ArangoCollection {
@@ -84,7 +154,7 @@ object ArangoCollection {
     new ArangoCollection[F] {
       override def name: CollectionName = _name
 
-      private val api: String = "/_api/collection/" + name.repr
+      private val path: String = "/_api/collection/" + name.repr
 
       override def document(key: DocumentKey): ArangoDocument[F] = ArangoDocument(database, DocumentHandle(name, key))
 
@@ -97,7 +167,7 @@ object ArangoCollection {
       override def checksum(withRevisions: Boolean, withData: Boolean): F[ArangoResponse[CollectionChecksum]] =
           GET(
             database,
-            api + "/checksum",
+            path + "/checksum",
             Map(
               "withRevisions" -> withRevisions.toString,
               "withData" -> withData.toString,
@@ -105,25 +175,35 @@ object ArangoCollection {
           ).execute
 
       override def info(): F[ArangoResponse[CollectionInfo]] =
-        GET(database, api).execute
+        GET(database, path).execute
 
       override def revision(): F[ArangoResponse[CollectionRevision]] =
-        GET(database, api + "/revision").execute
+        GET(database, path + "/revision").execute
 
       override def properties(): F[ArangoResponse[CollectionProperties]] =
-        GET(database, api + "/properties").execute
+        GET(database, path + "/properties").execute
 
-      override def truncate(): F[ArangoResponse[CollectionInfo]] =
-        PUT(database, api + "/truncate").execute
+      override def truncate(waitForSync: Boolean, compact: Boolean): F[ArangoResponse[CollectionInfo]] =
+        PUT(
+          database,
+          path + "/truncate",
+          Map(
+            "waitForSync" -> waitForSync.toString,
+            "compact" -> compact.toString,
+          )
+        ).execute
+
+      override def load(): F[ArangoResponse[CollectionInfo]] =
+        PUT(database, path + "/load").execute
 
       override def unload(): F[ArangoResponse[CollectionInfo]] =
-        PUT(database, api + "/unload").execute
+        PUT(database, path + "/unload").execute
 
       override def drop(isSystem: Boolean): F[ArangoResponse[DeleteResult]] =
-        DELETE(database, api, Map("isSystem" -> isSystem.toString)).execute
+        DELETE(database, path, Map("isSystem" -> isSystem.toString)).execute
 
       override def rename(newName: CollectionName): F[ArangoResponse[CollectionInfo]] =
-        PUT(database, api + "/rename").body(VObject("name" -> newName.toVPack)).execute
+        PUT(database, path + "/rename").body(VObject("name" -> newName.toVPack)).execute
 
       override def create(setup: CollectionCreate => CollectionCreate): F[ArangoResponse[CollectionInfo]] = {
         val options = setup(CollectionCreate(name))

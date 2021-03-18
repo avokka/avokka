@@ -131,12 +131,12 @@ object ArangoIndexes {
   def apply[F[_]: ArangoClient](database: DatabaseName, collection: CollectionName): ArangoIndexes[F] =
     new ArangoIndexes[F] {
 
-      private val api: String = "/_api/index"
+      private val path: String = "/_api/index"
 
       override def list(): F[ArangoResponse[IndexList]] =
         GET(
           database,
-          api,
+          path,
           Map("collection" -> collection.repr)
         ).execute
 
@@ -149,7 +149,7 @@ object ArangoIndexes {
       ): F[ArangoResponse[Index]] =
         POST(
           database,
-          api,
+          path,
           Map("collection" -> collection.repr)
         ).body(
             VObject(
@@ -172,7 +172,7 @@ object ArangoIndexes {
       ): F[ArangoResponse[Index]] =
         POST(
           database,
-          api,
+          path,
           Map("collection" -> collection.repr)
         ).body(
             VObject(
@@ -194,7 +194,7 @@ object ArangoIndexes {
       ): F[ArangoResponse[Index]] =
         POST(
           database,
-          api,
+          path,
           Map("collection" -> collection.repr)
         ).body(
             VObject(
@@ -214,7 +214,7 @@ object ArangoIndexes {
       ): F[ArangoResponse[Index]] =
         POST(
           database,
-          api,
+          path,
           Map("collection" -> collection.repr)
         ).body(
             VObject(
@@ -233,7 +233,7 @@ object ArangoIndexes {
       ): F[ArangoResponse[Index]] =
         POST(
           database,
-          api,
+          path,
           Map("collection" -> collection.repr)
         ).body(
             VObject(
@@ -252,7 +252,7 @@ object ArangoIndexes {
       ): F[ArangoResponse[Index]] =
         POST(
           database,
-          api,
+          path,
           Map("collection" -> collection.repr)
         ).body(
             VObject(

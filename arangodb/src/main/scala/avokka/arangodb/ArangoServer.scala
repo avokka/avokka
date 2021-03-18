@@ -10,17 +10,21 @@ import cats.syntax.functor._
 /**
   * ArangoDB server API
   *
-  * @tparam F effect type
+  * @see https://www.arangodb.com/docs/stable/http/miscellaneous-functions.html
+  * @tparam F effect
   */
 trait ArangoServer[F[_]] {
+
   /**
     * list databases
-    * @return
+    *
+    * @return database names
     */
   def databases(): F[ArangoResponse[Vector[DatabaseName]]]
 
   /**
     * server version
+    *
     * @param details include details
     * @return version
     */
@@ -28,18 +32,21 @@ trait ArangoServer[F[_]] {
 
   /**
     * server engine
+    *
     * @return engine
     */
   def engine(): F[ArangoResponse[Engine]]
 
   /**
     * server role
+    *
     * @return role
     */
   def role(): F[ArangoResponse[ServerRole]]
 
   /**
     * current log level settings
+    *
     * @return map of log topic to log level
     */
   def logLevel(): F[ArangoResponse[AdminLog.Levels]]

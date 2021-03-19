@@ -16,4 +16,7 @@ class VPackCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
     }
   }
 
+  "garbage" should "not be allowed to decode" in {
+    assert(vpackCodec.decode(hex"1b 1c".bits).isFailure)
+  }
 }

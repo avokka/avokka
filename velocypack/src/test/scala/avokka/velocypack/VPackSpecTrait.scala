@@ -11,7 +11,15 @@ trait VPackSpecTrait extends Matchers { self: Assertions =>
   }
 
   def assertDec[T](d: VPackDecoder[T], v: VPack, t: T): Assertion = {
-    d.decode(v).right.value should be (t)
+    d.decode(v).value should be (t)
+  }
+
+  def assertEncode[T](t: T, v: VPack)(implicit e: VPackEncoder[T]): Assertion = {
+    assertEnc(e, t, v)
+  }
+
+  def assertDecode[T](v: VPack, t: T)(implicit d: VPackDecoder[T]): Assertion = {
+    assertDec(d, v, t)
   }
 
   def assertCodec[T](t: T, v: VPack)(implicit e: VPackEncoder[T], d: VPackDecoder[T]): Assertion = {
@@ -25,11 +33,11 @@ trait VPackSpecTrait extends Matchers { self: Assertions =>
       println(t)
       println(e.encode(t))
     }
-    d.decode(e.encode(t)).right.value should be (t)
+    d.decode(e.encode(t)).value should be (t)
     // bits roundtrip
     if (echo) {
-      println(e.bits(t).right.value)
+      println(e.bits(t).value)
     }
-    d.decodeBits(e.bits(t).right.value).right.value.value should be (t)
+    d.decodeBits(e.bits(t).value).value.value should be (t)
   }
 }

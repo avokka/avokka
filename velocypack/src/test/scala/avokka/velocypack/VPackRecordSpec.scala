@@ -43,6 +43,9 @@ class VPackRecordSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPa
     forAll { v: VersionResponse =>
       assertRoundtrip(v)(VersionResponseEncoder, VersionResponseDecoder)
     }
+
+    assert(VersionResponseDecoder.decode(VObject(Map("i" -> VSmallint(0)))).isLeft)
+    assert(VersionResponseDecoder.decode(VSmallint(0)).isLeft)
   }
 
   "case class codec with defaults" should "conform specs" in {

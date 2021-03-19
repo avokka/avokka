@@ -4,7 +4,6 @@ import java.time.Instant
 import java.util.Date
 
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.EitherValues._
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import scodec.bits.ByteVector
@@ -58,55 +57,6 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
     assertDec(VPackDecoder[Array[Byte]], VString(""), Array.empty[Byte])
   }
 
-  "byte" should "encode to smallint or long" in {
-    assertCodec(0.toByte, VSmallint(0))
-    assertCodec(100.toByte, VLong(100))
-    assertRoundtrip(Byte.MinValue)
-    assertRoundtrip(Byte.MaxValue)
-
-    VPackDecoder[Byte].decode(VLong(1000)).left.value should be (a [VPackError.Overflow])
-
-    forAll { b: Byte =>
-      assertRoundtrip(b)
-    }
-  }
-
-  "short" should "encode to smallint or long" in {
-    assertCodec(0.toShort, VSmallint(0))
-    assertCodec(100.toShort, VLong(100))
-    assertCodec(1000.toShort, VLong(1000))
-    assertRoundtrip(Short.MinValue)
-    assertRoundtrip(Short.MaxValue)
-
-    forAll { i: Short =>
-      assertRoundtrip(i)
-    }
-  }
-
-  "int" should "encode to smallint or long" in {
-    assertCodec(0, VSmallint(0))
-    assertCodec(100, VLong(100))
-    assertCodec(1000, VLong(1000))
-    assertRoundtrip(Int.MinValue)
-    assertRoundtrip(Int.MaxValue)
-
-    forAll { i: Int =>
-      assertRoundtrip(i)
-    }
-  }
-
-  "long" should "encode to smallint or long" in {
-    assertCodec(0L, VSmallint(0))
-    assertCodec(100L, VLong(100))
-    assertCodec(1000L, VLong(1000))
-    assertRoundtrip(Long.MinValue)
-    assertRoundtrip(Long.MaxValue)
-
-    forAll { l: Long =>
-      assertRoundtrip(l)
-    }
-  }
-
   "date" should "encode and decode" in {
     val now = new Date
     val ins = now.toInstant
@@ -121,12 +71,6 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
       assertRoundtrip(d.toInstant)
     }
 
-  }
-
-  "boolean" should "roundtrip" in {
-    forAll { b: Boolean =>
-      assertRoundtrip(b)
-    }
   }
 
   "bignumber" should "roundtrip" in {

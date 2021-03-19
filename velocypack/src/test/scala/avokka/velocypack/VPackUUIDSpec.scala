@@ -31,4 +31,8 @@ class VPackUUIDSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPack
       assertRoundtrip(uuid)
     }
   }
+
+  "uuid" should "fail with incoherent type" in {
+    VDate(0).as[UUID].left.value should be (a [VPackError.WrongType])
+  }
 }

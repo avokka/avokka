@@ -21,6 +21,8 @@ object scratch extends IOApp {
   object Country {
     implicit val countryEncoder: VPackEncoder[Country] = VPackEncoder.gen
     implicit val countryDecoder: VPackDecoder[Country] = VPackDecoder.gen
+
+    val collectionName = CollectionName("countries")
   }
 
   override def run(args: List[String]): IO[ExitCode] = for {
@@ -28,11 +30,11 @@ object scratch extends IOApp {
     config <- Blocker[IO].use(ArangoConfiguration.at().loadF[IO, ArangoConfiguration])
     arango = Arango(config)
     _ <- arango.use { client =>
-      val countries = client.db.collection(CollectionName("countries"))
+      val countries = client.db.collection(Country.collectionName)
       for {
         t <- client.db.transactions.begin()
         l <- client.db.query(
-            aql"FOR c IN countries FILTER c.name LIKE @name RETURN c".bind("name", "France%")
+            aql"FOR c IN ${countries.name} FILTER c.name LIKE @name RETURN c".bind("name", "France%")
         ).batchSize(1).transaction(t.id).stream[Country].compile.toVector
         _ <- client.db.transactions.list() >>= (ls => IO(println(ls)))
         _ <- t.status() >>= (ls => IO(println(ls)))

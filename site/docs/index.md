@@ -4,24 +4,38 @@ title: Home
 position: 1
 ---
 
+# Introduction
+
+Avokka provides building blocks to connect to [ArangoDB](https://github.com/arangodb/arangodb) database with [velocypack](https://github.com/arangodb/velocypack) serialization and [velocystream](https://github.com/arangodb/velocystream) protocol.
+
+Compiled for scala 2.12 and scala 2.13
+
 ## Packages
 
-### [avokka-velocypack]({% link velocypack.md %})
+* ### avokka-velocypack
 
-[Velocypack](https://github.com/arangodb/velocypack) codec for scala built with scodec, shapeless and cats
+Velocypack encoders and decoders built with scodec, shapeless and cats.
 
-### avokka-velocystream
+[Documentation]({% link velocypack.md %})
 
-[Velocystream](https://github.com/arangodb/velocystream) models for the VST protocol
+* ### avokka-velocystream
 
-### [avokka-arangodb]({% link arangodb.md %})
+Models for the velocystream protocol
 
-[ArangoDB](https://github.com/arangodb/arangodb) api
+* ### avokka-arangodb
 
-### [avokka-arangodb-akka]({% link arangodb-akka.md %})
+ArangoDB API core in tagless final style
 
-ArangoDB client implementation for akka
+[Documentation]({% link arangodb.md %})
 
-### [avokka-arangodb-fs2]({% link arangodb-akka.md %})
+* ### avokka-arangodb-akka
 
-ArangoDB client implementation for fs2
+ArangoDB client implementation with akka I/O TCP and support for akka stream query result
+
+[Documentation]({% link arangodb-akka.md %})
+
+* ### avokka-arangodb-fs2
+
+ArangoDB client implementation with fs2 I/O TCP and support for fs2.Stream query result
+
+[Documentation]({% link arangodb-fs2.md %})

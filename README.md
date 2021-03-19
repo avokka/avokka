@@ -7,6 +7,6 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/avokka/avokka/badge)](https://www.codefactor.io/repository/github/avokka/avokka)
 [![codecov](https://codecov.io/gh/avokka/avokka/branch/master/graph/badge.svg?token=EXV3TXNTR6)](https://codecov.io/gh/avokka/avokka)
 
-[ArangoDB](https://github.com/arangodb/arangodb) client written in scala with cats, scodec, implementations for akka and fs2 
+[ArangoDB](https://github.com/arangodb/arangodb) client for scala with velocypack serialization and velocystream protocol
 
 Documentation is available at: https://avokka.github.io/avokka/

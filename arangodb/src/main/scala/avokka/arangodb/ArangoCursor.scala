@@ -7,6 +7,12 @@ import avokka.velocypack.VPackDecoder
 import cats.Functor
 import cats.syntax.functor._
 
+/**
+  * Arango cursor API
+  *
+  * @tparam F effect
+  * @see [[https://www.arangodb.com/docs/stable/http/aql-query-cursor-accessing-cursors.html]]
+  */
 trait ArangoCursor[F[_], T] {
   def header: ArangoResponse.Header
   def body: Cursor[T]

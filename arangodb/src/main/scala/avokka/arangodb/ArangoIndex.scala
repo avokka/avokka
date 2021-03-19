@@ -4,6 +4,12 @@ import models._
 import avokka.arangodb.types.DatabaseName
 import protocol._
 
+/**
+  * Arango index API
+  *
+  * @tparam F effect
+  * @see [[https://www.arangodb.com/docs/stable/http/indexes-working-with.html]]
+  */
 trait ArangoIndex[F[_]] {
   def id: String
   def read(): F[ArangoResponse[Index]]

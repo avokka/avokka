@@ -6,6 +6,12 @@ import avokka.arangodb.types.{DatabaseName, DocumentHandle, TransactionId}
 import avokka.velocypack._
 import cats.Functor
 
+/**
+  * Arango document API
+  *
+  * @tparam F effect
+  * @see [[https://www.arangodb.com/docs/stable/http/document-working-with-documents.html]]
+  */
 trait ArangoDocument[F[_]] {
 
   /** document handle */

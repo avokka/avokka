@@ -5,6 +5,12 @@ import avokka.arangodb.protocol.{ArangoClient, ArangoResponse}
 import avokka.arangodb.types.{CollectionName, DatabaseName, TransactionId}
 import avokka.velocypack._
 
+/**
+  * Arango documents API
+  *
+  * @tparam F effect
+  * @see [[https://www.arangodb.com/docs/stable/http/document-working-with-documents.html]]
+  */
 trait ArangoDocuments[F[_]] {
 
   /**

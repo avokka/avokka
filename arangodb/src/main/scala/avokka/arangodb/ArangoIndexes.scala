@@ -5,6 +5,12 @@ import avokka.velocypack._
 import types._
 import protocol._
 
+/**
+  * Arango indexes API
+  *
+  * @tparam F effect
+  * @see [[https://www.arangodb.com/docs/stable/http/indexes-working-with.html]]
+  */
 trait ArangoIndexes[F[_]] {
 
   /**

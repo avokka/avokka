@@ -161,16 +161,13 @@ lazy val arangodbFs2 = (project in file("arangodb-fs2"))
     description := "ArangoDB client (fs2)",
     libraryDependencies ++= Seq(
       collectionCompat,
-//      log4cats,
       scodecStream,
       catsRetry,
       catsEffect,
       fs2,
       fs2IO,
- //     pureconfig,
     ) ++ Seq(
       log4catsSlf,
-      pureconfigF,
       logback,
       scalaTest,
       scalaTestPlus,
@@ -218,6 +215,8 @@ lazy val site = (project in file("site"))
     publishArtifact := false,
     skip in publish := true,
     version := version.value.takeWhile(_ != '+'),
+    addCompilerPlugin(kindProjector),
+    addCompilerPlugin(betterMonadicFor),
     scalacOptions -= "-Xfatal-warnings",
     mdocExtraArguments := Seq("--no-link-hygiene"),
     mdocVariables := Map(
@@ -232,7 +231,6 @@ lazy val site = (project in file("site"))
     micrositeSearchEnabled := false,
     micrositeTheme := "light",
     micrositeHighlightTheme := "github",
-    // micrositeHighlightLanguages ++= Seq("sbt"),
     micrositePalette ++= Map(
       "brand-primary" -> "#649d66",
       "brand-secondary" -> "#06623b",

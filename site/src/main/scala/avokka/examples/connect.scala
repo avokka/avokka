@@ -1,3 +1,5 @@
+package avokka.examples
+
 import avokka.arangodb.ArangoConfiguration
 import avokka.arangodb.aql._
 import avokka.arangodb.fs2._

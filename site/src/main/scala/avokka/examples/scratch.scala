@@ -1,8 +1,8 @@
+package avokka.examples
+
 import avokka.arangodb.ArangoConfiguration
-import avokka.arangodb.models.admin.AdminLog
 import avokka.arangodb.aql._
 import avokka.arangodb.fs2._
-import avokka.arangodb.protocol.ArangoError
 import avokka.arangodb.types._
 import avokka.velocypack._
 import cats.effect._

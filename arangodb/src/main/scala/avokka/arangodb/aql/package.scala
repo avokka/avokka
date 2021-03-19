@@ -15,7 +15,7 @@ package object aql {
       */
     def aql(args: AqlBindVar*): Query[VObject] = {
       // indexed variables with _arg$N key
-      val bindVars = args.toVector.zipWithIndex.map { case (arg, i) => "_arg" + i -> arg.value }
+      val bindVars = args.toVector.zipWithIndex.map { case (arg, i) => arg.prefix + "arg" + i -> arg.value }
       // placeholders with @ prefix
       val placeholders = bindVars.map { case (k, _) => "@" + k }
       // combine strings and placeholders to form query string

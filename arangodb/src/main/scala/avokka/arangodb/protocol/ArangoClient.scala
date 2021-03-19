@@ -11,10 +11,16 @@ import org.typelevel.log4cats.MessageLogger
 import scodec.DecodeResult
 import scodec.bits.ByteVector
 
+/**
+  * ArangoDB client
+  *
+  * @tparam F effect
+  */
 trait ArangoClient[F[_]] {
 
   /**
     * send a velocystream request message and receive a velocystream reply message
+    *
     * @param message VST message
     * @return VST message
     */
@@ -22,6 +28,7 @@ trait ArangoClient[F[_]] {
 
   /**
     * send a arangodb request without body and receive a arangodb response without body (HEAD)
+    *
     * @param header arango request header
     * @return arango header
     */
@@ -29,6 +36,7 @@ trait ArangoClient[F[_]] {
 
   /**
     * send a arangodb request without body and receive arangodb response
+    *
     * @param header arango header
     * @tparam O output body type
     * @return arango response
@@ -37,6 +45,7 @@ trait ArangoClient[F[_]] {
 
   /**
     * send a arangodb request with a body payload and receive arangodb response
+    *
     * @param request arango request
     * @tparam P payload body type
     * @tparam O output body type
@@ -44,31 +53,25 @@ trait ArangoClient[F[_]] {
     */
   def execute[P: VPackEncoder, O: VPackDecoder](request: ArangoRequest[P]): F[ArangoResponse[O]]
 
+  /**
+    * authenticate with arango server
+    *
+    * @param username
+    * @param password
+    * @return
+    */
   def login(username: String, password: String): F[ArangoResponse[ArangoResponse.Error]]
 
-  /**
-    * arangodb client api to server
-    * @return client
-    */
+  /** arangodb server api */
   def server: ArangoServer[F]
 
-  /**
-    * database api
-    * @param name database name
-    * @return database api
-    */
+  /** database api */
   def database(name: DatabaseName): ArangoDatabase[F]
 
-  /**
-    * _system database api
-    * @return database
-    */
+  /** _system database api */
   def system: ArangoDatabase[F]
 
-  /**
-    * configured database api
-    * @return database
-    */
+  /** configured database api */
   def db: ArangoDatabase[F]
 
 }
@@ -76,13 +79,22 @@ trait ArangoClient[F[_]] {
 object ArangoClient {
   @inline def apply[F[_]](implicit ev: ArangoClient[F]): ArangoClient[F] = ev
 
+  /**
+    * Abstract implementation of client execute methods, send method is left to akka or fs2
+    *
+    * @param configuration client configuration
+    * @param F monad
+    * @param L logger
+    * @tparam F effect
+    */
   abstract class Impl[F[_]](configuration: ArangoConfiguration)(implicit F: MonadThrow[F], L: MessageLogger[F])
     extends ArangoClient[F] {
 
-    override def server: ArangoServer[F] = ArangoServer(this, F)
+    override val server: ArangoServer[F] = ArangoServer(this, F)
+
     override def database(name: DatabaseName): ArangoDatabase[F] = ArangoDatabase(name)(this, F)
-    override def system: ArangoDatabase[F] = database(DatabaseName.system)
-    override def db: ArangoDatabase[F] = database(configuration.database)
+    override val system: ArangoDatabase[F] = database(DatabaseName.system)
+    override val db: ArangoDatabase[F] = database(configuration.database)
 
     override def login(username: String, password: String): F[ArangoResponse[ArangoResponse.Error]] = execute(
       ArangoRequest.Authentication(user = username, password = password)

@@ -122,7 +122,7 @@ object ArangoDocument {
   def apply[F[_]: ArangoClient: Functor](database: DatabaseName, _handle: DocumentHandle): ArangoDocument[F] =
     new ArangoDocument[F] {
 
-      override def handle: DocumentHandle = _handle
+      override val handle: DocumentHandle = _handle
 
       private val path: String = "/_api/document/" + handle.path
 

@@ -22,8 +22,8 @@ object ArangoCursor {
       options: ArangoQuery.Options
   ): ArangoCursor[F, T] = new ArangoCursor[F, T] {
 
-    override def header: ArangoResponse.Header = response.header
-    override def body: Cursor[T] = response.body
+    override val header: ArangoResponse.Header = response.header
+    override val body: Cursor[T] = response.body
 
     override def next(): F[ArangoCursor[F, T]] =
       ArangoClient[F]

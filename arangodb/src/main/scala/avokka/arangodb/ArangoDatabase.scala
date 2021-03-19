@@ -87,7 +87,7 @@ trait ArangoDatabase[F[_]] { self =>
 object ArangoDatabase {
   def apply[F[_]: ArangoClient: Functor](_name: DatabaseName): ArangoDatabase[F] = new ArangoDatabase[F] {
 
-    override def name: DatabaseName = _name
+    override val name: DatabaseName = _name
 
     override def collection(cname: CollectionName): ArangoCollection[F] = ArangoCollection(name, cname)
 
@@ -119,6 +119,6 @@ object ArangoDatabase {
     override def drop(): F[ArangoResponse[Boolean]] =
       DELETE(DatabaseName.system, "/_api/database/" + name).execute[F, Result[Boolean]].map(_.result)
 
-    override def transactions: ArangoTransactions[F] = ArangoTransactions(name)
+    override val transactions: ArangoTransactions[F] = ArangoTransactions(name)
   }
 }

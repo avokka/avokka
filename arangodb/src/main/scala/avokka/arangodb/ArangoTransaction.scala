@@ -37,7 +37,7 @@ trait ArangoTransaction[F[_]] {
 object ArangoTransaction {
   def apply[F[_]: ArangoClient: Functor](database: DatabaseName, _id: TransactionId): ArangoTransaction[F] =
     new ArangoTransaction[F] {
-      override def id: TransactionId = _id
+      override val id: TransactionId = _id
       private val path: String = "/_api/transaction/" + id.repr
 
       override def status(): F[ArangoResponse[Transaction]] =

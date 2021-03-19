@@ -136,11 +136,11 @@ object ArangoCollection {
 
       override def document(key: DocumentKey): ArangoDocument[F] = ArangoDocument(database, DocumentHandle(name, key))
 
-      override def documents: ArangoDocuments[F] = ArangoDocuments(database, _name)
+      override val documents: ArangoDocuments[F] = ArangoDocuments(database, _name)
 
       override def index(id: String): ArangoIndex[F] = ArangoIndex(database, id)
 
-      override def indexes: ArangoIndexes[F] = ArangoIndexes(database, _name)
+      override val indexes: ArangoIndexes[F] = ArangoIndexes(database, _name)
 
       override def checksum(withRevisions: Boolean, withData: Boolean): F[ArangoResponse[CollectionChecksum]] =
           GET(

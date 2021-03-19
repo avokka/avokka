@@ -13,7 +13,7 @@ trait ArangoIndex[F[_]] {
 object ArangoIndex {
   def apply[F[_]: ArangoClient](database: DatabaseName, _id: String): ArangoIndex[F] = new ArangoIndex[F] {
 
-    override def id: String = _id
+    override val id: String = _id
 
     private val path: String = "/_api/index/" + id
 

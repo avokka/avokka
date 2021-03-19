@@ -1,40 +1,22 @@
 package avokka.arangodb
 
-import aql._
-import fs2._
-import types._
-import avokka.test._
-import protocol.MessageType
+import avokka.arangodb.aql._
+import avokka.arangodb.fs2._
+import avokka.arangodb.protocol.MessageType
+import avokka.arangodb.types._
 import avokka.velocypack._
-import cats.effect.IO
-import cats.effect.testing.scalatest.{AsyncIOSpec, CatsResourceIO}
-import com.dimafeng.testcontainers.ForAllTestContainer
 import org.scalatest.OptionValues._
-import org.scalatest.flatspec.FixtureAsyncFlatSpec
-import org.scalatest.matchers.should.Matchers
-import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.slf4j.Slf4jLogger
 
-class ArangoCountriesSpec
-    extends FixtureAsyncFlatSpec
-      with AsyncIOSpec
-      with CatsResourceIO[Arango[IO]]
-      with Matchers
-      with ForAllTestContainer {
+class ArangoCountriesSpec extends ArangoIOBase {
   import ArangoCountriesSpec._
-  implicit val unsafeLogger: Logger[IO] = Slf4jLogger.getLogger[IO]
 
-  override val container = ArangodbContainer.Def().start()
-  override val resource = Arango[IO](container.configuration)
-
-  val dbName = DatabaseName("test")
   val collName = CollectionName("countries")
 
   it should "have test database" in { arango =>
     arango.server.databases().map { res =>
       res.header.responseCode should be(200)
       res.header.`type` should be(MessageType.ResponseFinal)
-      res.body should contain(dbName)
+      res.body should contain(arango.db.name)
     }
   }
 

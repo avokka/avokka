@@ -2,28 +2,9 @@ package avokka.arangodb
 
 import avokka.arangodb.models.Engine
 import avokka.arangodb.models.admin.AdminLog
-import types._
-import fs2._
-import avokka.test.ArangodbContainer
-import cats.effect._
-import cats.effect.testing.scalatest.{AsyncIOSpec, CatsResourceIO}
-import com.dimafeng.testcontainers.ForAllTestContainer
-import org.scalatest.flatspec.FixtureAsyncFlatSpec
-import org.scalatest.matchers.should.Matchers
-import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.slf4j.Slf4jLogger
+import avokka.arangodb.types._
 
-class ArangoServerSpec
-    extends FixtureAsyncFlatSpec
-    with AsyncIOSpec
-    with CatsResourceIO[Arango[IO]]
-    with Matchers
-    with ForAllTestContainer {
-
-  implicit val unsafeLogger: Logger[IO] = Slf4jLogger.getLogger[IO]
-
-  override val container = ArangodbContainer.Def().start()
-  override val resource = Arango[IO](container.configuration)
+class ArangoServerSpec extends ArangoIOBase {
 
   it should "get version" in { arango =>
     arango.server.version().map { res =>

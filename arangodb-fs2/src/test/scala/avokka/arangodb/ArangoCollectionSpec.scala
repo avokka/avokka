@@ -1,43 +1,24 @@
 package avokka.arangodb
 
-import avokka.arangodb.models.CollectionStatus
 import avokka.arangodb.fs2._
+import avokka.arangodb.models.CollectionStatus
 import avokka.arangodb.types._
-import avokka.test.ArangodbContainer
 import avokka.velocypack.VObject
 import cats.effect._
-import cats.effect.testing.scalatest.{AsyncIOSpec, CatsResourceIO}
-import com.dimafeng.testcontainers.ForAllTestContainer
-import org.scalatest.flatspec.FixtureAsyncFlatSpec
-import org.scalatest.matchers.should.Matchers
-import org.typelevel.log4cats.Logger
-import org.typelevel.log4cats.slf4j.Slf4jLogger
 
-class ArangoCollectionSpec
-    extends FixtureAsyncFlatSpec
-    with AsyncIOSpec
-    with CatsResourceIO[Arango[IO]]
-    with Matchers
-    with ForAllTestContainer {
+class ArangoCollectionSpec extends ArangoIOBase {
 
-  implicit val unsafeLogger: Logger[IO] = Slf4jLogger.getLogger[IO]
-
-  override val container = ArangodbContainer.Def().start()
-  override val resource = Arango[IO](container.configuration)
-
-  val databaseName = DatabaseName("test")
   val collectionName = CollectionName("countries")
 
-  def collection(arango: Arango[IO]): ArangoCollection[IO] = arango.database(databaseName).collection(collectionName)
+  def collection(arango: Arango[IO]): ArangoCollection[IO] = arango.db.collection(collectionName)
 
   it should "create, read and drop a collection" in { arango =>
-    val test = arango.database(databaseName)
     val tempName = CollectionName("temp")
-    val temp = test.collection(tempName)
+    val temp = arango.db.collection(tempName)
 
     for {
       created <- temp.create()
-      listed  <- test.collections()
+      listed  <- arango.db.collections()
       info    <- temp.info()
       dropped <- temp.drop()
     } yield {
@@ -83,9 +64,8 @@ class ArangoCollectionSpec
   }
 
   it should "truncate" in { arango =>
-    val test = arango.database(databaseName)
     val tempName = CollectionName("temp")
-    val temp = test.collection(tempName)
+    val temp = arango.db.collection(tempName)
 
     for {
       _ <- temp.create()
@@ -105,9 +85,8 @@ class ArangoCollectionSpec
   }
 
   it should "unload, load" in { arango =>
-    val test = arango.database(databaseName)
     val tempName = CollectionName("temp")
-    val temp = test.collection(tempName)
+    val temp = arango.db.collection(tempName)
 
     for {
       _ <- temp.create()
@@ -126,11 +105,10 @@ class ArangoCollectionSpec
   }
 
   it should "rename" in { arango =>
-    val test = arango.database(databaseName)
     val tempName = CollectionName("temp")
-    val temp = test.collection(tempName)
+    val temp = arango.db.collection(tempName)
     val temp2Name = CollectionName("temp2")
-    val temp2 = test.collection(temp2Name)
+    val temp2 = arango.db.collection(temp2Name)
 
     for {
       _ <- temp.create()

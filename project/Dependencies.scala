@@ -27,7 +27,7 @@ object Dependencies {
 
   val shapeless = "com.chuusai" %% "shapeless" % "2.3.3"
 
-  val akkaVersion = "2.6.10"
+  val akkaVersion = "2.6.14"
   val akkaActor = "com.typesafe.akka" %% "akka-actor" % akkaVersion
   val akkaStream = "com.typesafe.akka" %% "akka-stream" % akkaVersion
 

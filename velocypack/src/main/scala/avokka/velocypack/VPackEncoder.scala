@@ -34,7 +34,7 @@ trait VPackEncoder[T] { self =>
   }
 }
 
-object VPackEncoder {
+object VPackEncoder extends VPackEncoderDerivation with VPackEncoderLow {
   @inline def apply[T](implicit encoder: VPackEncoder[T]): VPackEncoder[T] = encoder
 
   implicit val contravariance: Contravariant[VPackEncoder] = new Contravariant[VPackEncoder] {
@@ -130,19 +130,6 @@ object VPackEncoder {
 
   implicit val localDateEncoder: VPackEncoder[LocalDate] = stringEncoder.contramap(_.toString)
 
-  type Typeclass[T] = VPackEncoder[T]
-
-  def combine[T](ctx: CaseClass[VPackEncoder, T]): VPackEncoder[T] = new VPackEncoder[T] {
-    override def encode(value: T): VPack = VObject(ctx.parameters.map { p =>
-      p.label -> p.typeclass.encode(p.dereference(value))
-    }.toMap)
-  }
-
-  def dispatch[T](ctx: SealedTrait[VPackEncoder, T]): VPackEncoder[T] = new VPackEncoder[T] {
-    override def encode(value: T): VPack = ctx.dispatch(value) { sub =>
-      sub.typeclass.encode(sub.cast(value))
-    }
-  }
-
+  // semi auto derivation
   def gen[T]: VPackEncoder[T] = macro Magnolia.gen[T]
 }

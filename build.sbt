@@ -46,7 +46,7 @@ lazy val velocypack = (project in file("velocypack"))
     ).map(_ % Test),
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
-    logBuffered in Test := false,
+    Test / logBuffered := false,
     scalacOptions -= "-Xfatal-warnings"
   )
 
@@ -88,7 +88,7 @@ lazy val velocystream = (project in file("velocystream"))
       scalaTest,
       logback,
     ).map(_ % Test),
-    logBuffered in Test := false,
+    Test / logBuffered := false,
     scalacOptions -= "-Xfatal-warnings"
   )
 
@@ -113,8 +113,8 @@ lazy val arangodb = (project in file("arangodb"))
       scalaTestPlus,
       logback,
     ).map(_ % Test),
-    logBuffered in Test := false,
-    parallelExecution in Test := false,
+    Test / logBuffered := false,
+    Test / parallelExecution := false,
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
     scalacOptions -= "-Xfatal-warnings",
@@ -163,8 +163,8 @@ lazy val arangodbAkka = (project in file("arangodb-akka"))
           Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full))
         case _ => Nil
       }),
-    logBuffered in Test := false,
-    parallelExecution in Test := false,
+    Test / logBuffered := false,
+    Test / parallelExecution := false,
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
     scalacOptions -= "-Xfatal-warnings"
@@ -213,7 +213,7 @@ lazy val bench = (project in file("bench"))
   .settings(
     name := "avokka-bench",
     publishArtifact := false,
-    skip in publish := true,
+    publish / skip := true,
     libraryDependencies ++= Seq(
       arango,
       logback
@@ -232,7 +232,7 @@ lazy val site = (project in file("site"))
     ),
     name := "avokka-site",
     publishArtifact := false,
-    skip in publish := true,
+    publish / skip := true,
     version := version.value.takeWhile(_ != '+'),
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),
@@ -260,14 +260,14 @@ lazy val site = (project in file("site"))
     micrositePushSiteWith := GitHub4s,
     micrositeDocumentationLabelDescription := "Scaladoc",
     micrositeDocumentationUrl := "api/avokka",
-    siteSubdirName in ScalaUnidoc := "api",
-    addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), siteSubdirName in ScalaUnidoc),
-    unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(velocypack, velocystream, arangodb, arangodbAkka, arangodbFs2)
+    ScalaUnidoc / siteSubdirName := "api",
+    addMappingsToSiteDir(ScalaUnidoc / packageDoc / mappings, ScalaUnidoc / siteSubdirName),
+    ScalaUnidoc / unidoc / unidocProjectFilter := inProjects(velocypack, velocystream, arangodb, arangodbAkka, arangodbFs2)
   ).enablePlugins(MicrositesPlugin, ScalaUnidocPlugin)
 
 lazy val avokka = (project in file("."))
   .aggregate(velocypack, velocypackEnumeratum, velocypackCirce, velocystream, arangodb, arangodbAkka, arangodbFs2)
   .settings(
     publishArtifact := false,
-    skip in publish := true
+    publish / skip := true
   ).disablePlugins(MakePomPlugin)

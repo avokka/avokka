@@ -61,7 +61,7 @@ object Arango {
       blocker <- Blocker[F]
       group <- SocketGroup(blocker)
       to = new InetSocketAddress(config.host, config.port)
-      _ <- Resource.liftF(L.debug(s"open connection to $to"))
+      _ <- Resource.eval(L.debug(s"open connection to $to"))
       client <- group.client(to)
       arango <- Resource.make(impl(client))(_.terminate).evalTap(_.login(config.username, config.password))
     } yield arango

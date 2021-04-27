@@ -266,8 +266,8 @@ lazy val site = (project in file("site"))
   ).enablePlugins(MicrositesPlugin, ScalaUnidocPlugin)
 
 lazy val avokka = (project in file("."))
-  .aggregate(velocypack, velocypackEnumeratum, velocystream, arangodb, arangodbAkka, arangodbFs2)
+  .aggregate(velocypack, velocypackEnumeratum, velocypackCirce, velocystream, arangodb, arangodbAkka, arangodbFs2)
   .settings(
     publishArtifact := false,
     skip in publish := true
-  )
+  ).disablePlugins(MakePomPlugin)

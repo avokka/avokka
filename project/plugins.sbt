@@ -29,6 +29,9 @@ addSbtPlugin("com.typesafe.sbt"       % "sbt-ghpages"                 % "0.6.3")
 addSbtPlugin("org.scalameta"          % "sbt-mdoc"                    % "2.2.17")
 */
 
+// tools
+addSbtPlugin("io.chrisdavenport" %% "sbt-make-pom" % "0.0.2")
+
 // coverage
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
 

@@ -61,6 +61,22 @@ lazy val velocypackEnumeratum = (project in file("velocypack-enumeratum"))
     scalacOptions -= "-Xfatal-warnings"
   )
 
+lazy val velocypackCirce = (project in file("velocypack-circe"))
+  .dependsOn(velocypack)
+  .settings(
+    name := "avokka-velocypack-circe",
+    description := "velocypack encoders for circe json",
+    libraryDependencies ++= Seq(
+      circe
+    ) ++ Seq(
+      circeLit, jawn,
+      scalaTest,
+//      scalaTestPlus,
+      logback,
+    ).map(_ % Test),
+    scalacOptions -= "-Xfatal-warnings"
+  )
+
 lazy val velocystream = (project in file("velocystream"))
   .dependsOn(velocypack)
   .settings(

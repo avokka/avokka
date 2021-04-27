@@ -54,4 +54,8 @@ object Dependencies {
   val betterMonadicFor = "com.olegpy" %% "better-monadic-for" % "0.3.1"
 
   val magnolia = "com.propensive" %% "magnolia" % "0.17.0"
+
+  val circe = "io.circe" %% "circe-core" % "0.13.0"
+  val circeLit = "io.circe" %% "circe-literal" % "0.13.0"
+  val jawn = "org.typelevel" %% "jawn-parser" % "1.0.0"
 }

@@ -171,7 +171,7 @@ lazy val arangodbAkka = (project in file("arangodb-akka"))
   )
 
 lazy val arangodbFs2 = (project in file("arangodb-fs2"))
-  .dependsOn(arangodb, test % "test->test")
+  .dependsOn(arangodb, test % "test->test", velocypackCirce % Test)
   .settings(
     name := "avokka-arangodb-fs2",
     description := "ArangoDB client (fs2)",
@@ -188,6 +188,8 @@ lazy val arangodbFs2 = (project in file("arangodb-fs2"))
       scalaTest,
       scalaTestPlus,
       scalaTestCatsEffect,
+      circeLit,
+      jawn
     ).map(_ % Test),
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),

@@ -1,6 +1,6 @@
 package avokka.arangodb
 
-import models._
+import models.{CollectionProperties, _}
 import avokka.velocypack._
 import cats.Functor
 import protocol._
@@ -82,6 +82,14 @@ trait ArangoCollection[F[_]] {
   def properties(): F[ArangoResponse[CollectionProperties]]
 
   /**
+    * Update properties of collection
+    * @param waitForSync  If true then creating or changing a document will wait until the data has been synchronized to disk
+    * @param schema       Object that specifies the collection level schema for documents. The attribute keys rule, level and message must follow the rules documented in Document Schema Validation
+    * @return collection properties
+    */
+  def update(waitForSync: Option[Boolean] = None, schema: Option[CollectionSchema] = None): F[ArangoResponse[CollectionProperties]]
+
+  /**
     * Load collection
     *
     * @return collection information
@@ -160,6 +168,15 @@ object ArangoCollection {
 
       override def properties(): F[ArangoResponse[CollectionProperties]] =
         GET(database, path + "/properties").execute
+
+      override def update(waitForSync: Option[Boolean], schema: Option[CollectionSchema]): F[ArangoResponse[CollectionProperties]] =
+        PUT(
+          database,
+          path + "/properties",
+        ).body(VObject(
+          "waitForSync" -> waitForSync.toVPack,
+          "schema" -> schema.toVPack
+        )).execute
 
       override def truncate(waitForSync: Boolean, compact: Boolean): F[ArangoResponse[CollectionInfo]] =
         PUT(

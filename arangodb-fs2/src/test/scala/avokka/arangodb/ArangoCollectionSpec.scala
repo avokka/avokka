@@ -1,10 +1,13 @@
 package avokka.arangodb
 
 import avokka.arangodb.fs2._
-import avokka.arangodb.models.CollectionStatus
+import avokka.arangodb.models.{CollectionSchema, CollectionStatus}
+import avokka.arangodb.protocol.{ArangoError, ArangoErrorNum}
 import avokka.arangodb.types._
-import avokka.velocypack.VObject
+import avokka.velocypack._
+import avokka.velocypack.circe._
 import cats.effect._
+import io.circe.literal._
 
 class ArangoCollectionSpec extends ArangoIOBase {
 
@@ -117,6 +120,64 @@ class ArangoCollectionSpec extends ArangoIOBase {
     } yield {
       r.header.responseCode should be (200)
       r.body.name should be (temp2Name)
+    }
+  }
+
+  it should "support schema" in { arango =>
+    val tempName = CollectionName("temp")
+    val temp = arango.db.collection(tempName)
+
+    for {
+      c <- temp.create(_.copy(
+        schema = Some(CollectionSchema(
+          rule = json"""
+                {
+                  "properties": { "nums": { "type": "array", "items": { "type": "number", "maximum": 6 } } },
+                  "additionalProperties": { "type": "string" },
+                  "required": ["nums"]
+                }
+                """.toVPack,
+          level = "moderate",
+          message = "The document does not contain an array of numbers in attribute 'nums', or one of the numbers is bigger than 6."
+        ))
+      ))
+
+      _ <- temp.documents.insert(VObject(
+        "x" -> VString("additional")
+      )).redeem({
+        case e: ArangoError.Response =>
+          e.code should be (400)
+          e.num should be (ArangoErrorNum.VALIDATION_FAILED)
+        case e => fail(e)
+      }, { r => fail(s"Expected a ArangoError.Response but received: $r") })
+
+      _ <- temp.documents.insert(VObject(
+        "nums" -> VTrue
+      )).redeem({
+        case e: ArangoError.Response =>
+          e.code should be (400)
+          e.num should be (ArangoErrorNum.VALIDATION_FAILED)
+        case e => fail(e)
+      }, { r => fail(s"Expected a ArangoError.Response but received: $r") })
+
+      _ <- temp.documents.insert(VObject(
+        "nums" -> VArray(VLong(100))
+      )).redeem({
+        case e: ArangoError.Response =>
+          e.code should be (400)
+          e.num should be (ArangoErrorNum.VALIDATION_FAILED)
+        case e => fail(e)
+      }, { r => fail(s"Expected a ArangoError.Response but received: $r") })
+
+      i <- temp.documents.insert(VObject(
+        "nums" -> VArray(VLong(5), VSmallint(0)),
+        "x" -> VString("additional")
+      ))
+
+      _ <- temp.drop()
+    } yield {
+      c.header.responseCode should be (200)
+      i.header.responseCode should be (202)
     }
   }
 }

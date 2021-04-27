@@ -46,6 +46,7 @@ final case class CollectionProperties(
     shardKeys: Option[List[String]] = None,
     shardingStrategy: Option[String] = None,
     smartGraphAttribute: Option[String] = None,
+    schema: Option[CollectionSchema] = None,
 )
 
 object CollectionProperties {

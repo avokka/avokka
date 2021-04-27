@@ -26,6 +26,9 @@ import types._
   * @param enforceReplicationFactor Default is 1 which means the server will check if there are enough replicas
   *                                 available at creation time and bail out otherwise. Set to 0 to disable
   *                                 this extra check.
+  * @param schema                   Optional object that specifies the collection level schema for documents.
+  *                                 The attribute keys rule, level and message must follow the rules
+  *                                 documented in Document Schema Validation
   */
 final case class CollectionCreate(
     name: CollectionName,
@@ -45,6 +48,7 @@ final case class CollectionCreate(
     waitForSync: Boolean = false,
     waitForSyncReplication: Int = 1,
     enforceReplicationFactor: Int = 1,
+    schema: Option[CollectionSchema] = None,
 ) {
   def parameters = Map(
     "waitForSyncReplication" -> waitForSyncReplication.toString,

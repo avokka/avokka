@@ -43,3 +43,15 @@ implicit val testTrueDecoder: VPackDecoder[TestTrue] = VPackDecoder.gen
 hex"0b070141621903".bits.asVPack[TestTrue]            
 hex"0a".bits.asVPack[TestTrue]                                                                                                         
 ```
+
+Automatic encoder and decoder derivation :
+
+```scala mdoc:to-string
+import avokka.velocypack.auto.encoder._
+import avokka.velocypack.auto.decoder._
+
+case class Element(name: String, value: Int)
+case class Group(elements: Vector[Element])
+
+Group(Vector(Element("a", 1), Element("b", 2))).toVPack
+```

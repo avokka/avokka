@@ -58,4 +58,6 @@ object Dependencies {
   val circe = "io.circe" %% "circe-core" % "0.13.0"
   val circeLit = "io.circe" %% "circe-literal" % "0.13.0"
   val jawn = "org.typelevel" %% "jawn-parser" % "1.0.0"
+
+  val semver = "io.kevinlee" %% "just-semver" % "0.1.2"
 }

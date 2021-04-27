@@ -9,6 +9,7 @@ import org.scalatest.flatspec.FixtureAsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.typelevel.log4cats._
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+import just.semver.SemVer
 
 abstract class ArangoIOBase extends FixtureAsyncFlatSpec
   with AsyncIOSpec
@@ -21,4 +22,9 @@ abstract class ArangoIOBase extends FixtureAsyncFlatSpec
   override val container = ArangodbContainer.Def().start()
   override val resource = Arango[IO](container.configuration)
 
+  protected val containerVersion = SemVer.parseUnsafe(container.version)
+
+  protected def assumeArangoVersion(version: String) = {
+    assume(containerVersion >= SemVer.parseUnsafe(version))
+  }
 }

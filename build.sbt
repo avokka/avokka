@@ -189,7 +189,8 @@ lazy val arangodbFs2 = (project in file("arangodb-fs2"))
       scalaTestPlus,
       scalaTestCatsEffect,
       circeLit,
-      jawn
+      jawn,
+      semver
     ).map(_ % Test),
     addCompilerPlugin(kindProjector),
     addCompilerPlugin(betterMonadicFor),

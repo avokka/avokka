@@ -9,6 +9,7 @@ import scodec.bits.ByteVector
 import scodec.interop.cats._
 import shapeless.HList
 
+import java.net.{URI, URL}
 import scala.annotation.implicitNotFound
 import java.time.{Instant, LocalDate}
 import java.util.{Date, UUID}
@@ -204,6 +205,16 @@ object VPackDecoder extends VPackDecoderDerivation with VPackDecoderLow {
 
   implicit val localDateDecoder: VPackDecoder[LocalDate] = {
     case VString(value) => Either.catchNonFatal(LocalDate.parse(value)).leftMap(VPackError.Conversion(_))
+    case v => Left(VPackError.WrongType(v))
+  }
+
+  implicit val uriDecoder: VPackDecoder[URI] = {
+    case VString(value) => Either.catchNonFatal(new URI(value)).leftMap(VPackError.Conversion(_))
+    case v => Left(VPackError.WrongType(v))
+  }
+
+  implicit val urlDecoder: VPackDecoder[URL] = {
+    case VString(value) => Either.catchNonFatal(new URL(value)).leftMap(VPackError.Conversion(_))
     case v => Left(VPackError.WrongType(v))
   }
 

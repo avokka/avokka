@@ -1,7 +1,7 @@
 import Dependencies._
 
-val scala212Version = "2.12.12"
-val scala213Version = "2.13.5"
+val scala212Version = "2.12.14"
+val scala213Version = "2.13.6"
 
 ThisBuild / organization := "com.bicou"
 ThisBuild / crossScalaVersions := Seq(scala212Version, scala213Version)

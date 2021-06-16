@@ -9,7 +9,7 @@ import cats.effect._
 import cats.syntax.flatMap._
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import pureconfig.module.catseffect.syntax._
+import pureconfig.module.catseffect2.syntax._
 
 object scratch extends IOApp {
 

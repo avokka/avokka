@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
   val scalaTest = "org.scalatest" %% "scalatest" % "3.2.9"
   val scalaTestPlus = "org.scalatestplus" %% "scalacheck-1-14" % "3.2.2.0"
-  val scalaTestCatsEffect = "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.4"
+  val scalaTestCatsEffect = "org.typelevel" %% "cats-effect-testing-scalatest" % "1.1.1"
 //  val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.14.3"
   val logback = "ch.qos.logback" % "logback-classic" % "1.2.3"
 
@@ -16,14 +16,14 @@ object Dependencies {
 
   val cats = "org.typelevel" %% "cats-core" % "2.6.1"
 //  val catsMtl = "org.typelevel" %% "cats-mtl" % "1.1.1"
-  val catsEffect = "org.typelevel" %% "cats-effect" % "2.5.1"
-  val catsRetry = "com.github.cb372" %% "cats-retry" % "2.1.1"
-  val fs2 = "co.fs2" %% "fs2-core" % "2.5.6"
-  val fs2IO = "co.fs2" %% "fs2-io" % "2.5.6"
+  val catsEffect = "org.typelevel" %% "cats-effect" % "3.1.1"
+  val catsRetry = "com.github.cb372" %% "cats-retry" % "3.0.0"
+  val fs2 = "co.fs2" %% "fs2-core" % "3.0.4"
+  val fs2IO = "co.fs2" %% "fs2-io" % "3.0.4"
 
-  val log4cats = "org.typelevel" %% "log4cats-core"    % "1.3.1"
-  val log4catsSlf = "org.typelevel" %% "log4cats-slf4j" % "1.3.0"
-  val log4catsNoop = "org.typelevel" %% "log4cats-noop" % "1.3.0"
+  val log4cats = "org.typelevel" %% "log4cats-core"    % "2.1.1"
+  val log4catsSlf = "org.typelevel" %% "log4cats-slf4j" % "2.1.1"
+  val log4catsNoop = "org.typelevel" %% "log4cats-noop" % "2.1.1"
 
   val shapeless = "com.chuusai" %% "shapeless" % "2.3.7"
 
@@ -38,7 +38,7 @@ object Dependencies {
   val scodecBits = "org.scodec" %% "scodec-bits" % "1.1.27"
   val scodecCore = "org.scodec" %% "scodec-core" % "1.11.8"
   val scodecCats = "org.scodec" %% "scodec-cats" % "1.1.0"
-  val scodecStream = "org.scodec" %% "scodec-stream" % "2.0.2"
+  val scodecStream = "org.scodec" %% "scodec-stream" % "3.0.1"
 
   val arango = "com.arangodb" % "arangodb-java-driver" % "6.9.0"
 
@@ -48,7 +48,7 @@ object Dependencies {
   val newtype = "io.estatico" %% "newtype" % "0.4.4"
 
   val pureconfig = "com.github.pureconfig" %% "pureconfig" % "0.16.0"
-  val pureconfigF = "com.github.pureconfig" %% "pureconfig-cats-effect2" % "0.16.0"
+  val pureconfigF = "com.github.pureconfig" %% "pureconfig-cats-effect" % "0.16.0"
 
   val kindProjector = "org.typelevel" %% "kind-projector" % "0.13.0" cross CrossVersion.full
   val betterMonadicFor = "com.olegpy" %% "better-monadic-for" % "0.3.1"

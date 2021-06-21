@@ -7,9 +7,10 @@ import avokka.arangodb.types._
 import avokka.velocypack._
 import cats.effect._
 import cats.syntax.flatMap._
+import fs2.io.net.Network
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import pureconfig.module.catseffect2.syntax._
+import pureconfig.module.catseffect.syntax._
 
 object scratch extends IOApp {
 
@@ -25,9 +26,11 @@ object scratch extends IOApp {
     val collectionName = CollectionName("countries")
   }
 
+  implicit val net = Network[IO]
+
   override def run(args: List[String]): IO[ExitCode] = for {
     implicit0(logger: Logger[IO]) <- Slf4jLogger.create[IO]
-    config <- Blocker[IO].use(ArangoConfiguration.at().loadF[IO, ArangoConfiguration])
+    config <- ArangoConfiguration.at().loadF[IO, ArangoConfiguration]
     arango = Arango(config)
     _ <- arango.use { client =>
       val countries = client.db.collection(Country.collectionName)

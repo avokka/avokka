@@ -1,22 +1,21 @@
 package avokka.arangodb
 package fs2
 
-import protocol.ArangoClient
+import _root_.fs2.Pipe
+import _root_.fs2.concurrent.SignallingRef
+import _root_.fs2.io.net._
+import avokka.arangodb.protocol.ArangoClient
 import avokka.velocystream._
-import cats.effect.concurrent.{Deferred, Ref}
-import cats.effect.syntax.bracket._
-import cats.effect.syntax.concurrent._
-import cats.effect.{Blocker, Concurrent, ContextShift, Resource, Timer}
+import cats.effect._
+import cats.effect.syntax.spawn._
+import cats.effect.syntax.temporal._
+import cats.effect.syntax.monadCancel._
 import cats.syntax.apply._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import _root_.fs2.Pipe
-import _root_.fs2.concurrent.SignallingRef
-import _root_.fs2.io.tcp._
+import com.comcast.ip4s._
 import org.typelevel.log4cats.Logger
 import scodec.bits.ByteVector
-
-import java.net.InetSocketAddress
 
 trait Arango[F[_]] extends ArangoClient[F] {
    def terminate: F[Unit]
@@ -24,13 +23,13 @@ trait Arango[F[_]] extends ArangoClient[F] {
 
 object Arango {
 
-  def apply[F[_]: ContextShift: Timer](
+  def apply[F[_]: Network : Temporal](
     config: ArangoConfiguration,
   )(implicit C: Concurrent[F], L: Logger[F]): Resource[F, Arango[F]] = {
 
     def in(responses: FMap[F, Long, Deferred[F, ByteVector]]): Pipe[F, VStreamMessage, Unit] = _.evalMapChunk { msg =>
       responses.remove(msg.id).flatMap {
-        case Some(deferred) => deferred.complete(msg.data)
+        case Some(deferred) => deferred.complete(msg.data).void
         case None           => C.raiseError[Unit](new Exception(s"unknown message id ${msg.id}"))
       }
     }
@@ -58,9 +57,8 @@ object Arango {
     }
 
     for {
-      blocker <- Blocker[F]
-      group <- SocketGroup(blocker)
-      to = new InetSocketAddress(config.host, config.port)
+      group <- Network[F].socketGroup()
+      to = new SocketAddress(Host.fromString(config.host).get, Port.fromInt(config.port).get)
       _ <- Resource.eval(L.debug(s"open connection to $to"))
       client <- group.client(to)
       arango <- Resource.make(impl(client))(_.terminate).evalTap(_.login(config.username, config.password))

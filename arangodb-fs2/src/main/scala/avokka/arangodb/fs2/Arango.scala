@@ -10,6 +10,7 @@ import cats.effect._
 import cats.effect.syntax.spawn._
 import cats.effect.syntax.temporal._
 import cats.effect.syntax.monadCancel._
+import cats.effect.syntax.resource._
 import cats.syntax.apply._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
@@ -38,8 +39,7 @@ object Arango {
       counter <- Ref.of(0L)
       responses <- FMap[F, Long, Deferred[F, ByteVector]]
       stateSignal <- SignallingRef[F, ConnectionState](ConnectionState.Disconnected)
-      closeSignal <- SignallingRef[F, Boolean](false)
-      socket <- VChunkSocket(config, client, stateSignal, closeSignal, in(responses))
+      socket <- VChunkSocket(config, client, stateSignal, in(responses))
       fib <- socket.pump.start
     } yield new ArangoClient.Impl[F](config) with Arango[F] {
 
@@ -53,13 +53,20 @@ object Arango {
           r <- dfr.get.timeout(config.replyTimeout).guarantee(responses.remove(id).void)
         } yield r
 
-      override def terminate: F[Unit] = fib.cancel *> closeSignal.set(true)
+      override def terminate: F[Unit] = fib.cancel
     }
 
+    val addr = C.fromOption(
+      (Host.fromString(config.host), Port.fromInt(config.port)).tupled.map {
+        case (host, port) => new SocketAddress(host, port)
+      },
+      new IllegalArgumentException(s"invalid address ${config.host}:${config.port}")
+    )
+
     for {
+      to <- addr.toResource
+      _ <- L.debug(s"open connection to $to").toResource
       group <- Network[F].socketGroup()
-      to = new SocketAddress(Host.fromString(config.host).get, Port.fromInt(config.port).get)
-      _ <- Resource.eval(L.debug(s"open connection to $to"))
       client <- group.client(to)
       arango <- Resource.make(impl(client))(_.terminate).evalTap(_.login(config.username, config.password))
     } yield arango

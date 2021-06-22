@@ -3,7 +3,6 @@ package avokka.arangodb.fs2
 import avokka.velocystream._
 import cats.effect.Concurrent
 import cats.effect.std.Queue
-import cats.effect.syntax.spawn._
 import cats.syntax.apply._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
@@ -30,7 +29,6 @@ object VChunkSocket {
       config: VStreamConfiguration,
       socket: Socket[F],
       stateSignal: SignallingRef[F, ConnectionState],
-      closeSignal: SignallingRef[F, Boolean],
       in: Pipe[F, VStreamMessage, Unit],
     )(implicit C: Concurrent[F], L: Logger[F]): F[VChunkSocket[F]] = {
 
@@ -55,7 +53,6 @@ object VChunkSocket {
 
       val incoming: Stream[F, Unit] = socket
         .reads
-        // .reads(config.readBufferSize)
         .through(streamDecoder)
         .evalTap(msg => L.trace(show"${Console.BLUE_B}${Console.WHITE}RECV${Console.RESET} $msg"))
         .evalMap(ch => assembler.push(ch).value).unNone
@@ -68,21 +65,13 @@ object VChunkSocket {
         .compile
         .drain
 
-      val close: F[Unit] = closeSignal.discrete
-        //.evalMap(if (_) socket.close else C.unit)
-        .compile
-        .drain
-
       new VChunkSocket[F] {
         override def send(message: VStreamMessage): F[Unit] = {
           chunks.offer(message.firstChunk(config.chunkLength))
         }
 
         override val pump: F[Unit] =
-          for {
-            _ <- stateSignal.set(ConnectionState.Connected)
-            _ <- data.race(close)
-          } yield ()
+          stateSignal.set(ConnectionState.Connected) *> data
       }
     }
   }

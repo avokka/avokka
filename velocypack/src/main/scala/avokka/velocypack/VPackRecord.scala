@@ -2,7 +2,7 @@ package avokka.velocypack
 
 import shapeless.labelled.{FieldType, field}
 import shapeless.{::, Default, HList, HNil, LabelledGeneric, Witness}
-import cats.syntax.bifunctor._
+import cats.syntax.either._
 
 object VPackRecord {
 

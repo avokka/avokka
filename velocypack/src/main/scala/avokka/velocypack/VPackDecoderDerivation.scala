@@ -1,7 +1,7 @@
 package avokka.velocypack
 
 import magnolia._
-import cats.syntax.all._
+import cats.syntax.either._
 
 trait VPackDecoderDerivation {
 

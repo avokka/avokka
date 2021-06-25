@@ -21,6 +21,7 @@ object ArangoRequest {
     def `type`: MessageType
 
     @inline def execute[F[_]: ArangoClient, O: VPackDecoder]: F[ArangoResponse[O]] = ArangoClient[F].execute[O](this)
+    @inline def executeSequence[F[_]: ArangoClient, O: VPackDecoder]: F[ArangoResponse[Vector[O]]] = ArangoClient[F].executeSequence[O](this)
   }
 
   sealed trait Request extends Header with Product with Serializable {

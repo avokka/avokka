@@ -1,12 +1,12 @@
 package avokka.velocypack
 
 import cats.data.{Kleisli, StateT}
-import cats.syntax.all._
+import cats.syntax.apply._
+import cats.syntax.either._
+import cats.syntax.traverse._
 import magnolia._
-import scodec.DecodeResult
 import scodec.bits.BitVector
 import scodec.bits.ByteVector
-import scodec.interop.cats._
 import shapeless.HList
 
 import java.net.{URI, URL}
@@ -21,15 +21,6 @@ trait VPackDecoder[T] {
   def map[U](f: T => U): VPackDecoder[U] = (v: VPack) => decode(v).map(f)
 
   def flatMap[U](f: T => VPackResult[U]): VPackDecoder[U] = (v: VPack) => decode(v).flatMap(f)
-
-  /** decodes vpack bitvector to T
-    * @return either error or (T value and remainder)
-    */
-  def decodeBits(bits: BitVector): VPackResult[DecodeResult[T]] = codecs.vpackDecoder
-      .decode(bits)
-      .toEither
-      .leftMap(VPackError.Codec)
-      .flatMap(_.traverse(decode))
 
   def state: StateT[VPackResult, BitVector, T] = {
     codecs.vpackDecoder.asState.flatMapF(decode)

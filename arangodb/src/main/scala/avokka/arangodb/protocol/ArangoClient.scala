@@ -44,6 +44,15 @@ trait ArangoClient[F[_]] {
   def execute[O: VPackDecoder](header: ArangoRequest.Header): F[ArangoResponse[O]]
 
   /**
+    * send a arangodb request without body and receive arangodb response as velocypack sequence
+    *
+    * @param header arango header
+    * @tparam O output body inner type
+    * @return arango response
+    */
+  def executeSequence[O: VPackDecoder](header: ArangoRequest.Header): F[ArangoResponse[Vector[O]]]
+
+  /**
     * send a arangodb request with a body payload and receive arangodb response
     *
     * @param request arango request
@@ -147,11 +156,35 @@ object ArangoClient {
           F.raiseError[DecodeResult[O]](ArangoError.Header(header.value))
         } else if (header.value.responseCode >= 300) {
           L.trace(show"$traceRES body ${header.remainder.asVPackValue}") >>
-          F.fromEither(header.remainder.asVPack[ArangoResponse.Error]) >>=
+            F.fromEither(header.remainder.asVPack[ArangoResponse.Error]) >>=
             (err => F.raiseError[DecodeResult[O]](ArangoError.Response(header.value, err.value)))
         } else {
           L.trace(show"$traceRES body ${header.remainder.asVPackValue}") >>
-          F.fromEither(header.remainder.asVPack[O])
+            F.fromEither(header.remainder.asVPack[O])
+        }
+      } yield ArangoResponse(header.value, body.value)
+
+    override def executeSequence[O: VPackDecoder](header: ArangoRequest.Header): F[ArangoResponse[Vector[O]]] =
+      for {
+        _  <- L.trace(show"$traceREQ header $header")
+        in <- F.fromEither(header.toVPackBits)
+        _  <- L.trace(show"$traceREQ header ${in.asVPackValue}")
+        out <- send(in.bytes)
+        res <- handleResponseSequence(out)
+      } yield res
+
+    protected def handleResponseSequence[O: VPackDecoder](response: ByteVector): F[ArangoResponse[Vector[O]]] =
+      for {
+        _      <- L.trace(show"$traceRES header ${response.bits.asVPackValue}")
+        header <- F.fromEither(response.bits.asVPack[ArangoResponse.Header])
+        _      <- L.trace(show"$traceRES header ${header.value}")
+        body <- if (header.value.responseCode >= 300) {
+          L.trace(show"$traceRES body ${header.remainder.asVPackValue}") >>
+            F.fromEither(header.remainder.asVPack[ArangoResponse.Error]) >>=
+            (err => F.raiseError[DecodeResult[Vector[O]]](ArangoError.Response(header.value, err.value)))
+        } else {
+          L.trace(show"$traceRES body ${header.remainder.asVPackValue}") >>
+            F.fromEither(header.remainder.asVPackSequence[O])
         }
       } yield ArangoResponse(header.value, body.value)
 

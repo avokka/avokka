@@ -1,8 +1,9 @@
 package avokka
 
 import cats.data.StateT
-import cats.instances.either._
 import cats.syntax.bifunctor._
+import cats.syntax.traverse._
+import scodec.interop.cats._
 import scodec.bits.BitVector
 import scodec.{Attempt, DecodeResult, Decoder}
 
@@ -42,7 +43,26 @@ package object velocypack extends ShowInstances {
       * @tparam T decoded type
       * @return either error or (T value and remainder)
       */
-    def asVPack[T](implicit decoder: VPackDecoder[T]): VPackResult[DecodeResult[T]] = decoder.decodeBits(bits)
+    def asVPack[T](implicit decoder: VPackDecoder[T]): VPackResult[DecodeResult[T]] = {
+      codecs.vpackDecoder
+        .decode(bits)
+        .toEither
+        .leftMap(VPackError.Codec)
+        .flatMap(_.traverse(decoder.decode))
+    }
+
+    /**
+      * repeatedly decodes vpack bitvector to vector of T
+      * @param decoder implicit element decoder
+      * @tparam T decoded type
+      * @return either err or (Vector[T] and remainder)
+      */
+    def asVPackSequence[T](implicit decoder: VPackDecoder[T]): VPackResult[DecodeResult[Vector[T]]] = {
+      Decoder.decodeCollect[Vector, VPack](codecs.vpackDecoder, None)(bits)
+        .toEither
+        .leftMap(VPackError.Codec)
+        .flatMap(_.traverse(_.traverse(decoder.decode)))
+    }
   }
 
   implicit final class DecoderStateOps[T](private val decoder: Decoder[T]) extends AnyVal {

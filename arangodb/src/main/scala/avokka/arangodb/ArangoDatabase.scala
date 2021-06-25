@@ -27,6 +27,9 @@ trait ArangoDatabase[F[_]] { self =>
   /** transaction api */
   def transactions: ArangoTransactions[F]
 
+  /** write-ahead log api */
+  def wal: ArangoWal[F]
+
   /**
     * Creates a new database
     *
@@ -120,5 +123,7 @@ object ArangoDatabase {
       DELETE(DatabaseName.system, "/_api/database/" + name).execute[F, Result[Boolean]].map(_.result)
 
     override val transactions: ArangoTransactions[F] = ArangoTransactions(name)
+
+    override val wal: ArangoWal[F] = ArangoWal[F](name)
   }
 }

@@ -2,7 +2,11 @@
 
 <p><a href="/avokka/api/avokka/velocypack/VPackDecoder.html"><code class="language-plaintext highlighter-rouge">VPackDecoder[T]</code></a> decodes vpack values to scala values <code class="language-plaintext highlighter-rouge">VPack =&gt; Either[VPackError, T]</code></p>
 
-<p>By importing <code class="language-plaintext highlighter-rouge">avokka.velocypack._</code> you bring <code class="language-plaintext highlighter-rouge">asVPack[T]</code> to <code class="language-plaintext highlighter-rouge">BitVector</code> for all types <code class="language-plaintext highlighter-rouge">T</code> having an implicit <code class="language-plaintext highlighter-rouge">VPackDecoder[T]</code> :</p>
+<p>By importing <code class="language-plaintext highlighter-rouge">avokka.velocypack._</code> you bring two helpers to <code class="language-plaintext highlighter-rouge">BitVector</code> having an implicit <code class="language-plaintext highlighter-rouge">VPackDecoder</code> :</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">asVPack[T]</code> for decoding a single type <code class="language-plaintext highlighter-rouge">T</code></li>
+</ul>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">avokka.velocypack._</span>
 <span class="k">import</span> <span class="nn">scodec.bits._</span>
@@ -12,6 +16,20 @@
 
 <span class="nv">bits</span><span class="o">.</span><span class="py">asVPack</span><span class="o">[</span><span class="kt">Vector</span><span class="o">[</span><span class="kt">Long</span><span class="o">]]</span>
 <span class="c1">// res0: VPackResult[scodec.DecodeResult[Vector[Long]]] = Right(DecodeResult(Vector(3, 4),BitVector(empty)))</span>
+</code></pre></div></div>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">asVPackSequence[T]</code> for decoding a stream of type <code class="language-plaintext highlighter-rouge">T</code></li>
+</ul>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">avokka.velocypack._</span>
+<span class="k">import</span> <span class="nn">scodec.bits._</span>
+
+<span class="k">val</span> <span class="nv">bitstream</span> <span class="k">=</span> <span class="n">hex</span><span class="s">"353637"</span><span class="o">.</span><span class="py">bits</span>
+<span class="c1">// bitstream: BitVector = BitVector(24 bits, 0x353637)</span>
+
+<span class="nv">bitstream</span><span class="o">.</span><span class="py">asVPackSequence</span><span class="o">[</span><span class="kt">Long</span><span class="o">]</span>
+<span class="c1">// res1: VPackResult[scodec.DecodeResult[Vector[Long]]] = Right(DecodeResult(Vector(5, 6, 7),BitVector(empty)))</span>
 </code></pre></div></div>
 </section></div></div></div></div><script src="/avokka/highlight/highlight.pack.js"></script><script>
 // For all code blocks, copy the language from the containing div

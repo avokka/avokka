@@ -63,6 +63,13 @@ object GraphInfo { self =>
     implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
   }
 
+  final case class DeleteResult(
+      removed: Boolean
+  )
+  object DeleteResult {
+    implicit val decoder: VPackDecoder[DeleteResult] = VPackDecoder.gen
+  }
+
 /*  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, GraphInfo, Response] =
     new Api.EmptyBody[ArangoDatabase, GraphInfo] {
       override type Response = self.Response

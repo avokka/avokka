@@ -1,12 +1,18 @@
 package avokka.arangodb
 
 import avokka.arangodb.types.DatabaseName
+import avokka.velocypack._
 import models._
 import protocol._
 
 trait ArangoGraph[F[_]] {
   /** graph name */
   def name: String
+
+  def create(
+              edgeDefinitions: List[GraphInfo.GraphEdgeDefinition] = List.empty,
+              orphanCollections: List[String] = List.empty,
+            ): F[ArangoResponse[GraphInfo.Response]]
 
   /** Get graph information */
   def info(): F[ArangoResponse[GraphInfo.Response]]
@@ -25,6 +31,18 @@ object ArangoGraph {
     override def name: String = _name
 
     private val path: String = "/_api/gharial/" + _name
+
+    override def create(edgeDefinitions: List[GraphInfo.GraphEdgeDefinition], orphanCollections: List[String]): F[ArangoResponse[GraphInfo.Response]] =
+      POST(
+        database,
+        "/_api/gharial/"
+      ).body(
+        VObject(
+          "name" -> name.toVPack,
+          "edgeDefinitions" -> edgeDefinitions.toVPack
+        )
+      )
+        .execute
 
     override def info(): F[ArangoResponse[GraphInfo.Response]] =
       GET(database, path).execute

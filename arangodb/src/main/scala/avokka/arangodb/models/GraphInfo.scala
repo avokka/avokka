@@ -21,8 +21,8 @@ object GraphInfo { self =>
       to: List[String]
   )
   object GraphEdgeDefinition {
-    implicit val decoder: VPackDecoder[GraphEdgeDefinition] =
-      VPackDecoder.gen
+    implicit val encoder: VPackEncoder[GraphEdgeDefinition] = VPackEncoder.gen
+    implicit val decoder: VPackDecoder[GraphEdgeDefinition] = VPackDecoder.gen
   }
 
   /** The information about a graph
@@ -70,14 +70,4 @@ object GraphInfo { self =>
     implicit val decoder: VPackDecoder[DeleteResult] = VPackDecoder.gen
   }
 
-/*  implicit val api: Api.EmptyBody.Aux[ArangoDatabase, GraphInfo, Response] =
-    new Api.EmptyBody[ArangoDatabase, GraphInfo] {
-      override type Response = self.Response
-      override def header(database: ArangoDatabase, command: GraphInfo): ArangoRequest.HeaderTrait =
-        ArangoRequest.Header(
-          database = database.name,
-          requestType = RequestType.GET,
-          request = s"/_api/gharial/${command.name}",
-        )
-    }*/
 }

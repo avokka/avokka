@@ -14,30 +14,28 @@ class ArangoGraphSpec extends ArangoIOBase {
 
   def graph(arango: Arango[IO]): ArangoGraph[IO] = arango.db.graph(graphName)
 
-  /*
   it should "create, read and drop a graph" in { arango =>
-    val tempName = "temp"
+    val tempName = "gtemp"
     val temp = arango.db.graph(tempName)
 
     for {
       created <- temp.create()
-      listed  <- arango.db.graphs()
+      listed  <- arango.db.graphs.list()
       info    <- temp.info()
       dropped <- temp.drop()
     } yield {
-      created.header.responseCode should be (200)
-      created.body.name should be (tempName)
+      created.header.responseCode should be (202)
+      created.body.graph.name should be (tempName)
 
-      listed.body.map(_.name) should contain (tempName)
+      listed.body.graphs.map(_.name) should contain (tempName)
 
       info.header.responseCode should be (200)
-      info.body.name should be (tempName)
+      info.body.graph.name should be (tempName)
 
-      dropped.header.responseCode should be(200)
-      dropped.body.id should be (created.body.id)
+      dropped.header.responseCode should be(202)
+      dropped.body.removed should be (true)
     }
   }
-   */
 
 /*
   it should "checksum" in { arango =>

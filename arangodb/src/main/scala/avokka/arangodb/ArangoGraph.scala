@@ -39,7 +39,8 @@ object ArangoGraph {
       ).body(
         VObject(
           "name" -> name.toVPack,
-          "edgeDefinitions" -> edgeDefinitions.toVPack
+          "edgeDefinitions" -> edgeDefinitions.toVPack,
+          "orphanCollections" -> orphanCollections.toVPack
         )
       )
         .execute

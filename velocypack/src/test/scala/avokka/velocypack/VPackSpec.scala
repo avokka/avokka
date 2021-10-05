@@ -7,6 +7,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import scodec.bits.ByteVector
+import org.scalatest.EitherValues._
 
 class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks with VPackSpecTrait {
 
@@ -61,10 +62,14 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
     val now = new Date
     val ins = now.toInstant
     assertCodec(now, VDate(now.getTime))
+    assertDecode(VLong(now.getTime), now)
 
     // ISO-8601 vpack strings should decode to date
     assertDec(VPackDecoder[Date], VString(ins.toString), now)
     assertDec(VPackDecoder[Instant], VString(ins.toString), ins)
+    // and fail if not ISO
+    VString("test").as[Date].left.value should be (a [VPackError.Conversion])
+    VString("test").as[Instant].left.value should be (a [VPackError.Conversion])
 
     forAll { d: Date =>
       assertRoundtrip(d)
@@ -80,6 +85,7 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
     forAll { i: BigInt =>
       assertRoundtrip(i)
     }
+    assertDecode(VDouble(1), BigInt(1))
 
     assertCodec(BigDecimal(1), VSmallint(1))
     assertCodec(BigDecimal(100L), VLong(100))
@@ -93,5 +99,16 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
   "option" should "encode and decode" in {
     assertCodec(None: Option[String], VNull)
     assertCodec(Option("data"), VString("data"))
+  }
+
+  "bytevector" should "encode and decode" in {
+    assertCodec(ByteVector(10,100), VBinary(ByteVector(10,100)))
+    // decode hexadecimal strings
+    assertDecode(VString("0x0506"), ByteVector(5,6))
+    // fail if non hex
+    VString("test").as[ByteVector].left.value should be (a [VPackError.Conversion])
+    // fail if incoherent vpack type
+    VLong(1).as[ByteVector].left.value should be (a [VPackError.WrongType])
+
   }
 }

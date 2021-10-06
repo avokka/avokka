@@ -24,8 +24,12 @@ trait ArangoDatabase[F[_]] { self =>
   /** document api */
   def document(handle: DocumentHandle): ArangoDocument[F]
 
-  /** gharial api */
-  def graphs: ArangoGraphs[F]
+  /**
+    * List all graphs
+    *
+    * @return all graphs known to the graph module
+    */
+  def graphs(): F[ArangoResponse[Vector[GraphInfo]]]
 
   /** graph api */
   def graph(graphName: String): ArangoGraph[F]
@@ -102,7 +106,10 @@ object ArangoDatabase {
 
     override def document(handle: DocumentHandle): ArangoDocument[F] = ArangoDocument(name, handle)
 
-    override val graphs: ArangoGraphs[F] = ArangoGraphs(name)
+    override def graphs(): F[ArangoResponse[Vector[GraphInfo]]] =
+      GET(name, "/_api/gharial")
+        .execute[F, GraphList]
+        .map(_.map(_.graphs))
 
     override def graph(graphName: String): ArangoGraph[F] = ArangoGraph(name, graphName)
 

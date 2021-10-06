@@ -3,7 +3,7 @@ package protocol
 
 import models.Result
 import avokka.velocypack._
-import cats.Show
+import cats.{Functor, Show}
 import cats.syntax.show._
 
 final case class ArangoResponse[T]
@@ -33,6 +33,10 @@ object ArangoResponse {
   implicit final class ArangoResponseResultOps[T](private val r: ArangoResponse[Result[T]]) {
     // extract result
     def result: ArangoResponse[T] = r.copy(body = r.body.result)
+  }
+
+  implicit val functor: Functor[ArangoResponse] = new Functor[ArangoResponse] {
+    override def map[A, B](fa: ArangoResponse[A])(f: A => B): ArangoResponse[B] = fa.copy(body = f(fa.body))
   }
 
   final case class Error

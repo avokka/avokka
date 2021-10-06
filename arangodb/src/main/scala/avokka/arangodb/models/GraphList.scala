@@ -7,7 +7,7 @@ import avokka.velocypack._
   * @param graphs list of graph representations
   */
 final case class GraphList(
-  graphs: Vector[GraphInfo.GraphRepresentation]
+  graphs: Vector[GraphInfo]
 )
 
 object GraphList {

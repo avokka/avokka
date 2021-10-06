@@ -20,20 +20,20 @@ class ArangoGraphSpec extends ArangoIOBase {
 
     for {
       created <- temp.create()
-      listed  <- arango.db.graphs.list()
+      listed  <- arango.db.graphs()
       info    <- temp.info()
       dropped <- temp.drop()
     } yield {
       created.header.responseCode should be (202)
-      created.body.graph.name should be (tempName)
+      created.body.name should be (tempName)
 
-      listed.body.graphs.map(_.name) should contain (tempName)
+      listed.body.map(_.name) should contain (tempName)
 
       info.header.responseCode should be (200)
-      info.body.graph.name should be (tempName)
+      info.body.name should be (tempName)
 
       dropped.header.responseCode should be(202)
-      dropped.body.removed should be (true)
+      dropped.body should be (true)
     }
   }
 

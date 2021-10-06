@@ -14,6 +14,7 @@ trait ArangoGraph[F[_]] {
   def create(
     edgeDefinitions: List[GraphEdge] = List.empty,
     orphanCollections: List[String] = List.empty,
+    waitForSync: Boolean = false,
   ): F[ArangoResponse[GraphInfo]]
 
   /** Get graph information */
@@ -34,10 +35,17 @@ object ArangoGraph {
 
     private val path: String = "/_api/gharial/" + _name
 
-    override def create(edgeDefinitions: List[GraphEdge], orphanCollections: List[String]): F[ArangoResponse[GraphInfo]] =
+    override def create(
+      edgeDefinitions: List[GraphEdge],
+      orphanCollections: List[String],
+      waitForSync: Boolean,
+    ): F[ArangoResponse[GraphInfo]] =
       POST(
         database,
-        "/_api/gharial/"
+        "/_api/gharial/",
+        Map(
+          "waitForSync" -> waitForSync.toString,
+        )
       ).body(
         VObject(
           "name" -> name.toVPack,

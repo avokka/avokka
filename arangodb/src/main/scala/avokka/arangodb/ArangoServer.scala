@@ -67,7 +67,7 @@ object ArangoServer {
       GET(DatabaseName.system, "/_api/engine").execute
 
     override def databases(): F[ArangoResponse[Vector[DatabaseName]]] =
-      GET(DatabaseName.system, "/_api/database/user").execute[F, Result[Vector[DatabaseName]]].map(_.result)
+      GET(DatabaseName.system, "/_api/database/user").execute[F, Result[Vector[DatabaseName]]].map(_.map(_.result))
 
     override def role(): F[ArangoResponse[ServerRole]] =
       GET(DatabaseName.system, "/_admin/server/role").execute

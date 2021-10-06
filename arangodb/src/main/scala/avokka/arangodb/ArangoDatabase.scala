@@ -118,7 +118,7 @@ object ArangoDatabase {
     override def collections(excludeSystem: Boolean): F[ArangoResponse[Vector[CollectionInfo]]] =
       GET(name, "/_api/collection", Map("excludeSystem" -> excludeSystem.toString))
         .execute[F, Result[Vector[CollectionInfo]]]
-        .map(_.result)
+        .map(_.map(_.result))
 
     override def create(users: DatabaseCreate.User*): F[ArangoResponse[Boolean]] =
       POST(
@@ -131,13 +131,17 @@ object ArangoDatabase {
           )
         )
         .execute[F, Result[Boolean]]
-        .map(_.result)
+        .map(_.map(_.result))
 
     override def info(): F[ArangoResponse[DatabaseInfo]] =
-      GET(name, "/_api/database/current").execute[F, Result[DatabaseInfo]].map(_.result)
+      GET(name, "/_api/database/current")
+        .execute[F, Result[DatabaseInfo]]
+        .map(_.map(_.result))
 
     override def drop(): F[ArangoResponse[Boolean]] =
-      DELETE(DatabaseName.system, "/_api/database/" + name).execute[F, Result[Boolean]].map(_.result)
+      DELETE(DatabaseName.system, "/_api/database/" + name)
+        .execute[F, Result[Boolean]]
+        .map(_.map(_.result))
 
     override val transactions: ArangoTransactions[F] = ArangoTransactions(name)
 

@@ -41,12 +41,12 @@ object ArangoTransaction {
       private val path: String = "/_api/transaction/" + id.repr
 
       override def status(): F[ArangoResponse[Transaction]] =
-        GET(database, path).execute[F, Result[Transaction]].map(_.result)
+        GET(database, path).execute[F, Result[Transaction]].map(_.map(_.result))
 
       override def commit(): F[ArangoResponse[Transaction]] =
-        PUT(database, path).execute[F, Result[Transaction]].map(_.result)
+        PUT(database, path).execute[F, Result[Transaction]].map(_.map(_.result))
 
       override def abort(): F[ArangoResponse[Transaction]] =
-        DELETE(database, path).execute[F, Result[Transaction]].map(_.result)
+        DELETE(database, path).execute[F, Result[Transaction]].map(_.map(_.result))
     }
 }

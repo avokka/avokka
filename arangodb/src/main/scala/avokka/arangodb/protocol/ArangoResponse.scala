@@ -1,7 +1,6 @@
 package avokka.arangodb
 package protocol
 
-import models.Result
 import avokka.velocypack._
 import cats.{Functor, Show}
 import cats.syntax.show._
@@ -28,11 +27,6 @@ object ArangoResponse {
     implicit val show: Show[Header] = { h =>
       show"${h.`type`}(v${h.version},code=${h.responseCode},meta=${h.meta})"
     }
-  }
-
-  implicit final class ArangoResponseResultOps[T](private val r: ArangoResponse[Result[T]]) {
-    // extract result
-    def result: ArangoResponse[T] = r.copy(body = r.body.result)
   }
 
   implicit val functor: Functor[ArangoResponse] = new Functor[ArangoResponse] {

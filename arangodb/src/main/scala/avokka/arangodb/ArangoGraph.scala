@@ -1,6 +1,6 @@
 package avokka.arangodb
 
-import avokka.arangodb.types.DatabaseName
+import avokka.arangodb.types.{CollectionName, DatabaseName}
 import avokka.velocypack._
 import cats.Functor
 import cats.syntax.functor._
@@ -27,6 +27,9 @@ trait ArangoGraph[F[_]] {
     * @return deletion result
     */
   def drop(dropCollections: Boolean = false): F[ArangoResponse[Boolean]]
+
+  def vertexes(): F[ArangoResponse[Vector[CollectionName]]]
+
 }
 
 object ArangoGraph {
@@ -65,5 +68,10 @@ object ArangoGraph {
       DELETE(database, path, Map("dropCollections" -> dropCollections.toString))
         .execute[F, RemovedResult]
         .map(_.map(_.removed))
+
+    override def vertexes(): F[ArangoResponse[Vector[CollectionName]]] =
+      GET(database, path + "/vertex")
+        .execute[F, GraphCollections]
+        .map(_.map(_.collections))
   }
 }

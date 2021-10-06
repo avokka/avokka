@@ -1,6 +1,7 @@
 package avokka.arangodb
 
 import avokka.arangodb.fs2._
+import avokka.arangodb.models.GraphEdge
 import avokka.arangodb.protocol.{ArangoError, ArangoErrorNum}
 import avokka.arangodb.types._
 import avokka.velocypack._
@@ -14,14 +15,20 @@ class ArangoGraphSpec extends ArangoIOBase {
 
   def graph(arango: Arango[IO]): ArangoGraph[IO] = arango.db.graph(graphName)
 
+  val neighName = CollectionName("neigh")
+  val countriesName = CollectionName("countries")
+
   it should "create, read and drop a graph" in { arango =>
     val tempName = "gtemp"
     val temp = arango.db.graph(tempName)
 
     for {
-      created <- temp.create()
+      created <- temp.create(edgeDefinitions = GraphEdge(
+        neighName, from = List(countriesName), to = List(countriesName)
+      ) :: Nil)
       listed  <- arango.db.graphs()
       info    <- temp.info()
+      vertexs <- temp.vertexes()
       dropped <- temp.drop()
     } yield {
       created.header.responseCode should be (202)
@@ -31,6 +38,10 @@ class ArangoGraphSpec extends ArangoIOBase {
 
       info.header.responseCode should be (200)
       info.body.name should be (tempName)
+
+      vertexs.header.responseCode should be (200)
+      vertexs.body should not be (empty)
+      vertexs.body should contain (countriesName)
 
       dropped.header.responseCode should be(202)
       dropped.body should be (true)

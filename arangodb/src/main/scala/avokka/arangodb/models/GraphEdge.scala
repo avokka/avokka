@@ -1,6 +1,7 @@
 package avokka.arangodb
 package models
 
+import types.CollectionName
 import avokka.velocypack._
 
 /** A definition for the relations of the graph
@@ -10,9 +11,9 @@ import avokka.velocypack._
   * @param to List of vertex collection names. Edges in collection can only be inserted if their _to is in any of the collections here.
   */
 final case class GraphEdge(
-  collection: String,
-  from: List[String],
-  to: List[String]
+  collection: CollectionName,
+  from: List[CollectionName],
+  to: List[CollectionName]
 )
 object GraphEdge {
   implicit val encoder: VPackEncoder[GraphEdge] = VPackEncoder.gen

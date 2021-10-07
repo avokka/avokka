@@ -52,7 +52,7 @@ object ArangoTransactions {
   def apply[F[_]: ArangoClient: Functor](database: DatabaseName): ArangoTransactions[F] = new ArangoTransactions[F] {
 
     override def list(): F[ArangoResponse[TransactionList]] =
-      GET(database, "/_api/transaction").execute
+      GET(database, API_TRANSACTION).execute
 
     override def begin(
         read: Seq[CollectionName],
@@ -63,7 +63,7 @@ object ArangoTransactions {
         lockTimeout: Option[Int],
         maxTransactionSize: Option[Long],
     ): F[ArangoTransaction[F]] =
-      POST(database, "/_api/transaction/begin")
+      POST(database, API_TRANSACTION + "/begin")
         .body(
           VObject(
             "collections" -> VObject(

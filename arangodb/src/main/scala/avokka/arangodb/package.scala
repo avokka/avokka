@@ -18,6 +18,12 @@ package object arangodb {
   private[avokka] val PATCH = protocol.ArangoRequest.PATCH
   private[avokka] val OPTIONS = protocol.ArangoRequest.OPTIONS
 
-  private[avokka] val API_GHARIAL = "/_api/gharial"
+  private[avokka] val API_DATABASE = "/_api/database"
+  private[avokka] val API_COLLECTION = "/_api/collection"
+  private[avokka] val API_DOCUMENT = "/_api/document"
+  private[avokka] val API_INDEX = "/_api/index"
+  private[avokka] val API_CURSOR = "/_api/cursor"
   private[avokka] val API_TRANSACTION = "/_api/transaction"
+  private[avokka] val API_GHARIAL = "/_api/gharial"
+
 }

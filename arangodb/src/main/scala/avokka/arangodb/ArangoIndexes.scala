@@ -137,7 +137,7 @@ object ArangoIndexes {
   def apply[F[_]: ArangoClient](database: DatabaseName, collection: CollectionName): ArangoIndexes[F] =
     new ArangoIndexes[F] {
 
-      private val path: String = "/_api/index"
+      private val path: String = API_INDEX
 
       override def list(): F[ArangoResponse[IndexList]] =
         GET(

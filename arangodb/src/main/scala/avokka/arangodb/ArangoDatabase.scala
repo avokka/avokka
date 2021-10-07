@@ -116,14 +116,14 @@ object ArangoDatabase {
     override def query[V: VPackEncoder](query: Query[V]): ArangoQuery[F, V] = ArangoQuery(name, query)
 
     override def collections(excludeSystem: Boolean): F[ArangoResponse[Vector[CollectionInfo]]] =
-      GET(name, "/_api/collection", Map("excludeSystem" -> excludeSystem.toString))
+      GET(name, API_COLLECTION, Map("excludeSystem" -> excludeSystem.toString))
         .execute[F, Result[Vector[CollectionInfo]]]
         .map(_.map(_.result))
 
     override def create(users: DatabaseCreate.User*): F[ArangoResponse[Boolean]] =
       POST(
         DatabaseName.system,
-        "/_api/database"
+        API_DATABASE
       ).body(
           VObject(
             "name" -> name.toVPack,
@@ -134,12 +134,12 @@ object ArangoDatabase {
         .map(_.map(_.result))
 
     override def info(): F[ArangoResponse[DatabaseInfo]] =
-      GET(name, "/_api/database/current")
+      GET(name, API_DATABASE + "/current")
         .execute[F, Result[DatabaseInfo]]
         .map(_.map(_.result))
 
     override def drop(): F[ArangoResponse[Boolean]] =
-      DELETE(DatabaseName.system, "/_api/database/" + name)
+      DELETE(DatabaseName.system, API_DATABASE + "/" + name)
         .execute[F, Result[Boolean]]
         .map(_.map(_.result))
 

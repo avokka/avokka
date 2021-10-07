@@ -130,7 +130,7 @@ object ArangoDocument {
 
       override val handle: DocumentHandle = _handle
 
-      private val path: String = "/_api/document/" + handle.path
+      private val path: String = API_DOCUMENT + "/" + handle.path
 
       override def read[T: VPackDecoder](
           ifNoneMatch: Option[String],

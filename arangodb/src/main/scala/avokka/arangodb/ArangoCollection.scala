@@ -140,7 +140,7 @@ object ArangoCollection {
     new ArangoCollection[F] {
       override def name: CollectionName = _name
 
-      private val path: String = "/_api/collection/" + name.repr
+      private val path: String = API_COLLECTION + "/" + name.repr
 
       override def document(key: DocumentKey): ArangoDocument[F] = ArangoDocument(database, DocumentHandle(name, key))
 
@@ -202,7 +202,7 @@ object ArangoCollection {
 
       override def create(setup: CollectionCreate => CollectionCreate): F[ArangoResponse[CollectionInfo]] = {
         val options = setup(CollectionCreate(name))
-        POST(database, "/_api/collection", options.parameters).body(options).execute
+        POST(database, API_COLLECTION, options.parameters).body(options).execute
       }
 
       override def all: ArangoQuery[F, VObject] =

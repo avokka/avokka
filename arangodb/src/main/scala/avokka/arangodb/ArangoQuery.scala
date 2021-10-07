@@ -68,7 +68,7 @@ object ArangoQuery {
     override def execute[T: VPackDecoder]: F[ArangoResponse[Cursor[T]]] =
       POST(
         database,
-        "/_api/cursor",
+        API_CURSOR,
         meta = Map(
           Transaction.KEY -> options.transaction.map(_.repr)
         ).collectDefined

@@ -162,7 +162,7 @@ object ArangoDocuments {
   def apply[F[_]: ArangoClient](database: DatabaseName, collection: CollectionName): ArangoDocuments[F] =
     new ArangoDocuments[F] {
 
-      private val path: String = "/_api/document/" + collection.repr
+      private val path: String = API_DOCUMENT + "/" + collection.repr
 
       override def count(
           transactionId: Option[TransactionId]

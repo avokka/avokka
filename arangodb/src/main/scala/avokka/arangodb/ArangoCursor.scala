@@ -36,7 +36,7 @@ object ArangoCursor {
         .execute[Cursor[T]](
           PUT(
             database,
-            s"/_api/cursor/${body.id.get}",
+            API_CURSOR + "/" + body.id.get,
             meta = Map(
               Transaction.KEY -> options.transaction.map(_.repr)
             ).collectDefined
@@ -47,7 +47,7 @@ object ArangoCursor {
     override def delete(): F[ArangoResponse[DeleteResult]] =
       DELETE(
         database,
-        s"/_api/cursor/${body.id.get}",
+        API_CURSOR + "/" + body.id.get,
         meta = Map(
           Transaction.KEY -> options.transaction.map(_.repr)
         ).collectDefined

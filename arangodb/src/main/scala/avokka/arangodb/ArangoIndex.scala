@@ -21,7 +21,7 @@ object ArangoIndex {
 
     override val id: String = _id
 
-    private val path: String = "/_api/index/" + id
+    private val path: String = API_INDEX + "/" + id
 
     override def read(): F[ArangoResponse[Index]] =
       GET(database, path).execute

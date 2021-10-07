@@ -29,10 +29,6 @@ object ArangoResponse {
     }
   }
 
-  implicit val functor: Functor[ArangoResponse] = new Functor[ArangoResponse] {
-    override def map[A, B](fa: ArangoResponse[A])(f: A => B): ArangoResponse[B] = fa.copy(body = f(fa.body))
-  }
-
   final case class Error
   (
     code: Long,
@@ -43,5 +39,9 @@ object ArangoResponse {
 
   object Error {
     implicit val decoder: VPackDecoder[Error] = VPackDecoder.gen
+  }
+
+  implicit val functor: Functor[ArangoResponse] = new Functor[ArangoResponse] {
+    override def map[A, B](fa: ArangoResponse[A])(f: A => B): ArangoResponse[B] = fa.copy(body = f(fa.body))
   }
 }

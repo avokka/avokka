@@ -50,7 +50,10 @@ trait ArangoGraph[F[_]] {
   def removeVertexCollection(collection: CollectionName, dropCollection: Boolean = false): F[ArangoResponse[GraphInfo]]
 
   def collection(collection: CollectionName): ArangoGraphCollection[F]
+
   def vertex(handle: DocumentHandle): ArangoGraphVertex[F]
+
+  def edge(handle: DocumentHandle): ArangoGraphEdge[F]
 }
 
 object ArangoGraph {
@@ -116,5 +119,7 @@ object ArangoGraph {
     override def collection(collection: CollectionName): ArangoGraphCollection[F] = ArangoGraphCollection(database, name, collection)
 
     override def vertex(handle: DocumentHandle): ArangoGraphVertex[F] = ArangoGraphVertex(database, name, handle)
+
+    override def edge(handle: DocumentHandle): ArangoGraphEdge[F] = ArangoGraphEdge(database, name, handle)
   }
 }

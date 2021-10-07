@@ -12,7 +12,8 @@ trait ArangoGraphCollection[F[_]] {
   def name: CollectionName
 
   def vertex(key: DocumentKey): ArangoGraphVertex[F]
-//  def edge(key: DocumentKey): ArangoGraphEdge[F]
+
+  def edge(key: DocumentKey): ArangoGraphEdge[F]
 
 }
 
@@ -22,6 +23,8 @@ object ArangoGraphCollection {
     override def name: CollectionName = _name
 
     override def vertex(key: DocumentKey): ArangoGraphVertex[F] = ArangoGraphVertex(database, graph, DocumentHandle(name, key))
+
+    override def edge(key: DocumentKey): ArangoGraphEdge[F] = ArangoGraphEdge(database, graph, DocumentHandle(name, key))
 
   }
 }

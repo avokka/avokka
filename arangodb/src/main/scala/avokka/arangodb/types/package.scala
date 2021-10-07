@@ -86,4 +86,11 @@ package object types {
     implicit val encoder: VPackEncoder[TransactionId] = deriving
     implicit val decoder: VPackDecoder[TransactionId] = deriving
   }
+
+  @newtype case class GraphName(repr: String)
+
+  object GraphName {
+    implicit val encoder: VPackEncoder[GraphName] = deriving
+    implicit val decoder: VPackDecoder[GraphName] = deriving
+  }
 }

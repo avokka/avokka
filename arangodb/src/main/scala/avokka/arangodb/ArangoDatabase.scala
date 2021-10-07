@@ -32,7 +32,7 @@ trait ArangoDatabase[F[_]] { self =>
   def graphs(): F[ArangoResponse[Vector[GraphInfo]]]
 
   /** graph api */
-  def graph(graphName: String): ArangoGraph[F]
+  def graph(graphName: GraphName): ArangoGraph[F]
 
   /** transaction api */
   def transactions: ArangoTransactions[F]
@@ -107,11 +107,11 @@ object ArangoDatabase {
     override def document(handle: DocumentHandle): ArangoDocument[F] = ArangoDocument(name, handle)
 
     override def graphs(): F[ArangoResponse[Vector[GraphInfo]]] =
-      GET(name, "/_api/gharial")
+      GET(name, API_GHARIAL)
         .execute[F, GraphList]
         .map(_.map(_.graphs))
 
-    override def graph(graphName: String): ArangoGraph[F] = ArangoGraph(name, graphName)
+    override def graph(graphName: GraphName): ArangoGraph[F] = ArangoGraph(name, graphName)
 
     override def query[V: VPackEncoder](query: Query[V]): ArangoQuery[F, V] = ArangoQuery(name, query)
 

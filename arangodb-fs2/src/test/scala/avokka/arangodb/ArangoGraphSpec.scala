@@ -1,7 +1,7 @@
 package avokka.arangodb
 
 import avokka.arangodb.fs2._
-import avokka.arangodb.models.GraphEdge
+import avokka.arangodb.models.GraphEdgeDefinition
 import avokka.arangodb.protocol.{ArangoError, ArangoErrorNum}
 import avokka.arangodb.types._
 import avokka.velocypack._
@@ -11,7 +11,7 @@ import io.circe.literal._
 
 class ArangoGraphSpec extends ArangoIOBase {
 
-  val graphName = "grf"
+  val graphName = GraphName("grf")
 
   def graph(arango: Arango[IO]): ArangoGraph[IO] = arango.db.graph(graphName)
 
@@ -19,16 +19,16 @@ class ArangoGraphSpec extends ArangoIOBase {
   val countriesName = CollectionName("countries")
 
   it should "create, read and drop a graph" in { arango =>
-    val tempName = "gtemp"
+    val tempName = GraphName("gtemp")
     val temp = arango.db.graph(tempName)
 
     for {
-      created <- temp.create(edgeDefinitions = GraphEdge(
+      created <- temp.create(edgeDefinitions = GraphEdgeDefinition(
         neighName, from = List(countriesName), to = List(countriesName)
       ) :: Nil)
       listed  <- arango.db.graphs()
       info    <- temp.info()
-      vertexs <- temp.vertexes()
+      vColls  <- temp.vertexCollections()
       dropped <- temp.drop()
     } yield {
       created.header.responseCode should be (202)
@@ -39,159 +39,30 @@ class ArangoGraphSpec extends ArangoIOBase {
       info.header.responseCode should be (200)
       info.body.name should be (tempName)
 
-      vertexs.header.responseCode should be (200)
-      vertexs.body should not be (empty)
-      vertexs.body should contain (countriesName)
+      vColls.header.responseCode should be (200)
+      vColls.body should not be (empty)
+      vColls.body should contain (countriesName)
 
       dropped.header.responseCode should be(202)
       dropped.body should be (true)
     }
   }
 
-/*
-  it should "checksum" in { arango =>
-    graph(arango).checksum().map { res =>
-      res.header.responseCode should be (200)
-      res.body.checksum should not be (empty)
-    }
-  }
-
-  it should "count" in { arango =>
-    graph(arango).documents.count().map { res =>
-      res.header.responseCode should be (200)
-      res.body.count should be > 200L
-    }
-  }
-
-  it should "revision" in { arango =>
-    graph(arango).revision().map { res =>
-      res.header.responseCode should be (200)
-      res.body.revision should not be (empty)
-    }
-  }
-
-  it should "properties" in { arango =>
-    graph(arango).properties().map { res =>
-      res.header.responseCode should be (200)
-      res.body.name should be (graphName)
-    }
-  }
-
-  it should "truncate" in { arango =>
-    val tempName = GraphName("temp")
-    val temp = arango.db.graph(tempName)
-
+  it should "add and remove vertex collection" in { arango =>
+    val graph = arango.db.graph(graphName)
+    val vertex = CollectionName("other")
     for {
-      _ <- temp.create()
-      _ <- temp.documents.insert(VObject.empty, waitForSync = true)
-      a <- temp.documents.count()
-      t <- temp.truncate()
-      b <- temp.documents.count()
-      _ <- temp.drop()
+      _ <- graph.create()
+      added <- graph.addVertexCollection(vertex)
+      removed <- graph.removeVertexCollection(vertex)
+      _ <- graph.drop()
     } yield {
-      a.body.count should be (1L)
+      added.header.responseCode should be (202)
+      added.body.orphanCollections should contain (vertex)
 
-      t.header.responseCode should be (200)
-      t.body.name should be (tempName)
-
-      b.body.count should be (0)
+      removed.header.responseCode should be (202)
+      removed.body.orphanCollections should not contain (vertex)
     }
   }
 
-  it should "unload, load" in { arango =>
-    val tempName = GraphName("temp")
-    val temp = arango.db.graph(tempName)
-
-    for {
-      _ <- temp.create()
-      u <- temp.unload()
-      l <- temp.load()
-      _ <- temp.drop()
-    } yield {
-      u.header.responseCode should be (200)
-      u.body.name should be (tempName)
-      u.body.status should be (GraphStatus.Unloaded)
-
-      l.header.responseCode should be (200)
-      l.body.name should be (tempName)
-      l.body.status should be (GraphStatus.Loaded)
-    }
-  }
-
-  it should "rename" in { arango =>
-    val tempName = GraphName("temp")
-    val temp = arango.db.graph(tempName)
-    val temp2Name = GraphName("temp2")
-    val temp2 = arango.db.graph(temp2Name)
-
-    for {
-      _ <- temp.create()
-      r <- temp.rename(temp2Name)
-      _ <- temp2.drop()
-    } yield {
-      r.header.responseCode should be (200)
-      r.body.name should be (temp2Name)
-    }
-  }
-
-  it should "support schema" in { arango =>
-    assumeArangoVersion("3.7.1")
-
-    val tempName = GraphName("temp")
-    val temp = arango.db.graph(tempName)
-
-    for {
-      c <- temp.create(_.copy(
-        schema = Some(GraphSchema(
-          rule = json"""
-                {
-                  "properties": { "nums": { "type": "array", "items": { "type": "number", "maximum": 6 } } },
-                  "additionalProperties": { "type": "string" },
-                  "required": ["nums"]
-                }
-                """.toVPack,
-          level = "moderate",
-          message = "The document does not contain an array of numbers in attribute 'nums', or one of the numbers is bigger than 6."
-        ))
-      ))
-
-      _ <- temp.documents.insert(VObject(
-        "x" -> VString("additional")
-      )).redeem({
-        case e: ArangoError.Response =>
-          e.code should be (400)
-          e.num should be (ArangoErrorNum.VALIDATION_FAILED)
-        case e => fail(e)
-      }, { r => fail(s"Expected a ArangoError.Response but received: $r") })
-
-      _ <- temp.documents.insert(VObject(
-        "nums" -> VTrue
-      )).redeem({
-        case e: ArangoError.Response =>
-          e.code should be (400)
-          e.num should be (ArangoErrorNum.VALIDATION_FAILED)
-        case e => fail(e)
-      }, { r => fail(s"Expected a ArangoError.Response but received: $r") })
-
-      _ <- temp.documents.insert(VObject(
-        "nums" -> VArray(VLong(100))
-      )).redeem({
-        case e: ArangoError.Response =>
-          e.code should be (400)
-          e.num should be (ArangoErrorNum.VALIDATION_FAILED)
-        case e => fail(e)
-      }, { r => fail(s"Expected a ArangoError.Response but received: $r") })
-
-      i <- temp.documents.insert(VObject(
-        "nums" -> VArray(VLong(5), VSmallint(0)),
-        "x" -> VString("additional")
-      ))
-
-      _ <- temp.drop()
-    } yield {
-      c.header.responseCode should be (200)
-      i.header.responseCode should be (202)
-    }
-  }
- */
 }

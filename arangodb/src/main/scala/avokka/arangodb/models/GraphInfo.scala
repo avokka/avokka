@@ -1,7 +1,7 @@
 package avokka.arangodb
 package models
 
-import types.CollectionName
+import types.{CollectionName, GraphName}
 import avokka.velocypack._
 
 /** The information about a graph
@@ -20,8 +20,8 @@ import avokka.velocypack._
 final case class GraphInfo(
   _id: String,
   _rev: String,
-  name: String,
-  edgeDefinitions: List[GraphEdge] = List.empty,
+  name: GraphName,
+  edgeDefinitions: List[GraphEdgeDefinition] = List.empty,
   minReplicationFactor: Option[Int] = None,
   numberOfShards: Option[Int] = None,
   orphanCollections: List[CollectionName] = List.empty,

@@ -60,4 +60,17 @@ object Dependencies {
   val jawn = "org.typelevel" %% "jawn-parser" % "1.2.0"
 
   val semver = "io.kevinlee" %% "just-semver" % "0.3.0"
+
+  // CE3 deps
+  val catsEffect_3 = "org.typelevel" %% "cats-effect" % "3.2.9"
+  val catsRetry_3 = "com.github.cb372" %% "cats-retry" % "3.1.0"
+  val fs2_3 = "co.fs2" %% "fs2-core" % "3.1.6"
+  val fs2IO_3 = "co.fs2" %% "fs2-io" % "3.1.6"
+  val log4cats_3 = "org.typelevel" %% "log4cats-core"    % "2.1.1"
+  val log4catsSlf_3 = "org.typelevel" %% "log4cats-slf4j" % "2.1.1"
+  val log4catsNoop_3 = "org.typelevel" %% "log4cats-noop" % "2.1.1"
+  val pureconfigF_3 = "com.github.pureconfig" %% "pureconfig-cats-effect" % "0.16.0"
+  val scalaTestCatsEffect_3 = "org.typelevel" %% "cats-effect-testing-scalatest" % "1.3.0"
+  val scodecStream_3 = "org.scodec" %% "scodec-stream" % "3.0.1"
+
 }

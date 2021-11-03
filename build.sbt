@@ -197,6 +197,33 @@ lazy val arangodbFs2 = (project in file("arangodb-fs2"))
     scalacOptions -= "-Xfatal-warnings"
   )
 
+lazy val arangodbFs2Ce3 = (project in file("arangodb-fs2-ce3"))
+  .dependsOn(arangodb, test % "test->test", velocypackCirce % Test)
+  .settings(
+    name := "avokka-arangodb-fs2-ce3",
+    description := "ArangoDB client (fs2,ce3)",
+    libraryDependencies ++= Seq(
+      collectionCompat,
+      scodecStream_3,
+      catsRetry_3,
+      catsEffect_3,
+      fs2_3,
+      fs2IO_3,
+    ) ++ Seq(
+      log4catsSlf_3,
+      logback,
+      scalaTest,
+      scalaTestPlus,
+      scalaTestCatsEffect_3,
+      circeLit,
+      jawn,
+      semver
+    ).map(_ % Test),
+    addCompilerPlugin(kindProjector),
+    addCompilerPlugin(betterMonadicFor),
+    scalacOptions -= "-Xfatal-warnings"
+  )
+
 lazy val test = (project in file("test"))
   .dependsOn(arangodb)
   .settings(
@@ -266,7 +293,7 @@ lazy val site = (project in file("site"))
   ).enablePlugins(MicrositesPlugin, ScalaUnidocPlugin)
 
 lazy val avokka = (project in file("."))
-  .aggregate(velocypack, velocypackEnumeratum, velocypackCirce, velocystream, arangodb, arangodbAkka, arangodbFs2)
+  .aggregate(velocypack, velocypackEnumeratum, velocypackCirce, velocystream, arangodb, arangodbAkka, arangodbFs2, arangodbFs2Ce3)
   .settings(
     publishArtifact := false,
     publish / skip := true

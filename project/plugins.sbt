@@ -6,7 +6,7 @@ addSbtPlugin("com.geirsson"     % "sbt-ci-release"  % "1.5.7")
 addSbtPlugin("com.dwijnand"     % "sbt-dynver"      % "4.1.1")
 addSbtPlugin("com.github.sbt"   % "sbt-pgp"         % "2.1.2")
 addSbtPlugin("org.xerial.sbt"   % "sbt-sonatype"    % "3.9.10")
-addSbtPlugin("com.typesafe.sbt" % "sbt-git"         % "1.0.1")
+addSbtPlugin("com.typesafe.sbt" % "sbt-git"         % "1.0.2")
 
 /*
 addSbtPlugin("org.foundweekends"  % "sbt-bintray" % "0.6.1")
@@ -33,6 +33,6 @@ addSbtPlugin("org.scalameta"          % "sbt-mdoc"                    % "2.2.17"
 addSbtPlugin("io.chrisdavenport" %% "sbt-make-pom" % "0.0.3")
 
 // coverage
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.9.0")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.9.2")
 
 libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.8"

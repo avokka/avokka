@@ -11,7 +11,7 @@ object Dependencies {
 
   val testContainers = "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.39.8"
 
-  val collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.4"
+  val collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % "2.5.0"
 
 
   val cats = "org.typelevel" %% "cats-core" % "2.6.1"
@@ -36,7 +36,7 @@ object Dependencies {
   val logging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4"
 
   val scodecBits = "org.scodec" %% "scodec-bits" % "1.1.29"
-  val scodecCore = "org.scodec" %% "scodec-core" % "1.11.8"
+  val scodecCore = "org.scodec" %% "scodec-core" % "1.11.9"
   val scodecCats = "org.scodec" %% "scodec-cats" % "1.1.0"
   val scodecStream = "org.scodec" %% "scodec-stream" % "2.0.3"
 
@@ -64,13 +64,13 @@ object Dependencies {
   // CE3 deps
   val catsEffect_3 = "org.typelevel" %% "cats-effect" % "3.2.9"
   val catsRetry_3 = "com.github.cb372" %% "cats-retry" % "3.1.0"
-  val fs2_3 = "co.fs2" %% "fs2-core" % "3.1.6"
-  val fs2IO_3 = "co.fs2" %% "fs2-io" % "3.1.6"
+  val fs2_3 = "co.fs2" %% "fs2-core" % "3.2.2"
+  val fs2IO_3 = "co.fs2" %% "fs2-io" % "3.2.2"
   val log4cats_3 = "org.typelevel" %% "log4cats-core"    % "2.1.1"
   val log4catsSlf_3 = "org.typelevel" %% "log4cats-slf4j" % "2.1.1"
   val log4catsNoop_3 = "org.typelevel" %% "log4cats-noop" % "2.1.1"
   val pureconfigF_3 = "com.github.pureconfig" %% "pureconfig-cats-effect" % "0.16.0"
   val scalaTestCatsEffect_3 = "org.typelevel" %% "cats-effect-testing-scalatest" % "1.3.0"
-  val scodecStream_3 = "org.scodec" %% "scodec-stream" % "3.0.1"
+  val scodecStream_3 = "org.scodec" %% "scodec-stream" % "3.0.2"
 
 }

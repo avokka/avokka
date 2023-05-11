@@ -45,7 +45,7 @@ class ArangoServerSpec extends ArangoIOBase {
   it should "get log levels" in { arango =>
     arango.server.logLevel().map { res =>
       res.header.responseCode should be (200)
-      res.body.get(AdminLog.Topic.general) should not be (empty)
+      res.body.get("general") should not be (empty)
     }
   }
 }

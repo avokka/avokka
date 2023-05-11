@@ -1,12 +1,12 @@
 // scala compiler
-addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.1.22")
+addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.4.2")
 
 // publishing
-addSbtPlugin("com.geirsson"     % "sbt-ci-release"  % "1.5.7")
-addSbtPlugin("com.dwijnand"     % "sbt-dynver"      % "4.1.1")
+addSbtPlugin("com.github.sbt"   % "sbt-ci-release"  % "1.5.12")
+addSbtPlugin("com.github.sbt"   % "sbt-dynver"      % "5.0.1")
 addSbtPlugin("com.github.sbt"   % "sbt-pgp"         % "2.2.1")
 addSbtPlugin("org.xerial.sbt"   % "sbt-sonatype"    % "3.9.20")
-addSbtPlugin("com.typesafe.sbt" % "sbt-git"         % "1.0.2")
+addSbtPlugin("com.github.sbt"   % "sbt-git"         % "2.0.1")
 
 /*
 addSbtPlugin("org.foundweekends"  % "sbt-bintray" % "0.6.1")
@@ -18,8 +18,8 @@ addSbtPlugin("com.jsuereth"       % "sbt-pgp"     % "2.1.1")
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.4")
 
 // docs
-addSbtPlugin("com.47deg"    % "sbt-microsites" % "1.3.4")
-addSbtPlugin("com.eed3si9n" % "sbt-unidoc"     % "0.4.3")
+addSbtPlugin("com.47deg"      % "sbt-microsites" % "1.4.3")
+addSbtPlugin("com.github.sbt" % "sbt-unidoc"     % "0.5.0")
 
 /*
 addSbtPlugin("com.lightbend.paradox"  % "sbt-paradox"                 % "0.9.1")
@@ -33,6 +33,12 @@ addSbtPlugin("org.scalameta"          % "sbt-mdoc"                    % "2.2.17"
 addSbtPlugin("io.chrisdavenport" %% "sbt-make-pom" % "0.0.3")
 
 // coverage
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.9.3")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.0.7")
 
 libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.10"
+
+// workaround 	* org.scala-lang.modules:scala-xml_2.12:2.1.0 (early-semver) is selected over {1.0.6}
+//[error] 	    +- org.scoverage:scalac-scoverage-reporter_2.12:2.0.7 (depends on 2.1.0)
+//[error] 	    +- ws.unfiltered:unfiltered_2.12:0.9.1                (depends on 1.0.6)
+//[error] 	    +- org.foundweekends:knockoff_2.12:0.8.6              (depends on 1.0.6)
+libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % "always"

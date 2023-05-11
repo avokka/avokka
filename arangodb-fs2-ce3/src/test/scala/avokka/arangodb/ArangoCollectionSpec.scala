@@ -87,26 +87,6 @@ class ArangoCollectionSpec extends ArangoIOBase {
     }
   }
 
-  it should "unload, load" in { arango =>
-    val tempName = CollectionName("temp")
-    val temp = arango.db.collection(tempName)
-
-    for {
-      _ <- temp.create()
-      u <- temp.unload()
-      l <- temp.load()
-      _ <- temp.drop()
-    } yield {
-      u.header.responseCode should be (200)
-      u.body.name should be (tempName)
-      u.body.status should be (CollectionStatus.Unloaded)
-
-      l.header.responseCode should be (200)
-      l.body.name should be (tempName)
-      l.body.status should be (CollectionStatus.Loaded)
-    }
-  }
-
   it should "rename" in { arango =>
     val tempName = CollectionName("temp")
     val temp = arango.db.collection(tempName)

@@ -90,20 +90,6 @@ trait ArangoCollection[F[_]] {
   def update(waitForSync: Option[Boolean] = None, schema: Option[CollectionSchema] = None): F[ArangoResponse[CollectionProperties]]
 
   /**
-    * Load collection
-    *
-    * @return collection information
-    */
-  def load(): F[ArangoResponse[CollectionInfo]]
-
-  /**
-    * Unload collection
-    *
-    * @return collection information
-    */
-  def unload(): F[ArangoResponse[CollectionInfo]]
-
-  /**
     * Truncate collection
     *
     * @param waitForSync If true then the data is synchronized to disk before returning from the truncate operation
@@ -187,12 +173,6 @@ object ArangoCollection {
             "compact" -> compact.toString,
           )
         ).execute
-
-      override def load(): F[ArangoResponse[CollectionInfo]] =
-        PUT(database, path + "/load").execute
-
-      override def unload(): F[ArangoResponse[CollectionInfo]] =
-        PUT(database, path + "/unload").execute
 
       override def drop(isSystem: Boolean): F[ArangoResponse[DeleteResult]] =
         DELETE(database, path, Map("isSystem" -> isSystem.toString)).execute

@@ -40,7 +40,7 @@
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">avokka.arangodb.fs2._</span>
 
 <span class="k">val</span> <span class="nv">arango</span> <span class="k">=</span> <span class="nc">Arango</span><span class="o">(</span><span class="n">configuration</span><span class="o">)</span>
-<span class="c1">// arango: Resource[IO[A], Arango[IO[A]]] = Bind(</span>
+<span class="c1">// arango: Resource[[A]IO[A], Arango[[A]IO[A]]] = Bind(</span>
 <span class="c1">//   source = Bind(</span>
 <span class="c1">//     source = Allocate(</span>
 <span class="c1">//       resource = Map(</span>
@@ -80,7 +80,7 @@
   <span class="o">}</span> <span class="k">yield</span> <span class="nv">cCount</span><span class="o">.</span><span class="py">body</span><span class="o">.</span><span class="py">count</span> 
 <span class="o">}</span>
 <span class="c1">// r: IO[Long] = Async(</span>
-<span class="c1">//   k = cats.effect.internals.IOAsync$$$Lambda$12233/0x00000001039e7840@31ef334d,</span>
+<span class="c1">//   k = cats.effect.internals.IOAsync$$$Lambda$13148/0x0000000103a3e440@36ead760,</span>
 <span class="c1">//   trampolineAfter = true,</span>
 <span class="c1">//   trace = StackTrace(</span>
 <span class="c1">//     stackTrace = List(</span>

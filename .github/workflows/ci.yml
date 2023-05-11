@@ -19,11 +19,11 @@ jobs:
         os: [ubuntu-latest]
         java: ['8', '11', '17']
         scala: [2.12.17, 2.13.10]
-        arangodb: [3.6.16, 3.7.15, 3.8.1]
+        arangodb: [3.9.10, 3.10.6]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 

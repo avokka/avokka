@@ -14,25 +14,23 @@ jobs:
 
   publish:
     if: "!contains(github.event.head_commit.message, 'skip-ci')"
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/site/Gemfile
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - uses: satackey/action-docker-layer-caching@v0.0.11
+      - uses: jpribyl/action-docker-layer-caching@v0.1.1
         continue-on-error: true
 
-      - name: Setup Java and Scala
-        uses: olafurpg/setup-scala@v10
+      - uses: actions/setup-java@v3
         with:
-          java-version: adopt@1.11
-
-      - name: Cache scala dependencies
-        uses: coursier/cache-action@v6
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'sbt'
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1

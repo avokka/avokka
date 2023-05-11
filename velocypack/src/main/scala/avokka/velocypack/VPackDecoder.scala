@@ -4,10 +4,8 @@ import cats.data.{Kleisli, StateT}
 import cats.syntax.apply._
 import cats.syntax.either._
 import cats.syntax.traverse._
-import magnolia._
 import scodec.bits.BitVector
 import scodec.bits.ByteVector
-import shapeless.HList
 
 import java.net.{URI, URL}
 import scala.annotation.implicitNotFound
@@ -30,7 +28,7 @@ trait VPackDecoder[T] {
 }
 
 
-object VPackDecoder extends VPackDecoderDerivation with VPackDecoderLow {
+object VPackDecoder extends VPackDecoderGeneric with VPackDecoderDerivation with VPackDecoderLow {
   @inline def apply[T](implicit decoder: VPackDecoder[T]): VPackDecoder[T] = decoder
 
   // scala types instances
@@ -166,9 +164,6 @@ object VPackDecoder extends VPackDecoderDerivation with VPackDecoderLow {
     case v         => Left(VPackError.WrongType(v))
   }
 
-  implicit def genericDecoder[T <: HList](implicit a: VPackGeneric.Decoder[T]): VPackDecoder[T] =
-    VPackGeneric.Decoder(a)
-
   implicit def mapDecoder[K, T](implicit kd: VPackKeyDecoder[K], td: VPackDecoder[T]): VPackDecoder[Map[K, T]] = {
     case VObject(o) => {
       o.toVector
@@ -209,6 +204,4 @@ object VPackDecoder extends VPackDecoderDerivation with VPackDecoderLow {
     case v => Left(VPackError.WrongType(v))
   }
 
-  // semi auto derivation
-  def gen[T]: VPackDecoder[T] = macro Magnolia.gen[T]
 }

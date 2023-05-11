@@ -13,7 +13,7 @@ package object circe {
           VPackEncoder.doubleEncoder.encode(n.toDouble)
         }
     },
-    jsonString = VString,
+    jsonString = VString.apply,
     jsonArray = a => VArray(a.map(jsonVPackEncoder.encode)),
     jsonObject = o => VObject(o.toIterable.map {
       case (key, json) => key -> jsonVPackEncoder.encode(json)

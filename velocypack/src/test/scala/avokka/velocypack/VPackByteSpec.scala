@@ -27,7 +27,7 @@ class VPackByteSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPack
   }
 
   "byte" should "roundtrip" in {
-    forAll { b: Byte =>
+    forAll { (b: Byte) =>
       assertRoundtrip(b)
     }
   }

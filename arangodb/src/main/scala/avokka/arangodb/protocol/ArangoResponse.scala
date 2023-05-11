@@ -38,7 +38,7 @@ object ArangoResponse {
   )
 
   object Error {
-    implicit val decoder: VPackDecoder[Error] = VPackDecoder.gen
+    implicit val decoder: VPackDecoder[Error] = VPackDecoder.derived
   }
 
   implicit val functor: Functor[ArangoResponse] = new Functor[ArangoResponse] {

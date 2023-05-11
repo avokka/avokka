@@ -1,23 +1,30 @@
 import Dependencies._
 
-val scala212Version = "2.12.15"
-val scala213Version = "2.13.7"
+// val scala212Version = "2.12.15"
+val scala213Version = "2.13.10"
+val scala3Version = "3.2.2"
 
 ThisBuild / organization := "com.bicou"
-ThisBuild / crossScalaVersions := Seq(scala212Version, scala213Version)
-ThisBuild / scalaVersion := scala213Version
+ThisBuild / crossScalaVersions := Seq(scala213Version, scala3Version)
+ThisBuild / scalaVersion := scala3Version
+ThisBuild / semanticdbEnabled := true
 
 ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
+  case Some((3, _)) => Seq(
+    "-explaintypes",
+    "-Ykind-projector",
+    "-Yretain-trees",
+    "-rewrite",
+    "-source:3.2-migration"
+  )
   case Some((2, 13)) => Seq(
-    "-Ymacro-annotations"
+    "-Ymacro-annotations",
+    "-Xsource:3.2-migration"
   )
   case _ => Seq.empty
 })
 
-ThisBuild / javacOptions ++= Seq(
-  "-source", "1.8",
-  "-target", "1.8",
-)
+// addCompilerPlugin("org.scalameta" % "semanticdb-scalac" % "4.6.0" cross CrossVersion.full)
 
 ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 ThisBuild / homepage := Some(url("https://github.com/avokka"))
@@ -32,22 +39,26 @@ lazy val velocypack = (project in file("velocypack"))
     libraryDependencies ++= Seq(
       collectionCompat,
       cats,
-      scodecCore,
       scodecBits,
       scodecCats,
+    ) ++ (if (scalaVersion.value.startsWith("3")) Seq(
+      shapeless3,
+      scodecCore2,
+      magnolia3
+    ) else Seq(
       shapeless,
+      scodecCore,
       magnolia,
+      compilerPlugin(kindProjector),
+      compilerPlugin(betterMonadicFor),
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
-    ) ++ Seq(
+    )) ++ Seq(
       arango,
       scalaTest,
       scalaTestPlus,
       logback,
     ).map(_ % Test),
-    addCompilerPlugin(kindProjector),
-    addCompilerPlugin(betterMonadicFor),
     Test / logBuffered := false,
-    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val velocypackEnumeratum = (project in file("velocypack-enumeratum"))
@@ -58,7 +69,6 @@ lazy val velocypackEnumeratum = (project in file("velocypack-enumeratum"))
     libraryDependencies ++= Seq(
       enumeratum
     ),
-    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val velocypackCirce = (project in file("velocypack-circe"))
@@ -74,7 +84,6 @@ lazy val velocypackCirce = (project in file("velocypack-circe"))
 //      scalaTestPlus,
       logback,
     ).map(_ % Test),
-    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val velocystream = (project in file("velocystream"))
@@ -89,7 +98,6 @@ lazy val velocystream = (project in file("velocystream"))
       logback,
     ).map(_ % Test),
     Test / logBuffered := false,
-    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val arangodb = (project in file("arangodb"))
@@ -99,25 +107,29 @@ lazy val arangodb = (project in file("arangodb"))
     description := "ArangoDB core",
     libraryDependencies ++= Seq(
       collectionCompat,
-      newtype,
-      pureconfig,
       log4cats,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
     ) ++
       (CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, v)) if v <= 12 =>
           Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full))
         case _ => Nil
-      }) ++ Seq(
+      })
+      ++ (if (scalaVersion.value.startsWith("3")) Seq(
+      pureconfig3,
+    ) else Seq(
+      compilerPlugin(kindProjector),
+      compilerPlugin(betterMonadicFor),
+      pureconfig,
+        newtype,
+        "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
+      ))
+      ++ Seq(
       scalaTest,
       scalaTestPlus,
       logback,
     ).map(_ % Test),
     Test / logBuffered := false,
     Test / parallelExecution := false,
-    addCompilerPlugin(kindProjector),
-    addCompilerPlugin(betterMonadicFor),
-    scalacOptions -= "-Xfatal-warnings",
     Compile / sourceGenerators += Def.task {
       import com.github.tototoshi.csv._
 
@@ -152,8 +164,12 @@ lazy val arangodbAkka = (project in file("arangodb-akka"))
       akkaActor,
       akkaStream,
       logging,
+    ) ++ (if (scalaVersion.value.startsWith("3")) Seq(
+    ) else Seq(
+      compilerPlugin(kindProjector),
+      compilerPlugin(betterMonadicFor),
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
-    ) ++ Seq(
+    )) ++ Seq(
       scalaTest,
       akkaTestKit,
       logback,
@@ -165,9 +181,6 @@ lazy val arangodbAkka = (project in file("arangodb-akka"))
       }),
     Test / logBuffered := false,
     Test / parallelExecution := false,
-    addCompilerPlugin(kindProjector),
-    addCompilerPlugin(betterMonadicFor),
-    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val arangodbFs2 = (project in file("arangodb-fs2"))
@@ -178,7 +191,6 @@ lazy val arangodbFs2 = (project in file("arangodb-fs2"))
     libraryDependencies ++= Seq(
       collectionCompat,
       scodecStream,
-      catsRetry,
       catsEffect,
       fs2,
       fs2IO,
@@ -191,10 +203,12 @@ lazy val arangodbFs2 = (project in file("arangodb-fs2"))
       circeLit,
       jawn,
       semver
-    ).map(_ % Test),
-    addCompilerPlugin(kindProjector),
-    addCompilerPlugin(betterMonadicFor),
-    scalacOptions -= "-Xfatal-warnings"
+    ).map(_ % Test) ++ (if (scalaVersion.value.startsWith("3")) Seq(
+    ) else Seq(
+      catsRetry,
+      compilerPlugin(kindProjector),
+      compilerPlugin(betterMonadicFor),
+    )),
   )
 
 lazy val arangodbFs2Ce3 = (project in file("arangodb-fs2-ce3"))
@@ -218,10 +232,11 @@ lazy val arangodbFs2Ce3 = (project in file("arangodb-fs2-ce3"))
       circeLit,
       jawn,
       semver
-    ).map(_ % Test),
-    addCompilerPlugin(kindProjector),
-    addCompilerPlugin(betterMonadicFor),
-    scalacOptions -= "-Xfatal-warnings"
+    ).map(_ % Test) ++ (if (scalaVersion.value.startsWith("3")) Seq(
+    ) else Seq(
+      compilerPlugin(kindProjector),
+      compilerPlugin(betterMonadicFor),
+    )),
   )
 
 lazy val test = (project in file("test"))
@@ -231,7 +246,6 @@ lazy val test = (project in file("test"))
     libraryDependencies ++= Seq(
       testContainers
     ),
-    scalacOptions -= "-Xfatal-warnings"
   )
 
 
@@ -245,7 +259,6 @@ lazy val bench = (project in file("bench"))
       arango,
       logback
     ),
-    scalacOptions -= "-Xfatal-warnings"
   ).enablePlugins(JmhPlugin)
 
 lazy val site = (project in file("site"))
@@ -256,14 +269,15 @@ lazy val site = (project in file("site"))
       log4catsSlf,
       logback,
       pureconfigF,
-    ),
+    ) ++ (if (scalaVersion.value.startsWith("3")) Seq(
+    ) else Seq(
+      compilerPlugin(kindProjector),
+      compilerPlugin(betterMonadicFor),
+    )),
     name := "avokka-site",
     publishArtifact := false,
     publish / skip := true,
     version := version.value.takeWhile(_ != '+'),
-    addCompilerPlugin(kindProjector),
-    addCompilerPlugin(betterMonadicFor),
-    scalacOptions -= "-Xfatal-warnings",
     mdocExtraArguments := Seq("--no-link-hygiene"),
     mdocVariables := Map(
      "VERSION" -> version.value

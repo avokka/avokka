@@ -4,9 +4,7 @@ import java.time.{Instant, LocalDate}
 import java.util.{Date, UUID}
 import cats.Contravariant
 import cats.syntax.either._
-import magnolia._
 import scodec.bits.{BitVector, ByteVector}
-import shapeless.HList
 
 import java.net.{URI, URL}
 import scala.annotation.implicitNotFound
@@ -31,11 +29,11 @@ trait VPackEncoder[T] { self =>
     * @return either codec error or bitvector
     */
   def bits(t: T): VPackResult[BitVector] = {
-    codecs.vpackEncoder.encode(encode(t)).toEither.leftMap(VPackError.Codec)
+    codecs.vpackEncoder.encode(encode(t)).toEither.leftMap(VPackError.Codec.apply)
   }
 }
 
-object VPackEncoder extends VPackEncoderDerivation with VPackEncoderLow {
+object VPackEncoder extends VPackEncoderGeneric with VPackEncoderDerivation with VPackEncoderLow {
   @inline def apply[T](implicit encoder: VPackEncoder[T]): VPackEncoder[T] = encoder
 
   implicit val contravariance: Contravariant[VPackEncoder] = new Contravariant[VPackEncoder] {
@@ -117,9 +115,6 @@ object VPackEncoder extends VPackEncoderDerivation with VPackEncoderLow {
   implicit def iterableEncoder[T](implicit e: VPackEncoder[T]): VPackEncoder[Iterable[T]] =
     a => VArray(a.map(e.encode).toVector)
 
-  implicit def genericEncoder[T <: HList](implicit a: VPackGeneric.Encoder[T]): VPackEncoder[T] =
-    VPackGeneric.Encoder(a)
-
   implicit def mapEncoder[K, T](implicit ke: VPackKeyEncoder[K], te: VPackEncoder[T]): VPackEncoder[Map[K, T]] =
     a => VObject(a.map { case (k, t) => (ke.encode(k), te.encode(t)) })
 
@@ -134,6 +129,4 @@ object VPackEncoder extends VPackEncoderDerivation with VPackEncoderLow {
   implicit val uriEncoder: VPackEncoder[URI] = stringEncoder.contramap(_.toString)
   implicit val urlEncoder: VPackEncoder[URL] = stringEncoder.contramap(_.toString)
 
-  // semi auto derivation
-  def gen[T]: VPackEncoder[T] = macro Magnolia.gen[T]
 }

@@ -28,7 +28,7 @@ class VPackIntSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPackS
   }
 
   "int" should "roundtrip" in {
-    forAll { v: Int =>
+    forAll { (v: Int) =>
       assertRoundtrip(v)
     }
   }

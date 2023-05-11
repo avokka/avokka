@@ -14,7 +14,7 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
   "codec from vector" should "encode vectors" in {
     assertCodec(Vector(1,2,3), VArray(VSmallint(1), VSmallint(2), VSmallint(3)))
 
-    forAll { v: Vector[Long] =>
+    forAll { (v: Vector[Long]) =>
       assertRoundtrip(v)
     }
   }
@@ -26,7 +26,7 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
     assertRoundtrip(Double.MinValue)
     assertRoundtrip(Double.MaxValue)
 
-    forAll { d: Double =>
+    forAll { (d: Double) =>
       assertRoundtrip(d)
     }
 
@@ -36,7 +36,7 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
     assertRoundtrip(Float.MinValue)
     assertRoundtrip(Float.MaxValue)
 
-    forAll { f: Float =>
+    forAll { (f: Float) =>
       assertRoundtrip(f)
     }
   }
@@ -71,7 +71,7 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
     VString("test").as[Date].left.value should be (a [VPackError.Conversion])
     VString("test").as[Instant].left.value should be (a [VPackError.Conversion])
 
-    forAll { d: Date =>
+    forAll { (d: Date) =>
       assertRoundtrip(d)
       assertRoundtrip(d.toInstant)
     }
@@ -82,7 +82,7 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
     assertCodec(BigInt(1), VSmallint(1))
     assertCodec(BigInt(100L), VLong(100))
 
-    forAll { i: BigInt =>
+    forAll { (i: BigInt) =>
       assertRoundtrip(i)
     }
     assertDecode(VDouble(1), BigInt(1))
@@ -91,7 +91,7 @@ class VPackSpec extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
     assertCodec(BigDecimal(100L), VLong(100))
     assertCodec(BigDecimal(0.01d), VDouble(0.01d))
 
-    forAll { i: BigDecimal =>
+    forAll { (i: BigDecimal) =>
       assertRoundtrip(i)
     }
   }

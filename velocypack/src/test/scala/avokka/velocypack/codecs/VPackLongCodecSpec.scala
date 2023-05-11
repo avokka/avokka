@@ -32,7 +32,7 @@ class VPackLongCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
   }
 
   "roundtrip" should "not fail" in {
-    forAll(genVLong) { v: VLong =>
+    forAll(genVLong) { (v: VLong) =>
       assertEncodeDecode(vpackCodec, v)
     }
   }

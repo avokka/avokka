@@ -11,7 +11,7 @@ class VPackCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
   }
 
   "roundtrip" should "not fail" in {
-    forAll(genV) { v: VPack =>
+    forAll(genV) { (v: VPack) =>
       assertEncodeDecode(vpackCodec, v)
     }
   }

@@ -31,19 +31,19 @@ class VPackShowSpec extends AnyFlatSpec with Matchers with TableDrivenPropertyCh
   }
 
   "string" should "show in quotes" in {
-    forAll(genVString) { v: VString =>
+    forAll(genVString) { (v: VString) =>
       v.show should be (s""""${v.value}"""")
     }
   }
 
   "double" should "show as string" in {
-    forAll(genVDouble) { v: VDouble =>
+    forAll(genVDouble) { (v: VDouble) =>
       v.show should be (v.value.toString)
     }
   }
 
   "date" should "show as" in {
-    forAll(genVDate) { v: VDate =>
+    forAll(genVDate) { (v: VDate) =>
       val dt = Instant.ofEpochMilli(v.value)
       v.show should be (s""""$dt"""")
     }

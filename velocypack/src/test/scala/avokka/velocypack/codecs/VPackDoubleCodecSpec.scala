@@ -8,7 +8,7 @@ import scodec.bits._
 class VPackDoubleCodecSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPackCodecSpecTrait {
 
   it should "encode at 0x1b" in {
-    forAll { d: Double =>
+    forAll { (d: Double) =>
       val lbits = java.lang.Double.doubleToRawLongBits(d)
       assertCodec(vpackCodec, VDouble(d),
         hex"1b" ++ codecs.ulongBytes(lbits, 8).bytes
@@ -23,7 +23,7 @@ class VPackDoubleCodecSpec extends AnyFlatSpec with ScalaCheckPropertyChecks wit
   }
 
   it should "roundtrip" in {
-    forAll(genVDouble) { v: VDouble =>
+    forAll(genVDouble) { (v: VDouble) =>
       assertEncodeDecode(vpackCodec, v)
     }
   }

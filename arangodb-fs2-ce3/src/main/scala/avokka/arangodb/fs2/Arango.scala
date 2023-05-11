@@ -66,34 +66,9 @@ object Arango {
     for {
       to <- addr.toResource
       _ <- L.debug(s"open connection to $to").toResource
-      group <- Network[F].socketGroup()
-      _ <- Resource.eval(L.debug(s"open connection to $to"))
-      client <- group.client(to)
+      client <- Network[F].client(to)
       arango <- Resource.make(impl(client))(_.terminate).evalTap(_.login(config.username, config.password))
     } yield arango
   }
-
-  /*
-val loop: F[Unit] = {
-
-val policy = RetryPolicies.limitRetries[F](5)
-
-def onError(err: Throwable, details: RetryDetails): F[Unit] =
-  details match {
-    case WillDelayAndRetry(nextDelay: FiniteDuration, retriesSoFar: Int, _) =>
-      stateSignal.set(ConnectionState.Connecting)
-
-    case GivingUp(_, _) =>
-      stateSignal.set(ConnectionState.Error) *> L.error(err)("giving up")
-  }
-
-retryingOnAllErrors(policy, onError) {
-  mkSocket.use(_.pump)
-} >> stateSignal.get.flatMap {
-  case ConnectionState.Disconnected => closeSignal.set(false) >> loop
-  case _                            => C.unit
-}
-}
- */
 
 }

@@ -80,7 +80,7 @@ private[codecs] object VPackArrayCodec extends VPackCompoundCodec {
         length <- t.lengthDecoder.decode(b)
         body <- scodec.codecs.bits(8 * length.value).decode(length.remainder)
         values = body.value.bytes.dropWhile(_ == 0)
-        result <- Decoder.decodeCollect[Vector, VPack](vpackDecoder, None)(values.bits)
+        result <- vpackDecoder.collect[Vector, VPack](values.bits, None)
       } yield DecodeResult(VArray(result.value), body.remainder))
 
   private[codecs] def decoderOffsets(t: ArrayIndexedType): Decoder[VArray] =
@@ -92,7 +92,7 @@ private[codecs] object VPackArrayCodec extends VPackCompoundCodec {
         bodyLen = length.value - t.lengthSize
         body <- scodec.codecs.bits(8 * bodyLen).decode(nr.remainder)
         values <- scodec.codecs.bits(8 * (bodyLen - nr.value * t.lengthSize)).decode(body.value)
-        offsets <- Decoder.decodeCollect[Vector, Long](ulongLA(8 * t.lengthSize), Some(nr.value.toInt))(values.remainder)
+        offsets <- ulongLA(8 * t.lengthSize).collect[Vector, Long](values.remainder, Some(nr.value.toInt))
         result = offsetsToRanges(offsets.value.map(_ - bodyOffset), values.value.size / 8).map {
           case (from, until) => values.value.slice(8 * from, 8 * until)
         }
@@ -109,7 +109,7 @@ private[codecs] object VPackArrayCodec extends VPackCompoundCodec {
         (valuesIndex, number) = body.splitAt(8 * (bodyLen - t.lengthSize))
         nr <- ulongLA(8 * t.lengthSize).decode(number)
         (values, index) = valuesIndex.splitAt(8 * (bodyLen - nr.value * t.lengthSize - t.lengthSize))
-        offsets <- Decoder.decodeCollect[Vector, Long](ulongLA(8 * t.lengthSize), Some(nr.value.toInt))(index)
+        offsets <- ulongLA(8 * t.lengthSize).collect[Vector, Long](index, Some(nr.value.toInt))
         result = offsetsToRanges(offsets.value.map(_ - bodyOffset), values.size / 8).map {
           case (from, until) => values.slice(8 * from, 8 * until)
         }
@@ -122,7 +122,7 @@ private[codecs] object VPackArrayCodec extends VPackCompoundCodec {
       bodyLen = 8 * (length.value - 1 - vlongLength(length.value))
       body <- scodec.codecs.bits(bodyLen).decode(length.remainder)
       nr <- VPackVLongCodec.decode(body.value.reverseByteOrder)
-      result <- Decoder.decodeCollect[Vector, VPack](vpackDecoder, Some(nr.value.toInt))(body.value)
+      result <- vpackDecoder.collect[Vector, VPack](body.value, Some(nr.value.toInt))
     } yield DecodeResult(VArray(result.value), body.remainder))
 
   private[codecs] val codec: Codec[VArray] = Codec(encoder, vpackDecoder.emap({

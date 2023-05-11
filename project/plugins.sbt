@@ -1,12 +1,12 @@
 // scala compiler
-addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.1.20")
+// addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.4.1")
 
 // publishing
-addSbtPlugin("com.geirsson"     % "sbt-ci-release"  % "1.5.7")
+addSbtPlugin("com.github.sbt"   % "sbt-ci-release"  % "1.5.11")
 addSbtPlugin("com.dwijnand"     % "sbt-dynver"      % "4.1.1")
-addSbtPlugin("com.github.sbt"   % "sbt-pgp"         % "2.1.2")
-addSbtPlugin("org.xerial.sbt"   % "sbt-sonatype"    % "3.9.10")
-addSbtPlugin("com.typesafe.sbt" % "sbt-git"         % "1.0.2")
+addSbtPlugin("com.github.sbt"   % "sbt-pgp"         % "2.2.0")
+addSbtPlugin("org.xerial.sbt"   % "sbt-sonatype"    % "3.9.15")
+addSbtPlugin("com.github.sbt"   % "sbt-git"         % "2.0.1")
 
 /*
 addSbtPlugin("org.foundweekends"  % "sbt-bintray" % "0.6.1")
@@ -18,8 +18,8 @@ addSbtPlugin("com.jsuereth"       % "sbt-pgp"     % "2.1.1")
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.3")
 
 // docs
-addSbtPlugin("com.47deg"    % "sbt-microsites" % "1.3.4")
-addSbtPlugin("com.eed3si9n" % "sbt-unidoc"     % "0.4.3")
+addSbtPlugin("com.47deg"    % "sbt-microsites" % "1.4.0")
+addSbtPlugin("com.github.sbt" % "sbt-unidoc"     % "0.5.0")
 
 /*
 addSbtPlugin("com.lightbend.paradox"  % "sbt-paradox"                 % "0.9.1")
@@ -35,4 +35,9 @@ addSbtPlugin("io.chrisdavenport" %% "sbt-make-pom" % "0.0.3")
 // coverage
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.9.2")
 
-libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.8"
+libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.10"
+
+// addSbtPlugin("ch.epfl.scala" % "sbt-scala3-migrate" % "0.5.1")
+// sbt-dotty is not required since sbt 1.5.0-M1
+// addSbtPlugin("ch.epfl.lamp" % "sbt-dotty" % "0.5.3")
+// addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.10.4")

@@ -6,7 +6,7 @@ import scodec.Codec
 import scodec.bits.ByteVector
 import scodec.codecs.{bytes, fixedSizeBytes, uint32L}
 import scodec.interop.cats._
-import shapeless.{::, HNil}
+// import shapeless.{::, HNil}
 
 /** chunk of message
   *
@@ -50,7 +50,7 @@ object VStreamChunk {
   val codec: Codec[VStreamChunk] = uint32L.consume { l =>
     VStreamChunkHeader.codec :: fixedSizeBytes(l - dataOffset, bytes)
   } {
-    case _ :: bv :: HNil => bv.size + dataOffset
+    case (_, bv) => bv.size + dataOffset
   }.as
 
   implicit val show: Show[VStreamChunk] = { c =>

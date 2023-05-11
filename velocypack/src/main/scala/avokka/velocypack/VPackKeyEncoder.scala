@@ -12,7 +12,7 @@ trait VPackKeyEncoder[T] { self =>
 object VPackKeyEncoder {
   @inline def apply[T](implicit e: VPackKeyEncoder[T]): VPackKeyEncoder[T] = e
 
-  implicit val vpackKeyEncoderString: VPackKeyEncoder[String] = identity
+  implicit val vpackKeyEncoderString: VPackKeyEncoder[String] = identity(_)
 
   implicit val vpackKeyEncoderSymbol: VPackKeyEncoder[Symbol] = _.name
 }

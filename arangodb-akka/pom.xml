@@ -6,7 +6,7 @@
     <packaging>jar</packaging>
     <description>ArangoDB client (akka)</description>
     <url>https://github.com/avokka</url>
-    <version>0.0.6+103-989bc62e+20210427-1556-SNAPSHOT</version>
+    <version>0.0.7+45-d15a97e5+20230515-1555-SNAPSHOT</version>
     <licenses>
         <license>
             <name>MIT</name>
@@ -36,61 +36,61 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>2.13.5</version>
+            <version>2.13.10</version>
         </dependency>
         <dependency>
             <groupId>com.bicou</groupId>
             <artifactId>avokka-arangodb_2.13</artifactId>
-            <version>0.0.6+103-989bc62e+20210427-1556-SNAPSHOT</version>
+            <version>0.0.7+45-d15a97e5+20230515-1555-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.bicou</groupId>
             <artifactId>avokka-test_2.13</artifactId>
-            <version>0.0.6+103-989bc62e+20210427-1556-SNAPSHOT</version>
+            <version>0.0.7+45-d15a97e5+20230515-1555-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.scala-lang.modules</groupId>
             <artifactId>scala-collection-compat_2.13</artifactId>
-            <version>2.4.3</version>
+            <version>2.10.0</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-actor_2.13</artifactId>
-            <version>2.6.14</version>
+            <version>2.6.20</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-stream_2.13</artifactId>
-            <version>2.6.14</version>
+            <version>2.6.20</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe.scala-logging</groupId>
             <artifactId>scala-logging_2.13</artifactId>
-            <version>3.9.2</version>
+            <version>3.9.5</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-reflect</artifactId>
-            <version>2.13.5</version>
+            <version>2.13.10</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_2.13</artifactId>
-            <version>3.2.8</version>
+            <version>3.2.15</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-testkit_2.13</artifactId>
-            <version>2.6.14</version>
+            <version>2.6.20</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.3</version>
+            <version>1.2.12</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

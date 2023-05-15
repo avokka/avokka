@@ -6,7 +6,7 @@
     <packaging>jar</packaging>
     <description>velocypack support for enumeratum</description>
     <url>https://github.com/avokka</url>
-    <version>0.0.6+103-989bc62e+20210427-1556-SNAPSHOT</version>
+    <version>0.0.7+45-d15a97e5+20230515-1555-SNAPSHOT</version>
     <licenses>
         <license>
             <name>MIT</name>
@@ -36,17 +36,17 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>2.13.5</version>
+            <version>2.13.10</version>
         </dependency>
         <dependency>
             <groupId>com.bicou</groupId>
             <artifactId>avokka-velocypack_2.13</artifactId>
-            <version>0.0.6+103-989bc62e+20210427-1556-SNAPSHOT</version>
+            <version>0.0.7+45-d15a97e5+20230515-1555-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.beachape</groupId>
             <artifactId>enumeratum_2.13</artifactId>
-            <version>1.6.1</version>
+            <version>1.7.2</version>
         </dependency>
     </dependencies>
 </project>

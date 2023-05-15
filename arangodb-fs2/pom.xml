@@ -6,7 +6,7 @@
     <packaging>jar</packaging>
     <description>ArangoDB client (fs2)</description>
     <url>https://github.com/avokka</url>
-    <version>0.0.6+103-989bc62e+20210427-1556-SNAPSHOT</version>
+    <version>0.0.7+45-d15a97e5+20230515-1555-SNAPSHOT</version>
     <licenses>
         <license>
             <name>MIT</name>
@@ -36,101 +36,101 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>2.13.5</version>
+            <version>2.13.10</version>
         </dependency>
         <dependency>
             <groupId>com.bicou</groupId>
             <artifactId>avokka-arangodb_2.13</artifactId>
-            <version>0.0.6+103-989bc62e+20210427-1556-SNAPSHOT</version>
+            <version>0.0.7+45-d15a97e5+20230515-1555-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.bicou</groupId>
             <artifactId>avokka-test_2.13</artifactId>
-            <version>0.0.6+103-989bc62e+20210427-1556-SNAPSHOT</version>
+            <version>0.0.7+45-d15a97e5+20230515-1555-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.bicou</groupId>
             <artifactId>avokka-velocypack-circe_2.13</artifactId>
-            <version>0.0.6+103-989bc62e+20210427-1556-SNAPSHOT</version>
+            <version>0.0.7+45-d15a97e5+20230515-1555-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.scala-lang.modules</groupId>
             <artifactId>scala-collection-compat_2.13</artifactId>
-            <version>2.4.3</version>
+            <version>2.10.0</version>
         </dependency>
         <dependency>
             <groupId>org.scodec</groupId>
             <artifactId>scodec-stream_2.13</artifactId>
-            <version>2.0.1</version>
+            <version>2.0.3</version>
         </dependency>
         <dependency>
             <groupId>com.github.cb372</groupId>
             <artifactId>cats-retry_2.13</artifactId>
-            <version>2.1.0</version>
+            <version>2.1.1</version>
         </dependency>
         <dependency>
             <groupId>org.typelevel</groupId>
             <artifactId>cats-effect_2.13</artifactId>
-            <version>2.5.0</version>
+            <version>2.5.5</version>
         </dependency>
         <dependency>
             <groupId>co.fs2</groupId>
             <artifactId>fs2-core_2.13</artifactId>
-            <version>2.5.5</version>
+            <version>2.5.11</version>
         </dependency>
         <dependency>
             <groupId>co.fs2</groupId>
             <artifactId>fs2-io_2.13</artifactId>
-            <version>2.5.5</version>
+            <version>2.5.11</version>
         </dependency>
         <dependency>
             <groupId>org.typelevel</groupId>
             <artifactId>log4cats-slf4j_2.13</artifactId>
-            <version>1.3.0</version>
+            <version>1.3.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.3</version>
+            <version>1.2.12</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_2.13</artifactId>
-            <version>3.2.8</version>
+            <version>3.2.15</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.scalatestplus</groupId>
-            <artifactId>scalacheck-1-14_2.13</artifactId>
-            <version>3.2.2.0</version>
+            <artifactId>scalacheck-1-15_2.13</artifactId>
+            <version>3.2.11.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.codecommit</groupId>
             <artifactId>cats-effect-testing-scalatest_2.13</artifactId>
-            <version>0.5.3</version>
+            <version>0.5.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.circe</groupId>
             <artifactId>circe-literal_2.13</artifactId>
-            <version>0.13.0</version>
+            <version>0.14.5</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.typelevel</groupId>
             <artifactId>jawn-parser_2.13</artifactId>
-            <version>1.0.0</version>
+            <version>1.4.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.kevinlee</groupId>
             <artifactId>just-semver_2.13</artifactId>
-            <version>0.1.2</version>
+            <version>0.6.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

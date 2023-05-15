@@ -6,7 +6,7 @@
     <packaging>jar</packaging>
     <description>velocypack codec (scodec, shapeless, cats)</description>
     <url>https://github.com/avokka</url>
-    <version>0.0.6+103-989bc62e+20210427-1556-SNAPSHOT</version>
+    <version>0.0.7+45-d15a97e5+20230515-1555-SNAPSHOT</version>
     <licenses>
         <license>
             <name>MIT</name>
@@ -36,37 +36,37 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>2.13.5</version>
+            <version>2.13.10</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang.modules</groupId>
             <artifactId>scala-collection-compat_2.13</artifactId>
-            <version>2.4.3</version>
+            <version>2.10.0</version>
         </dependency>
         <dependency>
             <groupId>org.typelevel</groupId>
             <artifactId>cats-core_2.13</artifactId>
-            <version>2.6.0</version>
+            <version>2.9.0</version>
         </dependency>
         <dependency>
             <groupId>org.scodec</groupId>
             <artifactId>scodec-core_2.13</artifactId>
-            <version>1.11.7</version>
+            <version>1.11.10</version>
         </dependency>
         <dependency>
             <groupId>org.scodec</groupId>
             <artifactId>scodec-bits_2.13</artifactId>
-            <version>1.1.26</version>
+            <version>1.1.37</version>
         </dependency>
         <dependency>
             <groupId>org.scodec</groupId>
             <artifactId>scodec-cats_2.13</artifactId>
-            <version>1.1.0-RC3</version>
+            <version>1.2.0</version>
         </dependency>
         <dependency>
             <groupId>com.chuusai</groupId>
             <artifactId>shapeless_2.13</artifactId>
-            <version>2.3.4</version>
+            <version>2.3.10</version>
         </dependency>
         <dependency>
             <groupId>com.propensive</groupId>
@@ -76,31 +76,31 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-reflect</artifactId>
-            <version>2.13.5</version>
+            <version>2.13.10</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
             <artifactId>arangodb-java-driver</artifactId>
-            <version>6.9.0</version>
+            <version>6.14.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_2.13</artifactId>
-            <version>3.2.8</version>
+            <version>3.2.15</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.scalatestplus</groupId>
-            <artifactId>scalacheck-1-14_2.13</artifactId>
-            <version>3.2.2.0</version>
+            <artifactId>scalacheck-1-15_2.13</artifactId>
+            <version>3.2.11.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.3</version>
+            <version>1.2.12</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

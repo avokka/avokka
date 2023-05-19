@@ -8,5 +8,5 @@ final case class RemovedResult(
 )
 
 object RemovedResult {
-  implicit val decoder: VPackDecoder[RemovedResult] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[RemovedResult] = VPackDecoder.derived
 }

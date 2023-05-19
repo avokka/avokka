@@ -12,5 +12,5 @@ final case class GraphCollections(
 )
 
 object GraphCollections {
-  implicit val decoder: VPackDecoder[GraphCollections] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[GraphCollections] = VPackDecoder.derived
 }

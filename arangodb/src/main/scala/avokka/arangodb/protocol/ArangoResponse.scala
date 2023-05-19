@@ -22,7 +22,7 @@ object ArangoResponse {
   )
 
   object Header {
-    implicit val decoder: VPackDecoder[Header] = VPackGeneric[Header].decoder
+    implicit val decoder: VPackDecoder[Header] = ProtocolCodec.responseHeaderDecoder
 
     implicit val show: Show[Header] = { h =>
       show"${h.`type`}(v${h.version},code=${h.responseCode},meta=${h.meta})"

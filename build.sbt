@@ -1,11 +1,11 @@
 import Dependencies._
 
 // val scala212Version = "2.12.15"
-val scala213Version = "2.13.10"
+val scala2Version = "2.13.10"
 val scala3Version = "3.2.2"
 
 ThisBuild / organization := "com.bicou"
-ThisBuild / crossScalaVersions := Seq(scala213Version, scala3Version)
+ThisBuild / crossScalaVersions := Seq(scala2Version, scala3Version)
 ThisBuild / scalaVersion := scala3Version
 ThisBuild / semanticdbEnabled := true
 
@@ -19,7 +19,8 @@ ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) m
   )
   case Some((2, 13)) => Seq(
     "-Ymacro-annotations",
-    "-Xsource:3.2-migration"
+    "-language:experimental.macros",
+    "-Xsource:3"
   )
   case _ => Seq.empty
 })

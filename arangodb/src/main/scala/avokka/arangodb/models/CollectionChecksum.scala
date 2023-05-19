@@ -10,6 +10,6 @@ final case class CollectionChecksum(
 
 object CollectionChecksum {
 
-  implicit val decoder: VPackDecoder[CollectionChecksum] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[CollectionChecksum] = VPackDecoder.derived
 
 }

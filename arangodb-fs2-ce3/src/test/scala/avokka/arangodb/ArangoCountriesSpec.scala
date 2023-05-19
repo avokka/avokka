@@ -121,6 +121,6 @@ object ArangoCountriesSpec {
       name: String
                     )
 
-  implicit val countryEncoder: VPackEncoder[Country] = VPackEncoder.gen
-  implicit val countryDecoder: VPackDecoder[Country] = VPackDecoder.gen
+  implicit val countryEncoder: VPackEncoder[Country] = VPackEncoder.derived
+  implicit val countryDecoder: VPackDecoder[Country] = VPackDecoder.derived
 }

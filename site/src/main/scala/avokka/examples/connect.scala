@@ -18,11 +18,10 @@ object connect extends IOApp {
                       name: String
                     )
 
-  implicit val countryEncoder: VPackEncoder[Country] = VPackEncoder.gen
-  implicit val countryDecoder: VPackDecoder[Country] = VPackDecoder.gen
+  implicit val countryEncoder: VPackEncoder[Country] = VPackEncoder.derived
+  implicit val countryDecoder: VPackDecoder[Country] = VPackDecoder.derived
 
-  override def run(args: List[String]): IO[ExitCode] = for {
-    implicit0(logger: Logger[IO]) <- Slf4jLogger.create[IO]
+  override def run(args: List[String]): IO[ExitCode] = Slf4jLogger.create[IO].flatMap { implicit logger => for {
     config <- Blocker[IO].use(ArangoConfiguration.at().loadF[IO, ArangoConfiguration])
     arango = Arango(config)
     _ <- arango.use { client =>
@@ -62,5 +61,5 @@ object connect extends IOApp {
 
       } yield ()
     }
-  } yield ExitCode.Success
+  } yield ExitCode.Success }
 }

@@ -65,9 +65,9 @@ object CollectionProperties {
   )
 
   object KeyOptions {
-    implicit val decoder: VPackDecoder[KeyOptions] = VPackDecoder.gen
+    implicit val decoder: VPackDecoder[KeyOptions] = VPackDecoder.derived
   }
 
-  implicit val decoder: VPackDecoder[CollectionProperties] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[CollectionProperties] = VPackDecoder.derived
 
 }

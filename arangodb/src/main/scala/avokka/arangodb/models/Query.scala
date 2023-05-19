@@ -59,10 +59,10 @@ object Query {
                           )
 
   object Options {
-    implicit val encoder: VPackEncoder[Options] = VPackEncoder.gen
+    implicit val encoder: VPackEncoder[Options] = VPackEncoder.derived
   }
 
-  implicit def encoder[V: VPackEncoder]: VPackEncoder[Query[V]] = VPackEncoder.gen
+  implicit def encoder[V: VPackEncoder]: VPackEncoder[Query[V]] = VPackEncoder.derived
 
   implicit final class AvokkaQueryVObjectOps[F[_]](private val q: Query[VObject]) extends AnyVal {
     def bind[K: VPackKeyEncoder, V: VPackEncoder](key: K, value: V): Query[VObject] =

@@ -13,5 +13,5 @@ case class Wal
 )
 
 object Wal {
-  implicit val decoder: VPackDecoder[Wal] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[Wal] = VPackDecoder.derived
 }

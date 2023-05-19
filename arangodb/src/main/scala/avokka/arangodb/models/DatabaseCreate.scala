@@ -19,7 +19,7 @@ object DatabaseCreate {
   )
 
   object User {
-    implicit val encoder: VPackEncoder[User] = VPackEncoder.gen
+    implicit val encoder: VPackEncoder[User] = VPackEncoder.derived
   }
 
 }

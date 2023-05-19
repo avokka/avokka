@@ -15,7 +15,7 @@ case class Document[T](
 
 object Document {
 
-  implicit def decoder[T: VPackDecoder]: VPackDecoder[Document[T]] = VPackDecoder.gen
+  implicit def decoder[T: VPackDecoder]: VPackDecoder[Document[T]] = VPackDecoder.derived
 
   val filterEmptyInternalAttributes: ((String, VPack)) => Boolean = {
     case (DocumentHandle.key, value) if value.isEmpty   => false

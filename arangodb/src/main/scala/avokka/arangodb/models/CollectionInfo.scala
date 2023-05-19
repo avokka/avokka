@@ -24,5 +24,5 @@ final case class CollectionInfo(
 )
 
 object CollectionInfo {
-  implicit val decoder: VPackDecoder[CollectionInfo] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[CollectionInfo] = VPackDecoder.derived
 }

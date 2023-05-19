@@ -16,13 +16,13 @@ trait VPackArbitrary {
   val genVNull: Gen[VNull.type] = Gen.const(VNull)
   val genVBoolean: Gen[VBoolean] = Gen.oneOf(VFalse, VTrue)
 
-  val genVDouble: Gen[VDouble] = arbitrary[Double].map(VDouble)
+  val genVDouble: Gen[VDouble] = arbitrary[Double].map(VDouble(_))
   val genVDate: Gen[VDate] = arbitrary[Date].map { d => VDate(d.getTime) }
 
   val genVSmallint: Gen[VSmallint] = Gen.choose[Byte](-6, 9).map(VSmallint.apply)
-  val genVLong: Gen[VLong] = arbitrary[Long].map(VLong)
+  val genVLong: Gen[VLong] = arbitrary[Long].map(VLong(_))
 
-  val genVString: Gen[VString] = arbitrary[String].map(VString)
+  val genVString: Gen[VString] = arbitrary[String].map(VString(_))
   val genVBinary: Gen[VBinary] = Gen.listOf(arbitrary[Byte]).map { b => VBinary(ByteVector(b)) }
 
   val genVScalar: Gen[VPack] = Gen.oneOf(

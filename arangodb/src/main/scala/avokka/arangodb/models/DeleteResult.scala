@@ -9,6 +9,6 @@ final case class DeleteResult(
 
 object DeleteResult {
 
-  implicit val decoder: VPackDecoder[DeleteResult] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[DeleteResult] = VPackDecoder.derived
 
 }

@@ -9,6 +9,6 @@ final case class CollectionCount(
 
 object CollectionCount {
 
-  implicit val decoder: VPackDecoder[CollectionCount] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[CollectionCount] = VPackDecoder.derived
 
 }

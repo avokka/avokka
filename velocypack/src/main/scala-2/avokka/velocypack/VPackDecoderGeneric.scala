@@ -8,6 +8,6 @@ trait VPackDecoderGeneric {
     VPackGeneric.Decoder(a)
     
   // semi auto derivation
-  def gen[T]: VPackDecoder[T] = macro Magnolia.gen[T]
+  def derived[T]: VPackDecoder[T] = macro Magnolia.gen[T]
 
 }

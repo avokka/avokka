@@ -12,7 +12,7 @@ package object fs2 {
       for {
         cursor <- Stream.eval(query.cursor[T])
         document <- Pull
-          .loop { c: ArangoCursor[F, T] =>
+          .loop { (c: ArangoCursor[F, T]) =>
             Pull.output(Chunk.vector(c.body.result)) >>
               (if (c.body.hasMore) Pull.eval(c.next()).map(Some(_)) else Pull.pure(None))
           }(cursor)

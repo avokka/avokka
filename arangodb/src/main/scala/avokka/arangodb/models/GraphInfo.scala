@@ -31,13 +31,13 @@ final case class GraphInfo(
 )
 
 object GraphInfo { self =>
-  implicit val decoder: VPackDecoder[GraphInfo] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[GraphInfo] = VPackDecoder.derived
 
   final case class Response(
       graph: GraphInfo
   )
   object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
+    implicit val decoder: VPackDecoder[Response] = VPackDecoder.derived
   }
 
 }

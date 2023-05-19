@@ -31,7 +31,7 @@ final case class VStreamChunk
   }
 }
 
-object VStreamChunk {
+object VStreamChunk extends VStreamChunkCodec {
 
   def apply(message: VStreamMessage, index: Long, count: Long, data: ByteVector): VStreamChunk = {
     VStreamChunk(
@@ -47,11 +47,13 @@ object VStreamChunk {
   // 4 chunk length + 4 chunkx + 8 message id + 8 message length
   val dataOffset: Long = 24
 
+  /*
   val codec: Codec[VStreamChunk] = uint32L.consume { l =>
     VStreamChunkHeader.codec :: fixedSizeBytes(l - dataOffset, bytes)
   } {
     case (_, bv) => bv.size + dataOffset
   }.as
+   */
 
   implicit val show: Show[VStreamChunk] = { c =>
     show"chunk(id=${c.header.id},${c.header.x},length=${c.header.length}) ${c.data}"

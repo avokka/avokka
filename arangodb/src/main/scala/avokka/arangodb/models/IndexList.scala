@@ -10,6 +10,6 @@ final case class IndexList(
 
 object IndexList {
 
-  implicit val decoder: VPackDecoder[IndexList] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[IndexList] = VPackDecoder.derived
 
 }

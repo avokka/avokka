@@ -4,63 +4,46 @@ import avokka.velocypack._
 
 package object types {
 
-  opaque type DatabaseName = String
+  case class DatabaseName(repr: String) {
+    def isEmpty: Boolean = repr.isEmpty
+  }
 
   object DatabaseName {
-    def apply(name: String): DatabaseName = name
-    implicit val encoder: VPackEncoder[DatabaseName] = VPackEncoder.stringEncoder.contramap(_.toString)
+    implicit val encoder: VPackEncoder[DatabaseName] = VPackEncoder.stringEncoder.contramap(_.repr)
     implicit val decoder: VPackDecoder[DatabaseName] = VPackDecoder.stringDecoder.map(apply)
     val system: DatabaseName = DatabaseName("_system")
   }
 
-  opaque type CollectionName = String
-
-  extension (name: CollectionName) {
-    def repr: String = name
-    def isEmpty: Boolean = name.isEmpty
+  case class CollectionName(repr: String) {
+    def isEmpty: Boolean = repr.isEmpty
   }
 
   object CollectionName {
-    def apply(name: String): CollectionName = name
-    implicit val encoder: VPackEncoder[CollectionName] = VPackEncoder.stringEncoder.contramap(_.toString)
+    implicit val encoder: VPackEncoder[CollectionName] = VPackEncoder.stringEncoder.contramap(_.repr)
     implicit val decoder: VPackDecoder[CollectionName] = VPackDecoder.stringDecoder.map(apply)
   }
 
-  opaque type DocumentKey <: String = String
-
-  /*
-  extension (key: DocumentKey) {
-    def isEmpty: Boolean = key.isEmpty
+  case class DocumentKey(repr: String) {
+    def isEmpty: Boolean = repr.isEmpty
   }
-  */
 
   object DocumentKey {
-    def apply(key: String): DocumentKey = key
     val key: String = "_key"
-    implicit val encoder: VPackEncoder[DocumentKey] = VPackEncoder.stringEncoder.contramap(_.toString)
+    implicit val encoder: VPackEncoder[DocumentKey] = VPackEncoder.stringEncoder.contramap(_.repr)
     implicit val decoder: VPackDecoder[DocumentKey] = VPackDecoder.stringDecoder.map(apply)
     val empty = apply("")
   }
 
-  opaque type DocumentHandle = (CollectionName, DocumentKey)
-
-  extension (handle: DocumentHandle) {
-    def collection: CollectionName = handle._1
-
-    def key: DocumentKey = handle._2
-
+  case class DocumentHandle(collection: CollectionName, key: DocumentKey) {
     def isEmpty: Boolean = collection.isEmpty || key.isEmpty
+    def path: String = if (isEmpty) "" else s"${collection.repr}/${key.repr}"
 
-    def path: String = if (isEmpty) "" else s"$collection/$key"
   }
 
   object DocumentHandle {
     val key: String = "_id"
 
-    def apply(handle: (CollectionName, DocumentKey)): DocumentHandle = handle
-
-    def apply(collection: CollectionName, key: DocumentKey): DocumentHandle =
-      apply((collection, key))
+    // def apply(handle: (CollectionName, DocumentKey)): DocumentHandle = handle
 
     def parse(path: String): Option[DocumentHandle] = {
       path.split('/') match {
@@ -79,29 +62,26 @@ package object types {
     val empty = apply(CollectionName(""), DocumentKey.empty)
   }
 
-  opaque type DocumentRevision = String
+  case class DocumentRevision(repr: String)
 
   object DocumentRevision {
-    def apply(str: String): DocumentRevision = str
     val key: String = "_rev"
-    implicit val encoder: VPackEncoder[DocumentRevision] = VPackEncoder[String].contramap(_.toString)
+    implicit val encoder: VPackEncoder[DocumentRevision] = VPackEncoder[String].contramap(_.repr)
     implicit val decoder: VPackDecoder[DocumentRevision] = VPackDecoder[String].map(apply)
     val empty = apply("")
   }
 
-  opaque type TransactionId = String
+  case class TransactionId(repr: String)
 
   object TransactionId {
-    def apply(s: String): TransactionId = s
-    implicit val encoder: VPackEncoder[TransactionId] = VPackEncoder[String].contramap(_.toString)
+    implicit val encoder: VPackEncoder[TransactionId] = VPackEncoder[String].contramap(_.repr)
     implicit val decoder: VPackDecoder[TransactionId] = VPackDecoder[String].map(apply)
   }
 
-  opaque type GraphName = String
+  case class GraphName(repr: String)
 
   object GraphName {
-    def apply(s: String): GraphName = s
-    implicit val encoder: VPackEncoder[GraphName] = VPackEncoder[String].contramap(_.toString)
+    implicit val encoder: VPackEncoder[GraphName] = VPackEncoder[String].contramap(_.repr)
     implicit val decoder: VPackDecoder[GraphName] = VPackDecoder[String].map(apply)
   }
 }

@@ -4,6 +4,7 @@ import avokka.arangodb.types.DatabaseName
 import avokka.velocystream.VStreamConfiguration
 import pureconfig._
 import pureconfig.generic.semiauto._
+// import pureconfig.generic.derivation.default._
 
 import scala.concurrent.duration.FiniteDuration
 

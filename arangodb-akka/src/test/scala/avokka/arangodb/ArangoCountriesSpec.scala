@@ -1,41 +1,45 @@
 package avokka.arangodb
 
-import avokka.test._
+import avokka.test.*
 import _root_.akka.actor.ActorSystem
 import _root_.akka.stream.scaladsl.Sink
 import _root_.akka.testkit.{TestKit, TestKitBase}
 import avokka.arangodb.protocol.MessageType
-import avokka.arangodb.types._
-import avokka.velocypack._
-import com.dimafeng.testcontainers.ForAllTestContainer
+import avokka.arangodb.types.*
+import avokka.velocypack.*
+import com.dimafeng.testcontainers.{ForAllTestContainer, GenericContainer}
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.OptionValues._
+import org.scalatest.OptionValues.*
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
-import akka._
+import akka.*
+import com.dimafeng.testcontainers.scalatest.TestContainerForAll
+
+import scala.concurrent.Future
 
 class ArangoCountriesSpec
     extends AsyncFlatSpec
     with TestKitBase
     with Matchers
     with BeforeAndAfterAll
-    with ForAllTestContainer {
+    with TestContainerForAll {
   import ArangoCountriesSpec._
 
   override implicit lazy val system: ActorSystem = ActorSystem("arangodb-countries")
 
-  override val container = ArangodbContainer.Def().start()
+  override val containerDef: GenericContainer.Def[ArangodbContainer] = ArangodbContainer.Def()
 
   val dbName = DatabaseName("test")
-
-  val arango: Arango = Arango(container.configuration.copy(database = dbName))
-
-  val db = arango.db
-
   val collName = CollectionName("countries")
-  val collection = db.collection(collName)
 
-  it should "have test database" in {
+  def withArango[A](f: (Arango, ArangoDatabase[Future], ArangoCollection[Future]) => A) = withContainers { container =>
+    val arango: Arango = Arango(container.configuration.copy(database = dbName))
+    val db = arango.db
+    val collection = db.collection(collName)
+    f(arango, db, collection)
+  }
+
+  it should "have test database" in withArango { (arango,_,_) =>
     arango.server.databases().map { res =>
       res.header.responseCode should be(200)
       res.header.`type` should be(MessageType.ResponseFinal)
@@ -43,7 +47,7 @@ class ArangoCountriesSpec
     }
   }
 
-  it should "have a countries collection" in {
+  it should "have a countries collection" in withArango { (_,db,_) =>
     db.collections().map { res =>
       res.header.responseCode should be(200)
       res.header.`type` should be(MessageType.ResponseFinal)
@@ -51,7 +55,7 @@ class ArangoCountriesSpec
     }
   }
 
-  it should "have france at key FR" in {
+  it should "have france at key FR" in withArango { (_,db,_) =>
     db.document(DocumentHandle(collName, DocumentKey("FR"))).read[Country]().map { res =>
       res.header.responseCode should be(200)
       res.header.`type` should be(MessageType.ResponseFinal)
@@ -59,7 +63,7 @@ class ArangoCountriesSpec
     }
   }
 
-  it should "have france at key FR (collection method)" in {
+  it should "have france at key FR (collection method)" in withArango { (_,db,collection) =>
     collection.document(DocumentKey("FR")).read[Country]().map { res =>
       res.header.responseCode should be(200)
       res.header.`type` should be(MessageType.ResponseFinal)
@@ -67,7 +71,7 @@ class ArangoCountriesSpec
     }
   }
 
-  it should "create, read, update, delete document" in {
+  it should "create, read, update, delete document" in withArango { (_,db,collection) =>
     val key = DocumentKey("XX")
     for {
       c <- collection.documents.insert(Country(key, name = "country name"), returnNew = true)
@@ -92,7 +96,7 @@ class ArangoCountriesSpec
     }
   }
 
-  it should "create multiple documents" in {
+  it should "create multiple documents" in withArango { (_,db,collection) =>
     val key1 = DocumentKey("X1")
     val key2 = DocumentKey("X2")
     collection.documents.create(List(
@@ -106,7 +110,7 @@ class ArangoCountriesSpec
     }
   }
 
-  it should "query akka stream" in {
+  it should "query akka stream" in withArango { (_,db,collection) =>
     val source = collection.all.batchSize(100).stream[Country]
 
     source.runWith(Sink.seq).map { s =>
@@ -114,7 +118,7 @@ class ArangoCountriesSpec
     }
   }
 
-  it should "query with cursor batch size" in {
+  it should "query with cursor batch size" in withArango { (_,db,collection) =>
     for {
       cursor <- db.query(
         "FOR c IN @@col LIMIT @limit RETURN c",
@@ -137,7 +141,7 @@ class ArangoCountriesSpec
 
 
   override def afterAll(): Unit = {
-    arango.closeClient()
+    // arango.closeClient()
     TestKit.shutdownActorSystem(system)
   }
 }
@@ -149,6 +153,6 @@ object ArangoCountriesSpec {
       name: String
                     )
 
-  implicit val countryEncoder: VPackEncoder[Country] = VPackEncoder.gen
-  implicit val countryDecoder: VPackDecoder[Country] = VPackDecoder.gen
+  implicit val countryEncoder: VPackEncoder[Country] = VPackEncoder.derived
+  implicit val countryDecoder: VPackDecoder[Country] = VPackDecoder.derived
 }

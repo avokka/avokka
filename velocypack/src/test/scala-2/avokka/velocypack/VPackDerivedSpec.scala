@@ -57,8 +57,8 @@ object VPackDerivedSpec {
 
   implicit val arbitrayVR: Arbitrary[VersionResponse] = Arbitrary(Gen.resultOf(VersionResponse.tupled))
 
-  val VersionResponseEncoder: VPackEncoder[VersionResponse] = VPackEncoder.gen
-  val VersionResponseDecoder: VPackDecoder[VersionResponse] = VPackDecoder.gen
+  val VersionResponseEncoder: VPackEncoder[VersionResponse] = VPackEncoder.derived
+  val VersionResponseDecoder: VPackDecoder[VersionResponse] = VPackDecoder.derived
 
   case class TestDefault
   (
@@ -66,7 +66,7 @@ object VPackDerivedSpec {
     i: Int = 10
   )
 
-  val TestDefaultEncoder: VPackEncoder[TestDefault] = VPackEncoder.gen
-  val TestDefaultDecoder: VPackDecoder[TestDefault] = VPackDecoder.gen
+  val TestDefaultEncoder: VPackEncoder[TestDefault] = VPackEncoder.derived
+  val TestDefaultDecoder: VPackDecoder[TestDefault] = VPackDecoder.derived
 }
 

@@ -35,5 +35,5 @@ object Index {
     override val values = findValues
   }
 
-  implicit val decoder: VPackDecoder[Index] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[Index] = VPackDecoder.derived
 }

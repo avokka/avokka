@@ -7,7 +7,7 @@ import scodec.interop.cats._
 import scodec.bits.BitVector
 import scodec.{Attempt, DecodeResult, Decoder}
 
-package object velocypack extends ShowInstances {
+package object velocypack extends ShowInstances with VPackInstances {
 
   /** return type of decoding a VPack to a T */
   type VPackResult[T] = Either[VPackError, T]
@@ -61,7 +61,7 @@ package object velocypack extends ShowInstances {
       codecs.vpackDecoder
         .collect[Vector, VPack](bits, None)
         .toEither
-        .leftMap(VPackError.Codec.apply)
+        .leftMap(VPackError.Codec.apply(_))
         .flatMap(_.traverse(_.traverse(decoder.decode)))
     }
   }

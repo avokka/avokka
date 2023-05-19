@@ -140,8 +140,8 @@ class ArangoCountriesSpec
   }
 
 
-  override def afterAll(): Unit = {
-    // arango.closeClient()
+  override def afterAll(): Unit = withArango { (arango,_,_) =>
+    arango.closeClient()
     TestKit.shutdownActorSystem(system)
   }
 }

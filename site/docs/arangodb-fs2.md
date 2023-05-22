@@ -23,9 +23,10 @@ libraryDependencies += "com.bicou" %% "avokka-arangodb-fs2" % "@VERSION@"
 ```scala mdoc:invisible
 import scala.concurrent._
 import cats.effect._
+import cats.effect.unsafe.implicits.global
 
-implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.Implicits.global)
-implicit val timer: Timer[IO] = IO.timer(ExecutionContext.Implicits.global)
+// implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.Implicits.global)
+// implicit val timer: Timer[IO] = IO.timer(ExecutionContext.Implicits.global)
 ```
 
 Let's use cats effect `IO` and assume we have a `ContextShift[_]` and a `Timer[_]` in implicit scope (maybe from `IOApp`)
@@ -63,7 +64,7 @@ Then we build a `Resource` to connect to ArangoDB
 ```scala mdoc:height=5
 import avokka.arangodb.fs2._
 
-val arango = Arango(configuration)
+val arango = Arango[IO](configuration)
 ```
 
 We `.use` the resource to obtain an instance of [`ArangoClient[IO]`](/avokka/api/avokka/arangodb/protocol/ArangoClient.html)

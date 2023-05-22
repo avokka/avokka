@@ -8,7 +8,7 @@ import avokka.velocypack._
 import cats.effect._
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import pureconfig.module.catseffect2.syntax._
+import pureconfig.module.catseffect.syntax._
 
 object connect extends IOApp {
 
@@ -22,8 +22,8 @@ object connect extends IOApp {
   implicit val countryDecoder: VPackDecoder[Country] = VPackDecoder.derived
 
   override def run(args: List[String]): IO[ExitCode] = Slf4jLogger.create[IO].flatMap { implicit logger => for {
-    config <- Blocker[IO].use(ArangoConfiguration.at().loadF[IO, ArangoConfiguration])
-    arango = Arango(config)
+    config <- ArangoConfiguration.at().loadF[IO, ArangoConfiguration]()
+    arango = Arango[IO](config)
     _ <- arango.use { client =>
       val cName = CollectionName("countries")
       for {

@@ -64,7 +64,7 @@ import avokka.velocypack._
 
 case class Country(_key: DocumentKey, name: String)
 object Country {
-  implicit val decoder: VPackDecoder[Country] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[Country] = VPackDecoder.derived
 }
 ```
 

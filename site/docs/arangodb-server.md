@@ -10,12 +10,13 @@ import cats.effect._
 import org.typelevel.log4cats._
 import avokka.arangodb.ArangoConfiguration
 import avokka.arangodb.fs2._
+import cats.effect.unsafe.implicits.global
 
-implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.Implicits.global)
-implicit val timer: Timer[IO] = IO.timer(ExecutionContext.Implicits.global)
+// implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.Implicits.global)
+// implicit val timer: Timer[IO] = IO.timer(ExecutionContext.Implicits.global)
 implicit val logger: Logger[IO] = noop.NoOpLogger[IO]
 
-val (arango, close) = Arango(ArangoConfiguration.load()).allocated.unsafeRunSync()
+val (arango, close) = Arango[IO](ArangoConfiguration.load()).allocated.unsafeRunSync()
 ```
 
 # Server API

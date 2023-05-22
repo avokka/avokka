@@ -9,7 +9,7 @@ import cats.effect._
 import cats.syntax.flatMap._
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import pureconfig.module.catseffect2.syntax._
+import pureconfig.module.catseffect.syntax._
 
 object scratch extends IOApp {
 
@@ -28,8 +28,8 @@ object scratch extends IOApp {
   // implicit val logger = Slf4jLogger.create[IO]
   override def run(args: List[String]): IO[ExitCode] = Slf4jLogger.create[IO].flatMap { implicit logger =>
     for {
-      config <- Blocker[IO].use(ArangoConfiguration.at().loadF[IO, ArangoConfiguration])
-      arango = Arango(config)
+      config <- ArangoConfiguration.at().loadF[IO, ArangoConfiguration]()
+      arango = Arango[IO](config)
       _ <- arango.use { client =>
         val countries = client.db.collection(Country.collectionName)
         for {

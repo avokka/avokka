@@ -108,7 +108,7 @@ lazy val arangodb = (project in file("arangodb"))
     description := "ArangoDB core",
     libraryDependencies ++= Seq(
       collectionCompat,
-      log4cats,
+      log4cats_3,
     ) ++
       (CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, v)) if v <= 12 =>
@@ -188,34 +188,6 @@ lazy val arangodbFs2 = (project in file("arangodb-fs2"))
   .dependsOn(arangodb, test % "test->test", velocypackCirce % Test)
   .settings(
     name := "avokka-arangodb-fs2",
-    description := "ArangoDB client (fs2)",
-    libraryDependencies ++= Seq(
-      collectionCompat,
-      scodecStream,
-      catsEffect,
-      fs2,
-      fs2IO,
-    ) ++ Seq(
-      log4catsSlf,
-      logback,
-      scalaTest,
-      scalaTestPlus,
-      scalaTestCatsEffect,
-      circeLit,
-      jawn,
-      semver
-    ).map(_ % Test) ++ (if (scalaVersion.value.startsWith("3")) Seq(
-    ) else Seq(
-      catsRetry,
-      compilerPlugin(kindProjector),
-      compilerPlugin(betterMonadicFor),
-    )),
-  )
-
-lazy val arangodbFs2Ce3 = (project in file("arangodb-fs2-ce3"))
-  .dependsOn(arangodb, test % "test->test", velocypackCirce % Test)
-  .settings(
-    name := "avokka-arangodb-fs2-ce3",
     description := "ArangoDB client (fs2,ce3)",
     libraryDependencies ++= Seq(
       collectionCompat,
@@ -266,10 +238,10 @@ lazy val site = (project in file("site"))
   .dependsOn(arangodbAkka, arangodbFs2)
   .settings(
     libraryDependencies ++= Seq(
-      log4catsNoop,
-      log4catsSlf,
+      log4catsNoop_3,
+      log4catsSlf_3,
       logback,
-      pureconfigF,
+      pureconfigF_3,
     ) ++ (if (scalaVersion.value.startsWith("3")) Seq(
     ) else Seq(
       compilerPlugin(kindProjector),
@@ -308,7 +280,7 @@ lazy val site = (project in file("site"))
   ).enablePlugins(MicrositesPlugin, ScalaUnidocPlugin)
 
 lazy val avokka = (project in file("."))
-  .aggregate(velocypack, velocypackEnumeratum, velocypackCirce, velocystream, arangodb, arangodbAkka, arangodbFs2, arangodbFs2Ce3)
+  .aggregate(velocypack, velocypackEnumeratum, velocypackCirce, velocystream, arangodb, arangodbAkka, arangodbFs2)
   .settings(
     publishArtifact := false,
     publish / skip := true

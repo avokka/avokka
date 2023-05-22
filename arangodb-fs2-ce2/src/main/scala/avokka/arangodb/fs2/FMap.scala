@@ -1,6 +1,7 @@
 package avokka.arangodb.fs2
 
-import cats.effect._
+import cats.effect.Sync
+import cats.effect.concurrent.Ref
 import cats.syntax.functor._
 
 import scala.collection.immutable.TreeMap
@@ -12,7 +13,7 @@ trait FMap[F[_], K, V] {
 
 object FMap {
 
-  def apply[F[_]: Concurrent, K: Ordering, V]: F[FMap[F, K, V]] =
+  def apply[F[_]: Sync, K: Ordering, V]: F[FMap[F, K, V]] =
     for {
       mm <- Ref.of[F, Map[K, V]](TreeMap.empty[K, V])
     } yield new FMap[F, K, V] {

@@ -105,7 +105,6 @@ class ArangoCollectionSpec extends ArangoIOBase {
 
   it should "support schema" in { arango =>
     withArangoVersion("3.7.1") {
-
       val tempName = CollectionName("temp")
       val temp = arango.db.collection(tempName)
 

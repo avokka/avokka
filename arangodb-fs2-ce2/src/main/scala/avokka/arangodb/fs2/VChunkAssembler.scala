@@ -3,7 +3,8 @@ package fs2
 
 import avokka.velocystream._
 import cats.data.{Chain, OptionT}
-import cats.effect._
+import cats.effect.Sync
+import cats.effect.concurrent.Ref
 import cats.syntax.foldable._
 import cats.syntax.functor._
 import scodec.interop.cats.ByteVectorMonoidInstance
@@ -22,7 +23,7 @@ trait VChunkAssembler[F[_]] {
 }
 
 object VChunkAssembler {
-  def apply[F[_]: Concurrent]: F[VChunkAssembler[F]] =
+  def apply[F[_]](implicit F: Sync[F]): F[VChunkAssembler[F]] =
     for {
       // history of incomplete chunks received
       stack <- Ref.of(Chain.empty[VStreamChunk])

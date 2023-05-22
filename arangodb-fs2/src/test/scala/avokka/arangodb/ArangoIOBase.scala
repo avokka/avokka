@@ -3,7 +3,6 @@ package avokka.arangodb
 import avokka.arangodb.fs2.*
 import avokka.test.ArangodbContainer
 import cats.effect.*
-import cats.effect.concurrent.Deferred
 import cats.effect.testing.scalatest.*
 import com.dimafeng.testcontainers.{ForAllTestContainer, GenericContainer}
 import com.dimafeng.testcontainers.scalatest.TestContainerForAll
@@ -23,17 +22,19 @@ abstract class ArangoIOBase extends FixtureAsyncFlatSpec
   implicit val unsafeLogger: Logger[IO] = Slf4jLogger.getLogger[IO]
 
   override val containerDef: GenericContainer.Def[ArangodbContainer] = ArangodbContainer.Def()
-  /*
-  def withArango[A](runTest: Arango[IO] => A): A = withContainers[A] { container =>
-    runTest()
-  }
-*/
+
   override val resource = for {
     container <- Resource.eval(IO(withContainers(identity(_))))
     arango <- Arango[IO](container.configuration)
   } yield arango
-  //  withContainers(container => Arango[IO](container.configuration))
-//  protected val containerVersion = SemVer.parseUnsafe(container.version)
+
+  // protected val containerVersion = SemVer.parseUnsafe(container.version)
+
+  /*
+  protected def assumeArangoVersion(version: String) = {
+    assume(containerVersion >= SemVer.parseUnsafe(version))
+  }
+   */
 
   protected def withArangoVersion(version: String)(assertion: => IO[Assertion]) = withContainers { container =>
     val containerVersion = SemVer.parseUnsafe(container.version)

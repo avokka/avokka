@@ -1,8 +1,6 @@
 package avokka.arangodb.fs2
 
 import avokka.velocystream._
-import cats.effect.std.Queue
-import cats.effect.syntax.spawn._
 import cats.effect.Concurrent
 import cats.effect.syntax.concurrent._
 import cats.syntax.apply._
@@ -10,8 +8,8 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import cats.syntax.foldable._
 import cats.syntax.show._
-import fs2.concurrent.SignallingRef
-import fs2.io.net.Socket
+import fs2.concurrent.{Queue, SignallingRef}
+import fs2.io.tcp.Socket
 import fs2.{Chunk, Pipe, Stream}
 import org.typelevel.log4cats.Logger
 import scodec.stream.{StreamDecoder, StreamEncoder}
@@ -23,7 +21,7 @@ trait VChunkSocket[F[_]] {
 
 object VChunkSocket {
 
-  val handshake: Chunk[Byte] = Chunk.array("VST/1.1\r\n\r\n".getBytes)
+  val handshake: Chunk[Byte] = Chunk.bytes("VST/1.1\r\n\r\n".getBytes)
 
   val requestsQueueSize: Int = 128
 
@@ -31,6 +29,7 @@ object VChunkSocket {
       config: VStreamConfiguration,
       socket: Socket[F],
       stateSignal: SignallingRef[F, ConnectionState],
+      closeSignal: SignallingRef[F, Boolean],
       in: Pipe[F, VStreamMessage, Unit],
     )(implicit C: Concurrent[F], L: Logger[F]): F[VChunkSocket[F]] = {
 
@@ -42,19 +41,19 @@ object VChunkSocket {
       val streamDecoder: Pipe[F, Byte, VStreamChunk] = StreamDecoder.many(VStreamChunk.codec).toPipeByte
       val streamEncoder: Pipe[F, VStreamChunk, Byte] = StreamEncoder.many(VStreamChunk.codec).toPipeByte
 
-      val outgoing: Stream[F, Unit] = Stream.fromQueueUnterminated(chunks)
+      val outgoing: Stream[F, Unit] = chunks.dequeue
         .evalMapChunk { chunk =>
           // take a chunk of length and re-enqueue the remainder
           val (head, remainder) = chunk.split(config.chunkLength)
-          remainder.traverse_(chunks.offer).as(head)
+          remainder.traverse_(chunks.enqueue1).as(head)
         }
         .evalTap(msg => L.trace(show"${Console.BLUE}SEND${Console.RESET} $msg"))
         .through(streamEncoder)
         .cons(handshake)
-        .through(socket.writes)
+        .through(socket.writes())
 
       val incoming: Stream[F, Unit] = socket
-        .reads //(config.readBufferSize)
+        .reads(config.readBufferSize)
         .through(streamDecoder)
         .evalTap(msg => L.trace(show"${Console.BLUE_B}${Console.WHITE}RECV${Console.RESET} $msg"))
         .evalMap(ch => assembler.push(ch).value).unNone
@@ -67,13 +66,21 @@ object VChunkSocket {
         .compile
         .drain
 
+      val close: F[Unit] = closeSignal.discrete
+        .evalMap(if (_) socket.close else C.unit)
+        .compile
+        .drain
+
       new VChunkSocket[F] {
         override def send(message: VStreamMessage): F[Unit] = {
-          chunks.offer(message.firstChunk(config.chunkLength))
+          chunks.enqueue1(message.firstChunk(config.chunkLength))
         }
 
         override val pump: F[Unit] =
-          stateSignal.set(ConnectionState.Connected) *> data
+          for {
+            _ <- stateSignal.set(ConnectionState.Connected)
+            _ <- data.race(close)
+          } yield ()
       }
     }
   }

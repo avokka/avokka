@@ -18,7 +18,7 @@ object Dependencies {
   /* tests */
   val scalaTest = "org.scalatest" %% "scalatest" % "3.2.16"
   val scalaTestPlus = "org.scalatestplus" %% "scalacheck-1-17" % "3.2.16.0"
-  val scalaTestCatsEffect = "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.4"
+  // val scalaTestCatsEffect = "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.4"
   val scalaTestCatsEffect_3 = "org.typelevel" %% "cats-effect-testing-scalatest" % "1.5.0"
   val testContainers = "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.40.15"
 
@@ -28,11 +28,11 @@ object Dependencies {
 
   /* cats */
   val cats = "org.typelevel" %% "cats-core" % "2.9.0"
-  val catsEffect = "org.typelevel" %% "cats-effect" % "2.5.5"
-  val catsRetry = "com.github.cb372" %% "cats-retry" % "2.1.1"
-  val log4cats = "org.typelevel" %% "log4cats-core"    % "1.3.1"
-  val log4catsSlf = "org.typelevel" %% "log4cats-slf4j" % "1.3.1"
-  val log4catsNoop = "org.typelevel" %% "log4cats-noop" % "1.3.1"
+  // val catsEffect = "org.typelevel" %% "cats-effect" % "2.5.5"
+  // val catsRetry = "com.github.cb372" %% "cats-retry" % "2.1.1"
+  // val log4cats = "org.typelevel" %% "log4cats-core"    % "1.3.1"
+  // val log4catsSlf = "org.typelevel" %% "log4cats-slf4j" % "1.3.1"
+  // val log4catsNoop = "org.typelevel" %% "log4cats-noop" % "1.3.1"
   // ce3
   val catsEffect_3 = "org.typelevel" %% "cats-effect" % "3.5.0"
   val catsRetry_3 = "com.github.cb372" %% "cats-retry" % "3.1.0"
@@ -41,8 +41,8 @@ object Dependencies {
   val log4catsNoop_3 = "org.typelevel" %% "log4cats-noop" % "2.6.0"
 
   /* fs2 */
-  val fs2 = "co.fs2" %% "fs2-core" % "2.5.11"
-  val fs2IO = "co.fs2" %% "fs2-io" % "2.5.11"
+  // val fs2 = "co.fs2" %% "fs2-core" % "2.5.11"
+  // val fs2IO = "co.fs2" %% "fs2-io" % "2.5.11"
   // ce3
   val fs2_3 = "co.fs2" %% "fs2-core" % "3.7.0"
   val fs2IO_3 = "co.fs2" %% "fs2-io" % "3.7.0"

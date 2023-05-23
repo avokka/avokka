@@ -6,7 +6,7 @@ import shapeless.{HNil, ::}
 
 object ProtocolCodec {
   lazy val requestRequestEncoder: VPackEncoder[ArangoRequest.Request] = VPackGeneric[ArangoRequest.Request].cmap { r =>
-    r.version :: r.`type` :: r.database :: r.requestType :: r.request :: r.parameters :: r.meta :: shapeless.HNil
+    r.version :: r.`type` :: r.database :: r.requestType :: r.request :: r.parameters :: r.meta :: HNil
   }
 
   lazy val requestAuthenticationEncoder: VPackEncoder[ArangoRequest.Authentication] = VPackGeneric[ArangoRequest.Authentication].encoder

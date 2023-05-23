@@ -1,13 +1,13 @@
 package avokka.velocypack
 
-import magnolia._
+import magnolia1._
 import cats.syntax.either._
 
 trait VPackDecoderDerivation {
 
   type Typeclass[T] = VPackDecoder[T]
 
-  def combine[T](ctx: CaseClass[VPackDecoder, T]): VPackDecoder[T] = new VPackDecoder[T] {
+  def join[T](ctx: CaseClass[VPackDecoder, T]): VPackDecoder[T] = new VPackDecoder[T] {
     override def decode(v: VPack): VPackResult[T] = v match {
       case VObject(values) => ctx.constructMonadic { p =>
         values.get(p.label) match {
@@ -19,12 +19,13 @@ trait VPackDecoderDerivation {
     }
   }
 
-  /*
-  def dispatch[T](ctx: SealedTrait[VPackDecoder, T]): VPackDecoder[T] =
-    new VPackDecoder[T] {
-      override def decode(v: VPack): VPackResult[T] = ctx.dispatch(v) { sub =>
-        sub.typeclass.decode(sub.cast(v))
-      }
+  def split[T](ctx: SealedTrait[VPackDecoder, T]): VPackDecoder[T] = new VPackDecoder[T] {
+    override def decode(v: VPack): VPackResult[T] = {
+      val sub = ctx.subtypes.head
+      sub.typeclass.decode(v)
     }
-*/
+  }
+
+  implicit def derived[T]: VPackDecoder[T] = macro Magnolia.gen[T]
+
 }

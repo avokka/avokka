@@ -3,8 +3,8 @@ package avokka.velocypack
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import auto.encoder._
-import auto.decoder._
+import VPackEncoder.derived
+import VPackDecoder.derived
 
 class VPackAutoDerivedSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPackSpecTrait {
   import VPackAutoDerivedSpec._

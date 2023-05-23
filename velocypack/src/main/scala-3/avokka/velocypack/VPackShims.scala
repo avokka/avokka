@@ -1,5 +1,5 @@
 package avokka.velocypack
 
-trait VPackInstances {
+trait VPackShims {
 
 }

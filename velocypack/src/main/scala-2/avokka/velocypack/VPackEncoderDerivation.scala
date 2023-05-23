@@ -1,19 +1,21 @@
 package avokka.velocypack
 
-import magnolia._
+import magnolia1._
 
 trait VPackEncoderDerivation {
   type Typeclass[T] = VPackEncoder[T]
 
-  def combine[T](ctx: CaseClass[VPackEncoder, T]): VPackEncoder[T] = new VPackEncoder[T] {
-    override def encode(value: T): VPack = VObject(ctx.parameters.map { p =>
-      p.label -> p.typeclass.encode(p.dereference(value))
+  def join[T](ctx: CaseClass[VPackEncoder, T]): VPackEncoder[T] = new VPackEncoder[T] {
+    override def encode(t: T): VPack = VObject(ctx.parameters.map { p =>
+      p.label -> p.typeclass.encode(p.dereference(t))
     }.toMap)
   }
 
-  def dispatch[T](ctx: SealedTrait[VPackEncoder, T]): VPackEncoder[T] = new VPackEncoder[T] {
-    override def encode(value: T): VPack = ctx.dispatch(value) { sub =>
-      sub.typeclass.encode(sub.cast(value))
+  def split[T](ctx: SealedTrait[VPackEncoder, T]): VPackEncoder[T] = new VPackEncoder[T] {
+    override def encode(t: T): VPack = ctx.split(t) { sub =>
+      sub.typeclass.encode(sub.cast(t))
     }
   }
+
+  implicit def derived[T]: VPackEncoder[T] = macro Magnolia.gen[T]
 }

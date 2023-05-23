@@ -3,7 +3,7 @@ package avokka.velocypack
 import scodec.bits.BitVector
 import scodec.{Attempt, DecodeResult, Decoder}
 
-trait VPackInstances {
+trait VPackShims {
 
   type Factory[-A, +C] = _root_.scala.collection.Factory[A, C]
 

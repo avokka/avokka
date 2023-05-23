@@ -12,7 +12,7 @@ object Dependencies {
   val newtype = "io.estatico" %% "newtype" % "0.4.4"
   val shapeless = "com.chuusai" %% "shapeless" % "2.3.10"
   val shapeless3 = "org.typelevel" % "shapeless3-deriving_3" % "3.3.0"
-  val magnolia = "com.propensive" %% "magnolia" % "0.17.0"
+  val magnolia = "com.softwaremill.magnolia1_2" %% "magnolia" % "1.1.3"
   val magnolia3 = "com.softwaremill.magnolia1_3" %% "magnolia" % "1.2.5"
 
   /* tests */

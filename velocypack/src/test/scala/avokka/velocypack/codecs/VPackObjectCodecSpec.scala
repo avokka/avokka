@@ -1,14 +1,16 @@
 package avokka.velocypack
 package codecs
 
+import com.arangodb.velocypack.{VPackBuilder, ValueType}
 import org.scalatest.flatspec.AnyFlatSpec
-import scodec.bits._
+import scodec.bits.*
 
 class VPackObjectCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
 
   "object codec" should "conform specs" in {
 
-    assertEncodePack(vpackCodec, VObject(Map("z" -> VSmallint(1), "a" -> VSmallint(2))), """{"z":1,"a":2}""")
+    val objectPacked = VPackBuilder().add(ValueType.OBJECT).add("z", 1.toByte).add("a", 2.toByte).close().slice()
+    assertEncodePack(vpackCodec, VObject(Map("z" -> VSmallint(1), "a" -> VSmallint(2))), objectPacked)
 
     assertCodec(VPackObjectCodec.codecCompact, VObject.empty, hex"0a")
     assertCodec(VPackObjectCodec.codecCompact,

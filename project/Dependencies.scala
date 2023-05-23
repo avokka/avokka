@@ -76,6 +76,6 @@ object Dependencies {
   val semver = "io.kevinlee" %% "just-semver" % "0.6.0"
 
   /* official */
-  val arango = "com.arangodb" % "arangodb-java-driver" % "6.19.0"
+  val arango = "com.arangodb" % "velocypack" % "3.0.0"
 
 }

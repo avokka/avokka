@@ -15,8 +15,9 @@ class ToString {
 
   @Benchmark
   def arango(): Unit = {
-    val builder = new com.arangodb.velocypack.VPack.Builder().build()
-    builder.serialize(randomString())
+    val builder = new com.arangodb.velocypack.VPackBuilder()
+    builder.add(randomString())
+    builder.slice()
     ()
   }
 

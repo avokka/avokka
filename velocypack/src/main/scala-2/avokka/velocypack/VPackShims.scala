@@ -1,7 +1,7 @@
 package avokka.velocypack
 
 import scodec.bits.BitVector
-import scodec.{Attempt, DecodeResult, Decoder}
+import scodec.Decoder
 
 trait VPackShims {
 

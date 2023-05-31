@@ -2,10 +2,10 @@
 // addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.4.1")
 
 // publishing
-addSbtPlugin("com.github.sbt"   % "sbt-ci-release"  % "1.5.11")
+addSbtPlugin("com.github.sbt"   % "sbt-ci-release"  % "1.5.12")
 addSbtPlugin("com.dwijnand"     % "sbt-dynver"      % "4.1.1")
-addSbtPlugin("com.github.sbt"   % "sbt-pgp"         % "2.2.0")
-addSbtPlugin("org.xerial.sbt"   % "sbt-sonatype"    % "3.9.15")
+addSbtPlugin("com.github.sbt"   % "sbt-pgp"         % "2.2.1")
+addSbtPlugin("org.xerial.sbt"   % "sbt-sonatype"    % "3.9.21")
 addSbtPlugin("com.github.sbt"   % "sbt-git"         % "2.0.1")
 
 /*
@@ -15,10 +15,10 @@ addSbtPlugin("com.jsuereth"       % "sbt-pgp"     % "2.1.1")
 */
 
 // bench
-addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.3")
+addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.4.4")
 
 // docs
-addSbtPlugin("com.47deg"    % "sbt-microsites" % "1.4.0")
+addSbtPlugin("com.47deg"    % "sbt-microsites" % "1.4.3")
 addSbtPlugin("com.github.sbt" % "sbt-unidoc"     % "0.5.0")
 
 /*
@@ -33,7 +33,7 @@ addSbtPlugin("org.scalameta"          % "sbt-mdoc"                    % "2.2.17"
 addSbtPlugin("io.chrisdavenport" %% "sbt-make-pom" % "0.0.3")
 
 // coverage
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.9.2")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.9.3")
 
 libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.10"
 

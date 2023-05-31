@@ -36,7 +36,6 @@ lazy val velocypack = (project in file("velocypack"))
     name := "avokka-velocypack",
     description := "velocypack codec (scodec, shapeless, cats)",
     libraryDependencies ++= Seq(
-      collectionCompat,
       cats,
       scodecBits,
       scodecCats,

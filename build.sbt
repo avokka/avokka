@@ -2,7 +2,7 @@ import Dependencies._
 
 // val scala212Version = "2.12.15"
 val scala2Version = "2.13.10"
-val scala3Version = "3.2.2"
+val scala3Version = "3.3.0"
 
 ThisBuild / organization := "com.bicou"
 ThisBuild / crossScalaVersions := Seq(scala2Version, scala3Version)
@@ -24,8 +24,6 @@ ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) m
   )
   case _ => Seq.empty
 })
-
-// addCompilerPlugin("org.scalameta" % "semanticdb-scalac" % "4.6.0" cross CrossVersion.full)
 
 ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 ThisBuild / homepage := Some(url("https://github.com/avokka"))
@@ -82,7 +80,6 @@ lazy val velocypackCirce = (project in file("velocypack-circe"))
     ) ++ Seq(
       circeLit, jawn,
       scalaTest,
-//      scalaTestPlus,
       logback,
     ).map(_ % Test),
   )
@@ -93,8 +90,6 @@ lazy val velocystream = (project in file("velocystream"))
     name := "avokka-velocystream",
     description := "velocystream models",
     libraryDependencies ++= Seq(
-      collectionCompat
-    ) ++ Seq(
       scalaTest,
       logback,
     ).map(_ % Test),
@@ -107,7 +102,6 @@ lazy val arangodb = (project in file("arangodb"))
     name := "avokka-arangodb",
     description := "ArangoDB core",
     libraryDependencies ++= Seq(
-      collectionCompat,
       log4cats_3,
     ) ++
       (CrossVersion.partialVersion(scalaVersion.value) match {
@@ -161,10 +155,8 @@ lazy val arangodbAkka = (project in file("arangodb-akka"))
     name := "avokka-arangodb-akka",
     description := "ArangoDB client (akka)",
     libraryDependencies ++= Seq(
-      collectionCompat,
       akkaActor,
       akkaStream,
-      logging,
     ) ++ (if (scalaVersion.value.startsWith("3")) Seq(
     ) else Seq(
       compilerPlugin(kindProjector),
@@ -190,7 +182,6 @@ lazy val arangodbFs2 = (project in file("arangodb-fs2"))
     name := "avokka-arangodb-fs2",
     description := "ArangoDB client (fs2,ce3)",
     libraryDependencies ++= Seq(
-      collectionCompat,
       scodecStream_3,
       catsRetry_3,
       catsEffect_3,

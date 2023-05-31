@@ -8,7 +8,6 @@ import scodec.bits.{BitVector, ByteVector}
 
 import java.net.{URI, URL}
 import scala.annotation.implicitNotFound
-import scala.collection.compat._
 
 @implicitNotFound("Cannot find a velocypack encoder for ${T}")
 trait VPackEncoder[T] { self =>

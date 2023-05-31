@@ -3,7 +3,6 @@ import sbt._
 object Dependencies {
 
   /* scala */
-  val collectionCompat = "org.scala-lang.modules" %% "scala-collection-compat" % "2.10.0"
   val kindProjector = "org.typelevel" %% "kind-projector" % "0.13.2" cross CrossVersion.full
   val betterMonadicFor = "com.olegpy" %% "better-monadic-for" % "0.3.1"
 
@@ -18,13 +17,11 @@ object Dependencies {
   /* tests */
   val scalaTest = "org.scalatest" %% "scalatest" % "3.2.16"
   val scalaTestPlus = "org.scalatestplus" %% "scalacheck-1-17" % "3.2.16.0"
-  // val scalaTestCatsEffect = "com.codecommit" %% "cats-effect-testing-scalatest" % "0.5.4"
   val scalaTestCatsEffect_3 = "org.typelevel" %% "cats-effect-testing-scalatest" % "1.5.0"
   val testContainers = "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.40.15"
 
   /* logging */
-  val logback = "ch.qos.logback" % "logback-classic" % "1.2.12"
-  val logging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.4.7"
 
   /* cats */
   val cats = "org.typelevel" %% "cats-core" % "2.9.0"

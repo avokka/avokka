@@ -10,7 +10,6 @@ import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
 import VPackType.{ObjectEmptyType, ObjectType, ObjectCompactType}
 
 import scala.collection.SortedMap
-import scala.collection.compat._
 
 private[codecs] object VPackObjectCodec extends VPackCompoundCodec {
 

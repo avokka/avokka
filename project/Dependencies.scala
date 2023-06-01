@@ -8,7 +8,6 @@ object Dependencies {
 
   /* types */
   val enumeratum = "com.beachape" %% "enumeratum" % "1.7.2"
-  val newtype = "io.estatico" %% "newtype" % "0.4.4"
   val shapeless = "com.chuusai" %% "shapeless" % "2.3.10"
   val shapeless3 = "org.typelevel" % "shapeless3-deriving_3" % "3.3.0"
   val magnolia = "com.softwaremill.magnolia1_2" %% "magnolia" % "1.1.3"

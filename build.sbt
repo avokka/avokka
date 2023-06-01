@@ -15,11 +15,9 @@ ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) m
     "-Ykind-projector",
     "-Yretain-trees",
     // "-rewrite",
-    "-source:3.3-migration"
+    // "-source:3.3-migration"
   )
   case Some((2, 13)) => Seq(
-    "-Ymacro-annotations",
-  //  "-language:experimental.macros",
     "-Xsource:3"
   )
   case _ => Seq.empty
@@ -114,7 +112,6 @@ lazy val arangodb = (project in file("arangodb"))
       compilerPlugin(kindProjector),
       compilerPlugin(betterMonadicFor),
       pureconfig,
-        newtype,
         "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
       ))
       ++ Seq(

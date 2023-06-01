@@ -7,14 +7,14 @@
 </ul>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">arango</span><span class="o">.</span><span class="py">server</span><span class="o">.</span><span class="py">databases</span><span class="o">().</span><span class="py">unsafeRunSync</span><span class="o">()</span>
-<span class="c1">// res1: avokka.arangodb.protocol.ArangoResponse[Vector[DatabaseName]] = ArangoResponse(</span>
+<span class="c1">// res1: ArangoResponse[Vector[DatabaseName]] = ArangoResponse(</span>
 <span class="c1">//   header = Header(</span>
 <span class="c1">//     version = 1,</span>
 <span class="c1">//     type = ResponseFinal,</span>
 <span class="c1">//     responseCode = 200,</span>
-<span class="c1">//     meta = Map()</span>
+<span class="c1">//     meta = Map("X-Arango-Queue-Time-Seconds" -&gt; "0.000000")</span>
 <span class="c1">//   ),</span>
-<span class="c1">//   body = Vector("_system", "test")</span>
+<span class="c1">//   body = Vector(DatabaseName(repr = "_system"), DatabaseName(repr = "test"))</span>
 <span class="c1">// )</span>
 </code></pre></div></div>
 
@@ -23,12 +23,12 @@
 </ul>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">arango</span><span class="o">.</span><span class="py">database</span><span class="o">(</span><span class="nc">DatabaseName</span><span class="o">(</span><span class="s">"temp"</span><span class="o">)).</span><span class="py">create</span><span class="o">().</span><span class="py">unsafeRunSync</span><span class="o">()</span>
-<span class="c1">// res2: avokka.arangodb.protocol.ArangoResponse[Boolean] = ArangoResponse(</span>
+<span class="c1">// res2: ArangoResponse[Boolean] = ArangoResponse(</span>
 <span class="c1">//   header = Header(</span>
 <span class="c1">//     version = 1,</span>
 <span class="c1">//     type = ResponseFinal,</span>
 <span class="c1">//     responseCode = 201,</span>
-<span class="c1">//     meta = Map()</span>
+<span class="c1">//     meta = Map("X-Arango-Queue-Time-Seconds" -&gt; "0.000000")</span>
 <span class="c1">//   ),</span>
 <span class="c1">//   body = true</span>
 <span class="c1">// )</span>
@@ -39,12 +39,12 @@
 </ul>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">arango</span><span class="o">.</span><span class="py">database</span><span class="o">(</span><span class="nc">DatabaseName</span><span class="o">(</span><span class="s">"temp"</span><span class="o">)).</span><span class="py">drop</span><span class="o">().</span><span class="py">unsafeRunSync</span><span class="o">()</span>
-<span class="c1">// res3: avokka.arangodb.protocol.ArangoResponse[Boolean] = ArangoResponse(</span>
+<span class="c1">// res3: ArangoResponse[Boolean] = ArangoResponse(</span>
 <span class="c1">//   header = Header(</span>
 <span class="c1">//     version = 1,</span>
 <span class="c1">//     type = ResponseFinal,</span>
 <span class="c1">//     responseCode = 200,</span>
-<span class="c1">//     meta = Map()</span>
+<span class="c1">//     meta = Map("X-Arango-Queue-Time-Seconds" -&gt; "0.000000")</span>
 <span class="c1">//   ),</span>
 <span class="c1">//   body = true</span>
 <span class="c1">// )</span>
@@ -55,16 +55,16 @@
 </ul>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">arango</span><span class="o">.</span><span class="py">db</span><span class="o">.</span><span class="py">info</span><span class="o">().</span><span class="py">unsafeRunSync</span><span class="o">()</span>
-<span class="c1">// res4: avokka.arangodb.protocol.ArangoResponse[avokka.arangodb.models.DatabaseInfo] = ArangoResponse(</span>
+<span class="c1">// res4: ArangoResponse[DatabaseInfo] = ArangoResponse(</span>
 <span class="c1">//   header = Header(</span>
 <span class="c1">//     version = 1,</span>
 <span class="c1">//     type = ResponseFinal,</span>
 <span class="c1">//     responseCode = 200,</span>
-<span class="c1">//     meta = Map()</span>
+<span class="c1">//     meta = Map("X-Arango-Queue-Time-Seconds" -&gt; "0.000000")</span>
 <span class="c1">//   ),</span>
 <span class="c1">//   body = DatabaseInfo(</span>
-<span class="c1">//     name = "test",</span>
-<span class="c1">//     id = "107",</span>
+<span class="c1">//     name = DatabaseName(repr = "test"),</span>
+<span class="c1">//     id = "103",</span>
 <span class="c1">//     path = "none",</span>
 <span class="c1">//     isSystem = false</span>
 <span class="c1">//   )</span>

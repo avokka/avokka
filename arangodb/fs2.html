@@ -39,11 +39,11 @@
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">avokka.arangodb.fs2._</span>
 
-<span class="k">val</span> <span class="nv">arango</span> <span class="k">=</span> <span class="nc">Arango</span><span class="o">(</span><span class="n">configuration</span><span class="o">)</span>
-<span class="c1">// arango: Resource[[A]IO[A], Arango[[A]IO[A]]] = Bind(</span>
-<span class="c1">//   source = Bind(</span>
-<span class="c1">//     source = Allocate(</span>
-<span class="c1">//       resource = Map(</span>
+<span class="k">val</span> <span class="nv">arango</span> <span class="k">=</span> <span class="nc">Arango</span><span class="o">[</span><span class="kt">IO</span><span class="o">](</span><span class="n">configuration</span><span class="o">)</span>
+<span class="c1">// arango: Resource[[A &gt;: Nothing &lt;: Any] =&gt; IO[A], Arango[[A &gt;: Nothing &lt;: Any] =&gt; IO[A]]] = Bind(</span>
+<span class="c1">//   source = Eval(</span>
+<span class="c1">//     fa = Pure(value = SocketAddress(host = localhost, port = ( = 8530)))</span>
+<span class="c1">//   ),</span>
 <span class="c1">// ...</span>
 </code></pre></div></div>
 
@@ -52,17 +52,17 @@
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">arango</span><span class="o">.</span><span class="py">use</span> <span class="o">{</span> <span class="n">client</span> <span class="k">=&gt;</span>
   <span class="nv">client</span><span class="o">.</span><span class="py">server</span><span class="o">.</span><span class="py">version</span><span class="o">()</span>
 <span class="o">}.</span><span class="py">unsafeRunSync</span><span class="o">()</span>
-<span class="c1">// res0: avokka.arangodb.protocol.ArangoResponse[avokka.arangodb.models.Version] = ArangoResponse(</span>
+<span class="c1">// res0: ArangoResponse[Version] = ArangoResponse(</span>
 <span class="c1">//   header = Header(</span>
 <span class="c1">//     version = 1,</span>
 <span class="c1">//     type = ResponseFinal,</span>
 <span class="c1">//     responseCode = 200,</span>
-<span class="c1">//     meta = Map()</span>
+<span class="c1">//     meta = Map("X-Arango-Queue-Time-Seconds" -&gt; "0.000000")</span>
 <span class="c1">//   ),</span>
 <span class="c1">//   body = Version(</span>
 <span class="c1">//     server = "arango",</span>
 <span class="c1">//     license = "community",</span>
-<span class="c1">//     version = "3.7.9",</span>
+<span class="c1">//     version = "3.10.6",</span>
 <span class="c1">//     details = Map()</span>
 <span class="c1">//   )</span>
 <span class="c1">// )</span>
@@ -79,19 +79,14 @@
     <span class="n">cCount</span>  <span class="k">&lt;-</span> <span class="nv">client</span><span class="o">.</span><span class="py">db</span><span class="o">.</span><span class="py">collection</span><span class="o">(</span><span class="nc">CollectionName</span><span class="o">(</span><span class="s">"countries"</span><span class="o">)).</span><span class="py">documents</span><span class="o">.</span><span class="py">count</span><span class="o">()</span> 
   <span class="o">}</span> <span class="k">yield</span> <span class="nv">cCount</span><span class="o">.</span><span class="py">body</span><span class="o">.</span><span class="py">count</span> 
 <span class="o">}</span>
-<span class="c1">// r: IO[Long] = Async(</span>
-<span class="c1">//   k = cats.effect.internals.IOAsync$$$Lambda$13148/0x0000000103a3e440@36ead760,</span>
-<span class="c1">//   trampolineAfter = true,</span>
-<span class="c1">//   trace = StackTrace(</span>
-<span class="c1">//     stackTrace = List(</span>
-<span class="c1">//       cats.effect.internals.IOTracing$.buildFrame(IOTracing.scala:48),</span>
-<span class="c1">//       cats.effect.internals.IOTracing$.buildCachedFrame(IOTracing.scala:39),</span>
-<span class="c1">//       cats.effect.internals.IOTracing$.cached(IOTracing.scala:34),</span>
-<span class="c1">//       cats.effect.internals.IOAsync$.apply(IOAsync.scala:30),</span>
-<span class="c1">// ...</span>
+<span class="c1">// r: IO[Long] = FlatMap(</span>
+<span class="c1">//   ioe = Pure(value = SocketAddress(host = localhost, port = ( = 8530))),</span>
+<span class="c1">//   f = cats.effect.kernel.Resource$$Lambda$16605/0x0000000104244840@7905e1be,</span>
+<span class="c1">//   event = cats.effect.tracing.TracingEvent$StackTrace</span>
+<span class="c1">// )</span>
 
 <span class="nv">r</span><span class="o">.</span><span class="py">unsafeRunSync</span><span class="o">()</span>
-<span class="c1">// database '_system' is system = true</span>
+<span class="c1">// database 'DatabaseName(_system)' is system = true</span>
 <span class="c1">// res1: Long = 250L</span>
 </code></pre></div></div>
 
@@ -108,19 +103,19 @@
     <span class="o">.</span><span class="py">toVector</span>
 <span class="o">}.</span><span class="py">unsafeRunSync</span><span class="o">()</span>
 <span class="c1">// res2: Vector[String] = Vector(</span>
-<span class="c1">//   "Zimbabwe",</span>
-<span class="c1">//   "Zambia",</span>
-<span class="c1">//   "Yemen",</span>
-<span class="c1">//   "Wallis and Futuna",</span>
-<span class="c1">//   "Vietnam",</span>
-<span class="c1">//   "British Virgin Islands",</span>
-<span class="c1">//   "Vatican City",</span>
-<span class="c1">//   "Uzbekistan",</span>
-<span class="c1">//   "Uruguay",</span>
-<span class="c1">//   "United States Minor Outlying Islands",</span>
-<span class="c1">//   "Ukraine",</span>
-<span class="c1">//   "Tuvalu",</span>
-<span class="c1">//   "Trinidad and Tobago",</span>
+<span class="c1">//   "Anguilla",</span>
+<span class="c1">//   "Afghanistan",</span>
+<span class="c1">//   "Argentina",</span>
+<span class="c1">//   "Angola",</span>
+<span class="c1">//   "Armenia",</span>
+<span class="c1">//   "Aruba",</span>
+<span class="c1">//   "American Samoa",</span>
+<span class="c1">//   "Andorra",</span>
+<span class="c1">//   "United Arab Emirates",</span>
+<span class="c1">//   "Albania",</span>
+<span class="c1">//   "Åland Islands",</span>
+<span class="c1">//   "French Southern and Antarctic Lands",</span>
+<span class="c1">//   "Antarctica",</span>
 <span class="c1">// ...</span>
 </code></pre></div></div>
 

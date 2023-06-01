@@ -6,10 +6,10 @@
 <span class="k">import</span> <span class="nn">scodec.bits._</span>
 
 <span class="k">case</span> <span class="k">class</span> <span class="nc">Test</span><span class="o">(</span><span class="n">b</span><span class="k">:</span> <span class="kt">Boolean</span><span class="o">)</span>
-<span class="k">implicit</span> <span class="k">val</span> <span class="nv">testEncoder</span><span class="k">:</span> <span class="kt">VPackEncoder</span><span class="o">[</span><span class="kt">Test</span><span class="o">]</span> <span class="k">=</span> <span class="nv">VPackEncoder</span><span class="o">.</span><span class="py">gen</span>
-<span class="c1">// testEncoder: VPackEncoder[Test] = avokka.velocypack.VPackEncoderDerivation$$anon$1@111cba47</span>
-<span class="k">implicit</span> <span class="k">val</span> <span class="nv">testDecoder</span><span class="k">:</span> <span class="kt">VPackDecoder</span><span class="o">[</span><span class="kt">Test</span><span class="o">]</span> <span class="k">=</span> <span class="nv">VPackDecoder</span><span class="o">.</span><span class="py">gen</span>
-<span class="c1">// testDecoder: VPackDecoder[Test] = avokka.velocypack.VPackDecoderDerivation$$anon$1@7da39ebe</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">testEncoder</span><span class="k">:</span> <span class="kt">VPackEncoder</span><span class="o">[</span><span class="kt">Test</span><span class="o">]</span> <span class="k">=</span> <span class="nv">VPackEncoder</span><span class="o">.</span><span class="py">derived</span>
+<span class="c1">// testEncoder: VPackEncoder[Test] = avokka.velocypack.VPackEncoderDerivation$$anon$1@5e57f945</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">testDecoder</span><span class="k">:</span> <span class="kt">VPackDecoder</span><span class="o">[</span><span class="kt">Test</span><span class="o">]</span> <span class="k">=</span> <span class="nv">VPackDecoder</span><span class="o">.</span><span class="py">derived</span>
+<span class="c1">// testDecoder: VPackDecoder[Test] = avokka.velocypack.VPackDecoderDerivation$$Lambda$14954/0x0000000103dcb040@4219dba</span>
 </code></pre></div></div>
 
 <p>Encoding :</p>
@@ -20,37 +20,35 @@
 <span class="nv">t</span><span class="o">.</span><span class="py">toVPack</span>      
 <span class="c1">// res0: VPack = VObject(Map(b -&gt; VTrue))      </span>
 <span class="nv">t</span><span class="o">.</span><span class="py">toVPackBits</span>
-<span class="c1">// res1: VPackResult[BitVector] = Right(BitVector(56 bits, 0x0b070141621a03))</span>
+<span class="c1">// res1: Either[VPackError, BitVector] = Right(BitVector(56 bits, 0x0b070141621a03))</span>
 </code></pre></div></div>
 
 <p>Decoding :</p>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">hex</span><span class="s">"0b070141621903"</span><span class="o">.</span><span class="py">bits</span><span class="o">.</span><span class="py">asVPack</span><span class="o">[</span><span class="kt">Test</span><span class="o">]</span>
-<span class="c1">// res2: VPackResult[scodec.DecodeResult[Test]] = Right(DecodeResult(Test(false),BitVector(empty)))</span>
+<span class="c1">// res2: Either[VPackError, DecodeResult[Test]] = Right(DecodeResult(Test(false),BitVector(empty)))</span>
 <span class="n">hex</span><span class="s">"0a"</span><span class="o">.</span><span class="py">bits</span><span class="o">.</span><span class="py">asVPack</span><span class="o">[</span><span class="kt">Test</span><span class="o">]</span>                                                                                         
-<span class="c1">// res3: VPackResult[scodec.DecodeResult[Test]] = Left(avokka.velocypack.VPackError$ObjectFieldAbsent: object field absent b)</span>
+<span class="c1">// res3: Either[VPackError, DecodeResult[Test]] = Left(avokka.velocypack.VPackError$ObjectFieldAbsent: object field absent b)</span>
 </code></pre></div></div>
 
 <p>Using defaults :</p>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">case</span> <span class="k">class</span> <span class="nc">TestTrue</span><span class="o">(</span><span class="n">b</span><span class="k">:</span> <span class="kt">Boolean</span> <span class="o">=</span> <span class="kc">true</span><span class="o">)</span>                
 
-<span class="k">implicit</span> <span class="k">val</span> <span class="nv">testTrueDecoder</span><span class="k">:</span> <span class="kt">VPackDecoder</span><span class="o">[</span><span class="kt">TestTrue</span><span class="o">]</span> <span class="k">=</span> <span class="nv">VPackDecoder</span><span class="o">.</span><span class="py">gen</span>
-<span class="c1">// testTrueDecoder: VPackDecoder[TestTrue] = avokka.velocypack.VPackDecoderDerivation$$anon$1@607a2fd2</span>
+<span class="k">implicit</span> <span class="k">val</span> <span class="nv">testTrueDecoder</span><span class="k">:</span> <span class="kt">VPackDecoder</span><span class="o">[</span><span class="kt">TestTrue</span><span class="o">]</span> <span class="k">=</span> <span class="nv">VPackDecoder</span><span class="o">.</span><span class="py">derived</span>
+<span class="c1">// testTrueDecoder: VPackDecoder[TestTrue] = avokka.velocypack.VPackDecoderDerivation$$Lambda$14954/0x0000000103dcb040@42c71b17</span>
 
 <span class="n">hex</span><span class="s">"0b070141621903"</span><span class="o">.</span><span class="py">bits</span><span class="o">.</span><span class="py">asVPack</span><span class="o">[</span><span class="kt">TestTrue</span><span class="o">]</span>            
-<span class="c1">// res4: VPackResult[scodec.DecodeResult[TestTrue]] = Right(DecodeResult(TestTrue(false),BitVector(empty)))            </span>
+<span class="c1">// res4: Either[VPackError, DecodeResult[TestTrue]] = Right(DecodeResult(TestTrue(false),BitVector(empty)))            </span>
 <span class="n">hex</span><span class="s">"0a"</span><span class="o">.</span><span class="py">bits</span><span class="o">.</span><span class="py">asVPack</span><span class="o">[</span><span class="kt">TestTrue</span><span class="o">]</span>                                                                                                         
-<span class="c1">// res5: VPackResult[scodec.DecodeResult[TestTrue]] = Right(DecodeResult(TestTrue(true),BitVector(empty)))</span>
+<span class="c1">// res5: Either[VPackError, DecodeResult[TestTrue]] = Right(DecodeResult(TestTrue(true),BitVector(empty)))</span>
 </code></pre></div></div>
 
 <p>Automatic encoder and decoder derivation :</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">avokka.velocypack.auto.encoder._</span>
-<span class="k">import</span> <span class="nn">avokka.velocypack.auto.decoder._</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">case</span> <span class="k">class</span> <span class="nc">Element</span><span class="o">(</span><span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">value</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span> <span class="n">derives</span> <span class="nc">VPackEncoder</span>
 
-<span class="k">case</span> <span class="k">class</span> <span class="nc">Element</span><span class="o">(</span><span class="n">name</span><span class="k">:</span> <span class="kt">String</span><span class="o">,</span> <span class="n">value</span><span class="k">:</span> <span class="kt">Int</span><span class="o">)</span>
-<span class="k">case</span> <span class="k">class</span> <span class="nc">Group</span><span class="o">(</span><span class="n">elements</span><span class="k">:</span> <span class="kt">Vector</span><span class="o">[</span><span class="kt">Element</span><span class="o">])</span>
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Group</span><span class="o">(</span><span class="n">elements</span><span class="k">:</span> <span class="kt">Vector</span><span class="o">[</span><span class="kt">Element</span><span class="o">])</span> <span class="n">derives</span> <span class="nc">VPackEncoder</span>
 
 <span class="nc">Group</span><span class="o">(</span><span class="nc">Vector</span><span class="o">(</span><span class="nc">Element</span><span class="o">(</span><span class="s">"a"</span><span class="o">,</span> <span class="mi">1</span><span class="o">),</span> <span class="nc">Element</span><span class="o">(</span><span class="s">"b"</span><span class="o">,</span> <span class="mi">2</span><span class="o">))).</span><span class="py">toVPack</span>
 <span class="c1">// res6: VPack = VObject(Map(elements -&gt; VArray(Vector(VObject(Map(name -&gt; VString(a), value -&gt; VSmallint(1))), VObject(Map(name -&gt; VString(b), value -&gt; VSmallint(2)))))))</span>

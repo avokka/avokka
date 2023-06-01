@@ -7,17 +7,17 @@
 </ul>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">arango</span><span class="o">.</span><span class="py">server</span><span class="o">.</span><span class="py">version</span><span class="o">().</span><span class="py">unsafeRunSync</span><span class="o">()</span>
-<span class="c1">// res0: avokka.arangodb.protocol.ArangoResponse[avokka.arangodb.models.Version] = ArangoResponse(</span>
+<span class="c1">// res0: ArangoResponse[Version] = ArangoResponse(</span>
 <span class="c1">//   header = Header(</span>
 <span class="c1">//     version = 1,</span>
 <span class="c1">//     type = ResponseFinal,</span>
 <span class="c1">//     responseCode = 200,</span>
-<span class="c1">//     meta = Map()</span>
+<span class="c1">//     meta = Map("X-Arango-Queue-Time-Seconds" -&gt; "0.000000")</span>
 <span class="c1">//   ),</span>
 <span class="c1">//   body = Version(</span>
 <span class="c1">//     server = "arango",</span>
 <span class="c1">//     license = "community",</span>
-<span class="c1">//     version = "3.7.9",</span>
+<span class="c1">//     version = "3.10.6",</span>
 <span class="c1">//     details = Map()</span>
 <span class="c1">//   )</span>
 <span class="c1">// )</span>
@@ -28,12 +28,12 @@
 </ul>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">arango</span><span class="o">.</span><span class="py">server</span><span class="o">.</span><span class="py">engine</span><span class="o">().</span><span class="py">unsafeRunSync</span><span class="o">()</span>
-<span class="c1">// res1: avokka.arangodb.protocol.ArangoResponse[avokka.arangodb.models.Engine] = ArangoResponse(</span>
+<span class="c1">// res1: ArangoResponse[Engine] = ArangoResponse(</span>
 <span class="c1">//   header = Header(</span>
 <span class="c1">//     version = 1,</span>
 <span class="c1">//     type = ResponseFinal,</span>
 <span class="c1">//     responseCode = 200,</span>
-<span class="c1">//     meta = Map()</span>
+<span class="c1">//     meta = Map("X-Arango-Queue-Time-Seconds" -&gt; "0.000000")</span>
 <span class="c1">//   ),</span>
 <span class="c1">//   body = Engine(</span>
 <span class="c1">//     name = rocksdb,</span>

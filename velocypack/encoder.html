@@ -12,7 +12,7 @@
 <span class="nv">b</span><span class="o">.</span><span class="py">toVPack</span>
 <span class="c1">// res0: VPack = VTrue</span>
 <span class="nv">b</span><span class="o">.</span><span class="py">toVPackBits</span>
-<span class="c1">// res1: VPackResult[scodec.bits.BitVector] = Right(BitVector(8 bits, 0x1a))</span>
+<span class="c1">// res1: Either[VPackError, BitVector] = Right(BitVector(8 bits, 0x1a))</span>
 
 <span class="k">val</span> <span class="nv">a</span><span class="k">:</span> <span class="kt">Seq</span><span class="o">[</span><span class="kt">Int</span><span class="o">]</span> <span class="k">=</span> <span class="nc">List</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span><span class="mi">2</span><span class="o">)</span>
 <span class="c1">// a: Seq[Int] = List(1, 2)</span>
@@ -20,7 +20,7 @@
 <span class="nv">a</span><span class="o">.</span><span class="py">toVPack</span>
 <span class="c1">// res2: VPack = VArray(Vector(VSmallint(1), VSmallint(2)))</span>
 <span class="nv">a</span><span class="o">.</span><span class="py">toVPackBits</span>
-<span class="c1">// res3: VPackResult[scodec.bits.BitVector] = Right(BitVector(32 bits, 0x02043132))</span>
+<span class="c1">// res3: Either[VPackError, BitVector] = Right(BitVector(32 bits, 0x02043132))</span>
 </code></pre></div></div>
 </section></div></div></div></div><script src="/avokka/highlight/highlight.pack.js"></script><script>
 // For all code blocks, copy the language from the containing div

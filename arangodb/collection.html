@@ -7,17 +7,17 @@
 </ul>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">arango</span><span class="o">.</span><span class="py">db</span><span class="o">.</span><span class="py">collections</span><span class="o">().</span><span class="py">unsafeRunSync</span><span class="o">()</span>
-<span class="c1">// res1: avokka.arangodb.protocol.ArangoResponse[Vector[avokka.arangodb.models.CollectionInfo]] = ArangoResponse(</span>
+<span class="c1">// res1: ArangoResponse[Vector[CollectionInfo]] = ArangoResponse(</span>
 <span class="c1">//   header = Header(</span>
 <span class="c1">//     version = 1,</span>
 <span class="c1">//     type = ResponseFinal,</span>
 <span class="c1">//     responseCode = 200,</span>
-<span class="c1">//     meta = Map()</span>
+<span class="c1">//     meta = Map("X-Arango-Queue-Time-Seconds" -&gt; "0.000000")</span>
 <span class="c1">//   ),</span>
 <span class="c1">//   body = Vector(</span>
 <span class="c1">//     CollectionInfo(</span>
-<span class="c1">//       id = "136",</span>
-<span class="c1">//       name = "_fishbowl",</span>
+<span class="c1">//       id = "105",</span>
+<span class="c1">//       name = CollectionName(repr = "_graphs"),</span>
 <span class="c1">//       status = Loaded,</span>
 <span class="c1">//       type = Document,</span>
 <span class="c1">//       isSystem = true,</span>
@@ -29,20 +29,20 @@
 </ul>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">arango</span><span class="o">.</span><span class="py">db</span><span class="o">.</span><span class="py">collection</span><span class="o">(</span><span class="nc">CollectionName</span><span class="o">(</span><span class="s">"temp"</span><span class="o">)).</span><span class="py">create</span><span class="o">().</span><span class="py">unsafeRunSync</span><span class="o">()</span>
-<span class="c1">// res2: avokka.arangodb.protocol.ArangoResponse[avokka.arangodb.models.CollectionInfo] = ArangoResponse(</span>
+<span class="c1">// res2: ArangoResponse[CollectionInfo] = ArangoResponse(</span>
 <span class="c1">//   header = Header(</span>
 <span class="c1">//     version = 1,</span>
 <span class="c1">//     type = ResponseFinal,</span>
 <span class="c1">//     responseCode = 200,</span>
-<span class="c1">//     meta = Map()</span>
+<span class="c1">//     meta = Map("X-Arango-Queue-Time-Seconds" -&gt; "0.000000")</span>
 <span class="c1">//   ),</span>
 <span class="c1">//   body = CollectionInfo(</span>
-<span class="c1">//     id = "250",</span>
-<span class="c1">//     name = "temp",</span>
+<span class="c1">//     id = "228",</span>
+<span class="c1">//     name = CollectionName(repr = "temp"),</span>
 <span class="c1">//     status = Loaded,</span>
 <span class="c1">//     type = Document,</span>
 <span class="c1">//     isSystem = false,</span>
-<span class="c1">//     globallyUniqueId = "hC122FED36854/250"</span>
+<span class="c1">//     globallyUniqueId = "h77741099B0B1/228"</span>
 <span class="c1">//   )</span>
 <span class="c1">// )</span>
 </code></pre></div></div>
@@ -52,14 +52,14 @@
 </ul>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">arango</span><span class="o">.</span><span class="py">db</span><span class="o">.</span><span class="py">collection</span><span class="o">(</span><span class="nc">CollectionName</span><span class="o">(</span><span class="s">"temp"</span><span class="o">)).</span><span class="py">drop</span><span class="o">().</span><span class="py">unsafeRunSync</span><span class="o">()</span>
-<span class="c1">// res3: avokka.arangodb.protocol.ArangoResponse[avokka.arangodb.models.DeleteResult] = ArangoResponse(</span>
+<span class="c1">// res3: ArangoResponse[DeleteResult] = ArangoResponse(</span>
 <span class="c1">//   header = Header(</span>
 <span class="c1">//     version = 1,</span>
 <span class="c1">//     type = ResponseFinal,</span>
 <span class="c1">//     responseCode = 200,</span>
-<span class="c1">//     meta = Map()</span>
+<span class="c1">//     meta = Map("X-Arango-Queue-Time-Seconds" -&gt; "0.000000")</span>
 <span class="c1">//   ),</span>
-<span class="c1">//   body = DeleteResult(id = "250")</span>
+<span class="c1">//   body = DeleteResult(id = "228")</span>
 <span class="c1">// )</span>
 </code></pre></div></div>
 
@@ -68,16 +68,16 @@
 </ul>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">arango</span><span class="o">.</span><span class="py">db</span><span class="o">.</span><span class="py">collection</span><span class="o">(</span><span class="nc">CollectionName</span><span class="o">(</span><span class="s">"countries"</span><span class="o">)).</span><span class="py">info</span><span class="o">().</span><span class="py">unsafeRunSync</span><span class="o">()</span>
-<span class="c1">// res4: avokka.arangodb.protocol.ArangoResponse[avokka.arangodb.models.CollectionInfo] = ArangoResponse(</span>
+<span class="c1">// res4: ArangoResponse[CollectionInfo] = ArangoResponse(</span>
 <span class="c1">//   header = Header(</span>
 <span class="c1">//     version = 1,</span>
 <span class="c1">//     type = ResponseFinal,</span>
 <span class="c1">//     responseCode = 200,</span>
-<span class="c1">//     meta = Map()</span>
+<span class="c1">//     meta = Map("X-Arango-Queue-Time-Seconds" -&gt; "0.000000")</span>
 <span class="c1">//   ),</span>
 <span class="c1">//   body = CollectionInfo(</span>
-<span class="c1">//     id = "152",</span>
-<span class="c1">//     name = "countries",</span>
+<span class="c1">//     id = "142",</span>
+<span class="c1">//     name = CollectionName(repr = "countries"),</span>
 <span class="c1">//     status = Loaded,</span>
 <span class="c1">//     type = Document,</span>
 <span class="c1">//     isSystem = false,</span>

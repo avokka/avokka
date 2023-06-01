@@ -5,7 +5,7 @@
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">avokka.arangodb.aql._</span>
 
 <span class="n">aql</span><span class="s">"FOR u IN users RETURN u"</span>
-<span class="c1">// res0: avokka.arangodb.models.Query[avokka.velocypack.VObject] = Query(</span>
+<span class="c1">// res0: Query[VObject] = Query(</span>
 <span class="c1">//   query = "FOR u IN users RETURN u",</span>
 <span class="c1">//   bindVars = VObject(values = Map()),</span>
 <span class="c1">//   batchSize = None,</span>
@@ -23,7 +23,7 @@
 <span class="c1">// active: Boolean = true</span>
 
 <span class="n">aql</span><span class="s">"FOR u IN users FILTER u.active == $active RETURN u"</span>
-<span class="c1">// res1: avokka.arangodb.models.Query[avokka.velocypack.VObject] = Query(</span>
+<span class="c1">// res1: Query[VObject] = Query(</span>
 <span class="c1">//   query = "FOR u IN users FILTER u.active == @_arg0 RETURN u",</span>
 <span class="c1">//   bindVars = VObject(values = Map("_arg0" -&gt; VTrue)),</span>
 <span class="c1">//   batchSize = None,</span>
@@ -38,7 +38,7 @@
 <p>Mixing with <code class="language-plaintext highlighter-rouge">.bind</code> :</p>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">aql</span><span class="s">"FOR u IN users FILTER u.active == $active &amp;&amp; u.level == @level RETURN u"</span><span class="o">.</span><span class="py">bind</span><span class="o">(</span><span class="s">"level"</span><span class="o">,</span> <span class="s">"newbie"</span><span class="o">)</span>
-<span class="c1">// res2: avokka.arangodb.models.Query[avokka.velocypack.VObject] = Query(</span>
+<span class="c1">// res2: Query[VObject] = Query(</span>
 <span class="c1">//   query = "FOR u IN users FILTER u.active == @_arg0 &amp;&amp; u.level == @level RETURN u",</span>
 <span class="c1">//   bindVars = VObject(</span>
 <span class="c1">//     values = Map("_arg0" -&gt; VTrue, "level" -&gt; VString(value = "newbie"))</span>

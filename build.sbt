@@ -6,12 +6,12 @@ val scala3Version = "3.3.0"
 
 ThisBuild / organization := "com.bicou"
 ThisBuild / crossScalaVersions := Seq(scala2Version, scala3Version)
-ThisBuild / scalaVersion := scala2Version
+ThisBuild / scalaVersion := scala3Version
 ThisBuild / semanticdbEnabled := true
 
 ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
   case Some((3, _)) => Seq(
-    "-explaintypes",
+    "-explain-types",
     "-Ykind-projector",
     "-Yretain-trees",
     // "-rewrite",

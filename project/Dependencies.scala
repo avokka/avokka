@@ -21,7 +21,7 @@ object Dependencies {
   val testContainers = "com.dimafeng" %% "testcontainers-scala-scalatest" % "0.40.15"
 
   /* logging */
-  val logback = "ch.qos.logback" % "logback-classic" % "1.4.7"
+  val logback = "ch.qos.logback" % "logback-classic" % "1.3.7"
 
   /* cats */
   val cats = "org.typelevel" %% "cats-core" % "2.9.0"

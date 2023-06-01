@@ -8,6 +8,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import scodec.bits.ByteVector
+import avokka.velocypack.show._
 
 class VPackShowSpec extends AnyFlatSpec with Matchers with TableDrivenPropertyChecks with ScalaCheckPropertyChecks with VPackArbitrary {
 

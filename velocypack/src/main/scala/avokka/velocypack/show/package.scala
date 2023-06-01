@@ -1,10 +1,11 @@
 package avokka.velocypack
 
-import java.time.Instant
 import cats.Show
-import cats.syntax.contravariant._
+import cats.syntax.contravariant.*
 
-trait ShowInstances {
+import java.time.Instant
+
+package object show {
 
   implicit val vpackShow: Show[VPack] = Show.show {
     case v : VNone.type    => vpackNoneShow.show(v)

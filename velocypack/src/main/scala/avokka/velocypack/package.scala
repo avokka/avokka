@@ -7,7 +7,7 @@ import scodec.interop.cats._
 import scodec.bits.BitVector
 import scodec.{Attempt, DecodeResult, Decoder}
 
-package object velocypack extends ShowInstances {
+package object velocypack {
 
   /** return type of decoding a VPack to a T */
   type VPackResult[T] = Either[VPackError, T]

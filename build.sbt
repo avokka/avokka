@@ -19,7 +19,7 @@ ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) m
   )
   case Some((2, 13)) => Seq(
     "-Ymacro-annotations",
-    "-language:experimental.macros",
+  //  "-language:experimental.macros",
     "-Xsource:3"
   )
   case _ => Seq.empty

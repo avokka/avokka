@@ -1,6 +1,7 @@
 package avokka.velocypack
 
 import magnolia1._
+import scala.language.experimental.macros
 
 trait VPackEncoderDerivation {
   type Typeclass[T] = VPackEncoder[T]

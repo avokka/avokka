@@ -2,6 +2,7 @@ package avokka.velocypack
 
 import magnolia1._
 import cats.syntax.either._
+import scala.language.experimental.macros
 
 trait VPackDecoderDerivation {
 

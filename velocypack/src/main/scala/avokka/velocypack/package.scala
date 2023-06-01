@@ -7,7 +7,7 @@ import scodec.interop.cats._
 import scodec.bits.BitVector
 import scodec.{Attempt, DecodeResult, Decoder}
 
-package object velocypack extends ShowInstances with VPackShims {
+package object velocypack extends ShowInstances {
 
   /** return type of decoding a VPack to a T */
   type VPackResult[T] = Either[VPackError, T]
@@ -66,7 +66,7 @@ package object velocypack extends ShowInstances with VPackShims {
     }
   }
 
-  implicit final class DecoderStateOps[T](private val decoder: Decoder[T]) extends AnyVal {
+  implicit final class DecoderOps[T](val decoder: Decoder[T]) extends DecoderOpsShims[T] {
 
     def asState: StateT[VPackResult, BitVector, T] = StateT { (bits: BitVector) =>
       decoder.decode(bits) match {

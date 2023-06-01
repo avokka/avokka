@@ -28,7 +28,7 @@ trait VPackDecoder[T] {
 }
 
 
-object VPackDecoder extends VPackDecoderGeneric with VPackDecoderDerivation with VPackDecoderLow {
+object VPackDecoder extends VPackDecoderGeneric with VPackDecoderDerivation {
   @inline def apply[T](implicit decoder: VPackDecoder[T]): VPackDecoder[T] = decoder
 
   // scala types instances

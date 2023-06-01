@@ -32,7 +32,7 @@ trait VPackEncoder[T] { self =>
   }
 }
 
-object VPackEncoder extends VPackEncoderGeneric with VPackEncoderDerivation with VPackEncoderLow {
+object VPackEncoder extends VPackEncoderGeneric with VPackEncoderDerivation {
   @inline def apply[T](implicit encoder: VPackEncoder[T]): VPackEncoder[T] = encoder
 
   implicit val contravariance: Contravariant[VPackEncoder] = new Contravariant[VPackEncoder] {

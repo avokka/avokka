@@ -11,12 +11,12 @@ import io.circe.literal._
 
 class ArangoGraphSpec extends ArangoIOBase {
 
-  val graphName = GraphName("grf")
+  val graphName: GraphName = GraphName("grf")
 
   def graph(arango: Arango[IO]): ArangoGraph[IO] = arango.db.graph(graphName)
 
-  val neighName = CollectionName("neigh")
-  val countriesName = CollectionName("countries")
+  val neighName: CollectionName = CollectionName("neigh")
+  val countriesName: CollectionName = CollectionName("countries")
 
   it should "create, read and drop a graph" in { arango =>
     val tempName = GraphName("gtemp")

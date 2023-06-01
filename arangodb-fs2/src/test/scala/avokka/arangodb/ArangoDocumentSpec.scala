@@ -8,10 +8,10 @@ import cats.effect._
 
 class ArangoDocumentSpec extends ArangoIOBase {
 
-  val collectionName = CollectionName("countries")
-  val usKey = DocumentKey("US")
-  val franceKey = DocumentKey("FR")
-  val unknownKey = DocumentKey("XX")
+  val collectionName: CollectionName = CollectionName("countries")
+  val usKey: DocumentKey = DocumentKey("US")
+  val franceKey: DocumentKey = DocumentKey("FR")
+  val unknownKey: DocumentKey = DocumentKey("XX")
 
   def collection(arango: Arango[IO]): ArangoCollection[IO] = arango.db.collection(collectionName)
 

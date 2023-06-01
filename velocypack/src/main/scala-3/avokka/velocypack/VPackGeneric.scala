@@ -26,12 +26,13 @@ object VPackGeneric { c =>
 
   inline def tuple[E, T <: Tuple](f: E => T): VPackEncoder[E] = {
     lazy val insts = summonAllEncoders[T]
-    new VPackEncoder[E]:
+    new VPackEncoder[E] {
       override def encode(t: E): VPack = VArray(
         insts.asInstanceOf[List[VPackEncoder[Any]]].zip(f(t).productIterator).map {
           _.encode(_)
         }.toVector
       )
+    }
   }
 
   trait Decoder[A <: Tuple] {
@@ -53,14 +54,14 @@ object VPackGeneric { c =>
         } else {
           insts.asInstanceOf[List[VPackDecoder[Any]]].zip(values).map {
             _.decode(_)
-          }.sequence.map(r =>
+          }.sequence.map { r =>
             val product: Product = new Product {
               override def productArity: Int = r.size
               override def productElement(n: Int): Any = r(n)
               override def canEqual(that: Any): Boolean = false
             }
             m.fromProduct(product)
-          )
+          }
         }
         case v => Left(VPackError.WrongType(v))
       }

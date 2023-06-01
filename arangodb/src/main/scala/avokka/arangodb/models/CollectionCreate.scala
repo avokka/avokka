@@ -50,7 +50,7 @@ final case class CollectionCreate(
     enforceReplicationFactor: Int = 1,
     schema: Option[CollectionSchema] = None,
 ) {
-  def parameters = Map(
+  def parameters: Map[String,String] = Map(
     "waitForSyncReplication" -> waitForSyncReplication.toString,
     "enforceReplicationFactor" -> enforceReplicationFactor.toString,
   )

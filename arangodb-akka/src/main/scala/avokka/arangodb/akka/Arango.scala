@@ -3,12 +3,12 @@ package akka
 
 import _root_.akka.actor.ActorSystem
 import _root_.akka.pattern.ask
-import avokka.arangodb.protocol._
-import avokka.velocypack._
-import avokka.velocystream._
-import cats.instances.future._
-import cats.syntax.applicative._
-import org.typelevel.log4cats.MessageLogger
+import avokka.arangodb.protocol.*
+import avokka.velocypack.*
+import avokka.velocystream.*
+import cats.instances.future.*
+import cats.syntax.applicative.*
+import org.typelevel.log4cats.*
 import scodec.bits.ByteVector
 
 import java.util.concurrent.atomic.AtomicLong

@@ -5,7 +5,7 @@ import avokka.arangodb.types._
 
 class ArangoDatabaseSpec extends ArangoIOBase {
 
-  val collectionName = CollectionName("countries")
+  val collectionName: CollectionName = CollectionName("countries")
 
   it should "info" in { arango =>
     arango.db.info().map { res =>

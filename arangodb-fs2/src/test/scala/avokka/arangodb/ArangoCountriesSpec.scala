@@ -10,7 +10,7 @@ import org.scalatest.OptionValues._
 class ArangoCountriesSpec extends ArangoIOBase {
   import ArangoCountriesSpec._
 
-  val collName = CollectionName("countries")
+  val collName: CollectionName = CollectionName("countries")
 
   it should "have test database" in { arango =>
     arango.server.databases().map { res =>

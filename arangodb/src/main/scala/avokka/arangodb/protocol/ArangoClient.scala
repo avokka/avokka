@@ -2,13 +2,13 @@ package avokka.arangodb
 package protocol
 
 import avokka.arangodb.types.DatabaseName
-import avokka.velocypack._
-import avokka.velocypack.show._
+import avokka.velocypack.*
+import avokka.velocypack.show.*
 import cats.MonadThrow
-import cats.syntax.flatMap._
-import cats.syntax.functor._
-import cats.syntax.show._
-import org.typelevel.log4cats.MessageLogger
+import cats.syntax.flatMap.*
+import cats.syntax.functor.*
+import cats.syntax.show.*
+import org.typelevel.log4cats.*
 import scodec.DecodeResult
 import scodec.bits.ByteVector
 

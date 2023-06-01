@@ -33,7 +33,7 @@ package object types {
     val key: String = "_key"
     implicit val encoder: VPackEncoder[DocumentKey] = deriving
     implicit val decoder: VPackDecoder[DocumentKey] = deriving
-    val empty = apply("")
+    val empty: DocumentKey = apply("")
   }
 
   @newtype case class DocumentHandle(repr: (CollectionName, DocumentKey)) {
@@ -66,7 +66,7 @@ package object types {
       parse(path).toRight(VPackError.IllegalValue(s"invalid document handle '$path'"))
     }
 
-    val empty = apply(CollectionName(""), DocumentKey.empty)
+    val empty: DocumentHandle = apply(CollectionName(""), DocumentKey.empty)
   }
 
   @newtype case class DocumentRevision(repr: String) {
@@ -77,7 +77,7 @@ package object types {
     val key: String = "_rev"
     implicit val encoder: VPackEncoder[DocumentRevision] = deriving
     implicit val decoder: VPackDecoder[DocumentRevision] = deriving
-    val empty = apply("")
+    val empty: DocumentRevision = apply("")
   }
 
   @newtype case class TransactionId(repr: String)

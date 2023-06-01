@@ -3,20 +3,20 @@ package fs2
 
 import _root_.fs2.Pipe
 import _root_.fs2.concurrent.SignallingRef
-import _root_.fs2.io.net._
+import _root_.fs2.io.net.*
 import protocol.ArangoClient
-import avokka.velocystream._
-import cats.effect._
-import cats.effect.syntax.spawn._
-import cats.effect.syntax.temporal._
-import cats.effect.syntax.monadCancel._
-import cats.effect.syntax.resource._
-import cats.syntax.apply._
-import cats.syntax.flatMap._
-import cats.syntax.functor._
-import org.typelevel.log4cats.Logger
+import avokka.velocystream.*
+import cats.effect.*
+import cats.effect.syntax.spawn.*
+import cats.effect.syntax.temporal.*
+import cats.effect.syntax.monadCancel.*
+import cats.effect.syntax.resource.*
+import cats.syntax.apply.*
+import cats.syntax.flatMap.*
+import cats.syntax.functor.*
+import org.typelevel.log4cats.*
 import scodec.bits.ByteVector
-import com.comcast.ip4s._
+import com.comcast.ip4s.*
 
 trait Arango[F[_]] extends ArangoClient[F] {
    def terminate: F[Unit]

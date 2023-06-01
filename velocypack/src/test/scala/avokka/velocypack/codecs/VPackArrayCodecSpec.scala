@@ -7,11 +7,11 @@ import scodec.bits.*
 
 class VPackArrayCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
 
-  val a1false = VArray(VSmallint(1), VFalse)
-  val a10false = VArray(VLong(10),  VFalse)
-  val avoidtrue = VArray(VString(""),  VTrue)
-  val a123 = VArray(VSmallint(1), VSmallint(2), VSmallint(3))
-  val bigArray = VArray(Vector.fill(1000)(VSmallint(0)))
+  val a1false: VArray = VArray(VSmallint(1), VFalse)
+  val a10false: VArray = VArray(VLong(10),  VFalse)
+  val avoidtrue: VArray = VArray(VString(""),  VTrue)
+  val a123: VArray = VArray(VSmallint(1), VSmallint(2), VSmallint(3))
+  val bigArray: VArray = VArray(Vector.fill(1000)(VSmallint(0)))
   // val bigArraJson: String = "[" + Seq.fill(1000)("0").mkString(",") + "]"
 
   "empty array" should "encode to 0x01" in {

@@ -1,19 +1,19 @@
 package avokka.arangodb.fs2
 
-import avokka.velocystream._
+import avokka.velocystream.*
 import cats.effect.std.Queue
-import cats.effect.syntax.spawn._
+import cats.effect.syntax.spawn.*
 import cats.effect.Concurrent
-import cats.effect.syntax.concurrent._
-import cats.syntax.apply._
-import cats.syntax.flatMap._
-import cats.syntax.functor._
-import cats.syntax.foldable._
-import cats.syntax.show._
+import cats.effect.syntax.concurrent.*
+import cats.syntax.apply.*
+import cats.syntax.flatMap.*
+import cats.syntax.functor.*
+import cats.syntax.foldable.*
+import cats.syntax.show.*
 import fs2.concurrent.SignallingRef
 import fs2.io.net.Socket
 import fs2.{Chunk, Pipe, Stream}
-import org.typelevel.log4cats.Logger
+import org.typelevel.log4cats.*
 import scodec.stream.{StreamDecoder, StreamEncoder}
 
 trait VChunkSocket[F[_]] {

@@ -4,7 +4,7 @@ import avokka.arangodb.types._
 
 class ArangoTransactionSpec extends ArangoIOBase {
 
-  val collectionName = CollectionName("countries")
+  val collectionName: CollectionName = CollectionName("countries")
 
   it should "begin, commit" in { arango =>
     for {

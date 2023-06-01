@@ -9,9 +9,12 @@ import com.dimafeng.testcontainers.scalatest.TestContainerForAll
 import org.scalatest.flatspec.FixtureAsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.typelevel.log4cats.*
-import org.typelevel.log4cats.slf4j.Slf4jLogger
+import org.typelevel.log4cats.slf4j.*
 import just.semver.SemVer
 import org.scalatest.{Assertion, Succeeded}
+import avokka.arangodb.fs2.Arango
+import cats.effect.IO
+import cats.effect.kernel.Resource
 
 abstract class ArangoIOBase extends FixtureAsyncFlatSpec
   with AsyncIOSpec
@@ -23,7 +26,7 @@ abstract class ArangoIOBase extends FixtureAsyncFlatSpec
 
   override val containerDef: GenericContainer.Def[ArangodbContainer] = ArangodbContainer.Def()
 
-  override val resource = for {
+  override val resource: Resource[IO,Arango[IO]] = for {
     container <- Resource.eval(IO(withContainers(identity(_))))
     arango <- Arango[IO](container.configuration)
   } yield arango
@@ -36,7 +39,7 @@ abstract class ArangoIOBase extends FixtureAsyncFlatSpec
   }
    */
 
-  protected def withArangoVersion(version: String)(assertion: => IO[Assertion]) = withContainers { container =>
+  protected def withArangoVersion(version: String)(assertion: => IO[Assertion]): IO[Assertion] = withContainers { container =>
     val containerVersion = SemVer.parseUnsafe(container.version)
     if (containerVersion >= SemVer.parseUnsafe(version)) assertion else IO.pure(Succeeded)
   }

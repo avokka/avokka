@@ -5,7 +5,7 @@ import avokka.arangodb.types._
 
 class ArangoIndexSpec extends ArangoIOBase {
 
-  val collectionName = CollectionName("countries")
+  val collectionName: CollectionName = CollectionName("countries")
 
   it should "create, read, delete" in { arango =>
     val collection = arango.db.collection(collectionName)

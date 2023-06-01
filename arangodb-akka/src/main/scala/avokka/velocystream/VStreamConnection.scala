@@ -199,7 +199,7 @@ class VStreamConnection(conf: VStreamConfiguration, begin: Iterable[VStreamMessa
 object VStreamConnection {
 
   /** velocystream handshake */
-  val VST_HANDSHAKE = ByteString("VST/1.1\r\n\r\n")
+  val VST_HANDSHAKE: ByteString = ByteString("VST/1.1\r\n\r\n")
 
   /** order chunks by message ID + position in order to interleave a little bit
     * MessageId-Position : 1-0 -> [2-0|1-1] -> 3-0 -> [4-0|3-1] -> [5-0|3-2] -> ...

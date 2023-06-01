@@ -9,10 +9,11 @@ import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import scodec.bits.ByteVector
 import avokka.velocypack.show._
+import org.scalatest.prop.TableFor2
 
 class VPackShowSpec extends AnyFlatSpec with Matchers with TableDrivenPropertyChecks with ScalaCheckPropertyChecks with VPackArbitrary {
 
-  val examples = Table(
+  val examples: TableFor2[VPack,String] = Table(
     ("vpack", "json"),
 
     (VBinary(ByteVector(0x50, 0x10)), "\"5010\""),

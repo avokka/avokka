@@ -11,7 +11,7 @@ import io.circe.literal._
 
 class ArangoCollectionSpec extends ArangoIOBase {
 
-  val collectionName = CollectionName("countries")
+  val collectionName: CollectionName = CollectionName("countries")
 
   def collection(arango: Arango[IO]): ArangoCollection[IO] = arango.db.collection(collectionName)
 

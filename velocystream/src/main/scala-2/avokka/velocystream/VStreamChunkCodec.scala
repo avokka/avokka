@@ -1,11 +1,7 @@
 package avokka.velocystream
 
-import cats.Show
-import cats.syntax.show._
 import scodec.Codec
-import scodec.bits.ByteVector
 import scodec.codecs.{bytes, fixedSizeBytes, uint32L}
-import scodec.interop.cats._
 import shapeless.{::, HNil}
 
 trait VStreamChunkCodec { self: VStreamChunk.type =>

@@ -1,10 +1,7 @@
 package avokka.arangodb
 
 import types._
-import avokka.velocypack._
 import cats.Functor
-import cats.syntax.functor._
-import models._
 import protocol._
 
 trait ArangoGraphCollection[F[_]] {

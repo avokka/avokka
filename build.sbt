@@ -15,7 +15,7 @@ ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) m
     "-Ykind-projector",
     "-Yretain-trees",
     // "-rewrite",
-    "-source:3.2-migration"
+    "-source:3.3-migration"
   )
   case Some((2, 13)) => Seq(
     "-Ymacro-annotations",

@@ -38,9 +38,6 @@ addSbtPlugin("org.scoverage" % "sbt-scoverage" % "2.0.7")
 libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.10"
 
 // addSbtPlugin("ch.epfl.scala" % "sbt-scala3-migrate" % "0.5.1")
-// sbt-dotty is not required since sbt 1.5.0-M1
-// addSbtPlugin("ch.epfl.lamp" % "sbt-dotty" % "0.5.3")
-// addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.10.4")
 
 // workaround 	* org.scala-lang.modules:scala-xml_2.12:2.1.0 (early-semver) is selected over {1.0.6}
 //[error] 	    +- org.scoverage:scalac-scoverage-reporter_2.12:2.0.7 (depends on 2.1.0)

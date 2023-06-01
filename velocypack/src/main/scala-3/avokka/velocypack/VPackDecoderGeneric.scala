@@ -1,4 +1,3 @@
 package avokka.velocypack
 
-trait VPackDecoderGeneric {
-}
+trait VPackDecoderGeneric

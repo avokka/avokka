@@ -1,5 +1,3 @@
 package avokka.velocypack
 
-trait DecoderOpsShims[T] {
-
-}
+trait DecoderOpsShims[T]

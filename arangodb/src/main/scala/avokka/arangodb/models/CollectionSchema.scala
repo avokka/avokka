@@ -9,6 +9,6 @@ final case class CollectionSchema(
 )
 
 object CollectionSchema {
-  implicit val encoder: VPackEncoder[CollectionSchema] = VPackEncoder.gen
-  implicit val decoder: VPackDecoder[CollectionSchema] = VPackDecoder.gen
+  implicit val encoder: VPackEncoder[CollectionSchema] = VPackEncoder.derived
+  implicit val decoder: VPackDecoder[CollectionSchema] = VPackDecoder.derived
 }

@@ -16,6 +16,6 @@ final case class GraphEdgeDefinition(
   to: List[CollectionName]
 )
 object GraphEdgeDefinition {
-  implicit val encoder: VPackEncoder[GraphEdgeDefinition] = VPackEncoder.gen
-  implicit val decoder: VPackDecoder[GraphEdgeDefinition] = VPackDecoder.gen
+  implicit val encoder: VPackEncoder[GraphEdgeDefinition] = VPackEncoder.derived
+  implicit val decoder: VPackDecoder[GraphEdgeDefinition] = VPackDecoder.derived
 }

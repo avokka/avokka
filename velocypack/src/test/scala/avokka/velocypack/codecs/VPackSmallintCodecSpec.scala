@@ -29,7 +29,7 @@ class VPackSmallintCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
   }
 
   it should "roundtrip" in {
-    forAll(genVSmallint) { v: VSmallint =>
+    forAll(genVSmallint) { (v: VSmallint) =>
       assertEncodeDecode(vpackCodec, v)
     }
   }

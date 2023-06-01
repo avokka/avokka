@@ -9,17 +9,13 @@ import scodec.{Codec, Decoder, Encoder}
 
 trait VPackCodecSpecTrait extends ScalaCheckPropertyChecks with VPackArbitrary { self: Assertions =>
 
-  val vpack = new com.arangodb.velocypack.VPack.Builder().build()
-
-  def toSlice(bits: BitVector) = new VPackSlice(bits.toByteArray)
-
   def assertEncode[T](c: Encoder[T], v: T, b: ByteVector): Assertion = {
     assertResult(b)(c.encode(v).require.bytes)
   }
 
-  def assertEncodePack[T](c: Encoder[T], v: T, json: String): Assertion = {
+  def assertEncodePack[T](c: Encoder[T], v: T, slice: VPackSlice): Assertion = {
     val r = c.encode(v).require
-    assertResult(json)(toSlice(r).toString)
+    assert(slice.equals(new VPackSlice(r.toByteArray)))
   }
 
   def assertDecode[T](c: Decoder[T], b: ByteVector, v: T): Assertion = {

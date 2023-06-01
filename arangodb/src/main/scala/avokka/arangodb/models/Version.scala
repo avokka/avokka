@@ -19,5 +19,5 @@ final case class Version(
 )
 
 object Version {
-  implicit val decoder: VPackDecoder[Version] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[Version] = VPackDecoder.derived
 }

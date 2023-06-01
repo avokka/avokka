@@ -29,9 +29,9 @@ object Engine {
       indexes: List[String],
   )
   object Supports {
-    implicit val decoder: VPackDecoder[Supports] = VPackDecoder.gen
+    implicit val decoder: VPackDecoder[Supports] = VPackDecoder.derived
   }
 
-  implicit val decoder: VPackDecoder[Engine] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[Engine] = VPackDecoder.derived
 
 }

@@ -139,7 +139,7 @@ object ArangoDatabase {
         .map(_.map(_.result))
 
     override def drop(): F[ArangoResponse[Boolean]] =
-      DELETE(DatabaseName.system, API_DATABASE + "/" + name)
+      DELETE(DatabaseName.system, API_DATABASE + "/" + name.repr)
         .execute[F, Result[Boolean]]
         .map(_.map(_.result))
 

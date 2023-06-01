@@ -9,6 +9,6 @@ final case class CollectionRevision(
 
 object CollectionRevision {
 
-  implicit val decoder: VPackDecoder[CollectionRevision] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[CollectionRevision] = VPackDecoder.derived
 
 }

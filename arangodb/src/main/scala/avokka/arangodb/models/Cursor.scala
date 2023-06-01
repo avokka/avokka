@@ -34,16 +34,16 @@ object Cursor {
       peakMemoryUsage: Option[Long] = None
   )
   object ExtraStats {
-    implicit val decoder: VPackDecoder[ExtraStats] = VPackDecoder.gen
+    implicit val decoder: VPackDecoder[ExtraStats] = VPackDecoder.derived
   }
 
   final case class Extra(
       stats: ExtraStats
   )
   object Extra {
-    implicit val decoder: VPackDecoder[Extra] = VPackDecoder.gen
+    implicit val decoder: VPackDecoder[Extra] = VPackDecoder.derived
   }
 
-  implicit def decoder[T: VPackDecoder]: VPackDecoder[Cursor[T]] = VPackDecoder.gen
+  implicit def decoder[T: VPackDecoder]: VPackDecoder[Cursor[T]] = VPackDecoder.derived
 
 }

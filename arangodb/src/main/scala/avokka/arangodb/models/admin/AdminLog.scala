@@ -24,7 +24,7 @@ object AdminLog { self =>
       totalAmount: Long,
   )
   object Response {
-    implicit val decoder: VPackDecoder[Response] = VPackDecoder.gen
+    implicit val decoder: VPackDecoder[Response] = VPackDecoder.derived
   }
 
   sealed trait Level extends EnumEntry

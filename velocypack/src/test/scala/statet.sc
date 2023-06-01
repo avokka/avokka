@@ -1,14 +1,12 @@
 import avokka.velocypack._
 
-case class Test(b: Boolean)
-implicit val testEncoder: VPackEncoder[Test] = VPackRecord[Test].encoder
-implicit val testDecoder: VPackDecoder[Test] = VPackRecord[Test].decoder
+case class Test(b: Boolean) derives VPackEncoder, VPackDecoder
 
 val ok = Test(true)
 
 val bits = ok.toVPackBits.right.get
 
-val testSt = testDecoder.state
+val testSt = VPackDecoder[Test].state
 
 val bitss = bits ++ Test(false).toVPackBits.right.get
 

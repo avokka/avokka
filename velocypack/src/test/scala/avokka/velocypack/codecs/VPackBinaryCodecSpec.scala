@@ -41,7 +41,7 @@ class VPackBinaryCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
   }
 
   "roundtrip" should "not fail" in {
-    forAll(genVBinary) { v: VBinary =>
+    forAll(genVBinary) { (v: VBinary) =>
       assertEncodeDecode(vpackCodec, v)
     }
   }

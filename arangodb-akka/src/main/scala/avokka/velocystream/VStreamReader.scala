@@ -5,6 +5,7 @@ import akka.io.Tcp
 import akka.util.ByteString
 import scodec.{Attempt, Codec, Err}
 import scodec.bits.BitVector
+import avokka.velocypack._
 
 /**
   * velocystream connection reader handles Tcp.Received events,
@@ -36,7 +37,7 @@ class VStreamReader() extends Actor with ActorLogging {
 
       // try to decode incoming bytes as chunks
       val bits = BitVector.view(buffer.asByteBuffer)
-      Codec.decodeCollect(VStreamChunk.codec, None)(bits) match {
+      VStreamChunk.codec.collect(bits, None) match {
 
         // success decode
         case Attempt.Successful(result) => {

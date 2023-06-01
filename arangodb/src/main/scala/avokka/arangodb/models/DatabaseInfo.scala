@@ -19,5 +19,5 @@ case class DatabaseInfo(
 )
 
 object DatabaseInfo {
-  implicit val decoder: VPackDecoder[DatabaseInfo] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[DatabaseInfo] = VPackDecoder.derived
 }

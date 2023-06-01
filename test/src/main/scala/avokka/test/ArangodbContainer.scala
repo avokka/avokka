@@ -3,6 +3,7 @@ package avokka.test
 import avokka.arangodb.ArangoConfiguration
 import avokka.arangodb.types.DatabaseName
 import com.dimafeng.testcontainers.GenericContainer
+import com.dimafeng.testcontainers.GenericContainer.FileSystemBind
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy
 
@@ -47,7 +48,7 @@ object ArangodbContainer {
             env = Map("ARANGO_ROOT_PASSWORD" -> password),
             exposedPorts = Seq(port),
             classpathResourceMapping = Seq(
-              ("docker-initdb.d/", "/docker-entrypoint-initdb.d/", BindMode.READ_ONLY)
+              FileSystemBind("docker-initdb.d/", "/docker-entrypoint-initdb.d/", BindMode.READ_ONLY)
             ),
             waitStrategy = (new HttpWaitStrategy)
               .forPath("/_db/test/_api/collection/countries")

@@ -10,7 +10,6 @@ import scodec.{Attempt, Codec, DecodeResult, Decoder, Encoder, Err}
 import VPackType.{ObjectEmptyType, ObjectType, ObjectCompactType}
 
 import scala.collection.SortedMap
-import scala.collection.compat._
 
 private[codecs] object VPackObjectCodec extends VPackCompoundCodec {
 
@@ -76,7 +75,7 @@ private[codecs] object VPackObjectCodec extends VPackCompoundCodec {
       bodyLen = 8 * (length.value - 1 - vlongLength(length.value))
       body <- scodec.codecs.bits(bodyLen).decode(length.remainder)
       nr <- VPackVLongCodec.decode(body.value.reverseByteOrder)
-      result <- Decoder.decodeCollect[Vector, (String, VPack)](keyValueCodec, Some(nr.value.toInt))(body.value)
+      result <- keyValueCodec.collect[Vector, (String, VPack)](body.value, Some(nr.value.toInt))
     } yield DecodeResult(VObject(result.value.toMap), body.remainder))
 
   private[codecs] def decoderOffsets(t: ObjectType): Decoder[VObject] =
@@ -88,8 +87,7 @@ private[codecs] object VPackObjectCodec extends VPackCompoundCodec {
         bodyLen = length.value - t.lengthSize
         body <- scodec.codecs.bits(8 * bodyLen).decode(nr.remainder)
         values <- scodec.codecs.bits(8 * (bodyLen - nr.value * t.lengthSize)).decode(body.value)
-        offsets <- Decoder.decodeCollect[Vector, Long](ulongLA(8 * t.lengthSize), Some(nr.value.toInt))(
-          values.remainder)
+        offsets <- ulongLA(8 * t.lengthSize).collect[Vector, Long](values.remainder, Some(nr.value.toInt))
         result = offsetsToRanges(offsets.value.map(_ - bodyOffset), values.value.size / 8).map {
           case (from, until) => values.value.slice(8 * from, 8 * until)
         }
@@ -106,7 +104,7 @@ private[codecs] object VPackObjectCodec extends VPackCompoundCodec {
         (valuesIndex, number) = body.splitAt(8 * (bodyLen - t.lengthSize))
         nr <- ulongLA(8 * t.lengthSize).decode(number)
         (values, index) = valuesIndex.splitAt(8 * (bodyLen - nr.value * t.lengthSize - t.lengthSize))
-        offsets <- Decoder.decodeCollect[Vector, Long](ulongLA(8 * t.lengthSize), Some(nr.value.toInt))(index)
+        offsets <- ulongLA(8 * t.lengthSize).collect[Vector, Long](index, Some(nr.value.toInt))
         result = offsetsToRanges(offsets.value.map(_ - bodyOffset), values.size / 8).map {
           case (from, until) => values.slice(8 * from, 8 * until)
         }

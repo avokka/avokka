@@ -7,5 +7,5 @@ case class GraphEdge[T](
 )
 
 object GraphEdge {
-  implicit def decoder[T: VPackDecoder]: VPackDecoder[GraphEdge[T]] = VPackDecoder.gen
+  implicit def decoder[T: VPackDecoder]: VPackDecoder[GraphEdge[T]] = VPackDecoder.derived
 }

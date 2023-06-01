@@ -14,6 +14,6 @@ case class ServerRole(
 
 object ServerRole {
 
-  implicit val decoder: VPackDecoder[ServerRole] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[ServerRole] = VPackDecoder.derived
 
 }

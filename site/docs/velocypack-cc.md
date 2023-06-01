@@ -13,8 +13,8 @@ import avokka.velocypack._
 import scodec.bits._
 
 case class Test(b: Boolean)
-implicit val testEncoder: VPackEncoder[Test] = VPackEncoder.gen
-implicit val testDecoder: VPackDecoder[Test] = VPackDecoder.gen
+implicit val testEncoder: VPackEncoder[Test] = VPackEncoder.derived
+implicit val testDecoder: VPackDecoder[Test] = VPackDecoder.derived
 ```
 
 Encoding :
@@ -38,7 +38,7 @@ Using defaults :
 ```scala mdoc:to-string
 case class TestTrue(b: Boolean = true)        
 
-implicit val testTrueDecoder: VPackDecoder[TestTrue] = VPackDecoder.gen
+implicit val testTrueDecoder: VPackDecoder[TestTrue] = VPackDecoder.derived
 
 hex"0b070141621903".bits.asVPack[TestTrue]            
 hex"0a".bits.asVPack[TestTrue]                                                                                                         
@@ -47,11 +47,11 @@ hex"0a".bits.asVPack[TestTrue]
 Automatic encoder and decoder derivation :
 
 ```scala mdoc:to-string
-import avokka.velocypack.auto.encoder._
-import avokka.velocypack.auto.decoder._
 
-case class Element(name: String, value: Int)
-case class Group(elements: Vector[Element])
+
+case class Element(name: String, value: Int) derives VPackEncoder
+
+case class Group(elements: Vector[Element]) derives VPackEncoder
 
 Group(Vector(Element("a", 1), Element("b", 2))).toVPack
 ```

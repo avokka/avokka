@@ -15,9 +15,9 @@ object TransactionList {
                         )
 
   object Transaction {
-    implicit val decoder: VPackDecoder[Transaction] = VPackDecoder.gen
+    implicit val decoder: VPackDecoder[Transaction] = VPackDecoder.derived
   }
 
-  implicit val decoder: VPackDecoder[TransactionList] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[TransactionList] = VPackDecoder.derived
 }
 

@@ -17,9 +17,7 @@ import scodec.bits._
 val bits = hex"02043334".bits
 bits.asVPack[Vector[Long]].right.get.value
 
-case class Test(b: Boolean)
-implicit val testEncoder: VPackEncoder[Test] = VPackRecord[Test].encoder
-implicit val testDecoder: VPackDecoder[Test] = VPackRecord[Test].decoder
+case class Test(b: Boolean) derives VPackEncoder, VPackDecoder
 
 val t = Test(true)
 
@@ -29,8 +27,7 @@ t.toVPackBits.right.get
 hex"0b070141621903".bits.asVPack[Test].right.get.value
 hex"0a".bits.asVPack[Test]
 
-case class TestTrue(b: Boolean = true)
-implicit val testTrueDecoder: VPackDecoder[TestTrue] = VPackRecord[TestTrue].decoderWithDefaults
+case class TestTrue(b: Boolean = true) derives VPackDecoder
 
 hex"0b070141621903".bits.asVPack[TestTrue].right.get.value
 hex"0a".bits.asVPack[TestTrue].right.get.value

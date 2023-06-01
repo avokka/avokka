@@ -24,7 +24,7 @@ class VPackLongSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPack
   }
 
   "long" should "roundtrip" in {
-    forAll { v: Long =>
+    forAll { (v: Long) =>
       assertRoundtrip(v)
     }
   }

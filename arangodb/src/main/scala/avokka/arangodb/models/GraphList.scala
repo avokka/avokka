@@ -11,5 +11,5 @@ final case class GraphList(
 )
 
 object GraphList {
-  implicit val decoder: VPackDecoder[GraphList] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[GraphList] = VPackDecoder.derived
 }

@@ -1,23 +1,29 @@
 import Dependencies._
 
-val scala212Version = "2.12.17"
-val scala213Version = "2.13.10"
+// val scala212Version = "2.12.15"
+val scala2Version = "2.13.10"
+val scala3Version = "3.3.0"
 
 ThisBuild / organization := "com.bicou"
-ThisBuild / crossScalaVersions := Seq(scala212Version, scala213Version)
-ThisBuild / scalaVersion := scala213Version
+ThisBuild / crossScalaVersions := Seq(scala2Version, scala3Version)
+ThisBuild / scalaVersion := scala3Version
+ThisBuild / semanticdbEnabled := true
 
 ThisBuild / scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
+  case Some((3, _)) => Seq(
+    "-explaintypes",
+    "-Ykind-projector",
+    "-Yretain-trees",
+    "-rewrite",
+    "-source:3.2-migration"
+  )
   case Some((2, 13)) => Seq(
-    "-Ymacro-annotations"
+    "-Ymacro-annotations",
+    "-language:experimental.macros",
+    "-Xsource:3"
   )
   case _ => Seq.empty
 })
-
-ThisBuild / javacOptions ++= Seq(
-  "-source", "1.8",
-  "-target", "1.8",
-)
 
 ThisBuild / licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 ThisBuild / homepage := Some(url("https://github.com/avokka"))
@@ -30,24 +36,27 @@ lazy val velocypack = (project in file("velocypack"))
     name := "avokka-velocypack",
     description := "velocypack codec (scodec, shapeless, cats)",
     libraryDependencies ++= Seq(
-      collectionCompat,
       cats,
-      scodecCore,
       scodecBits,
       scodecCats,
+    ) ++ (if (scalaVersion.value.startsWith("3")) Seq(
+      shapeless3,
+      scodecCore2,
+      magnolia3
+    ) else Seq(
       shapeless,
+      scodecCore,
       magnolia,
+      compilerPlugin(kindProjector),
+      compilerPlugin(betterMonadicFor),
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided,
-    ) ++ Seq(
+    )) ++ Seq(
       arango,
       scalaTest,
       scalaTestPlus,
       logback,
     ).map(_ % Test),
-    addCompilerPlugin(kindProjector),
-    addCompilerPlugin(betterMonadicFor),
     Test / logBuffered := false,
-    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val velocypackEnumeratum = (project in file("velocypack-enumeratum"))
@@ -58,7 +67,6 @@ lazy val velocypackEnumeratum = (project in file("velocypack-enumeratum"))
     libraryDependencies ++= Seq(
       enumeratum
     ),
-    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val velocypackCirce = (project in file("velocypack-circe"))
@@ -71,10 +79,8 @@ lazy val velocypackCirce = (project in file("velocypack-circe"))
     ) ++ Seq(
       circeLit, jawn,
       scalaTest,
-//      scalaTestPlus,
       logback,
     ).map(_ % Test),
-    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val velocystream = (project in file("velocystream"))
@@ -83,13 +89,10 @@ lazy val velocystream = (project in file("velocystream"))
     name := "avokka-velocystream",
     description := "velocystream models",
     libraryDependencies ++= Seq(
-      collectionCompat
-    ) ++ Seq(
       scalaTest,
       logback,
     ).map(_ % Test),
     Test / logBuffered := false,
-    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val arangodb = (project in file("arangodb"))
@@ -98,26 +101,29 @@ lazy val arangodb = (project in file("arangodb"))
     name := "avokka-arangodb",
     description := "ArangoDB core",
     libraryDependencies ++= Seq(
-      collectionCompat,
-      newtype,
-      pureconfig,
-      log4cats,
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
+      log4cats_3,
     ) ++
       (CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, v)) if v <= 12 =>
           Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full))
         case _ => Nil
-      }) ++ Seq(
+      })
+      ++ (if (scalaVersion.value.startsWith("3")) Seq(
+      pureconfig3,
+    ) else Seq(
+      compilerPlugin(kindProjector),
+      compilerPlugin(betterMonadicFor),
+      pureconfig,
+        newtype,
+        "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
+      ))
+      ++ Seq(
       scalaTest,
       scalaTestPlus,
       logback,
     ).map(_ % Test),
     Test / logBuffered := false,
     Test / parallelExecution := false,
-    addCompilerPlugin(kindProjector),
-    addCompilerPlugin(betterMonadicFor),
-    scalacOptions -= "-Xfatal-warnings",
     Compile / sourceGenerators += Def.task {
       import com.github.tototoshi.csv._
 
@@ -148,12 +154,14 @@ lazy val arangodbAkka = (project in file("arangodb-akka"))
     name := "avokka-arangodb-akka",
     description := "ArangoDB client (akka)",
     libraryDependencies ++= Seq(
-      collectionCompat,
       akkaActor,
       akkaStream,
-      logging,
+    ) ++ (if (scalaVersion.value.startsWith("3")) Seq(
+    ) else Seq(
+      compilerPlugin(kindProjector),
+      compilerPlugin(betterMonadicFor),
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % Provided
-    ) ++ Seq(
+    )) ++ Seq(
       scalaTest,
       akkaTestKit,
       logback,
@@ -165,45 +173,14 @@ lazy val arangodbAkka = (project in file("arangodb-akka"))
       }),
     Test / logBuffered := false,
     Test / parallelExecution := false,
-    addCompilerPlugin(kindProjector),
-    addCompilerPlugin(betterMonadicFor),
-    scalacOptions -= "-Xfatal-warnings"
   )
 
 lazy val arangodbFs2 = (project in file("arangodb-fs2"))
   .dependsOn(arangodb, test % "test->test", velocypackCirce % Test)
   .settings(
     name := "avokka-arangodb-fs2",
-    description := "ArangoDB client (fs2)",
-    libraryDependencies ++= Seq(
-      collectionCompat,
-      scodecStream,
-      catsRetry,
-      catsEffect,
-      fs2,
-      fs2IO,
-    ) ++ Seq(
-      log4catsSlf,
-      logback,
-      scalaTest,
-      scalaTestPlus,
-      scalaTestCatsEffect,
-      circeLit,
-      jawn,
-      semver
-    ).map(_ % Test),
-    addCompilerPlugin(kindProjector),
-    addCompilerPlugin(betterMonadicFor),
-    scalacOptions -= "-Xfatal-warnings"
-  )
-
-lazy val arangodbFs2Ce3 = (project in file("arangodb-fs2-ce3"))
-  .dependsOn(arangodb, test % "test->test", velocypackCirce % Test)
-  .settings(
-    name := "avokka-arangodb-fs2-ce3",
     description := "ArangoDB client (fs2,ce3)",
     libraryDependencies ++= Seq(
-      collectionCompat,
       scodecStream_3,
       catsRetry_3,
       catsEffect_3,
@@ -218,10 +195,11 @@ lazy val arangodbFs2Ce3 = (project in file("arangodb-fs2-ce3"))
       circeLit,
       jawn,
       semver
-    ).map(_ % Test),
-    addCompilerPlugin(kindProjector),
-    addCompilerPlugin(betterMonadicFor),
-    scalacOptions -= "-Xfatal-warnings"
+    ).map(_ % Test) ++ (if (scalaVersion.value.startsWith("3")) Seq(
+    ) else Seq(
+      compilerPlugin(kindProjector),
+      compilerPlugin(betterMonadicFor),
+    )),
   )
 
 lazy val test = (project in file("test"))
@@ -231,7 +209,6 @@ lazy val test = (project in file("test"))
     libraryDependencies ++= Seq(
       testContainers
     ),
-    scalacOptions -= "-Xfatal-warnings"
   )
 
 
@@ -245,25 +222,25 @@ lazy val bench = (project in file("bench"))
       arango,
       logback
     ),
-    scalacOptions -= "-Xfatal-warnings"
   ).enablePlugins(JmhPlugin)
 
 lazy val site = (project in file("site"))
   .dependsOn(arangodbAkka, arangodbFs2)
   .settings(
     libraryDependencies ++= Seq(
-      log4catsNoop,
-      log4catsSlf,
+      log4catsNoop_3,
+      log4catsSlf_3,
       logback,
-      pureconfigF,
-    ),
+      pureconfigF_3,
+    ) ++ (if (scalaVersion.value.startsWith("3")) Seq(
+    ) else Seq(
+      compilerPlugin(kindProjector),
+      compilerPlugin(betterMonadicFor),
+    )),
     name := "avokka-site",
     publishArtifact := false,
     publish / skip := true,
     version := version.value.takeWhile(_ != '+'),
-    addCompilerPlugin(kindProjector),
-    addCompilerPlugin(betterMonadicFor),
-    scalacOptions -= "-Xfatal-warnings",
     mdocExtraArguments := Seq("--no-link-hygiene"),
     mdocVariables := Map(
      "VERSION" -> version.value
@@ -293,7 +270,7 @@ lazy val site = (project in file("site"))
   ).enablePlugins(MicrositesPlugin, ScalaUnidocPlugin)
 
 lazy val avokka = (project in file("."))
-  .aggregate(velocypack, velocypackEnumeratum, velocypackCirce, velocystream, arangodb, arangodbAkka, arangodbFs2, arangodbFs2Ce3)
+  .aggregate(velocypack, velocypackEnumeratum, velocypackCirce, velocystream, arangodb, arangodbAkka, arangodbFs2)
   .settings(
     publishArtifact := false,
     publish / skip := true

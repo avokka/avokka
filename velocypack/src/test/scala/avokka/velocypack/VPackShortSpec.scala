@@ -28,7 +28,7 @@ class VPackShortSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VPac
   }
 
   "short" should "roundtrip" in {
-    forAll { v: Short =>
+    forAll { (v: Short) =>
       assertRoundtrip(v)
     }
   }

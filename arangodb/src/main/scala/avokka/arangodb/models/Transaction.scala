@@ -16,7 +16,7 @@ case class Transaction(
 )
 
 object Transaction {
-  implicit val decoder: VPackDecoder[Transaction] = VPackDecoder.gen
+  implicit val decoder: VPackDecoder[Transaction] = VPackDecoder.derived
 
   val KEY: String = "x-arango-trx-id"
 }

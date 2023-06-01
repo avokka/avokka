@@ -7,7 +7,7 @@ import scodec.interop.cats._
 import scodec.bits.BitVector
 import scodec.{Attempt, DecodeResult, Decoder}
 
-package object velocypack extends ShowInstances {
+package object velocypack {
 
   /** return type of decoding a VPack to a T */
   type VPackResult[T] = Either[VPackError, T]
@@ -35,7 +35,7 @@ package object velocypack extends ShowInstances {
     private[avokka] def asVPackValue: VPackResult[VPack] = codecs.vpackDecoder
       .decodeValue(bits)
       .toEither
-      .leftMap(VPackError.Codec)
+      .leftMap(VPackError.Codec.apply)
 
     /**
       * decodes vpack bitvector to T
@@ -47,7 +47,7 @@ package object velocypack extends ShowInstances {
       codecs.vpackDecoder
         .decode(bits)
         .toEither
-        .leftMap(VPackError.Codec)
+        .leftMap(VPackError.Codec.apply)
         .flatMap(_.traverse(decoder.decode))
     }
 
@@ -58,16 +58,17 @@ package object velocypack extends ShowInstances {
       * @return either err or (Vector[T] and remainder)
       */
     def asVPackSequence[T](implicit decoder: VPackDecoder[T]): VPackResult[DecodeResult[Vector[T]]] = {
-      Decoder.decodeCollect[Vector, VPack](codecs.vpackDecoder, None)(bits)
+      codecs.vpackDecoder
+        .collect[Vector, VPack](bits, None)
         .toEither
-        .leftMap(VPackError.Codec)
+        .leftMap(VPackError.Codec.apply(_))
         .flatMap(_.traverse(_.traverse(decoder.decode)))
     }
   }
 
-  implicit final class DecoderStateOps[T](private val decoder: Decoder[T]) extends AnyVal {
+  implicit final class DecoderOps[T](val decoder: Decoder[T]) extends DecoderOpsShims[T] {
 
-    def asState: StateT[VPackResult, BitVector, T] = StateT { bits: BitVector =>
+    def asState: StateT[VPackResult, BitVector, T] = StateT { (bits: BitVector) =>
       decoder.decode(bits) match {
         case Attempt.Successful(result) => Right(result.remainder -> result.value)
         case Attempt.Failure(cause) => Left(VPackError.Codec(cause))

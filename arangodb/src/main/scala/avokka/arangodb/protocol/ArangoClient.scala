@@ -3,6 +3,7 @@ package protocol
 
 import avokka.arangodb.types.DatabaseName
 import avokka.velocypack._
+import avokka.velocypack.show._
 import cats.MonadThrow
 import cats.syntax.flatMap._
 import cats.syntax.functor._

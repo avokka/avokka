@@ -74,9 +74,9 @@ object CollectionCreate { self =>
   )
 
   object KeyOptions {
-    implicit val encoder: VPackEncoder[KeyOptions] = VPackEncoder.gen
+    implicit val encoder: VPackEncoder[KeyOptions] = VPackEncoder.derived
   }
 
-  implicit val encoder: VPackEncoder[CollectionCreate] = VPackEncoder.gen
+  implicit val encoder: VPackEncoder[CollectionCreate] = VPackEncoder.derived
 
 }

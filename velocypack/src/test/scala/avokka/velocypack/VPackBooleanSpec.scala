@@ -11,7 +11,7 @@ class VPackBooleanSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with VP
   }
 
   "boolean" should "roundtrip" in {
-    forAll { b: Boolean =>
+    forAll { (b: Boolean) =>
       assertRoundtrip(b)
     }
   }

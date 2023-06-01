@@ -9,7 +9,7 @@ class VPackObjectCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
 
   "object codec" should "conform specs" in {
 
-    val objectPacked = (new VPackBuilder()).add(ValueType.OBJECT).add("z", 1.toByte).add("a", 2.toByte).close().slice()
+    val objectPacked = (new VPackBuilder()).add(ValueType.OBJECT).add("z", Byte.box(1)).add("a", Byte.box(2)).close().slice()
     assertEncodePack(vpackCodec, VObject(Map("z" -> VSmallint(1), "a" -> VSmallint(2))), objectPacked)
 
     assertCodec(VPackObjectCodec.codecCompact, VObject.empty, hex"0a")

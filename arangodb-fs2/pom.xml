@@ -2,9 +2,9 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.bicou</groupId>
-    <artifactId>avokka-arangodb_3</artifactId>
+    <artifactId>avokka-arangodb-fs2_3</artifactId>
     <packaging>jar</packaging>
-    <description>ArangoDB core</description>
+    <description>ArangoDB client (fs2,ce3)</description>
     <url>https://github.com/avokka</url>
     <version>0.0.7+74-704947fb-SNAPSHOT</version>
     <licenses>
@@ -14,7 +14,7 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-    <name>avokka-arangodb</name>
+    <name>avokka-arangodb-fs2</name>
     <organization>
         <name>com.bicou</name>
         <url>https://github.com/avokka</url>
@@ -35,13 +35,20 @@
     <dependencies>
         <dependency>
             <groupId>com.bicou</groupId>
-            <artifactId>avokka-velocystream_3</artifactId>
+            <artifactId>avokka-arangodb_3</artifactId>
             <version>0.0.7+74-704947fb-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.bicou</groupId>
-            <artifactId>avokka-velocypack-enumeratum_3</artifactId>
+            <artifactId>avokka-test_3</artifactId>
             <version>0.0.7+74-704947fb-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.bicou</groupId>
+            <artifactId>avokka-velocypack-circe_3</artifactId>
+            <version>0.0.7+74-704947fb-SNAPSHOT</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
@@ -49,14 +56,41 @@
             <version>3.3.0</version>
         </dependency>
         <dependency>
-            <groupId>org.typelevel</groupId>
-            <artifactId>log4cats-core_3</artifactId>
-            <version>2.6.0</version>
+            <groupId>org.scodec</groupId>
+            <artifactId>scodec-stream_3</artifactId>
+            <version>3.0.2</version>
         </dependency>
         <dependency>
-            <groupId>com.github.pureconfig</groupId>
-            <artifactId>pureconfig-core_3</artifactId>
-            <version>0.17.4</version>
+            <groupId>com.github.cb372</groupId>
+            <artifactId>cats-retry_3</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.typelevel</groupId>
+            <artifactId>cats-effect_3</artifactId>
+            <version>3.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>co.fs2</groupId>
+            <artifactId>fs2-core_3</artifactId>
+            <version>3.7.0</version>
+        </dependency>
+        <dependency>
+            <groupId>co.fs2</groupId>
+            <artifactId>fs2-io_3</artifactId>
+            <version>3.7.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.typelevel</groupId>
+            <artifactId>log4cats-slf4j_3</artifactId>
+            <version>2.6.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.3.7</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
@@ -71,9 +105,27 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.3.7</version>
+            <groupId>org.typelevel</groupId>
+            <artifactId>cats-effect-testing-scalatest_3</artifactId>
+            <version>1.5.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.circe</groupId>
+            <artifactId>circe-literal_3</artifactId>
+            <version>0.14.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.typelevel</groupId>
+            <artifactId>jawn-parser_3</artifactId>
+            <version>1.4.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.kevinlee</groupId>
+            <artifactId>just-semver_3</artifactId>
+            <version>0.6.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

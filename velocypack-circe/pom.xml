@@ -2,11 +2,11 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.bicou</groupId>
-    <artifactId>avokka-velocypack-circe_2.13</artifactId>
+    <artifactId>avokka-velocypack-circe_3</artifactId>
     <packaging>jar</packaging>
     <description>velocypack encoders for circe json</description>
     <url>https://github.com/avokka</url>
-    <version>0.0.7+45-d15a97e5+20230515-1555-SNAPSHOT</version>
+    <version>0.0.7+74-704947fb-SNAPSHOT</version>
     <licenses>
         <license>
             <name>MIT</name>
@@ -34,42 +34,42 @@
     </developers>
     <dependencies>
         <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-            <version>2.13.10</version>
+            <groupId>com.bicou</groupId>
+            <artifactId>avokka-velocypack_3</artifactId>
+            <version>0.0.7+74-704947fb-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.bicou</groupId>
-            <artifactId>avokka-velocypack_2.13</artifactId>
-            <version>0.0.7+45-d15a97e5+20230515-1555-SNAPSHOT</version>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala3-library_3</artifactId>
+            <version>3.3.0</version>
         </dependency>
         <dependency>
             <groupId>io.circe</groupId>
-            <artifactId>circe-core_2.13</artifactId>
+            <artifactId>circe-core_3</artifactId>
             <version>0.14.5</version>
         </dependency>
         <dependency>
             <groupId>io.circe</groupId>
-            <artifactId>circe-literal_2.13</artifactId>
+            <artifactId>circe-literal_3</artifactId>
             <version>0.14.5</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.typelevel</groupId>
-            <artifactId>jawn-parser_2.13</artifactId>
+            <artifactId>jawn-parser_3</artifactId>
             <version>1.4.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.13</artifactId>
-            <version>3.2.15</version>
+            <artifactId>scalatest_3</artifactId>
+            <version>3.2.16</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.12</version>
+            <version>1.3.7</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

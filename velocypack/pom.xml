@@ -2,11 +2,11 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.bicou</groupId>
-    <artifactId>avokka-velocypack_2.13</artifactId>
+    <artifactId>avokka-velocypack_3</artifactId>
     <packaging>jar</packaging>
     <description>velocypack codec (scodec, shapeless, cats)</description>
     <url>https://github.com/avokka</url>
-    <version>0.0.7+45-d15a97e5+20230515-1555-SNAPSHOT</version>
+    <version>0.0.7+74-704947fb-SNAPSHOT</version>
     <licenses>
         <license>
             <name>MIT</name>
@@ -35,72 +35,61 @@
     <dependencies>
         <dependency>
             <groupId>org.scala-lang</groupId>
-            <artifactId>scala-library</artifactId>
-            <version>2.13.10</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang.modules</groupId>
-            <artifactId>scala-collection-compat_2.13</artifactId>
-            <version>2.10.0</version>
+            <artifactId>scala3-library_3</artifactId>
+            <version>3.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.typelevel</groupId>
-            <artifactId>cats-core_2.13</artifactId>
+            <artifactId>cats-core_3</artifactId>
             <version>2.9.0</version>
         </dependency>
         <dependency>
             <groupId>org.scodec</groupId>
-            <artifactId>scodec-core_2.13</artifactId>
-            <version>1.11.10</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scodec</groupId>
-            <artifactId>scodec-bits_2.13</artifactId>
+            <artifactId>scodec-bits_3</artifactId>
             <version>1.1.37</version>
         </dependency>
         <dependency>
             <groupId>org.scodec</groupId>
-            <artifactId>scodec-cats_2.13</artifactId>
+            <artifactId>scodec-cats_3</artifactId>
             <version>1.2.0</version>
         </dependency>
         <dependency>
-            <groupId>com.chuusai</groupId>
-            <artifactId>shapeless_2.13</artifactId>
-            <version>2.3.10</version>
+            <groupId>org.typelevel</groupId>
+            <artifactId>shapeless3-deriving_3</artifactId>
+            <version>3.3.0</version>
         </dependency>
         <dependency>
-            <groupId>com.propensive</groupId>
-            <artifactId>magnolia_2.13</artifactId>
-            <version>0.17.0</version>
+            <groupId>org.scodec</groupId>
+            <artifactId>scodec-core_3</artifactId>
+            <version>2.2.0</version>
         </dependency>
         <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-reflect</artifactId>
-            <version>2.13.10</version>
-            <scope>provided</scope>
+            <groupId>com.softwaremill.magnolia1_3</groupId>
+            <artifactId>magnolia_3</artifactId>
+            <version>1.2.5</version>
         </dependency>
         <dependency>
             <groupId>com.arangodb</groupId>
-            <artifactId>arangodb-java-driver</artifactId>
-            <version>6.14.0</version>
+            <artifactId>velocypack</artifactId>
+            <version>3.0.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.13</artifactId>
-            <version>3.2.15</version>
+            <artifactId>scalatest_3</artifactId>
+            <version>3.2.16</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.scalatestplus</groupId>
-            <artifactId>scalacheck-1-15_2.13</artifactId>
-            <version>3.2.11.0</version>
+            <artifactId>scalacheck-1-17_3</artifactId>
+            <version>3.2.16.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.12</version>
+            <version>1.3.7</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

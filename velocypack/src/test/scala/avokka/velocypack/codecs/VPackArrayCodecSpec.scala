@@ -20,7 +20,7 @@ class VPackArrayCodecSpec extends AnyFlatSpec with VPackCodecSpecTrait {
 
   "same size elements" should "encode at 0x02-0x05" in {
     assertCodec(vpackCodec, avoidtrue, hex"02 04 40 1a")
-    assertEncodePack(vpackCodec, avoidtrue, VPackBuilder().add(ValueType.ARRAY).add("").add(true).close().slice()) // """["",true]""")
+    assertEncodePack(vpackCodec, avoidtrue, (new VPackBuilder()).add(ValueType.ARRAY).add("").add(true).close().slice()) // """["",true]""")
 //    assertEncodePack(vpackCodec, bigArray, bigArraJson)
     assertEncodeDecode(vpackCodec, bigArray)
   }

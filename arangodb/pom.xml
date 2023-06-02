@@ -6,7 +6,7 @@
     <packaging>jar</packaging>
     <description>ArangoDB core</description>
     <url>https://github.com/avokka</url>
-    <version>0.0.7+74-704947fb-SNAPSHOT</version>
+    <version>0.0.8</version>
     <licenses>
         <license>
             <name>MIT</name>
@@ -36,12 +36,12 @@
         <dependency>
             <groupId>com.bicou</groupId>
             <artifactId>avokka-velocystream_3</artifactId>
-            <version>0.0.7+74-704947fb-SNAPSHOT</version>
+            <version>0.0.8</version>
         </dependency>
         <dependency>
             <groupId>com.bicou</groupId>
             <artifactId>avokka-velocypack-enumeratum_3</artifactId>
-            <version>0.0.7+74-704947fb-SNAPSHOT</version>
+            <version>0.0.8</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>

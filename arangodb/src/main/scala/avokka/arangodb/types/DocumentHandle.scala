@@ -12,21 +12,17 @@ case class DocumentHandle(collection: CollectionName, key: DocumentKey) {
 object DocumentHandle {
   val key: String = "_id"
 
-  // def apply(handle: (CollectionName, DocumentKey)): DocumentHandle = handle
-
-  def parse(path: String): Option[DocumentHandle] = {
+  def parse(path: String): Either[VPackError, DocumentHandle] = {
     path.split('/') match {
-      case Array(collection, key) => Some(apply(CollectionName(collection), DocumentKey(key)))
-      case _ => None
+      case Array(collection, key) => Right(apply(CollectionName(collection), DocumentKey(key)))
+      case _ => Left(VPackError.IllegalValue(s"invalid document handle '$path'"))
     }
   }
 
   def apply(path: String): DocumentHandle = parse(path).getOrElse(empty)
 
   implicit val encoder: VPackEncoder[DocumentHandle] = VPackEncoder[String].contramap(_.path)
-  implicit val decoder: VPackDecoder[DocumentHandle] = VPackDecoder[String].flatMap { path =>
-    parse(path).toRight(VPackError.IllegalValue(s"invalid document handle '$path'"))
-  }
+  implicit val decoder: VPackDecoder[DocumentHandle] = VPackDecoder[String].flatMap(parse)
 
   val empty = apply(CollectionName(""), DocumentKey.empty)
 }
